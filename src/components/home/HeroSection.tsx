@@ -16,7 +16,7 @@ export function HeroSection() {
       <div className="absolute top-40 right-10 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000" />
       <div className="absolute -bottom-8 left-20 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24">
+      <div className="relative z-10 mx-auto w-full px-4 sm:px-6 lg:px-8 py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="text-center lg:text-left">
@@ -31,13 +31,13 @@ export function HeroSection() {
               for Your Dog
             </h1>
             
-            <p className="mt-6 text-xl text-gray-600 max-w-2xl">
+            <p className="mt-6 text-xl text-gray-600 w-full">
               Book safe, secure, and spacious fields where your furry friend can run, 
               play, and explore freely. From private gardens to professional training grounds.
             </p>
 
             {/* Search Bar */}
-            <div className="mt-8 bg-white rounded-2xl shadow-xl p-2 max-w-2xl">
+            <div className="mt-8 bg-white rounded-2xl shadow-xl p-2 w-full">
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1 flex items-center px-4 py-3 border-r border-gray-200">
                   <MapPin className="w-5 h-5 text-gray-400 mr-3" />
@@ -77,7 +77,7 @@ export function HeroSection() {
             </div>
 
             {/* Stats */}
-            <div className="mt-12 grid grid-cols-3 gap-8 max-w-lg">
+            <div className="mt-12 grid grid-cols-3 gap-8 w-full">
               <div>
                 <div className="text-3xl font-bold text-gray-900">500+</div>
                 <div className="text-sm text-gray-600">Available Fields</div>
