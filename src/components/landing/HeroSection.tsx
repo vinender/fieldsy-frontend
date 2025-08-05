@@ -24,7 +24,7 @@ export function HeroSection() {
         {/* Hero Text - positioned 123px from top */}
         <div className="px-4 sm:px-8 md:px-12 xl:px-20 pt-[150px] sm:pt-32 md:pt-40 xl:pt-[211px]">
           <div className="w-full max-w-[626px] text-left">
-            <h1 className="text-4xl sm:text-4xl md:text-5xl xl:text-[68px] font-semibold sm:font-bold xl:font-[700] leading-tight sm:leading-tight md:leading-tight xl:leading-[76px] text-white mb-4 sm:mb-6">
+            <h1 className="text-5xl md:text-5xl xl:text-[68px] font-semibold sm:font-bold xl:font-[700] leading-tight sm:leading-tight md:leading-tight xl:leading-[76px] text-white mb-4 sm:mb-6">
               Find Safe, Private Dog
               Walking Fields <span className='text-cream'> Near You</span> 
             </h1>
@@ -41,7 +41,7 @@ export function HeroSection() {
         {/* Search Container - positioned at bottom with 52px margin */}
         <div className="relative px-4 sm:px-8 md:px-12 xl:px-20 pb-6 sm:pb-8 md:pb-10 xl:pb-[52px]">
           {/* Dog Image - Positioned absolutely */}
-          <div className="absolute -top-[160px] left-[20%] z-30 hidden xl:block">
+          <div className="hidden xl:block absolute -top-[160px] xl:left-[40%] 2xl:left-[20%]  z-30  ">
             <img 
               src="/dog.png" 
               alt="Happy Golden Retriever"

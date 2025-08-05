@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { Star } from "lucide-react"
 
 export function TestimonialsSection() {
   const [currentSlide, setCurrentSlide] = useState(1) // Starting at slide 2 (index 1)
@@ -50,20 +50,20 @@ export function TestimonialsSection() {
   const currentTestimonial = testimonials[currentSlide]
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-20" style={{ backgroundColor: '#FAF7F2' }}>
-      <div className="mx-auto w-full max-w-7xl px-0 sm:px-8 md:px-16 lg:px-[118px] py-8 sm:py-16 md:py-20 lg:py-[120px]">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32" style={{ backgroundColor: '#FAF7F2' }}>
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         <div className="text-center mb-8 sm:mb-12 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] leading-tight sm:leading-10 md:leading-[56px] font-bold text-dark-green">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[44px] xl:text-[48px] leading-tight sm:leading-10 md:leading-[48px] lg:leading-[52px] xl:leading-[56px] font-bold text-dark-green">
             What Dog Lovers Are Saying
           </h2>
         </div>
         
         {/* Testimonial Card */}
-        <div className="relative w-full mx-auto px-12 sm:px-14 md:px-16">
+        <div className="relative w-full mx-auto px-14 sm:px-16 md:px-20 lg:px-24">
           {/* Navigation Arrows */}
           <button 
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10"
             style={{ backgroundColor: '#8FB653' }}
           >
            <img src='/testimonial/left.png' className="w-full h-full object-contain"/>
@@ -71,7 +71,7 @@ export function TestimonialsSection() {
           
           <button 
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10"
             style={{ backgroundColor: '#8FB653' }}
           >
             {/* <ChevronRight className="w-6 h-6 text-white" /> */}
@@ -79,11 +79,11 @@ export function TestimonialsSection() {
           </button>
           
           {/* Main Testimonial Card */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 shadow-lg">
-            <div className="flex flex-col lg:flex-row items-start gap-6 sm:gap-8">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 xl:p-16 shadow-lg mx-auto max-w-5xl">
+            <div className="flex flex-col lg:flex-row items-start gap-6 sm:gap-8 lg:gap-10 xl:gap-12">
               {/* Profile Picture */}
               <div className="flex-shrink-0 mx-auto lg:mx-0">
-                <div className="w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-[263px] lg:h-[263px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-100">
+                <div className="w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 xl:w-[263px] xl:h-[263px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-100">
                   <img 
                     src={`https://images.unsplash.com/photo-${currentSlide % 2 === 0 ? '1507003211169-0a1dd7228f2d' : '1633332755192-727a05c4013d'}?w=400&h=400&fit=crop`}
                     alt={currentTestimonial.name}
@@ -108,7 +108,7 @@ export function TestimonialsSection() {
                   </div>
                 </div>
                 
-                <p className="text-dark-green font-normal min-h-[80px] sm:min-h-[100px] xl:min-h-[120px] leading-6 sm:leading-8 lg:leading-[40px] text-base sm:text-lg md:text-xl lg:text-[24px] mb-4 sm:mb-6">
+                <p className="text-dark-green font-normal min-h-[80px] sm:min-h-[100px] lg:min-h-[110px] xl:min-h-[120px] leading-6 sm:leading-8 lg:leading-9 xl:leading-[40px] text-base sm:text-lg md:text-xl lg:text-[22px] xl:text-[24px] mb-4 sm:mb-6">
                   {currentTestimonial.text}
                 </p>
                 
