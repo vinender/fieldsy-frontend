@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ImageGrid } from "@/components/forms/ImageGrid"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -68,46 +69,11 @@ export function LoginForm() {
   return (
     <div className="min-h-screen flex">
       {/* Left Section - Image Grid */}
-      <div className="hidden lg:flex w-1/2 bg-gray-100 relative">
-        {/* Image Grid */}
-        <div className="grid grid-cols-3 gap-2 p-4 w-full h-full">
-          {images.map((image, index) => (
-            <div 
-              key={index} 
-              className={`relative overflow-hidden ${index === 4 ? 'ring-4 ring-pink-500 rounded-lg' : ''}`}
-            >
-              <img 
-                src={image.src}
-                alt={image.alt}
-                className="w-full h-full object-cover"
-              />
-              {/* Center image indicator */}
-              {index === 4 && (
-                <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                  D
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* White cloudy overlay effect */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/0" />
-          <div className="absolute bottom-0 left-0 right-0 h-[700px] bg-gradient-to-t from-white/100 to-transparent" />
-        </div>
-
-        {/* Bottom Text */}
-        <div className="absolute bottom-8 left-8 right-8 z-10">
-          <h2 className="font-[800] text-[32px] leading-[58px] mb-3 text-green">
-            Fieldsy Makes Dog Walking Easy
-          </h2>
-          <p className="text-dark-green/40 font-[400] text-[16px] leading-[24px] ">
-            Find secure fields nearby, book in seconds, and give your dog the off-lead freedom 
-            they deserve—all with peace of mind.
-          </p>
-        </div>
-      </div>
+      <ImageGrid
+        images={images}
+        title="Fieldsy Makes Dog Walking Easy"
+        description="Find secure fields nearby, book in seconds, and give your dog the off-lead freedom they deserve—all with peace of mind."
+      />
 
       {/* Right Section - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-8 lg:px-16 bg-light-cream">
