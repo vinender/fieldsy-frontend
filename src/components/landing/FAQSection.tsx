@@ -24,7 +24,7 @@ export function FAQSection() {
   ]
 
   return (
-    <section className="relative py-20 px-6 md:px-20 overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
+    <section className="relative py-20 px-6 md:px-20 overflow-hidden bg-light-cream">
       {/* Background decorative circle */}
       <div 
         className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-0 bg-cream"

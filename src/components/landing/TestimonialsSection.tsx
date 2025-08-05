@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Star } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function TestimonialsSection() {
   const [currentSlide, setCurrentSlide] = useState(1) // Starting at slide 2 (index 1)
@@ -63,16 +64,14 @@ export function TestimonialsSection() {
           {/* Navigation Arrows */}
           <button 
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10"
-            style={{ backgroundColor: '#8FB653' }}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10 bg-light-green"
           >
            <img src='/testimonial/left.png' className="w-full h-full object-contain"/>
           </button>
           
           <button 
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10"
-            style={{ backgroundColor: '#8FB653' }}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10 bg-light-green"
           >
             {/* <ChevronRight className="w-6 h-6 text-white" /> */}
             <img src='/testimonial/right.png' className="w-full h-full object-contain"/>
@@ -101,8 +100,7 @@ export function TestimonialsSection() {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star 
                         key={star} 
-                        className="w-4 h-4 sm:w-5 sm:h-5 fill-current" 
-                        style={{ color: '#FFD700' }}
+                        className="w-4 h-4 sm:w-5 sm:h-5 fill-current text-yellow"
                       />
                     ))}
                   </div>
@@ -126,14 +124,10 @@ export function TestimonialsSection() {
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`transition-all duration-300 ${
-                  index === currentSlide 
-                    ? 'w-8 h-2 rounded-full' 
-                    : 'w-2 h-2 rounded-full'
-                }`}
-                style={{ 
-                  backgroundColor: index === currentSlide ? '#4A7C59' : '#D3D3D3'
-                }}
+                className={cn(
+                  'transition-all duration-300 rounded-full',
+                  index === currentSlide ? 'w-8 h-2 bg-green' : 'w-2 h-2 bg-gray-300'
+                )}
               />
             ))}
           </div>
