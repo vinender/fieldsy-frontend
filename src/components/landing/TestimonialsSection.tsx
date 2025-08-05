@@ -50,20 +50,20 @@ export function TestimonialsSection() {
   const currentTestimonial = testimonials[currentSlide]
 
   return (
-    <section className="py-20 px-6 md:px-20" style={{ backgroundColor: '#FAF7F2' }}>
-      <div className="mx-auto w-full px-[118px] py-[120px]">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-[48px] leading-[56px] font-[700] text-dark-green">
+    <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-20" style={{ backgroundColor: '#FAF7F2' }}>
+      <div className="mx-auto w-full max-w-7xl px-0 sm:px-8 md:px-16 lg:px-[118px] py-8 sm:py-16 md:py-20 lg:py-[120px]">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] leading-tight sm:leading-10 md:leading-[56px] font-bold text-dark-green">
             What Dog Lovers Are Saying
           </h2>
         </div>
         
         {/* Testimonial Card */}
-        <div className="relative w-full mx-auto px-16">
+        <div className="relative w-full mx-auto px-12 sm:px-14 md:px-16">
           {/* Navigation Arrows */}
           <button 
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
             style={{ backgroundColor: '#8FB653' }}
           >
            <img src='/testimonial/left.png' className="w-full h-full object-contain"/>
@@ -71,7 +71,7 @@ export function TestimonialsSection() {
           
           <button 
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
             style={{ backgroundColor: '#8FB653' }}
           >
             {/* <ChevronRight className="w-6 h-6 text-white" /> */}
@@ -79,11 +79,11 @@ export function TestimonialsSection() {
           </button>
           
           {/* Main Testimonial Card */}
-          <div className="bg-white rounded-3xl p-10 shadow-lg">
-            <div className="flex flex-col md:flex-row items-start gap-8">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 shadow-lg">
+            <div className="flex flex-col lg:flex-row items-start gap-6 sm:gap-8">
               {/* Profile Picture */}
-              <div className="flex-shrink-0">
-                <div className="w-[263px] h-[263px] rounded-3xl overflow-hidden bg-gray-100">
+              <div className="flex-shrink-0 mx-auto lg:mx-0">
+                <div className="w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-[263px] lg:h-[263px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-100">
                   <img 
                     src={`https://images.unsplash.com/photo-${currentSlide % 2 === 0 ? '1507003211169-0a1dd7228f2d' : '1633332755192-727a05c4013d'}?w=400&h=400&fit=crop`}
                     alt={currentTestimonial.name}
@@ -93,35 +93,35 @@ export function TestimonialsSection() {
               </div>
               
               {/* Testimonial Content */}
-              <div className="flex-1   w-full">
-                <div className="flex items-start justify-between gap-6 mb-6">
-                  <img src='/testimonial/quotes.png' className='w-10 h-10 object-contain'/>
+              <div className="flex-1 w-full">
+                <div className="flex items-start justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
+                  <img src='/testimonial/quotes.png' className='w-8 h-8 sm:w-10 sm:h-10 object-contain'/>
                   {/* <div className="text-6xl leading-none" style={{ color: '#8FB653' }}>"</div> */}
-                  <div className="flex gap-1 mt-2">
+                  <div className="flex gap-1 mt-1 sm:mt-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star 
                         key={star} 
-                        className="w-5 h-5 fill-current" 
+                        className="w-4 h-4 sm:w-5 sm:h-5 fill-current" 
                         style={{ color: '#FFD700' }}
                       />
                     ))}
                   </div>
                 </div>
                 
-                <p className="text-dark-green font-[400] xl:h-[120px] leading-[40px] text-[24px] mb-6">
+                <p className="text-dark-green font-normal min-h-[80px] sm:min-h-[100px] xl:min-h-[120px] leading-6 sm:leading-8 lg:leading-[40px] text-base sm:text-lg md:text-xl lg:text-[24px] mb-4 sm:mb-6">
                   {currentTestimonial.text}
                 </p>
                 
                 <div>
-                  <p className="font-bold text-gray-900 text-lg">{currentTestimonial.name}</p>
-                  <p className="text-gray-500">{currentTestimonial.role}</p>
+                  <p className="font-bold text-gray-900 text-base sm:text-lg">{currentTestimonial.name}</p>
+                  <p className="text-gray-500 text-sm sm:text-base">{currentTestimonial.role}</p>
                 </div>
               </div>
             </div>
           </div>
           
           {/* Pagination Dots */}
-          <div className="flex justify-center mt-10 space-x-3">
+          <div className="flex justify-center mt-6 sm:mt-8 md:mt-10 space-x-2 sm:space-x-3">
             {testimonials.map((_, index) => (
               <button
                 key={index}
