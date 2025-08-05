@@ -93,16 +93,16 @@ export function LoginForm() {
 
         {/* White cloudy overlay effect */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/20" />
-          <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-white/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/0" />
+          <div className="absolute bottom-0 left-0 right-0 h-[700px] bg-gradient-to-t from-white/100 to-transparent" />
         </div>
 
         {/* Bottom Text */}
         <div className="absolute bottom-8 left-8 right-8 z-10">
-          <h2 className="text-4xl font-bold mb-3 text-green">
+          <h2 className="font-[800] text-[32px] leading-[58px] mb-3 text-green">
             Fieldsy Makes Dog Walking Easy
           </h2>
-          <p className="text-gray-600">
+          <p className="text-dark-green/40 font-[400] text-[16px] leading-[24px] ">
             Find secure fields nearby, book in seconds, and give your dog the off-lead freedom 
             they deserve—all with peace of mind.
           </p>
