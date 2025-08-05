@@ -1,8 +1,8 @@
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { Plus, Minus } from "lucide-react"
 import { useState } from "react"
 
 export function FAQSection() {
-  const [openFaq, setOpenFaq] = useState(0)
+  const [openFaq, setOpenFaq] = useState(-1)
 
   const faqs = [
     {
@@ -24,35 +24,49 @@ export function FAQSection() {
   ]
 
   return (
-    <section className="py-20 px-20 bg-light-cream">
-      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <section className="relative py-20 px-6 md:px-20 overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
+      {/* Background decorative circle */}
+      <div 
+        className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-0 bg-cream"
+        // style={{ backgroundColor: '#D4E4BC', transform: 'translate(30%, -30%)' }}
+      />
+      
+      <div className="mx-auto w-full max-w-7xl relative z-10 ">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* Left Section - FAQ */}
-          <div className="bg-cream rounded-2xl p-8">
-            <h2 className="text-3xl font-bold text-dark-green mb-8">
+          <div className={`rounded-3xl p-10 shadow-lg transition-colors duration-300 ${openFaq !== -1 ? 'bg-white' : 'bg-cream'}`}>
+            <h2 className="text-4xl font-bold text-gray-900 mb-10">
               Frequently Asked Questions
             </h2>
             
-            <div className="space-y-4">
+            <div className="space-y-0">
               {faqs.map((faq, index) => (
-                <div key={index} className="bg-white rounded-xl p-6">
+                <div 
+                  key={index} 
+                  className={`border-b  border-gray-200 ${index === 0 ? 'border-t' : ''}`}
+                >
                   <button
                     onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-                    className="flex items-center justify-between w-full text-left"
+                    className="flex items-center justify-between w-full text-left py-6 group"
                   >
-                    <span className="font-semibold text-dark-green">
+                    <span className="font-medium text-gray-900 text-lg pr-4">
                       {faq.question}
                     </span>
-                    {openFaq === index ? (
-                      <ChevronUp className="w-5 h-5 text-green" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-green" />
-                    )}
+                    <div 
+                      className={`w-8 h-8 rounded-full ${openFaq === index ? 'bg-light-green' : '#E5E5E5' } flex items-center justify-center flex-shrink-0 transition-colors`}
+                         
+                    >
+                      {openFaq === index ? (
+                        <Minus className="w-5 h-5 text-white" />
+                      ) : (
+                        <Plus className="w-6 h-6 text-light-green border border-light-green rounded-full border-2 " />
+                      )}
+                    </div>
                   </button>
                   
                   {openFaq === index && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <p className="text-dark-green/80">
+                    <div className="pb-6">
+                      <p className="text-dark-green leading-relaxed">
                         {faq.answer}
                       </p>
                     </div>
@@ -64,35 +78,34 @@ export function FAQSection() {
 
           {/* Right Section - Mobile App Promotion */}
           <div className="relative">
+            {/* Background Blob */}
+            <div className="absolute -top-20 -right-20 w-96 h-96 pointer-events-none">
+              <svg viewBox="0 0 400 400" className="w-full h-full">
+                <path 
+                  d="M 150 50 Q 250 20, 320 80 T 350 200 Q 380 280, 300 330 T 150 350 Q 50 320, 30 230 T 80 100 Q 100 60, 150 50"
+                  fill="#D4E4BC"
+                  opacity="0.3"
+                />
+              </svg>
+            </div>
+            
             {/* Dog Image */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 z-10">
-              <div className="w-32 h-32 bg-light-green rounded-full flex items-center justify-center">
-                <span className="text-4xl">🐕</span>
-              </div>
+            <div className="absolute left-40 z-20">
+              <img 
+                src="/faq/dog.png"
+                alt="Bernese Mountain Dog"
+                className="w-full h-full object-contain object-top"
+                // style={{ 
+                //   clipPath: 'ellipse(50% 40% at 50% 50%)',
+                // }}
+              />
             </div>
 
             {/* App Download Banner */}
-            <div className="bg-green rounded-2xl p-8 mt-16 text-center">
-              <h3 className="text-2xl font-bold text-white mb-6">
-                Download The Fieldsy App Today!
-              </h3>
-              
-              <div className="flex flex-col gap-3">
-                <button className="flex items-center justify-center bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                  <span className="text-sm font-medium">GET IT ON Google Play</span>
-                </button>
-                <button className="flex items-center justify-center bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                  <span className="text-sm font-medium">Download on the App Store</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Decorative Blobs */}
-            <div className="absolute top-20 right-8 w-16 h-16 bg-light-green rounded-full opacity-30"></div>
-            <div className="absolute bottom-20 left-8 w-12 h-12 bg-light-green rounded-full opacity-30"></div>
+            
           </div>
         </div>
       </div>
     </section>
   )
-} 
+}

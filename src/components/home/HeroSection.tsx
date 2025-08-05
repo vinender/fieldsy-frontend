@@ -16,16 +16,16 @@ export function HeroSection() {
       <div className="absolute top-40 right-10 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000" />
       <div className="absolute -bottom-8 left-20 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000" />
 
-      <div className="relative z-10 mx-auto w-full px-4 sm:px-6 lg:px-8 py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 mx-auto w-full px-4 sm:px-6 xl:px-8 py-24">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <div className="text-center lg:text-left">
+          <div className="text-center xl:text-left">
             <div className="inline-flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 mb-6">
               <Star className="w-4 h-4 mr-2 fill-current" />
               Trusted by 10,000+ dog owners
             </div>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-5xl sm:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight">
               Find the Perfect
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600"> Field </span>
               for Your Dog

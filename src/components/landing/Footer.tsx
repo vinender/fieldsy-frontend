@@ -2,14 +2,14 @@ import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "luci
 
 export function Footer() {
   return (
-    <footer className="bg-green px-20 text-white">
-      <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-red-400 px-20 text-white">
+      <div className="mx-auto w-full px-4 sm:px-6 xl:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
           {/* Company Information */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-green rounded-full"></div>
+                <div className="w-2 h-2 bg-dark-green rounded-full"></div>
               </div>
               <span className="text-xl font-bold">Fieldsy</span>
             </div>

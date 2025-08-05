@@ -65,11 +65,11 @@ export function Header() {
 
   return (
     <header className={cn(
-      "fixed py-3 sm:py-4 lg:py-[24px] top-0 left-0 right-0 z-40 px-4 sm:px-6 lg:px-20 transition-all duration-300",
+      "fixed py-3 sm:py-4 xl:py-[24px] top-0 left-0 right-0 z-40 px-4 sm:px-6 xl:px-20 transition-all duration-300",
       headerBg
     )}>
       <nav className="mx-auto w-full">
-        <div className="flex h-12 sm:h-14 lg:h-16 justify-between items-center">
+        <div className="flex h-12 sm:h-14 xl:h-16 justify-between items-center">
           <div className="flex items-center">
             <Link href="/">
               <Image 
@@ -77,12 +77,12 @@ export function Header() {
                 width={500} 
                 height={500} 
                 src={`${!isLandingPage || scrolled ? '/logo/logo-green.png' : '/logo/logo.png'}`} 
-                className='object-contain w-[120px] sm:w-[140px] lg:w-[163px] h-[48px] sm:h-[56px] lg:h-[64px]' 
+                className='object-contain w-[120px] sm:w-[140px] xl:w-[163px] h-[48px] sm:h-[56px] xl:h-[64px]' 
               />
             </Link>
           </div>
 
-          <div className="hidden lg:ml-16 lg:flex lg:space-x-10">
+          <div className="hidden xl:ml-16 xl:flex xl:space-x-10">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -117,7 +117,7 @@ export function Header() {
           </div>
           
           {/* Right side items */}
-          <div className="hidden lg:flex lg:items-center lg:space-x-4">
+          <div className="hidden xl:flex xl:items-center xl:space-x-4">
             {isAuthenticated ? (
               <>
                 {/* Message Icon */}
@@ -211,7 +211,7 @@ export function Header() {
                     variant="ghost" 
                     size="default"
                     className={cn(
-                      "px-4 sm:px-6 lg:px-[28px] py-2 sm:py-3 lg:py-[16px] text-sm sm:text-base font-medium rounded-full transition-colors",
+                      "px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base font-medium rounded-full transition-colors",
                       !isLandingPage || scrolled 
                         ? "bg-  light-green text-white hover:bg-dark-green" 
                         : "bg-light-green text-white hover:bg-dark-green"
@@ -225,7 +225,7 @@ export function Header() {
                   variant="ghost" 
                     size="default"
                     className={cn(
-                      "px-4 sm:px-6 lg:px-[28px] py-2 sm:py-3 lg:py-[16px] text-sm sm:text-base text-white font-medium rounded-full",
+                      "px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base text-white font-medium rounded-full",
                       !isLandingPage || scrolled 
                         ? "bg-gray-900  hover:bg-gray-800" 
                         : "bg-gray-900  hover:bg-gray-800"
@@ -239,7 +239,7 @@ export function Header() {
           </div>
           
           {/* Mobile menu button */}
-          <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center gap-2 xl:hidden">
             {/* Mobile Login/Signup buttons - visible when not authenticated */}
             {!isAuthenticated && (
               <>
@@ -292,7 +292,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white mt-2 mx-4 sm:mx-6 rounded-lg shadow-lg">
+        <div className="xl:hidden bg-white mt-2 mx-4 sm:mx-6 rounded-lg shadow-lg">
           <div className="space-y-1 pb-3 pt-2">
             {navigation.map((item) => (
               <Link
