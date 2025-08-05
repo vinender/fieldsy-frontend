@@ -47,7 +47,7 @@ export function AboutSection() {
           </div>
 
           {/* Right Block - Image and Text */}
-            <div className="bg-white rounded-2xl sm:rounded-[32px] p-4 sm:p-6 xl:p-8 shadow-xl flex-1 xl:min-w-[280px] flex flex-col h-full ">
+            <div className="bg-white rounded-2xl sm:rounded-[32px] p-4 sm:p-6 xl:p-8 shadow-xl flex-1  flex flex-col h-full ">
               <div className="w-full h-[50%] xl:h-[80%]  flex items-center justify-center"> 
                 <img src='/about/fam.png' className="object-cover rounded-[24px] w-full h-full"/> 
               </div>
@@ -66,7 +66,7 @@ export function AboutSection() {
         </div>
 
         {/* Statistics Section */}
-        <div className="grid grid-cols-1  md:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
+        <div className="grid grid-cols-2  md:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
             <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">500+</div>
             <div className="text-dark-green/80 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Early Access Signups</div>

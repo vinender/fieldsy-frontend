@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, User } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -207,32 +206,18 @@ export function Header() {
             ) : (
               <>
                 <Link href="/login">
-                  <Button 
-                    variant="ghost" 
-                    size="default"
-                    className={cn(
-                      "px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base font-medium rounded-full transition-colors",
-                      !isLandingPage || scrolled 
-                        ? "bg-  light-green text-white hover:bg-dark-green" 
-                        : "bg-light-green text-white hover:bg-dark-green"
-                    )}
+                  <button 
+                    className="inline-flex items-center justify-center px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base font-medium rounded-full transition-colors bg-light-green text-white hover:bg-green"
                   >
                     Login
-                  </Button>
+                  </button>
                 </Link>
                 <Link href="/register">
-                  <Button 
-                  variant="ghost" 
-                    size="default"
-                    className={cn(
-                      "px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base text-white font-medium rounded-full",
-                      !isLandingPage || scrolled 
-                        ? "bg-gray-900  hover:bg-gray-800" 
-                        : "bg-gray-900  hover:bg-gray-800"
-                    )}
+                  <button 
+                    className="inline-flex items-center justify-center px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base text-white font-medium rounded-full transition-colors bg-dark-green hover:bg-green"
                   >
                     Sign Up
-                  </Button>
+                  </button>
                 </Link>
               </>
             )}
@@ -244,32 +229,18 @@ export function Header() {
             {!isAuthenticated && (
               <>
                 <Link href="/login">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className={cn(
-                      "px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
-                      !isLandingPage || scrolled 
-                        ? "bg-light-green text-white hover:bg-dark-green" 
-                        : "bg-light-green text-white hover:bg-dark-green"
-                    )}
+                  <button 
+                    className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-full transition-colors bg-light-green text-white hover:bg-dark-green"
                   >
                     Login
-                  </Button>
+                  </button>
                 </Link>
                 <Link href="/register">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className={cn(
-                      "px-3 py-1.5 text-xs text-white font-medium rounded-full",
-                      !isLandingPage || scrolled 
-                        ? "bg-gray-900 hover:bg-gray-800" 
-                        : "bg-gray-900 hover:bg-gray-800"
-                    )}
+                  <button 
+                    className="inline-flex items-center justify-center px-3 py-1.5 text-xs text-white font-medium rounded-full transition-colors bg-dark-green hover:bg-light-green"
                   >
                     Sign Up
-                  </Button>
+                  </button>
                 </Link>
               </>
             )}
@@ -401,7 +372,7 @@ export function Header() {
                   </Link>
                   <Link
                     href="/register"
-                    className="flex-1 text-center px-4 py-2 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                    className="flex-1 text-center px-4 py-2 bg-dark-green text-white rounded-full text-sm font-medium hover:bg-light-green transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Sign Up
