@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { Menu, MessageCircle, Bell, User } from "lucide-react"
+import { Menu, MessageCircle, Bell, X } from "lucide-react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 
@@ -261,45 +261,83 @@ export function Header() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="xl:hidden bg-white mt-2 mx-4 sm:mx-6 rounded-lg shadow-lg">
-          <div className="space-y-1 pb-3 pt-2">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "block border-l-4 py-2 pl-3 pr-4 text-base font-medium",
-                  pathname === item.href
-                    ? "border-green-500 bg-green-50 text-green-700"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-                )}
+      {/* Mobile menu overlay */}
+      <div className={cn(
+        "xl:hidden fixed inset-0 z-50 flex justify-end transition-opacity duration-300",
+        mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      )}>
+        {/* Backdrop */}
+        <div 
+          className={cn(
+            "fixed inset-0 bg-black transition-opacity duration-300",
+            mobileMenuOpen ? "bg-opacity-50" : "bg-opacity-0"
+          )}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+        
+        {/* Sidebar */}
+        <div className={cn(
+          "relative flex flex-col max-w-xs w-full bg-white transform transition-transform duration-300 ease-in-out shadow-xl",
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        )}>
+            {/* Header with close button */}
+            <div className="flex items-center justify-between px-4 pt-5 pb-2">
+              <Image 
+                alt='logo' 
+                width={120} 
+                height={48} 
+                src='/logo/logo-green.png'
+                className='object-contain' 
+              />
+              <button
+                className="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {item.name}
-              </Link>
-            ))}
-            {isAuthenticated && currentUser?.role === "FIELD_OWNER" && (
-              <Link
-                href="/fields/manage"
-                className={cn(
-                  "block border-l-4 py-2 pl-3 pr-4 text-base font-medium",
-                  pathname === "/fields/manage"
-                    ? "border-green-500 bg-green-50 text-green-700"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+                <span className="sr-only">Close sidebar</span>
+                <X className="h-6 w-6 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="flex-1 h-0 pb-4 overflow-y-auto">
+              {/* Navigation */}
+              <nav className="mt-4 px-2 space-y-1">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                      pathname === item.href
+                        ? "bg-green-100 text-green-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+                {isAuthenticated && currentUser?.role === "FIELD_OWNER" && (
+                  <Link
+                    href="/fields/manage"
+                    className={cn(
+                      "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                      pathname === "/fields/manage"
+                        ? "bg-green-100 text-green-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Manage Fields
+                  </Link>
                 )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Manage Fields
-              </Link>
-            )}
-          </div>
-          <div className="border-t border-gray-200 pb-3 pt-4">
-            {isAuthenticated ? (
-              <div className="space-y-1">
-                <div className="px-4 pb-3">
-                  <div className="flex items-center">
+              </nav>
+            </div>
+            
+            <div className="flex-shrink-0 border-t border-gray-200">
+              {isAuthenticated ? (
+                <div className="space-y-1">
+                  {/* User profile section */}
+                  <div className="flex items-center p-4">
                     <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden">
                       {currentUser?.image ? (
                         <img 
@@ -324,65 +362,69 @@ export function Header() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Mobile Icons */}
+                  <div className="flex items-center justify-around px-4 py-2 border-t border-gray-200">
+                    <button className="p-2 rounded-full hover:bg-gray-100">
+                      <MessageCircle className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <button className="p-2 rounded-full hover:bg-gray-100 relative">
+                      <Bell className="h-5 w-5 text-gray-600" />
+                      <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
+                    </button>
+                  </div>
+                  
+                  {/* User navigation */}
+                  <nav className="px-2 pb-3 space-y-1 border-t border-gray-200 pt-3">
+                    {userNavigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                    <button
+                      className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        if (isSimulatedLoggedIn) {
+                          setIsSimulatedLoggedIn(false)
+                        } else {
+                          signOut({ callbackUrl: "/" })
+                        }
+                      }}
+                    >
+                      Sign Out
+                    </button>
+                  </nav>
                 </div>
-                {/* Mobile Icons */}
-                <div className="flex items-center justify-around px-4 py-2 border-b border-gray-200">
-                  <button className="p-2 rounded-full hover:bg-gray-100">
-                    <MessageCircle className="h-5 w-5 text-gray-600" />
-                  </button>
-                  <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                    <Bell className="h-5 w-5 text-gray-600" />
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
-                  </button>
+              ) : (
+                <div className="p-4">
+                  <p className="text-sm text-gray-500 text-center mb-4">Please login or sign up to continue</p>
+                  <div className="space-y-2">
+                    <Link
+                      href="/login"
+                      className="block w-full text-center px-4 py-2 bg-light-green text-white rounded-full text-sm font-medium hover:bg-dark-green transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="block w-full text-center px-4 py-2 bg-dark-green text-white rounded-full text-sm font-medium hover:bg-light-green transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
                 </div>
-                {userNavigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                <button
-                  className="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-                  onClick={() => {
-                    setMobileMenuOpen(false)
-                    if (isSimulatedLoggedIn) {
-                      setIsSimulatedLoggedIn(false)
-                    } else {
-                      signOut({ callbackUrl: "/" })
-                    }
-                  }}
-                >
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <div className="px-4 py-3">
-                <p className="text-sm text-gray-500 text-center">Please login or sign up to continue</p>
-                <div className="mt-3 flex gap-2">
-                  <Link
-                    href="/login"
-                    className="flex-1 text-center px-4 py-2 bg-light-green text-white rounded-full text-sm font-medium hover:bg-dark-green transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="flex-1 text-center px-4 py-2 bg-dark-green text-white rounded-full text-sm font-medium hover:bg-light-green transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+      </div>
     </header>
   )
 }
