@@ -9,7 +9,7 @@ import { Footer } from "@/components/landing/Footer"
 
 export default function HomePage() {
   return (
-    <div className="bg-light-cream">
+    <div className="bg-light-cream overflow-x-hidden">
       {/* Hero Section */}
       <HeroSection />
 

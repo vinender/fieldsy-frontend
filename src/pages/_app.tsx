@@ -49,10 +49,10 @@ export default function App({
   return (
     <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
-        <div className={`${dmSans.variable} font-sans antialiased`}>
-          <div className="min-h-screen flex flex-col">
+        <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
+          <div className="min-h-screen flex flex-col overflow-x-hidden">
             {!hideLayout && <Header />}
-            <main className="flex-grow">
+            <main className="flex-grow overflow-x-hidden">
               <Component {...pageProps} />
             </main>
             {!hideLayout && <Footer />}

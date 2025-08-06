@@ -35,7 +35,7 @@ export function FeaturesSection() {
       description: "Connecting paws with places whether you walk or host."
     }
   ]
-
+ 
   return (
     <section className="py-20 px-8 lg:px-20 bg-white ">
       <div className="mx-auto w-full">

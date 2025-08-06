@@ -2,8 +2,8 @@ import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "luci
 
 export function Footer() {
   return (
-    <footer className="bg-dark-green text-white">
-      <div className="mx-auto w-full px-4 sm:px-6 md:px-12 lg:px-16 xl:px-20 py-8 sm:py-10">
+    <footer className="bg-dark-green text-white px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
+      <div className="mx-auto w-full   py-8 sm:py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
           {/* Company Information */}
           <div className="flex flex-col justify-evenly space-y-4">

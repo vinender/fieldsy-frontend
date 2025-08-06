@@ -174,7 +174,7 @@ export function LoginForm() {
                 <p className="text-sm text-red-600">{errors.password.message}</p>
               )}
               <div className="text-right mt-2">
-                <a href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
+                <a href="/forgot-password" className="text-sm text-green hover:text-light-green">
                   Forgot password?
                 </a>
               </div>
