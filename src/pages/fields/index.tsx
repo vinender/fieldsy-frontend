@@ -1,249 +1,516 @@
-import { useState } from "react"
-import { Header } from "@/components/layout/Header"
-import { Footer } from "@/components/layout/Footer"
-import { FieldCard } from "@/components/fields/FieldCard"
-import { FilterSection } from "@/components/fields/FilterSection"
-import { MapPin, ChevronDown } from "lucide-react"
+import React, { useState } from 'react';
+import { Heart, MapPin, Star, ChevronDown, ChevronUp, SortDesc, Calendar, X, Navigation, Filter } from 'lucide-react';
 
-// Mock data matching Figma design
-const mockFields = [
+// Using Unsplash images for better visuals
+const fields = [
   {
-    id: "1",
+    id: 1,
     name: "Green Meadows Field",
-    location: "Bristol BS31 1JA",
-    distance: "5km away",
+    owner: "Albert",
     price: 18,
-    priceUnit: "hour",
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop",
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    owner: "Owner",
-  },
-  {
-    id: "2",
-    name: "Barkside Paddock",
-    location: "Bristol BS35 1JA",
     distance: "3km away",
+    location: "Bristol BS37, UK",
+    rating: 4.3,
+    amenities: ["Secure fencing", "Water Access", "Shelter"],
+    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop"
+  },
+  {
+    id: 2,
+    name: "Barkside Paddock",
+    owner: "Alex",
     price: 10,
-    priceUnit: "30 mins",
-    rating: 4.6,
-    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop",
-    amenities: ["Large dog area", "Water", "Waste Disposal"],
-    owner: "Owner",
-  },
-  {
-    id: "3",
-    name: "Wagging Woods Field",
-    location: "Bristol BS35 2JA",
-    distance: "8km away",
-    price: 20,
-    priceUnit: "hour",
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop",
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    owner: "Owner",
-  },
-  {
-    id: "4",
-    name: "The Happy Hound Pasture",
-    location: "Bristol BS31 1JA",
-    distance: "10km away",
-    price: 12,
-    priceUnit: "hour",
-    rating: 4.5,
-    image: "https://images.unsplash.com/photo-1601758123927-4f7acc7c1177?w=400&h=300&fit=crop",
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    owner: "Owner",
-  },
-  {
-    id: "5",
-    name: "Zoomies Zone",
-    location: "Bristol BS35 2JA",
-    distance: "7km away",
-    price: 19,
-    priceUnit: "hour",
+    distance: "3km away",
+    location: "Bristol BS37, UK",
     rating: 4.8,
-    image: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=300&fit=crop",
-    amenities: ["Secure fencing", "Water Access", "Toilet"],
-    owner: "Owner",
+    amenities: ["Secure fencing", "Water Access", "Large"],
+    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop"
   },
   {
-    id: "6",
-    name: "Quiet Paws Retreat",
-    location: "Bristol BS31 2JA",
-    distance: "12km away",
-    price: 16,
-    priceUnit: "hour",
+    id: 3,
+    name: "Wagging Woods Field",
+    owner: "Smith",
+    price: 20,
+    distance: "3km away",
+    location: "Bristol BS37, UK",
     rating: 4.7,
-    image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
     amenities: ["Secure fencing", "Water Access", "Shelter"],
-    owner: "Owner",
+    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop"
   },
   {
-    id: "7",
-    name: "Tailspin Turf",
-    location: "Bristol BS35 3JA",
-    distance: "15km away",
-    price: 22,
-    priceUnit: "hour",
-    rating: 4.6,
-    image: "https://images.unsplash.com/photo-1601758174493-45d0a4d3e407?w=400&h=300&fit=crop",
-    amenities: ["Dog agility equipment", "Restrooms", "Toilet"],
-    owner: "Owner",
-  },
-  {
-    id: "8",
-    name: "River's Run Free Field",
-    location: "Bristol BS31 3JA",
-    distance: "9km away",
-    price: 24,
-    priceUnit: "hour",
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=400&h=300&fit=crop",
-    amenities: ["Secure fencing", "Water Access", "Toilet"],
-    owner: "Owner",
-  },
-  {
-    id: "9",
-    name: "Green Meadows Field",
-    location: "Bristol BS35 4JA",
-    distance: "14km away",
-    price: 14,
-    priceUnit: "hour",
+    id: 4,
+    name: "The Happy Hound Pasture",
+    owner: "Robert",
+    price: 12,
+    distance: "5km away",
+    location: "Bristol BS37, UK",
     rating: 4.5,
-    image: "https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=400&h=300&fit=crop",
     amenities: ["Secure fencing", "Water Access", "Shelter"],
-    owner: "Owner",
+    image: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=400&h=300&fit=crop"
+  },
+  {
+    id: 5,
+    name: "Zoomies Zone",
+    owner: "Laura",
+    price: 19,
+    distance: "3km away",
+    location: "Bristol BS37, UK",
+    rating: 4.8,
+    amenities: ["Secure fencing", "Water Access", "Large"],
+    image: "https://images.unsplash.com/photo-1601758003122-53c40e686a19?w=400&h=300&fit=crop"
+  },
+  {
+    id: 6,
+    name: "Quiet Paws Retreat",
+    owner: "Ashish",
+    price: 16,
+    distance: "3km away",
+    location: "Bristol BS37, UK",
+    rating: 4.6,
+    amenities: ["Secure fencing", "Water Access", "Shelter"],
+    image: "https://images.unsplash.com/photo-1601758261049-55d060e1159a?w=400&h=300&fit=crop"
+  },
+  {
+    id: 7,
+    name: "Tailspin Turf",
+    owner: "Henry",
+    price: 22,
+    distance: "10km away",
+    location: "Bristol BS37, UK",
+    rating: 4.3,
+    amenities: ["Dog agility equipments", "Restrooms", "Toilet"],
+    image: "https://images.unsplash.com/photo-1504595403659-9088ce801e29?w=400&h=300&fit=crop"
+  },
+  {
+    id: 8,
+    name: "River's Run Free Field",
+    owner: "Melissa",
+    price: 24,
+    distance: "10km away",
+    location: "Bristol BS37, UK",
+    rating: 4.9,
+    amenities: ["Secure fencing", "Water Access", "Shelter"],
+    image: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=300&fit=crop"
+  },
+  {
+    id: 9,
+    name: "Green Meadows Field",
+    owner: "James",
+    price: 14,
+    distance: "3km away",
+    location: "Bristol BS37, UK",
+    rating: 4.5,
+    amenities: ["Secure fencing", "Water Access", "Shelter"],
+    image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=300&fit=crop"
   }
-]
+];
 
-export default function SearchFieldsPage() {
-  const [fields] = useState(mockFields)
-  const [likedFields, setLikedFields] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState("relevance")
-  const [location, setLocation] = useState("Bristol BS37 8QZ, United Kingdom")
-  const [currentPage, setCurrentPage] = useState(1)
+export default function SearchResults() {
+  const [searchValue, setSearchValue] = useState('Bristol BS37 8QZ, United Kingdom');
+  const [selectedSize, setSelectedSize] = useState('Large (3+ Acres)');
+  const [selectedAmenities, setSelectedAmenities] = useState(['Secure fencing']);
+  const [selectedRating, setSelectedRating] = useState('4.5+');
+  const [priceRange, setPriceRange] = useState([100, 170]);
+  const [distanceRange, setDistanceRange] = useState([0, 12]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    fieldSize: true,
+    amenities: true,
+    price: true,
+    distance: true,
+    rating: true,
+    date: true,
+    availability: true
+  });
 
-  const handleLike = (fieldId: string) => {
-    setLikedFields(prev => 
-      prev.includes(fieldId) 
-        ? prev.filter(id => id !== fieldId)
-        : [...prev, fieldId]
-    )
-  }
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const FieldCard = ({ field }) => (
+    <div className="bg-white rounded-[20px] border border-black/[0.08] w-full overflow-hidden">
+      <div className="p-4">
+        {/* Header with title and price */}
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1 pr-2">
+            <h3 className="text-[15px] font-bold text-[#192215] leading-[20px]">{field.name}</h3>
+            <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {field.owner}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[16px] font-bold text-[#3A6B22] leading-[20px]">${field.price}</p>
+            <p className="text-[13px] text-[#8d8d8d] leading-[16px]">/dog/hour</p>
+          </div>
+        </div>
+
+        {/* Image container - increased height */}
+        <div className="relative mb-4">
+          <div className="h-[320px] w-full">
+            <img 
+              src={field.image} 
+              alt={field.name} 
+              className="w-full h-full object-cover rounded-[32px]"
+            />
+          </div>
+          <button className="absolute top-2 right-2 bg-white/20 backdrop-blur-[1.5px] border border-white/20 rounded-[19px] w-[33px] h-[34px] flex items-center justify-center">
+            <Heart className="w-5 h-5 text-white" fill="white" />
+          </button>
+        </div>
+
+        {/* Location and Rating */}
+        <div className="flex justify-between items-center mb-2 px-0">
+          <div className="flex items-center gap-1 flex-1 pr-2">
+            <MapPin className="w-5 h-5 text-[#3A6B22] flex-shrink-0" />
+            <span className="text-[12px] text-[#192215] leading-[16px]">
+              {field.location} • {field.distance}
+            </span>
+          </div>
+          <div className="bg-[#192215] rounded-md px-1.5 py-1 flex items-center gap-0.5">
+            <Star className="w-3.5 h-3.5 text-white" fill="white" />
+            <span className="text-[12px] font-semibold text-white">{field.rating}</span>
+          </div>
+        </div>
+
+        {/* Amenities */}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {field.amenities.map((amenity, idx) => (
+            <span 
+              key={idx} 
+              className="bg-neutral-100 text-[11px] text-[#192215] px-2 py-1 rounded-md leading-[16px]"
+            >
+              {amenity}
+            </span>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button className="flex-1 border border-[#3A6B22] text-[#3A6B22] text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#3A6B22] hover:text-white transition-colors">
+            View Details
+          </button>
+          <button className="flex-1 bg-[#3A6B22] text-white text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#2d5a1b] transition-colors">
+            Book Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-[#fffcf3] pt-[100px]">
-        {/* Search Bar Section */}
-        <div className="px-[80px] py-4">
-          <div className="bg-white rounded-[12px] px-4 py-3 flex items-center gap-3 shadow-sm">
-            <MapPin className="w-4 h-4 text-gray-500" />
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="flex-1 outline-none text-[14px] text-[#192215]"
-              placeholder="Enter location..."
-            />
-            <button className="text-[13px] text-[#3a6b22] font-medium hover:text-[#2a5b12] mr-2">
-              Use My Location
+    <div className="min-h-screen bg-[#FFFCF3] w-full">
+      {/* Search Bar - Sticky below header */}
+      <div className="bg-light-cream my-10 sticky top-[80px] md:top-[120px] z-30 px-4 sm:px-6 lg:px-20 py-4">
+        <div className="bg-white rounded-[30px] md:rounded-[90px] min-h-[50px] md:h-[60px] flex flex-col md:flex-row items-center px-4 md:px-6 py-3 md:py-0 border border-black/10 shadow-[0px_12px_13px_0px_rgba(0,0,0,0.05)] gap-3 md:gap-0">
+          <input 
+            type="text" 
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder="Enter location..."
+            className="flex-1 w-full bg-white md:w-auto text-[14px] md:text-[16px] text-[#192215] outline-none placeholder-gray-400"
+          />
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {searchValue && (
+              <X 
+                className="w-[18px] h-[18px] text-[#192215] cursor-pointer hover:text-[#3A6B22] transition-colors" 
+                onClick={() => setSearchValue('')}
+              />
+            )}
+            <div className="hidden md:block w-px h-5 bg-[#8d8d8d] mx-3" />
+            <button className="flex items-center gap-1 text-[#3A6B22]">
+              <Navigation className="w-[16px] md:w-[18px] h-[16px] md:h-[18px]" />
+              <span className="text-[14px] md:text-[16px] font-medium underline">Use My Location</span>
             </button>
-            <button className="px-5 py-2 bg-[#3a6b22] text-white text-[13px] rounded-full font-medium hover:bg-[#2a5b12] transition-colors">
+            <button className="ml-auto bg-[#3A6B22] text-white px-4 md:px-6 py-2 md:py-3 rounded-[90px] text-[14px] md:text-[16px] font-semibold whitespace-nowrap">
               Search
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="px-[80px] pb-8">
-          <div className="flex gap-6">
-            {/* Left Sidebar - Filters */}
-            <div className="w-[260px] flex-shrink-0">
-              <FilterSection onFiltersChange={() => {}} />
+      {/* Main Content */}
+      <div className="px-4 sm:px-6 lg:px-20 py-6 lg:py-10">
+
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden mb-4">
+          <button 
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className="bg-[#3A6B22] text-white px-4 py-2 rounded-full flex items-center gap-2"
+          >
+            <Filter className="w-5 h-5" />
+            <span>Filters</span>
+          </button>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-[31px]">
+          {/* Filters Sidebar */}
+          <div className={`${
+            filtersOpen ? 'fixed inset-0 bg-black/50 z-50 lg:relative lg:inset-auto lg:bg-transparent' : 'hidden lg:block'
+          }`}>
+            <div className={`${
+              filtersOpen ? 'fixed left-0 top-0 h-full w-[85%] max-w-[375px] bg-white overflow-y-auto' : 'w-full lg:w-[375px] bg-white rounded-[22px] border border-black/[0.06]'
+            } p-6`}>
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-[18px] font-semibold text-[#192215]">Filters</h2>
+              <div className="flex items-center gap-3">
+                <button className="text-[14px] font-semibold text-[#e31c20]">Reset All</button>
+                {filtersOpen && (
+                  <button 
+                    onClick={() => setFiltersOpen(false)}
+                    className="lg:hidden p-1"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Right Content - Results */}
-            <div className="flex-1">
-              {/* Results Header */}
-              <div className="flex justify-between items-center mb-4">
-                <h1 className="text-[20px] font-semibold text-[#192215]">
-                  Over 135 results
-                </h1>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-gray-600">Sort By</span>
-                  <div className="relative">
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-1.5 pr-8 text-[13px] focus:outline-none focus:border-[#3a6b22]"
-                    >
-                      <option value="relevance">Relevance</option>
-                      <option value="price-low">Price: Low to High</option>
-                      <option value="price-high">Price: High to Low</option>
-                      <option value="rating">Rating</option>
-                      <option value="distance">Distance</option>
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Fields Grid - 4 columns as per Figma */}
-              <div className="grid grid-cols-4 gap-4 mb-8">
-                {fields.map(field => (
-                  <FieldCard
-                    key={field.id}
-                    {...field}
-                    isLiked={likedFields.includes(field.id)}
-                    onLike={() => handleLike(field.id)}
-                  />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              <div className="flex justify-center items-center gap-1 mb-8">
-                <button className="px-3 py-1 text-[12px] text-gray-600 hover:text-[#3a6b22]">
-                  Back
+            {/* Field Size */}
+            <div className="mb-5">
+              <div className="flex justify-between items-center mb-2.5">
+                <h3 className="text-[14px] font-bold text-[#192215]">Field Size</h3>
+                <button onClick={() => toggleSection('fieldSize')}>
+                  {expandedSections.fieldSize ? 
+                    <ChevronUp className="w-4 h-4" /> : 
+                    <ChevronDown className="w-4 h-4" />
+                  }
                 </button>
-                
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    className={`w-7 h-7 text-[12px] rounded ${
-                      currentPage === 1
-                        ? 'bg-[#3a6b22] text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    1
-                  </button>
-                  {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((page) => (
+              </div>
+              {expandedSections.fieldSize && (
+                <div className="flex flex-wrap gap-2.5">
+                  {['Small (Under 1 Acre)', 'Medium (1–3 Acres)', 'Large (3+ Acres)'].map((size) => (
                     <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-7 h-7 text-[12px] rounded ${
-                        currentPage === page
-                          ? 'bg-[#3a6b22] text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
+                        selectedSize === size 
+                          ? 'bg-[#8FB366] text-white' 
+                          : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                       }`}
                     >
-                      {page}
+                      {size}
                     </button>
                   ))}
                 </div>
-                
-                <button className="px-3 py-1 text-[12px] text-gray-600 hover:text-[#3a6b22]">
-                  Next
+              )}
+            </div>
+
+            <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
+
+            {/* Amenities */}
+            <div className="mb-5">
+              <div className="flex justify-between items-center mb-2.5">
+                <h3 className="text-[14px] font-bold text-[#192215]">Amenities</h3>
+                <button onClick={() => toggleSection('amenities')}>
+                  {expandedSections.amenities ? 
+                    <ChevronUp className="w-4 h-4" /> : 
+                    <ChevronDown className="w-4 h-4" />
+                  }
                 </button>
+              </div>
+              {expandedSections.amenities && (
+                <div className="flex flex-wrap gap-2">
+                  {['Secure fencing', 'Water Access', 'Toilet', 'Parking', 'Shelter', 'Waste Disposal'].map((amenity) => (
+                    <button
+                      key={amenity}
+                      onClick={() => {
+                        setSelectedAmenities(prev => 
+                          prev.includes(amenity) 
+                            ? prev.filter(a => a !== amenity)
+                            : [...prev, amenity]
+                        );
+                      }}
+                      className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium flex items-center gap-2 ${
+                        selectedAmenities.includes(amenity)
+                          ? 'bg-[#8FB366] text-white' 
+                          : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
+                      }`}
+                    >
+                      {amenity}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
+
+            {/* Price */}
+            <div className="mb-5">
+              <div className="flex justify-between items-center mb-2.5">
+                <h3 className="text-[14px] font-bold text-[#192215]">Price</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] font-medium text-[#3A6B22]">$100 to $170</span>
+                  <button onClick={() => toggleSection('price')}>
+                    {expandedSections.price ? 
+                      <ChevronUp className="w-4 h-4" /> : 
+                      <ChevronDown className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+              </div>
+              {expandedSections.price && (
+                <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
+                  <input type="range" className="w-full" min="100" max="1000" />
+                  <div className="flex justify-between text-[12px] text-[#192215] mt-2">
+                    <span>$100</span>
+                    <span>$1000</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
+
+            {/* Distance */}
+            <div className="mb-5">
+              <div className="flex justify-between items-center mb-2.5">
+                <h3 className="text-[14px] font-bold text-[#192215]">Distance away</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] font-medium text-[#3A6B22]">0 mile to 12 Miles</span>
+                  <button onClick={() => toggleSection('distance')}>
+                    {expandedSections.distance ? 
+                      <ChevronUp className="w-4 h-4" /> : 
+                      <ChevronDown className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+              </div>
+              {expandedSections.distance && (
+                <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
+                  <input type="range" className="w-full" min="0" max="100" />
+                  <div className="flex justify-between text-[12px] text-[#192215] mt-2">
+                    <span>0 mile</span>
+                    <span>100 miles</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
+
+            {/* Rating */}
+            <div className="mb-5">
+              <div className="flex justify-between items-center mb-2.5">
+                <h3 className="text-[14px] font-bold text-[#192215]">Rating</h3>
+                <button onClick={() => toggleSection('rating')}>
+                  {expandedSections.rating ? 
+                    <ChevronUp className="w-4 h-4" /> : 
+                    <ChevronDown className="w-4 h-4" />
+                  }
+                </button>
+              </div>
+              {expandedSections.rating && (
+                <div className="flex flex-wrap gap-2.5">
+                  {['Any Rating', '2+', '2.5+', '3+', '3.5+', '4+', '4.5+', '4.8+'].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => setSelectedRating(rating)}
+                      className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
+                        selectedRating === rating
+                          ? 'bg-[#8FB366] text-white' 
+                          : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
+                      }`}
+                    >
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
+
+            {/* Date & Availability */}
+            <div className="mb-5">
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2.5">
+                  <h3 className="text-[14px] font-bold text-[#192215]">Date</h3>
+                  <button onClick={() => toggleSection('date')}>
+                    {expandedSections.date ? 
+                      <ChevronUp className="w-4 h-4" /> : 
+                      <ChevronDown className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+                {expandedSections.date && (
+                  <div className="bg-white border border-black/[0.08] rounded-2xl px-5 py-3.5 flex items-center gap-2.5">
+                    <Calendar className="w-6 h-6 text-[#3A6B22]" />
+                    <span className="text-[14px] text-[#8d8d8d]">Choose Date</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2.5">
+                  <h3 className="text-[14px] font-bold text-[#192215]">Availability</h3>
+                  <button onClick={() => toggleSection('availability')}>
+                    {expandedSections.availability ? 
+                      <ChevronUp className="w-4 h-4" /> : 
+                      <ChevronDown className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+                {expandedSections.availability && (
+                  <div className="flex flex-wrap gap-2.5">
+                    {['Morning', 'Afternoon', 'Evening'].map((time) => (
+                      <button
+                        key={time}
+                        className="px-3.5 py-2 rounded-[14px] text-[14px] font-medium bg-white border border-black/[0.06] text-[#8d8d8d]"
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setFiltersOpen(false)}
+              className="w-full bg-[#3A6B22] text-white py-4 rounded-[50px] text-[16px] font-semibold"
+            >
+              Apply Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Results */}
+          <div className="flex-1">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-[#192215]">Over 135 results</h1>
+              <button className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4">
+                <div className="flex items-center gap-2">
+                  <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-[#192215]" />
+                  <span className="text-[13px] md:text-[14px] font-medium text-[#192215]">Sort By</span>
+                </div>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Fields Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+              {fields.map((field) => (
+                <FieldCard key={field.id} field={field} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6 lg:mt-8">
+              <span className="text-[12px] md:text-[14px] text-[#192215]">Showing 1-12 of 135</span>
+              <div className="flex gap-1 flex-wrap justify-center">
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded bg-[#3A6B22] text-white text-[12px] md:text-[14px] font-medium">1</button>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">2</button>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">3</button>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">4</button>
+                <span className="px-2 text-[#192215] hidden sm:inline">...</span>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">10</button>
+                <button className="px-2 text-[#192215] text-[12px] md:text-[14px]">Next</button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <Footer />
-    </>
-  )
+    </div>
+  );
 }
