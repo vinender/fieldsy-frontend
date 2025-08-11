@@ -1,118 +1,20 @@
 import React, { useState } from 'react';
-import { Heart, MapPin, Star, ChevronDown, ChevronUp, SortDesc, Calendar, X, Navigation, Filter } from 'lucide-react';
-
-// Using Unsplash images for better visuals
-const fields = [
-  {
-    id: 1,
-    name: "Green Meadows Field",
-    owner: "Albert",
-    price: 18,
-    distance: "3km away",
-    location: "Bristol BS37, UK",
-    rating: 4.3,
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop"
-  },
-  {
-    id: 2,
-    name: "Barkside Paddock",
-    owner: "Alex",
-    price: 10,
-    distance: "3km away",
-    location: "Bristol BS37, UK",
-    rating: 4.8,
-    amenities: ["Secure fencing", "Water Access", "Large"],
-    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop"
-  },
-  {
-    id: 3,
-    name: "Wagging Woods Field",
-    owner: "Smith",
-    price: 20,
-    distance: "3km away",
-    location: "Bristol BS37, UK",
-    rating: 4.7,
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop"
-  },
-  {
-    id: 4,
-    name: "The Happy Hound Pasture",
-    owner: "Robert",
-    price: 12,
-    distance: "5km away",
-    location: "Bristol BS37, UK",
-    rating: 4.5,
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    image: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=400&h=300&fit=crop"
-  },
-  {
-    id: 5,
-    name: "Zoomies Zone",
-    owner: "Laura",
-    price: 19,
-    distance: "3km away",
-    location: "Bristol BS37, UK",
-    rating: 4.8,
-    amenities: ["Secure fencing", "Water Access", "Large"],
-    image: "https://images.unsplash.com/photo-1601758003122-53c40e686a19?w=400&h=300&fit=crop"
-  },
-  {
-    id: 6,
-    name: "Quiet Paws Retreat",
-    owner: "Ashish",
-    price: 16,
-    distance: "3km away",
-    location: "Bristol BS37, UK",
-    rating: 4.6,
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    image: "https://images.unsplash.com/photo-1601758261049-55d060e1159a?w=400&h=300&fit=crop"
-  },
-  {
-    id: 7,
-    name: "Tailspin Turf",
-    owner: "Henry",
-    price: 22,
-    distance: "10km away",
-    location: "Bristol BS37, UK",
-    rating: 4.3,
-    amenities: ["Dog agility equipments", "Restrooms", "Toilet"],
-    image: "https://images.unsplash.com/photo-1504595403659-9088ce801e29?w=400&h=300&fit=crop"
-  },
-  {
-    id: 8,
-    name: "River's Run Free Field",
-    owner: "Melissa",
-    price: 24,
-    distance: "10km away",
-    location: "Bristol BS37, UK",
-    rating: 4.9,
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    image: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=300&fit=crop"
-  },
-  {
-    id: 9,
-    name: "Green Meadows Field",
-    owner: "James",
-    price: 14,
-    distance: "3km away",
-    location: "Bristol BS37, UK",
-    rating: 4.5,
-    amenities: ["Secure fencing", "Water Access", "Shelter"],
-    image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=300&fit=crop"
-  }
-];
+import { ChevronDown, ChevronUp, SortDesc, Calendar, X, Navigation, Filter } from 'lucide-react';
+import { FieldCard } from '@/components/fields/FieldCard';
+import mockData from '@/data/mock-data.json';
+import { useRouter } from 'next/router';
 
 export default function SearchResults() {
-  const [searchValue, setSearchValue] = useState('Bristol BS37 8QZ, United Kingdom');
+  const router = useRouter();
+  const [searchValue, setSearchValue] = useState(mockData.searchDefaults.location);
   const [selectedSize, setSelectedSize] = useState('Large (3+ Acres)');
   const [selectedAmenities, setSelectedAmenities] = useState(['Secure fencing']);
   const [selectedRating, setSelectedRating] = useState('4.5+');
-  const [priceRange, setPriceRange] = useState([100, 170]);
-  const [distanceRange, setDistanceRange] = useState([0, 12]);
+  const [priceRange, setPriceRange] = useState(mockData.filterOptions.priceRange.default);
+  const [distanceRange, setDistanceRange] = useState(mockData.filterOptions.distanceRange.default);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
+  const [likedFields, setLikedFields] = useState<string[]>([]);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     fieldSize: true,
     amenities: true,
     price: true,
@@ -122,80 +24,28 @@ export default function SearchResults() {
     availability: true
   });
 
-  const toggleSection = (section) => {
+  const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
   };
 
-  const FieldCard = ({ field }) => (
-    <div className="bg-white rounded-[20px] border border-black/[0.08] w-full overflow-hidden">
-      <div className="p-4">
-        {/* Header with title and price */}
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1 pr-2">
-            <h3 className="text-[15px] font-bold text-[#192215] leading-[20px]">{field.name}</h3>
-            <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {field.owner}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-[16px] font-bold text-[#3A6B22] leading-[20px]">${field.price}</p>
-            <p className="text-[13px] text-[#8d8d8d] leading-[16px]">/dog/hour</p>
-          </div>
-        </div>
+  const handleLike = (fieldId: string) => {
+    setLikedFields(prev => 
+      prev.includes(fieldId) 
+        ? prev.filter(id => id !== fieldId)
+        : [...prev, fieldId]
+    );
+  };
 
-        {/* Image container - increased height */}
-        <div className="relative mb-4">
-          <div className="h-[320px] w-full">
-            <img 
-              src={field.image} 
-              alt={field.name} 
-              className="w-full h-full object-cover rounded-[32px]"
-            />
-          </div>
-          <button className="absolute top-2 right-2 bg-white/20 backdrop-blur-[1.5px] border border-white/20 rounded-[19px] w-[33px] h-[34px] flex items-center justify-center">
-            <Heart className="w-5 h-5 text-white" fill="white" />
-          </button>
-        </div>
+  const handleViewDetails = (fieldId: string) => {
+    router.push(`/fields/${fieldId}`);
+  };
 
-        {/* Location and Rating */}
-        <div className="flex justify-between items-center mb-2 px-0">
-          <div className="flex items-center gap-1 flex-1 pr-2">
-            <MapPin className="w-5 h-5 text-[#3A6B22] flex-shrink-0" />
-            <span className="text-[12px] text-[#192215] leading-[16px]">
-              {field.location} • {field.distance}
-            </span>
-          </div>
-          <div className="bg-[#192215] rounded-md px-1.5 py-1 flex items-center gap-0.5">
-            <Star className="w-3.5 h-3.5 text-white" fill="white" />
-            <span className="text-[12px] font-semibold text-white">{field.rating}</span>
-          </div>
-        </div>
-
-        {/* Amenities */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {field.amenities.map((amenity, idx) => (
-            <span 
-              key={idx} 
-              className="bg-neutral-100 text-[11px] text-[#192215] px-2 py-1 rounded-md leading-[16px]"
-            >
-              {amenity}
-            </span>
-          ))}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button className="flex-1 border border-[#3A6B22] text-[#3A6B22] text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#3A6B22] hover:text-white transition-colors">
-            View Details
-          </button>
-          <button className="flex-1 bg-[#3A6B22] text-white text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#2d5a1b] transition-colors">
-            Book Now
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  const handleBookNow = (fieldId: string) => {
+    console.log('Book now for field:', fieldId);
+  };
 
   return (
     <div className="min-h-screen bg-[#FFFCF3] w-full">
@@ -278,7 +128,7 @@ export default function SearchResults() {
               </div>
               {expandedSections.fieldSize && (
                 <div className="flex flex-wrap gap-2.5">
-                  {['Small (Under 1 Acre)', 'Medium (1–3 Acres)', 'Large (3+ Acres)'].map((size) => (
+                  {mockData.filterOptions.fieldSizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -310,7 +160,7 @@ export default function SearchResults() {
               </div>
               {expandedSections.amenities && (
                 <div className="flex flex-wrap gap-2">
-                  {['Secure fencing', 'Water Access', 'Toilet', 'Parking', 'Shelter', 'Waste Disposal'].map((amenity) => (
+                  {mockData.filterOptions.amenities.slice(0, 6).map((amenity) => (
                     <button
                       key={amenity}
                       onClick={() => {
@@ -340,7 +190,7 @@ export default function SearchResults() {
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-[14px] font-bold text-[#192215]">Price</h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-medium text-[#3A6B22]">$100 to $170</span>
+                  <span className="text-[14px] font-medium text-[#3A6B22]">${priceRange[0]} to ${priceRange[1]}</span>
                   <button onClick={() => toggleSection('price')}>
                     {expandedSections.price ? 
                       <ChevronUp className="w-4 h-4" /> : 
@@ -351,10 +201,17 @@ export default function SearchResults() {
               </div>
               {expandedSections.price && (
                 <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
-                  <input type="range" className="w-full" min="100" max="1000" />
+                  <input 
+                    type="range" 
+                    className="w-full" 
+                    min={mockData.filterOptions.priceRange.min} 
+                    max={mockData.filterOptions.priceRange.max} 
+                    value={priceRange[1]}
+                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                  />
                   <div className="flex justify-between text-[12px] text-[#192215] mt-2">
-                    <span>$100</span>
-                    <span>$1000</span>
+                    <span>${mockData.filterOptions.priceRange.min}</span>
+                    <span>${mockData.filterOptions.priceRange.max}</span>
                   </div>
                 </div>
               )}
@@ -367,7 +224,7 @@ export default function SearchResults() {
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-[14px] font-bold text-[#192215]">Distance away</h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-medium text-[#3A6B22]">0 mile to 12 Miles</span>
+                  <span className="text-[14px] font-medium text-[#3A6B22]">{distanceRange[0]} mile to {distanceRange[1]} Miles</span>
                   <button onClick={() => toggleSection('distance')}>
                     {expandedSections.distance ? 
                       <ChevronUp className="w-4 h-4" /> : 
@@ -378,10 +235,17 @@ export default function SearchResults() {
               </div>
               {expandedSections.distance && (
                 <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
-                  <input type="range" className="w-full" min="0" max="100" />
+                  <input 
+                    type="range" 
+                    className="w-full" 
+                    min={mockData.filterOptions.distanceRange.min} 
+                    max={mockData.filterOptions.distanceRange.max} 
+                    value={distanceRange[1]}
+                    onChange={(e) => setDistanceRange([distanceRange[0], parseInt(e.target.value)])}
+                  />
                   <div className="flex justify-between text-[12px] text-[#192215] mt-2">
-                    <span>0 mile</span>
-                    <span>100 miles</span>
+                    <span>{mockData.filterOptions.distanceRange.min} mile</span>
+                    <span>{mockData.filterOptions.distanceRange.max} miles</span>
                   </div>
                 </div>
               )}
@@ -402,7 +266,7 @@ export default function SearchResults() {
               </div>
               {expandedSections.rating && (
                 <div className="flex flex-wrap gap-2.5">
-                  {['Any Rating', '2+', '2.5+', '3+', '3.5+', '4+', '4.5+', '4.8+'].map((rating) => (
+                  {mockData.filterOptions.ratings.map((rating) => (
                     <button
                       key={rating}
                       onClick={() => setSelectedRating(rating)}
@@ -453,7 +317,7 @@ export default function SearchResults() {
                 </div>
                 {expandedSections.availability && (
                   <div className="flex flex-wrap gap-2.5">
-                    {['Morning', 'Afternoon', 'Evening'].map((time) => (
+                    {mockData.filterOptions.availability.map((time) => (
                       <button
                         key={time}
                         className="px-3.5 py-2 rounded-[14px] text-[14px] font-medium bg-white border border-black/[0.06] text-[#8d8d8d]"
@@ -478,7 +342,7 @@ export default function SearchResults() {
         {/* Results */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-[#192215]">Over 135 results</h1>
+              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-[#192215]">Over {mockData.fields.length * 15} results</h1>
               <button className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4">
                 <div className="flex items-center gap-2">
                   <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-[#192215]" />
@@ -488,16 +352,24 @@ export default function SearchResults() {
               </button>
             </div>
 
-            {/* Fields Grid */}
+            {/* Fields Grid using the refactored FieldCard component */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-              {fields.map((field) => (
-                <FieldCard key={field.id} field={field} />
+              {mockData.fields.map((field) => (
+                <FieldCard 
+                  key={field.id} 
+                  {...field}
+                  variant="expanded"
+                  isLiked={likedFields.includes(field.id)}
+                  onLike={handleLike}
+                  onViewDetails={handleViewDetails}
+                  onBookNow={handleBookNow}
+                />
               ))}
             </div>
 
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6 lg:mt-8">
-              <span className="text-[12px] md:text-[14px] text-[#192215]">Showing 1-12 of 135</span>
+              <span className="text-[12px] md:text-[14px] text-[#192215]">Showing 1-{mockData.searchDefaults.resultsPerPage} of {mockData.fields.length * 15}</span>
               <div className="flex gap-1 flex-wrap justify-center">
                 <button className="w-7 h-7 md:w-8 md:h-8 rounded bg-[#3A6B22] text-white text-[12px] md:text-[14px] font-medium">1</button>
                 <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">2</button>

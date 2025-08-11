@@ -4,15 +4,14 @@ export function ForLandownersSection() {
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-green">
       <div className="w-full">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-stretch">
           {/* Left Image */}
-          <div className="rounded-3xl overflow-hidden shadow-xl">
-            <img 
-              src="/how-it-works/dog.png"
-              alt="Woman with dog sitting on steps"
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <div
+            className="rounded-3xl overflow-hidden shadow-xl h-64 sm:h-80 lg:h-full bg-cover bg-center"
+            style={{ backgroundImage: 'url(/how-it-works/dog.png)' }}
+            aria-label="Woman with dog sitting on steps"
+            role="img"
+          />
           
           {/* Right Content */}
           <div>
@@ -25,13 +24,13 @@ export function ForLandownersSection() {
             </p>
             
             {/* Option Cards */}
-            <div className="space-y-6">
-              <div className="bg-white/90 backdrop-blur rounded-2xl p-8">
+            <div className="space-y-6  ">
+              <div className="hover:bg-cream group bg-white backdrop-blur rounded-2xl p-8 h-full">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-cream">
-                    <MapPin className="w-6 h-6 text-green" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-cream group-hover:bg-white">
+                    <img src="/how-it-works/field.svg" alt="Map Pin" className="object-contain text-green" />
                   </div>
-                  <div>
+                  <div className="">
                     <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">
                       Claim If Already Registered Your Land?
                     </h3>
@@ -42,10 +41,10 @@ export function ForLandownersSection() {
                 </div>
               </div>
               
-              <div className="bg-white/90 backdrop-blur rounded-2xl p-8">
+              <div className="hover:bg-cream group bg-white backdrop-blur rounded-2xl p-8 h-full">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-cream">
-                    <Calendar className="w-6 h-6 text-green" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-cream group-hover:bg-white">
+                    <img src="/how-it-works/calender.svg" alt="Calendar" className="object-contain text-green" />
                   </div>
                   <div>
                     <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">

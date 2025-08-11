@@ -52,9 +52,9 @@ export function FAQSectionWithImage({
       />
       
       <div className="w-full relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
           {/* Left Section - FAQ */}
-          <div className="bg-cream bg-opacity-[30%] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg h-fit">
+          <div className="bg-cream bg-opacity-[30%] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-dark-green mb-6 sm:mb-8 lg:mb-10 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[60px]">
               {title}
             </h2>
@@ -63,7 +63,7 @@ export function FAQSectionWithImage({
               {faqs.map((faq, index) => (
                 <div 
                   key={index} 
-                  className={`border-b border-dark-green/20 ${index === 0 ? 'border-t' : ''} ${openFaq === index ? 'bg-white -mx-6 px-6 rounded-[20px]' : ''} transition-all duration-300`}
+                  className={` ${openFaq === index ? 'bg-white  px-6 py-4   rounded-[20px]' : ''} transition-all px-6  duration-300`}
                 >
                   <button
                     onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
@@ -96,7 +96,7 @@ export function FAQSectionWithImage({
           </div>
 
           {/* Right Section - Dog Image with Background */}
-          <div className="relative rounded-3xl p-10 sm:p-16 lg:p-20 overflow-hidden min-h-[400px] lg:min-h-[600px]">
+          <div className="relative rounded-3xl overflow-hidden h-[400px] lg:h-[600px] xl:h-[700px] lg:self-start">
             {/* Background Image */}
             <div className="absolute inset-0">
               <img 
@@ -107,7 +107,7 @@ export function FAQSectionWithImage({
             </div>
             
             {/* Dog Image */}
-            <div className="relative h-full flex items-center justify-center">
+            <div className="absolute inset-0 p-10 sm:p-16 lg:p-20 flex items-center justify-center">
               <img 
                 src="/faq/dog.png"
                 alt="Happy dog"

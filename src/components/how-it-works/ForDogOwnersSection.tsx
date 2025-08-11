@@ -8,18 +8,18 @@ export function ForDogOwnersSection() {
           For Dog Owners
         </h2>
         <button 
-          className="px-8 py-3 rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors"
+          className="px-[8px]  py-[10px] rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors"
         >
           Find & Book Field
         </button>
       </div>
       
       {/* Steps Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
         {/* Step 1 */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream">
-            <MapPin className="w-6 h-6 text-green" />
+        <div className="hover:bg-cream bg-white group rounded-[24px] p-[20px] shadow-sm">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream group-hover:bg-white">
+            <img src="/how-it-works/field.svg" alt="Map Pin" className="object-contain text-green" />
           </div>
           <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
             Find Fields Near You
@@ -30,9 +30,9 @@ export function ForDogOwnersSection() {
         </div>
         
         {/* Step 2 */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream">
-            <Calendar className="w-6 h-6 text-green" />
+        <div className="hover:bg-cream bg-white group rounded-[24px] p-[20px] shadow-sm">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream group-hover:bg-white">
+            <img src="/how-it-works/calender.svg" alt="Calendar" className="object-contain text-green" />
           </div>
           <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
             Select a Time Slot
@@ -43,9 +43,9 @@ export function ForDogOwnersSection() {
         </div>
         
         {/* Step 3 */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream">
-            <FileText className="w-6 h-6 text-green" />
+        <div className="hover:bg-cream bg-white group rounded-[24px] p-[20px] shadow-sm">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream group-hover:bg-white">
+            <img src="/how-it-works/note.svg" alt="File Text" className="object-contain text-green" />
           </div>
           <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
             Check Field Details
@@ -56,9 +56,9 @@ export function ForDogOwnersSection() {
         </div>
         
         {/* Step 4 */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream">
-            <CreditCard className="w-6 h-6 text-green" />
+        <div className="hover:bg-cream bg-white group rounded-[24px] p-[20px] shadow-sm">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream group-hover:bg-white">
+            <img src="/how-it-works/calender2.svg" alt="Credit Card" className="object-contain text-green" />
           </div>
           <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
             Confirm & Pay Securely
@@ -69,9 +69,9 @@ export function ForDogOwnersSection() {
         </div>
         
         {/* Step 5 */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm lg:col-span-2">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream">
-            <Trees className="w-6 h-6 text-green" />
+        <div className="hover:bg-cream bg-white group rounded-[24px] p-[20px] shadow-sm lg:col-span-2">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-cream group-hover:bg-white">
+            <img src="/how-it-works/tree.svg" alt="Trees" className="object-contain text-green" />
           </div>
           <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
             Enjoy Off-Lead Freedom
