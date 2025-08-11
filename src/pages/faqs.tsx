@@ -1,13 +1,14 @@
 import { useState } from "react"
-import { Search, Plus, Minus } from "lucide-react"
+import { Search } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
+import { FAQList, type FAQItem } from "@/components/common/FAQList"
 
 export default function FAQPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [openFaq, setOpenFaq] = useState(0)
+  // FAQ accordion state is managed inside FAQList
 
-  const faqs = [
+  const faqs: FAQItem[] = [
     {
       question: "How do I book a field?",
       answer: "Simply search by postcode or use your location, choose a field and time slot, and confirm your booking through our secure checkout. You'll receive instant confirmation via email and in the app."
@@ -54,7 +55,7 @@ export default function FAQPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-light-cream overflow-x-hidden pt-24">
+      <div className="min-h-screen bg-white overflow-x-hidden pt-24">
         <div className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20">
           <div className="w-full">
             {/* Header */}
@@ -76,45 +77,7 @@ export default function FAQPage() {
               </div>
             </div>
 
-            {/* FAQ Items */}
-            <div className="space-y-0">
-              {filteredFaqs.map((faq, index) => (
-                <div 
-                  key={index} 
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm mb-4"
-                >
-                  <button
-                    onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-                    className="flex items-center justify-between w-full text-left p-6 hover:bg-gray-50 transition-colors"
-                  >
-                    <h3 className="text-base xl:text-[18px] font-[600] text-dark-green pr-4 leading-relaxed xl:leading-[28px]">
-                      {faq.question}
-                    </h3>
-                    <div 
-                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                        openFaq === index 
-                          ? 'bg-green' 
-                          : 'bg-gray-200'
-                      }`}
-                    >
-                      {openFaq === index ? (
-                        <Minus className="w-5 h-5 text-white" />
-                      ) : (
-                        <Plus className="w-5 h-5 text-gray-600" />
-                      )}
-                    </div>
-                  </button>
-                  
-                  {openFaq === index && (
-                    <div className="px-6 pb-6">
-                      <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <FAQList faqs={filteredFaqs} hideTitle variant="plain" />
 
             {/* No results message */}
             {filteredFaqs.length === 0 && (

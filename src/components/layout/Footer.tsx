@@ -1,4 +1,5 @@
 import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "lucide-react"
+import Link from "next/link"
 
 export function Footer() {
   return (
@@ -25,10 +26,10 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Quick Links</h3>
             <ul className="space-y-2 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[40px] font-normal">
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">About Us</a></li>
+              <li><Link href="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link></li>
               <li><a href="#" className="text-white/80 hover:text-white transition-colors">Why Choose Us</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">How It Works</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">Field Owners</a></li>
+              <li><Link href="/how-it-works" className="text-white/80 hover:text-white transition-colors">How It Works</Link></li>
+              <li><Link href="/fields" className="text-white/80 hover:text-white transition-colors">Field Owners</Link></li>
               <li><a href="#" className="text-white/80 hover:text-white transition-colors">Dog Owners</a></li>
             </ul>
           </div>
@@ -37,9 +38,9 @@ export function Footer() {
           <div className="space-y-4">
           <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Other Links</h3>
             <ul className="space-y-2 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[40px] font-normal">
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">FAQ&apos;s</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">Terms & Conditions</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">Privacy Policy</a></li>
+              <li><Link href="/faqs" className="text-white/80 hover:text-white transition-colors">FAQ&apos;s</Link></li>
+              <li><Link href="/terms-conditions" className="text-white/80 hover:text-white transition-colors">Terms & Conditions</Link></li>
+              <li><Link href="/privacy-policy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
 
