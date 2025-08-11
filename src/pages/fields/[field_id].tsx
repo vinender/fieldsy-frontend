@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { MapPin, Star, Shield, Droplets, Home, Trash2, Heart, MessageSquare, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { MapPin, Star, Shield, Heart, MessageSquare, ChevronLeft, ChevronRight, ArrowLeft, BadgeCheck, ChevronDown, PawPrint, Clock, RotateCcw } from 'lucide-react';
 import mockData from '@/data/mock-data.json';
 import Link from 'next/link';
 
@@ -9,9 +9,20 @@ const FieldDetailsScreen = () => {
   const { field_id } = router.query;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   // Find the field from mock data - default to first field if not found
   const field = mockData.fields.find(f => f.id === field_id) || mockData.fields[0];
+  const spec = (field as any).specifications || {};
+  const specifications: { label: string; value: string }[] = [
+    { label: 'Field Size', value: spec.fieldSize || '1.5 acres' },
+    { label: 'Fence type & size', value: spec.fenceType || '6 ft steel mesh, fully enclosed' },
+    { label: 'Terrain Type', value: spec.terrainType || spec.surfaceType || 'Soft grass + walking path' },
+    { label: 'Surface type', value: spec.surfaceType2 || 'Flat with gentle slopes' },
+    { label: 'Max Dogs', value: spec.maxDogs || '4 dogs Allowed' },
+    { label: 'Opening Hours', value: spec.openingHours || spec.bookingType || 'Monday to Friday (6:00 AM – 8:00 PM)' },
+  ];
 
   const fieldImages = field.images || [
     'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=600&fit=crop',
@@ -22,7 +33,7 @@ const FieldDetailsScreen = () => {
     'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop'
   ];
 
-  const mapImage = 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+FF4A4A(-0.118092,51.509865)/-0.118092,51.509865,14,0/600x375@2x?access_token=pk.eyJ1IjoiZGVtb21hcCIsImEiOiJjbGJzaXJ5cXYwMDZrM3ZvYW14dXpxNjZnIn0.placeholder';
+  const mapImage = '/field-details/map.svg';
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => (prev === 0 ? fieldImages.length - 1 : prev - 1));
@@ -32,11 +43,11 @@ const FieldDetailsScreen = () => {
     setCurrentImageIndex((prev) => (prev === fieldImages.length - 1 ? 0 : prev + 1));
   };
 
-  const amenityIcons: Record<string, any> = {
-    'Secure fencing': Shield,
-    'Water Access': Droplets,
-    'Shelter': Home,
-    'Waste Disposal': Trash2
+  const amenityIconPaths: Record<string, string> = {
+    'Secure fencing': '/field-details/fence.svg',
+    'Water Access': '/field-details/drop.svg',
+    'Shelter': '/field-details/home.svg',
+    'Waste Disposal': '/field-details/bin.svg',
   };
 
   const reviews = [
@@ -74,50 +85,52 @@ const FieldDetailsScreen = () => {
     <div className="min-h-screen bg-[#FFFCF3] mt-32 max-w-[1920px] mx-auto">
       {/* Back Button */}
       <div className="bg-white border-b sticky top-0 z-40">
-        <div className="container mx-auto bg-transparent px-4 lg:px-20 py-4">
+        {/* <div className="container mx-auto bg-transparent px-4 lg:px-20 py-4">
           <Link href="/fields" className="inline-flex items-center text-gray-600 hover:text-[#3A6B22] transition-colors">
             <ArrowLeft className="w-5 h-5 mr-2" />
             <span className="font-medium">Back to Search</span>
           </Link>
-        </div>
+        </div> */}
       </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-20 py-8 lg:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 lg:items-stretch">
           {/* Left Column - Images */}
-          <div className="space-y-4">
-            {/* Image Grid */}
-            <div className="grid grid-cols-2 gap-3 lg:gap-4">
-              {fieldImages.slice(0, 6).map((img, index) => (
-                <div key={index} className="aspect-square rounded-lg overflow-hidden">
-                  <img 
-                    src={img} 
-                    alt={`Field view ${index + 1}`} 
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              ))}
-            </div>
+          <div className="w-full lg:w-[663px] lg:max-w-[663px] lg:flex-shrink-0">
+            <div className="h-full flex flex-col space-y-4 lg:sticky lg:top-24">
+              {/* Image Grid */}
+              <div className="grid grid-cols-2 gap-3 lg:gap-4">
+                {fieldImages.slice(0, 6).map((img, index) => (
+                  <div key={index} className="aspect-square rounded-lg overflow-hidden">
+                    <img 
+                      src={img} 
+                      alt={`Field view ${index + 1}`} 
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ))}
+              </div>
 
-            {/* Map */}
-            <div className="relative h-64 lg:h-96 rounded-xl overflow-hidden">
-              <img 
-                src={mapImage} 
-                alt="Field location map" 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-4 right-4 bg-white rounded-lg p-2 shadow-lg">
-                <button className="flex items-center space-x-2 p-2">
-                  <div className="w-5 h-5 bg-[#395ADC] rounded-full"></div>
-                  <span className="text-sm">Zoom</span>
-                </button>
+              {/* Map */}
+              <div className="relative h-64 lg:h-96 rounded-xl overflow-hidden flex-grow">
+                <img 
+                  src={mapImage} 
+                  alt="Field location map" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-4 right-4 bg-white rounded-lg p-2 shadow-lg">
+                  <button className="flex items-center space-x-2 p-2">
+                    <div className="w-5 h-5 bg-[#395ADC] rounded-full"></div>
+                    <span className="text-sm">Zoom</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Right Column - Details */}
-          <div className="space-y-6">
+          <div className="flex-1 space-y-6 lg:min-h-0">
             {/* Title and Price */}
             <div>
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
@@ -155,10 +168,14 @@ const FieldDetailsScreen = () => {
             {/* Amenities */}
             <div className="flex flex-wrap gap-2">
               {field.amenities.map((amenity, index) => {
-                const Icon = amenityIcons[amenity] || Shield;
+                const iconPath = amenityIconPaths[amenity];
                 return (
                   <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
-                    <Icon className="w-4 h-4 text-[#3A6B22] mr-2" />
+                    {iconPath ? (
+                      <img src={iconPath} alt={amenity} className="w-4 h-4 mr-2" />
+                    ) : (
+                      <Shield className="w-4 h-4 text-[#3A6B22] mr-2" />
+                    )}
                     <span className="text-sm text-[#192215]">{amenity}</span>
                   </div>
                 );
@@ -174,7 +191,7 @@ const FieldDetailsScreen = () => {
                   <div>
                     <div className="flex items-center">
                       <span className="font-medium text-[#090F1F] mr-1">{field.owner}</span>
-                      <Shield className="w-4 h-4 text-[#3A6B22]" />
+                      <BadgeCheck className="w-4 h-4 text-[#3A6B22]" />
                     </div>
                     <span className="text-xs text-gray-500">Joined on {field.ownerJoined || 'March 2025'}</span>
                   </div>
@@ -199,63 +216,112 @@ const FieldDetailsScreen = () => {
             <div>
               <h3 className="font-bold text-lg text-[#192215] mb-3">Field Specifications</h3>
               <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                {field.specifications && Object.entries(field.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between text-sm">
-                    <span className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                    <span className="font-medium text-[#192215]">{value}</span>
+                {specifications.map((row) => (
+                  <div key={row.label} className="flex items-start justify-between text-sm">
+                    <span className="text-gray-600">{row.label}</span>
+                    <span className="font-medium text-[#192215] text-right ml-4">{row.value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Other Details */}
-            <div>
-              <h3 className="font-bold text-lg text-[#192215] mb-3">Other details</h3>
-              <div className="space-y-2">
-                <div className="flex items-start">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3"></div>
-                  <p className="text-sm text-gray-600">Availability</p>
-                </div>
-                <div className="flex items-start">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3"></div>
-                  <p className="text-sm text-gray-600">30 min</p>
-                </div>
+            {/* Other details and actions */}
+            <div className="space-y-2">
+              {/* Availability Row */}
+              <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3">
+                <span className="text-[#192215] font-medium">Availability</span>
+                <button className="inline-flex items-center text-[#3A6B22] font-medium">
+                  <span className="mr-2">Find Availability Time</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            </div>
 
-            {/* Host Rules */}
-            <div>
-              <h3 className="font-bold text-lg text-[#192215] mb-3">Host rules</h3>
-              <div className="space-y-2">
-                {(field.hostRules || ["Minimum visit length: 30 min", "Max dogs per booking: 3 dogs"]).map((rule, index) => (
-                  <div key={index} className="flex items-start">
-                    <div className="w-1.5 h-1.5 bg-[#3A6B22] rounded-full mt-2 mr-3"></div>
-                    <p className="text-sm text-[#192215]">{rule}</p>
+              {/* Rules Collapsible */}
+              <div className="bg-white border border-gray-200 rounded-xl">
+                <button
+                  className="w-full flex items-center justify-between px-4 py-3"
+                  onClick={() => setRulesOpen(!rulesOpen)}
+                >
+                  <span className="text-[#192215] font-medium">Rules</span>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${rulesOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {rulesOpen && (
+                  <div className="px-4 pb-4">
+                    {/* Host rules cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                      <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#F3F7ED] flex items-center justify-center">
+                          <Clock className="w-5 h-5 text-[#3A6B22]" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Minimum visit length</p>
+                          <p className="text-sm font-medium text-[#192215]">30 min</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#F3F7ED] flex items-center justify-center">
+                          <PawPrint className="w-5 h-5 text-[#3A6B22]" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Max dogs per booking</p>
+                          <p className="text-sm font-medium text-[#192215]">4 Dogs</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Community safety rules list */}
+                    <h4 className="font-semibold text-[#192215] mb-2">Community safety rules</h4>
+                    <div className="space-y-3">
+                      {communityRules.map((rule, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
+                          <p className="text-sm text-[#192215] leading-relaxed">{rule}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
 
-            {/* Community Safety Rules */}
-            <div>
-              <h3 className="font-bold text-lg text-[#192215] mb-3">Community safety rules</h3>
-              <div className="space-y-2">
-                {communityRules.map((rule, index) => (
-                  <div key={index} className="flex items-start">
-                    <div className="w-1.5 h-1.5 bg-[#3A6B22] rounded-full mt-2 mr-3"></div>
-                    <p className="text-sm text-[#192215]">{rule}</p>
+              {/* Booking Policies (Collapsible) */}
+              <div className="bg-white border border-gray-200 rounded-xl">
+                <button
+                  className="w-full flex items-center justify-between px-4 py-3"
+                  onClick={() => setBookingOpen(!bookingOpen)}
+                >
+                  <span className="text-[#192215] font-medium">Booking Policies</span>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${bookingOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {bookingOpen && (
+                  <div className="px-4 pb-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
+                      <p className="text-sm text-[#192215] leading-relaxed">
+                        Only one booking is allowed at a time at any sniff spot and there is an enforced 30 min buffer between all bookings to ensure dogs in separate bookings do not meet.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
+                      <p className="text-sm text-[#192215] leading-relaxed">
+                        This sniff spot is set for Booking, which means you will be instantly confirmed for any booking you request. You will receive the address and access instruction immediately following booking.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
+                      <p className="text-sm text-[#192215] leading-relaxed">
+                        Visits can be moved or cancelled up to 2 hours before a visit.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
+                      <p className="text-sm text-[#192215] leading-relaxed">
+                        Visits can be extended and dogs can be added throughout the visit.
+                      </p>
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-
-            {/* Booking Policies */}
-            <div>
-              <h3 className="font-bold text-lg text-[#192215] mb-3">Booking Policies</h3>
-              <button className="flex items-center text-[#3A6B22] font-medium">
-                <ChevronRight className="w-5 h-5 mr-1" />
-                <span>View policies</span>
-              </button>
             </div>
 
             {/* Book Now Button */}
@@ -267,47 +333,67 @@ const FieldDetailsScreen = () => {
 
         {/* Reviews Section */}
         <div className="mt-12 lg:mt-16">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-[#192215]">Reviews & Ratings ({field.reviewCount || 273} Reviews)</h2>
-            </div>
-            <div className="flex items-center bg-[#192215] text-white px-3 py-1.5 rounded-lg">
-              <Star className="w-5 h-5 fill-[#FFDD57] text-[#FFDD57] mr-1" />
-              <span className="font-bold">{field.rating}</span>
-              <span className="text-xs ml-1">{field.reviewCount || 273} Reviews</span>
-            </div>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-[#192215]">Reviews & Ratings ({field.reviewCount || 273} Reviews)</h2>
           </div>
 
-          {/* Rating Bars */}
-          <div className="mb-8">
-            {[
-              { stars: 5, percentage: 70 },
-              { stars: 4, percentage: 85 },
-              { stars: 3, percentage: 45 },
-              { stars: 2, percentage: 20 },
-              { stars: 1, percentage: 10 }
-            ].map((rating) => (
-              <div key={rating.stars} className="flex items-center mb-2">
-                <span className="text-sm text-gray-600 w-8">{rating.stars}</span>
-                <Star className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-2" />
-                <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div 
-                    className="bg-[#FFDD57] h-full rounded-full"
-                    style={{ width: `${rating.percentage}%` }}
-                  />
+          {/* Summary row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Left: Reviews summary box */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="text-[#192215] font-semibold text-sm mb-4">Reviews</div>
+              <div className="flex gap-6">
+                {/* Average score */}
+                <div className="w-36 bg-black flex flex-col items-center justify-center rounded-xl  p-4">
+                  <div className="text-4xl font-bold text-white">{field.rating}</div>
+                  <div className="flex items-center mt-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`w-4 h-4 mr-1 ${i < Math.round(field.rating) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} />
+                    ))}
+                  </div>
+                  <div className="text-xs text-gray-200 mt-2">{field.reviewCount || 273} Reviews</div>
+                </div>
+                {/* Rating bars */}
+                <div className="flex-1">
+                  {[
+                    { stars: 5, percentage: 90 },
+                    { stars: 4, percentage: 75 },
+                    { stars: 3, percentage: 45 },
+                    { stars: 2, percentage: 20 },
+                    { stars: 1, percentage: 10 },
+                  ].map((rating) => (
+                    <div key={rating.stars} className="flex items-center mb-2">
+                      <span className="text-sm text-gray-600 w-10">{rating.stars} Star</span>
+                      <div className="flex-1 bg-gray-200 rounded-full h-2 mx-3 overflow-hidden">
+                        <div className="bg-[#FFDD57] h-full rounded-full" style={{ width: `${rating.percentage}%` }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Right: Leave a review */}
+            <div className="bg-white border flex flex-col justify-between  border-gray-200 rounded-2xl p-6">
+              <h3 className="text-[#192215] font-semibold mb-4">Leave a Review</h3>
+                 <span className="text-gray-600 text-sm max-w-md mb-4">
+                  Share your experience and help other dog owners choose the perfect field.
+                  </span>
+                 
+                <button className="px-5 py-2 border border-[#8FB366] flex justify-center items-center text-center rounded-full bg-white w-full text-green hover:text-white font-semibold hover:bg-[#2e5519] transition">
+                  Write A Review
+                </button>
+            </div>
           </div>
 
           {/* Review Cards */}
-          <div className="space-y-6">
+          <div className="space-y-6 bg-transparent">
             {reviews.map((review, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 border border-gray-200">
+              <div key={index} className="bg-transparent rounded-xl p-6 border border-gray-200">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center">
+                  <div className="flex items-center w-full">
                     <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
-                    <div>
+                    <div className='flex justify-between w-full'>
                       <h4 className="font-semibold text-[#090F1F]">{review.name}</h4>
                       <div className="flex items-center mt-1">
                         {[...Array(5)].map((_, i) => (
@@ -316,7 +402,7 @@ const FieldDetailsScreen = () => {
                             className={`w-4 h-4 ${i < Math.floor(review.rating) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} 
                           />
                         ))}
-                        <span className="text-xs text-gray-500 ml-2">{review.date}</span>
+                        {/* <span className="text-xs text-gray-500 ml-2">{review.date}</span> */}
                       </div>
                     </div>
                   </div>

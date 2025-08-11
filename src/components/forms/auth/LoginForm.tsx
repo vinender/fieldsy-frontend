@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ImageGrid } from "@/components/forms/ImageGrid"
+import Link from "next/link"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -67,7 +68,7 @@ export function LoginForm() {
   ]
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex" style={{ background: 'linear-gradient(179deg, #FFFCF3 0.83%, #F9F0D7 61.62%)' }}>
       {/* Left Section - Image Grid */}
       <ImageGrid
         images={images}
@@ -76,17 +77,17 @@ export function LoginForm() {
       />
 
       {/* Right Section - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 lg:px-16 bg-light-cream">
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 lg:px-16">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <div className="text-left mb-8">
-            <div className="flex items-center justify- text-left gap-2">
-              <span className="text-3xl">🐾</span>
-              <h1 className="text-4xl text-left font-bold text-green">
-                Fieldsy
-              </h1>
+          <Link href="/">
+            <div className="text-left mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl md:text-3xl">🐾</span>
+                <h1 className="text-3xl md:text-4xl font-bold text-green">Fieldsy</h1>
+              </div>
             </div>
-          </div>
+            </Link>
 
           {/* Welcome Text */}
           <div className="text-left mb-8">
@@ -119,12 +120,12 @@ export function LoginForm() {
           </div>
 
           {/* Divider */}
-          <div className="relative my-8">
+            <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 text-gray-600 bg-light-cream">
+                <span className="px-4 text-gray-600 bg-transparent">
                 Or continue with email
               </span>
             </div>
@@ -196,7 +197,7 @@ export function LoginForm() {
           {/* Sign Up Link */}
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
-            <a href="/signup" className="font-medium hover:underline text-green">
+            <a href="/register" className="font-medium hover:underline text-green">
               Sign up
             </a>
           </p>

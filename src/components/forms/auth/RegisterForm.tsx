@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
+import Link from "next/link"
 
 type Role = "DOG_OWNER" | "FIELD_OWNER"
 
@@ -101,7 +102,7 @@ export default function RegisterForm() {
   ]
 
   return (
-    <div className="h-[100svh] overflow-hidden flex">
+    <div className="h-[100svh] overflow-hidden flex" style={{ background: 'linear-gradient(179deg, #FFFCF3 0.83%, #F9F0D7 61.62%)' }}>
       {/* Left - Image Grid like Login */}
       <div className="hidden lg:block w-1/2 h-full">
         <div className="relative w-full h-full">
@@ -126,15 +127,17 @@ export default function RegisterForm() {
       </div>
 
       {/* Right - Register Form */}
-      <div className="w-full lg:w-1/2 h-full bg-light-cream">
+      <div className="w-full lg:w-1/2 h-full">
         <div className="h-full flex items-center justify-center px-6 md:px-8 lg:px-16 py-4 md:py-6 lg:py-8">
           <div className="w-full max-w-md">
+            <Link href="/">
             <div className="text-left mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl md:text-3xl">🐾</span>
                 <h1 className="text-3xl md:text-4xl font-bold text-green">Fieldsy</h1>
               </div>
             </div>
+            </Link>
 
           <div className="text-left mb-3">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">Create your Fieldsy account</h2>
@@ -153,12 +156,12 @@ export default function RegisterForm() {
             </button>
           </div>
 
-          <div className="relative my-3 hidden lg:block">
+           <div className="relative my-3 hidden lg:block">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 text-gray-600 bg-light-cream">Or continue with email</span>
+               <span className="px-4 text-gray-600 bg-transparent">Or continue with email</span>
             </div>
           </div>
 
@@ -177,7 +180,7 @@ export default function RegisterForm() {
                   }`}
                   id="DOG_OWNER"
                 >
-                  <User className="w-4 h-4" /> Dog Owner
+                  <img src='/login/dog-owner.svg' className="w-6 h-6" /> Dog Owner
                 </button>
                 <button
                   type="button"
@@ -189,7 +192,7 @@ export default function RegisterForm() {
                   }`}
                   id="FIELD_OWNER"
                 >
-                  <MapPin className="w-4 h-4" /> Field Owner
+                  <img src='/login/field-owner.svg' className="w-6 h-6" /> Field Owner
                 </button>
               </div>
             </div>
@@ -201,7 +204,8 @@ export default function RegisterForm() {
                 type="text"
                 placeholder="Enter full name"
                 {...register("fullName")}
-                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
+                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                autoComplete="name"
               />
               <div className="h-5">
                 {errors.fullName && <p className="text-xs text-red-600 mt-1">{errors.fullName.message}</p>}
@@ -215,7 +219,8 @@ export default function RegisterForm() {
                 type="email"
                 placeholder="Enter email address"
                 {...register("email")}
-                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
+                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                autoComplete="email"
               />
               <div className="h-5">
                 {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
@@ -228,7 +233,7 @@ export default function RegisterForm() {
               <div className="flex gap-2 mt-1">
                 <select
                   {...register("phoneCode")}
-                  className="px-3 bg-white py-2 md:py-2.5 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
+                  className="px-3 bg-white py-2 md:py-2.5 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
                 >
                   <option value="+44">+44</option>
                   <option value="+1">+1</option>
@@ -238,7 +243,8 @@ export default function RegisterForm() {
                   type="tel"
                   placeholder="Enter phone number"
                   {...register("phoneNumber")}
-                  className="flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
+                  className="flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                  autoComplete="tel"
                 />
               </div>
               <div className="h-5">
@@ -254,7 +260,8 @@ export default function RegisterForm() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
                   {...register("password")}
-                  className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 pr-10 md:pr-12 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
+                  className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 pr-10 md:pr-12 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"

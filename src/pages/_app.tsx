@@ -21,6 +21,7 @@ const noLayoutPaths = [
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/verify-otp',
   // Add more paths as needed
 ]
 
