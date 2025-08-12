@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Code } from 'lucide-react';
+import { PlacesAutocomplete } from '@/components/ui/places-autocomplete';
 import Image from 'next/image';
 
 export function HeroSection() {
@@ -65,10 +66,17 @@ export function HeroSection() {
       </p>
       {/* Search Form */}
       <div className="relative">
-        <input
-          type="text"
+        <PlacesAutocomplete
           placeholder="Enter postcode or location"
           className="w-full pl-4 pr-4 sm:pr-40 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-fieldsy-green focus:border-transparent"
+          recentSearches={[
+            { title: 'Sunny Paws Reserve', subtitle: 'South London · 4 km away' },
+            { title: 'Whispering Pines', subtitle: 'Northfield · 6 km away' },
+            { title: 'The Bark Yard', subtitle: 'East Kent · 2.5 km away' },
+            { title: 'Green Meadows Field', subtitle: 'Kent TN25 · 3.1 km away' },
+            { title: 'Doggie Dunes', subtitle: 'Coastal Downs · 7 km away' },
+            { title: 'Muddy Tails Trail', subtitle: 'Riverbank · 5.5 km away' },
+          ]}
         />
         {/* Buttons container inside input - hidden on mobile, shown on larger screens */}
         <div className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-2">

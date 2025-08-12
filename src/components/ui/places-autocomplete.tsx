@@ -12,6 +12,7 @@ interface PlacesAutocompleteProps {
   className?: string;
   defaultValue?: string;
   onLocationSearch?: () => void;
+  recentSearches?: { title: string; subtitle: string }[];
 }
 
 export function PlacesAutocomplete({
@@ -19,11 +20,13 @@ export function PlacesAutocomplete({
   placeholder = "Enter postcode or location",
   className = "",
   defaultValue = "",
-  onLocationSearch
+  onLocationSearch,
+  recentSearches = []
 }: PlacesAutocompleteProps) {
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [inputValue, setInputValue] = useState(defaultValue);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isFocused, setIsFocused] = useState(false)
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -45,7 +48,11 @@ export function PlacesAutocomplete({
       const place = autocomplete.getPlace();
       if (place && onPlaceSelect) {
         onPlaceSelect(place);
-        setInputValue(place.formatted_address || place.name || '');
+        const nextValue = place.formatted_address || place.name || ''
+        setInputValue(nextValue);
+        if (inputRef.current) {
+          inputRef.current.value = nextValue
+        }
       }
     }
   };
@@ -132,7 +139,7 @@ export function PlacesAutocomplete({
   }
 
   return (
-    <>
+    <div className="relative">
       <Autocomplete
         onLoad={onLoad}
         onPlaceChanged={onPlaceChanged}
@@ -141,9 +148,12 @@ export function PlacesAutocomplete({
           ref={inputRef}
           type="text"
           placeholder={placeholder}
-          className={className}
+          className={`${className} text-gray-600 placeholder-gray-400`}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 150)}
+          autoComplete="off"
         />
       </Autocomplete>
       
@@ -166,6 +176,42 @@ export function PlacesAutocomplete({
           Search
         </button>
       </div>
-    </>
+
+      {/* Recent searches dropdown */}
+      {isFocused && inputValue.trim().length === 0 && recentSearches.length > 0 && (
+        <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border overflow-hidden z-40">
+          <div className="px-5 py-4 border-b">
+            <h4 className="text-[20px] font-bold text-dark-green">Recent Search</h4>
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {recentSearches.map((item, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setInputValue(item.title)
+                  if (onPlaceSelect) onPlaceSelect({ name: item.title, formatted_address: item.subtitle } as any)
+                }}
+                className="w-full text-left px-5 py-4 hover:bg-cream/40 flex justify-between   items-start gap-3 border-b last:border-b-0"
+              >
+                <div className='flex items-center gap-3'> 
+                  <div className="w-8 h-8 rounded-full  flex items-center justify-center mt-0.5">
+                    <img src='/location.svg' className="w-6 h-6 text-green" />
+                  </div>
+                  <div>
+                    <div className="text-[18px] font-semibold text-dark-green">{item.title}</div>
+                    <div className="text-sm text-dark-green/70">{item.subtitle}</div>
+                  </div>
+                </div>
+                <div className="w-6 h-6 rounded-full text-white   bg-gray-400 flex items-center justify-center text-sm font-medium">
+                  x
+                </div>
+
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

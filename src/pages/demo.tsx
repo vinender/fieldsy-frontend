@@ -98,7 +98,7 @@ const NavigationItem = ({ item }) => (
     className={`text-[15px] transition-all duration-200 ${
       item.isActive
         ? 'font-bold text-[#3A6B22]'
-        : 'font-semibold text-[#192215] opacity-70 hover:opacity-100'
+        : 'font-semibold text-dark-green opacity-70 hover:opacity-100'
     }`}
   >
     {item.label}
@@ -111,7 +111,7 @@ const StatisticItem = ({ stat, index, total }) => (
       <h3 className="text-[32px] sm:text-[48px] lg:text-[68px] font-normal text-[#212d1b] leading-tight">
         {stat.value}
       </h3>
-      <p className="text-[14px] sm:text-[16px] lg:text-[18px] text-[#192215] opacity-70 max-w-[200px] mx-auto">
+      <p className="text-[14px] sm:text-[16px] lg:text-[18px] text-dark-green opacity-70 max-w-[200px] mx-auto">
         {stat.label}
       </p>
     </div>
@@ -127,10 +127,10 @@ const WhatWeDoCard = ({ item }) => (
       <span className="text-[24px] font-bold text-white">{item.number}</span>
     </div>
     <div>
-      <h3 className="text-[20px] lg:text-[24px] font-semibold text-[#192215] mb-2.5">
+      <h3 className="text-[20px] lg:text-[24px] font-semibold text-dark-green mb-2.5">
         {item.title}
       </h3>
-      <p className="text-[16px] lg:text-[18px] text-[#192215] opacity-70 leading-relaxed">
+      <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed">
         {item.description}
       </p>
     </div>
@@ -207,10 +207,10 @@ export default function AboutUs() {
             {/* Actions */}
             <div className="flex items-center gap-2 sm:gap-4">
               <button className="relative w-10 h-10 sm:w-[52px] sm:h-[52px] rounded-full bg-[#F8F1D7] flex items-center justify-center">
-                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-dark-green" />
               </button>
               <button className="relative w-10 h-10 sm:w-[52px] sm:h-[52px] rounded-full bg-[#F8F1D7] flex items-center justify-center">
-                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
+                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-dark-green" />
                 <span className="absolute top-1 right-1 sm:top-2 sm:right-2 w-3 h-3 sm:w-4 sm:h-4 bg-[#e31c20] rounded-full text-white text-[8px] sm:text-[10px] flex items-center justify-center">
                   2
                 </span>
@@ -225,7 +225,7 @@ export default function AboutUs() {
                 onClick={toggleMobileMenu}
                 aria-label="Toggle mobile menu"
               >
-                <Menu className="w-6 h-6 text-[#192215]" />
+                <Menu className="w-6 h-6 text-dark-green" />
               </button>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function AboutUs() {
         {mobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-50 bg-white">
             <div className="flex justify-between items-center p-4 border-b">
-              <span className="text-xl font-bold text-[#192215]">Menu</span>
+              <span className="text-xl font-bold text-dark-green">Menu</span>
               <button onClick={toggleMobileMenu} aria-label="Close menu">
                 <X className="w-6 h-6" />
               </button>
@@ -248,7 +248,7 @@ export default function AboutUs() {
                   className={`text-lg py-2 ${
                     item.isActive
                       ? 'font-bold text-[#3A6B22]'
-                      : 'text-[#192215] opacity-70'
+                      : 'text-dark-green opacity-70'
                   }`}
                   onClick={toggleMobileMenu}
                 >
@@ -262,7 +262,7 @@ export default function AboutUs() {
 
       {/* Breadcrumb */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-20 py-6 lg:py-10">
-        <h1 className="text-[24px] sm:text-[29px] font-semibold text-[#192215]">About Us</h1>
+        <h1 className="text-[24px] sm:text-[29px] font-semibold text-dark-green">About Us</h1>
       </div>
 
       {/* Hero Section */}
@@ -272,7 +272,7 @@ export default function AboutUs() {
             <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-[#212d1b] leading-tight mb-4">
               All-in-One Platform for Smarter Field Operations
             </h2>
-            <p className="text-[16px] lg:text-[18px] text-[#192215] opacity-70 leading-relaxed mb-8 lg:mb-10">
+            <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed mb-8 lg:mb-10">
               Fieldsy brings every aspect of field operations into a single, easy-to-use platform. From property claims and terrain tracking to team coordination and document management—we help you digitize, streamline, and scale your fieldwork with confidence. No more juggling spreadsheets, paperwork, or disconnected tools. With Fieldsy, everything you need is at your fingertips, wherever the field takes you.
             </p>
             <button className="bg-[#8FB366] text-white px-6 lg:px-7 py-3 lg:py-3.5 rounded-full flex items-center gap-2.5 hover:bg-[#7da055] transition-colors">
@@ -326,10 +326,10 @@ export default function AboutUs() {
         <div className="flex flex-col xl:flex-row gap-6 lg:gap-[34px] items-center justify-between">
           {/* Card 1 */}
           <div className="bg-white rounded-[20px] lg:rounded-[32px] p-6 w-full xl:w-[362px] h-auto xl:h-[479px] shadow-[0px_6px_50px_0px_rgba(0,0,0,0.03)] border border-[rgba(219,215,196,0.34)]">
-            <h3 className="text-[20px] lg:text-[24px] font-bold text-[#192215] mb-2.5">
+            <h3 className="text-[20px] lg:text-[24px] font-bold text-dark-green mb-2.5">
               Who We Are
             </h3>
-            <p className="text-[16px] lg:text-[18px] text-[#192215] opacity-70 leading-relaxed mb-6">
+            <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed mb-6">
               We're a passionate team of developers, designers, and industry experts who understand the challenges of fieldwork. With years of experience in geospatial technologies, real estate insights, and user-focused software, we've built Fieldsy to meet the real needs of professionals working in dynamic environments.
             </p>
             <div className="flex -space-x-4">
@@ -362,10 +362,10 @@ export default function AboutUs() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <h3 className="text-[20px] lg:text-[24px] font-bold text-[#192215] mb-2">
+            <h3 className="text-[20px] lg:text-[24px] font-bold text-dark-green mb-2">
               Loved by Paws and People Alike
             </h3>
-            <p className="text-[16px] lg:text-[18px] text-[#192215] opacity-70 leading-relaxed">
+            <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed">
               From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.
             </p>
           </div>
@@ -376,10 +376,10 @@ export default function AboutUs() {
       <section className="bg-[#F8F1D7] py-12 lg:py-20">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-20">
           <div className="text-center mb-8 lg:mb-[50px]">
-            <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-[#192215] mb-4">
+            <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-dark-green mb-4">
               What We Do
             </h2>
-            <p className="text-[16px] lg:text-[18px] text-[#192215] leading-relaxed max-w-[1000px] mx-auto">
+            <p className="text-[16px] lg:text-[18px] text-dark-green leading-relaxed max-w-[1000px] mx-auto">
               At Fieldsy, we empower field teams and property managers with the tools they need to work smarter—not harder. Our platform is designed to bring structure, visibility, and control to on-ground operations across real estate, infrastructure, land surveying, and more.
             </p>
           </div>
@@ -406,7 +406,7 @@ export default function AboutUs() {
             <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-[#212d1b] mb-4">
               Why Fieldsy?
             </h2>
-            <p className="text-[16px] lg:text-[18px] text-[#192215] opacity-70 leading-relaxed mb-6 lg:mb-8">
+            <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed mb-6 lg:mb-8">
               Choosing Fieldsy means choosing a smarter, more connected way to manage everything that happens on the ground.
             </p>
 
@@ -414,16 +414,16 @@ export default function AboutUs() {
               {WHY_FIELDSY_POINTS.map((point, index) => (
                 <div key={index} className="flex items-start sm:items-center gap-4">
                   <div className="w-2 h-2 bg-[#8FB366] rounded-full flex-shrink-0 mt-1.5 sm:mt-0" />
-                  <p className="text-[16px] lg:text-[18px] text-[#192215]">{point}</p>
+                  <p className="text-[16px] lg:text-[18px] text-dark-green">{point}</p>
                 </div>
               ))}
             </div>
 
             <div className="bg-gradient-to-r from-[#8FB36633] to-transparent p-4 lg:p-5 border-l-[5px] border-[#8FB366]">
-              <h3 className="text-[20px] lg:text-[24px] font-semibold text-[#192215] mb-2.5">
+              <h3 className="text-[20px] lg:text-[24px] font-semibold text-dark-green mb-2.5">
                 Let's Build the Future of Field Intelligence
               </h3>
-              <p className="text-[16px] lg:text-[18px] text-[#192215] opacity-70 leading-relaxed">
+              <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed">
                 Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we're here to help you work smarter on-site, every day.
               </p>
             </div>
@@ -491,7 +491,7 @@ export default function AboutUs() {
                     Download The<br />Fieldsy App Today!
                   </h2>
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <button className="bg-[#101624] text-white px-4 lg:px-6 py-3 lg:py-4 rounded-full flex items-center justify-center gap-3 hover:bg-[#192215] transition-colors">
+                    <button className="bg-[#101624] text-white px-4 lg:px-6 py-3 lg:py-4 rounded-full flex items-center justify-center gap-3 hover:bg-dark-green transition-colors">
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
                       </svg>
@@ -500,7 +500,7 @@ export default function AboutUs() {
                         <strong>Google Play</strong>
                       </span>
                     </button>
-                    <button className="bg-[#101624] text-white px-4 lg:px-6 py-3 lg:py-4 rounded-full flex items-center justify-center gap-3 hover:bg-[#192215] transition-colors">
+                    <button className="bg-[#101624] text-white px-4 lg:px-6 py-3 lg:py-4 rounded-full flex items-center justify-center gap-3 hover:bg-dark-green transition-colors">
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z" />
                       </svg>
@@ -518,7 +518,7 @@ export default function AboutUs() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#192215] text-white">
+      <footer className="bg-dark-green text-white">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-20 py-12 lg:py-[60px]">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 lg:gap-10">
             {/* Logo and Description */}
@@ -537,7 +537,7 @@ export default function AboutUs() {
                     className="w-8 h-8 bg-[#F8F1D7] rounded-full flex items-center justify-center hover:bg-[#e6deb3] transition-colors"
                     aria-label={social.label}
                   >
-                    <social.icon className="w-5 h-5 text-[#192215]" />
+                    <social.icon className="w-5 h-5 text-dark-green" />
                   </a>
                 ))}
               </div>
@@ -589,13 +589,13 @@ export default function AboutUs() {
               <div className="space-y-6 lg:space-y-8">
                 <div className="flex items-center gap-2">
                   <div className="w-9 h-9 bg-[#F8F1D7] rounded-full flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-[#192215]" />
+                    <Phone className="w-5 h-5 text-dark-green" />
                   </div>
                   <span className="text-[16px] lg:text-[18px] opacity-70">+1 854 635 4582</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-9 h-9 bg-[#F8F1D7] rounded-full flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-[#192215]" />
+                    <Mail className="w-5 h-5 text-dark-green" />
                   </div>
                   <span className="text-[16px] lg:text-[18px] opacity-70 break-all">
                     fieldsyz@gmail.com
@@ -603,7 +603,7 @@ export default function AboutUs() {
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-9 h-9 bg-[#F8F1D7] rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-[#192215]" />
+                    <MapPin className="w-5 h-5 text-dark-green" />
                   </div>
                   <div>
                     <p className="text-[16px] lg:text-[18px] opacity-70">Camden Town, London</p>

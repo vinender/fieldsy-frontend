@@ -1,18 +1,22 @@
 {
   "fields": [
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a001",
       "id": "1",
       "name": "Green Meadows Field",
       "owner": "Albert",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10001",
       "ownerJoined": "March 2025",
+      "status": "ACTIVE",
       "price": 18,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 18, "currency": "GBP", "unit": "dog/hour" },
       "distance": "3km away",
       "location": "Bristol BS37, UK",
       "fullLocation": "Kent TN25, UK",
       "rating": 4.3,
       "reviewCount": 273,
-      "amenities": ["Secure fencing", "Water Access", "Shelter", "Waste Disposal"],
+      "amenities": ["Secure fencing", "Water Access", "Shelter", "Waste Disposal", "Parking", "Toilet"],
       "image": "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop",
       "images": [
         "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
@@ -25,121 +29,283 @@
       "description": "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups.",
       "specifications": {
         "fieldSize": "10 acres",
-        "fenceType": "6 ft steel mesh, fully enclosed",
+        "fenceType": "Steel mesh",
+        "fenceSize": "6 ft",
+        "terrainType": "Meadow",
         "surfaceType": "Soft grass + walking path",
-        "maxDogs": "4 dogs",
+        "maxDogs": 4,
         "averageHours": "30 mins",
         "bookingType": "Monday to Friday, 10:00 AM – 8:00 PM"
+      },
+      "form": {
+        "basicInfo": {
+          "fieldName": "Green Meadows Field",
+          "fieldSize": "10 acres",
+          "terrainType": "Meadow",
+          "fenceType": "Steel mesh",
+          "fenceSize": "6 ft",
+          "surfaceType": "Grass",
+          "maxDogsAllowed": 4
+        },
+        "description": "A peaceful, green field ideal for off-leash play and zoomies.",
+        "opening": {
+          "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "startTime": "09:00",
+          "endTime": "20:00"
+        },
+        "amenities": ["Secure fencing", "Water Access", "Shelter", "Waste Disposal", "Parking", "Toilet"],
+        "address": {
+          "streetAddress": "42 Meadowcroft Lane",
+          "apartment": "Flat 5B",
+          "city": "Guildford",
+          "county": "Surrey",
+          "postalCode": "GU1 1AA",
+          "country": "United Kingdom"
+        },
+        "pricing": { "perDogPerHour": 18, "currency": "GBP" },
+        "booking": { "slotDurationMinutes": 30, "instant": true },
+        "policies": {
+          "rules": ["Minimum visit length: 30 min", "Max dogs per booking: 3 dogs"],
+          "bookingPolicies": "24h full refund; within 24h non-refundable"
+        }
       },
       "hostRules": [
         "Minimum visit length: 30 min",
         "Max dogs per booking: 3 dogs"
       ],
-      "isLiked": false
+      "isLiked": false,
+      "is_claimed": true,
+      "coordinates": { "lat": 51.5074, "lng": -2.5936 },
+      "geo": { "type": "Point", "coordinates": [-2.5936, 51.5074] },
+      "createdAt": "2025-02-10T10:00:00.000Z",
+      "updatedAt": "2025-02-10T10:00:00.000Z"
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a002",
       "id": "2",
       "name": "Barkside Paddock",
       "owner": "Alex",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10002",
+      "status": "ACTIVE",
       "price": 10,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 10, "currency": "GBP", "unit": "dog/hour" },
       "distance": "3km away",
       "location": "Bristol BS37, UK",
       "rating": 4.8,
       "amenities": ["Secure fencing", "Water Access", "Large"],
       "image": "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop",
-      "isLiked": false
+       "images": [
+        "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop"
+      ],
+      "form": {
+        "basicInfo": { "fieldName": "Barkside Paddock", "fieldSize": "2 acres", "terrainType": "Flat", "fenceType": "Timber", "fenceSize": "5 ft", "surfaceType": "Grass", "maxDogsAllowed": 3 },
+        "opening": { "days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "startTime": "08:00", "endTime": "18:00" },
+        "amenities": ["Secure fencing", "Water Access"],
+        "address": { "streetAddress": "12 Paddock Road", "city": "Bristol", "county": "Gloucestershire", "postalCode": "BS37", "country": "United Kingdom" },
+        "pricing": { "perDogPerHour": 10, "currency": "GBP" },
+        "booking": { "slotDurationMinutes": 60, "instant": true },
+        "policies": { "rules": [], "bookingPolicies": "24h refund policy" }
+      },
+      "isLiked": false,
+      "is_claimed": false,
+      "coordinates": { "lat": 51.5234, "lng": -2.6123 },
+      "geo": { "type": "Point", "coordinates": [-2.6123, 51.5234] }
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a003",
       "id": "3",
       "name": "Wagging Woods Field",
       "owner": "Smith",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10003",
+      "status": "ACTIVE",
       "price": 20,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 20, "currency": "GBP", "unit": "dog/hour" },
       "distance": "3km away",
       "location": "Bristol BS37, UK",
       "rating": 4.7,
       "amenities": ["Secure fencing", "Water Access", "Shelter"],
       "image": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop",
-      "isLiked": false
+       "images": [
+        "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop"
+      ],
+      "form": { "basicInfo": { "fieldName": "Wagging Woods Field", "fieldSize": "5 acres", "terrainType": "Woodland", "fenceType": "Steel", "fenceSize": "6 ft", "surfaceType": "Grass", "maxDogsAllowed": 5 }, "opening": { "days": ["Mon","Tue","Wed","Thu","Fri"], "startTime": "09:00", "endTime": "19:00" }, "amenities": ["Secure fencing","Water Access","Shelter"], "address": { "streetAddress": "1 Woodland Way", "city": "Bristol", "county": "Avon", "postalCode": "BS37", "country": "United Kingdom" }, "pricing": { "perDogPerHour": 20, "currency": "GBP" }, "booking": { "slotDurationMinutes": 30, "instant": true }, "policies": { "rules": [], "bookingPolicies": "" } },
+      "isLiked": false,
+      "is_claimed": true,
+      "coordinates": { "lat": 51.4956, "lng": -2.5789 },
+      "geo": { "type": "Point", "coordinates": [-2.5789, 51.4956] }
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a004",
       "id": "4",
       "name": "The Happy Hound Pasture",
       "owner": "Robert",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10004",
+      "status": "ACTIVE",
       "price": 12,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 12, "currency": "GBP", "unit": "dog/hour" },
       "distance": "5km away",
       "location": "Bristol BS37, UK",
       "rating": 4.5,
       "amenities": ["Secure fencing", "Water Access", "Shelter"],
       "image": "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=400&h=300&fit=crop",
-      "isLiked": false
+       "images": [
+        "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop"
+      ],
+      "isLiked": false,
+      "is_claimed": true,
+      "coordinates": { "lat": 51.5412, "lng": -2.6234 },
+      "geo": { "type": "Point", "coordinates": [-2.6234, 51.5412] }
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a005",
       "id": "5",
       "name": "Zoomies Zone",
       "owner": "Laura",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10005",
+      "status": "ACTIVE",
       "price": 19,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 19, "currency": "GBP", "unit": "dog/hour" },
       "distance": "3km away",
       "location": "Bristol BS37, UK",
       "rating": 4.8,
       "amenities": ["Secure fencing", "Water Access", "Large"],
       "image": "https://images.unsplash.com/photo-1601758003122-53c40e686a19?w=400&h=300&fit=crop",
-      "isLiked": false
+       "images": [
+        "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop"
+      ],
+      "isLiked": false,
+      "is_claimed": false,
+      "coordinates": { "lat": 51.5189, "lng": -2.5567 },
+      "geo": { "type": "Point", "coordinates": [-2.5567, 51.5189] }
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a006",
       "id": "6",
       "name": "Quiet Paws Retreat",
       "owner": "Ashish",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10006",
+      "status": "ACTIVE",
       "price": 16,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 16, "currency": "GBP", "unit": "dog/hour" },
       "distance": "3km away",
       "location": "Bristol BS37, UK",
       "rating": 4.6,
       "amenities": ["Secure fencing", "Water Access", "Shelter"],
       "image": "https://images.unsplash.com/photo-1601758261049-55d060e1159a?w=400&h=300&fit=crop",
-      "isLiked": false
+       "images": [
+        "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop"
+      ],
+      "isLiked": false,
+      "is_claimed": true,
+      "coordinates": { "lat": 51.4823, "lng": -2.6012 },
+      "geo": { "type": "Point", "coordinates": [-2.6012, 51.4823] }
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a007",
       "id": "7",
       "name": "Tailspin Turf",
       "owner": "Henry",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10007",
+      "status": "ACTIVE",
       "price": 22,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 22, "currency": "GBP", "unit": "dog/hour" },
       "distance": "10km away",
       "location": "Bristol BS37, UK",
       "rating": 4.3,
       "amenities": ["Dog agility equipments", "Restrooms", "Toilet"],
       "image": "https://images.unsplash.com/photo-1504595403659-9088ce801e29?w=400&h=300&fit=crop",
-      "isLiked": false
+       "images": [
+        "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop"
+      ],
+      "isLiked": false,
+      "is_claimed": false,
+      "coordinates": { "lat": 51.5567, "lng": -2.6789 },
+      "geo": { "type": "Point", "coordinates": [-2.6789, 51.5567] }
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a008",
       "id": "8",
       "name": "River's Run Free Field",
       "owner": "Melissa",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10008",
+      "status": "ACTIVE",
       "price": 24,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 24, "currency": "GBP", "unit": "dog/hour" },
       "distance": "10km away",
       "location": "Bristol BS37, UK",
       "rating": 4.9,
       "amenities": ["Secure fencing", "Water Access", "Shelter"],
       "image": "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=300&fit=crop",
-      "isLiked": false
+       "images": [
+        "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop"
+      ],
+      "isLiked": false,
+      "is_claimed": true,
+      "coordinates": { "lat": 51.5923, "lng": -2.6456 },
+      "geo": { "type": "Point", "coordinates": [-2.6456, 51.5923] }
     },
     {
+      "_id": "66f2a1b8e7b0c8a1c1a1a009",
       "id": "9",
       "name": "Green Meadows Field",
       "owner": "James",
+      "ownerId": "66f2a1b8e7b0c8a1c1a10009",
+      "status": "ACTIVE",
       "price": 14,
       "priceUnit": "dog/hour",
+      "pricing": { "perDogPerHour": 14, "currency": "GBP", "unit": "dog/hour" },
       "distance": "3km away",
       "location": "Bristol BS37, UK",
       "rating": 4.5,
       "amenities": ["Secure fencing", "Water Access", "Shelter"],
       "image": "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=300&fit=crop",
-      "isLiked": false
+      "images": [],
+      "isLiked": false,
+      "is_claimed": false,
+      "coordinates": { "lat": 51.5345, "lng": -2.5901 },
+      "geo": { "type": "Point", "coordinates": [-2.5901, 51.5345] }
     }
   ],
   "filterOptions": {

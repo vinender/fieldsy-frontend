@@ -7,6 +7,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Link from "next/link"
+import { signIn } from "next-auth/react"
 
 type Role = "DOG_OWNER" | "FIELD_OWNER"
 
@@ -35,6 +36,8 @@ type RegisterFormData = z.infer<typeof registerSchema>
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isAppleLoading, setIsAppleLoading] = useState(false)
 
   const defaultValues: RegisterFormData = useMemo(
     () => ({
@@ -144,16 +147,65 @@ export default function RegisterForm() {
             <p className="text-gray-500 text-sm">Sign up to find and book secure fields near you.</p>
           </div>
 
+          {/* Social Login - Original Design */}
           <div className="mb-3 hidden lg:block">
-            <button type="button" className="w-full flex items-center justify-between p-1 rounded-[70px] text-white font-medium hover:opacity-90 transition-opacity bg-light-green">
-              <div className="w-12 h-12 rounded-full bg-green flex items-center justify-center">
-                <img src="/login/google.png" alt="Google" className="w-10 h-10 object-contain" />
-              </div>
+            <div className="w-full flex items-center justify-between p-1 rounded-[70px] text-white font-medium bg-light-green">
+              <button 
+                type="button"
+                className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
+                disabled={isGoogleLoading || isSubmitting}
+                onClick={async () => {
+                  setIsGoogleLoading(true)
+                  try {
+                    await signIn('google', { callbackUrl: '/' })
+                  } catch (error: any) {
+                    if (error?.message?.includes('OAuthAccountNotLinked')) {
+                      toast.error('This email is already registered with a different method')
+                    } else if (error?.message?.includes('Configuration')) {
+                      toast.info('Google signup is not configured yet')
+                    } else {
+                      toast.error('Google signup failed. Please try again.')
+                    }
+                  } finally {
+                    setIsGoogleLoading(false)
+                  }
+                }}
+              >
+                {isGoogleLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <img src="/login/google.png" alt="Google" className="w-10 h-10 object-contain" />
+                )}
+              </button>
               <span className="text-center flex-1 text-sm">Sign up with</span>
-              <div className="w-12 h-12 rounded-full bg-green flex items-center justify-center">
-                <img src="/login/apple.png" alt="Apple" className="w-10 h-10 object-contain" />
-              </div>
-            </button>
+              <button 
+                type="button"
+                className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
+                disabled={isAppleLoading || isSubmitting}
+                onClick={async () => {
+                  setIsAppleLoading(true)
+                  try {
+                    await signIn('apple', { callbackUrl: '/' })
+                  } catch (error: any) {
+                    if (error?.message?.includes('OAuthAccountNotLinked')) {
+                      toast.error('This email is already registered with a different method')
+                    } else if (error?.message?.includes('Configuration')) {
+                      toast.info('Apple signup is not configured yet')
+                    } else {
+                      toast.error('Apple signup failed. Please try again.')
+                    }
+                  } finally {
+                    setIsAppleLoading(false)
+                  }
+                }}
+              >
+                {isAppleLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <img src="/login/apple.png" alt="Apple" className="w-10 h-10 object-contain" />
+                )}
+              </button>
+            </div>
           </div>
 
            <div className="relative my-3 hidden lg:block">
@@ -297,7 +349,7 @@ export default function RegisterForm() {
 
             <p className="text-center text-gray-600 text-sm">
               Already have an account? {" "}
-              <a href="/login" className="font-medium hover:underline text-green">Login</a>
+              <Link href="/login" className="font-medium hover:underline text-green">Login</Link>
             </p>
           </form>
           </div>

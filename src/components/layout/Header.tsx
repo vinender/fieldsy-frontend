@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, X } from "lucide-react"
+import { ProfileDropdown } from "@/components/profile/ProfileDropdown"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 
@@ -12,7 +13,7 @@ export function Header() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const [scrolled, setScrolled] = useState(false);
   
   // SIMULATED LOGIN STATE - Remove this when using real auth
   const [isSimulatedLoggedIn, setIsSimulatedLoggedIn] = useState(false)
@@ -169,38 +170,17 @@ export function Header() {
                     </div>
                   </button>
                   
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 divide-y divide-gray-100">
-                    <div className="px-4 py-3">
-                      <p className="text-sm font-medium text-gray-900">{currentUser?.name}</p>
-                      <p className="text-sm text-gray-500 truncate">{currentUser?.email}</p>
-                    </div>
-                    <div className="py-1">
-                      {userNavigation.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          {item.name}
-                        </Link>
-                      ))}
-                    </div>
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          if (isSimulatedLoggedIn) {
-                            setIsSimulatedLoggedIn(false)
-                          } else {
-                            signOut({ callbackUrl: "/" })
-                          }
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
+                  {/* Dropdown Menu (hover reveal) */}
+                  <ProfileDropdown
+                    user={{ name: currentUser?.name || "User", email: currentUser?.email || "", image: currentUser?.image || null }}
+                    onLogout={() => {
+                      if (isSimulatedLoggedIn) {
+                        setIsSimulatedLoggedIn(false)
+                      } else {
+                        signOut({ callbackUrl: "/" })
+                      }
+                    }}
+                  />
                 </div>
               </>
             ) : (

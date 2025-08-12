@@ -54,7 +54,7 @@ export function FieldCard({
         <div className={padding}>
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1 pr-2">
-              <h3 className="text-[15px] font-bold text-[#192215] leading-[20px]">{name}</h3>
+              <h3 className="text-[15px] font-bold text-dark-green leading-[20px]">{name}</h3>
               <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {owner}</p>
             </div>
             <div className="text-right">
@@ -85,11 +85,11 @@ export function FieldCard({
           <div className="flex justify-between items-center mb-2 px-0">
             <div className="flex items-center gap-1 flex-1 pr-2">
               <MapPin className="w-5 h-5 text-[#3A6B22] flex-shrink-0" />
-              <span className="text-[12px] text-[#192215] leading-[16px]">
+              <span className="text-[12px] text-dark-green leading-[16px]">
                 {location} • {distance}
               </span>
             </div>
-            <div className="bg-[#192215] rounded-md px-1.5 py-1 flex items-center gap-0.5">
+            <div className="bg-dark-green rounded-md px-1.5 py-1 flex items-center gap-0.5">
               <Star className="w-3.5 h-3.5 text-white" fill="white" />
               <span className="text-[12px] font-semibold text-white">{rating}</span>
             </div>
@@ -99,7 +99,7 @@ export function FieldCard({
             {amenities.map((amenity, idx) => (
               <span 
                 key={idx} 
-                className="bg-neutral-100 text-[11px] text-[#192215] px-2 py-1 rounded-md leading-[16px]"
+                className="bg-neutral-100 text-[11px] text-dark-green px-2 py-1 rounded-md leading-[16px]"
               >
                 {amenity}
               </span>
@@ -129,11 +129,11 @@ export function FieldCard({
     <div className={containerClasses}>
       <div className="px-3 pt-3 pb-2">
         <div className="flex justify-between items-start mb-1">
-          <h3 className="text-[13px] font-semibold text-[#192215] flex-1 line-clamp-1">
+          <h3 className="text-[13px] font-semibold text-dark-green flex-1 line-clamp-1">
             {name}
           </h3>
           <div className="text-right">
-            <span className="text-[16px] font-bold text-[#192215]">${price}</span>
+            <span className="text-[16px] font-bold text-dark-green">${price}</span>
             <span className="text-[10px] text-gray-500 block">/{priceUnit}</span>
           </div>
         </div>

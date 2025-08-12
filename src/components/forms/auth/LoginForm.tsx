@@ -45,7 +45,8 @@ export function LoginForm() {
       if (result?.error) {
         toast.error("Invalid email or password")
       } else {
-        router.push("/dashboard")
+        toast.success("Login successful!")
+        router.push("/")
       }
     } catch {
       toast.error("Something went wrong. Please try again.")
@@ -99,24 +100,65 @@ export function LoginForm() {
             </p>
           </div>
 
-          {/* Social Login Button */}
+          {/* Social Login Button - Original Design */}
           <div className="mb-6">
-            <button
-              type="button"
-              className="w-full flex items-center justify-between p-1 rounded-[70px] text-white font-medium hover:opacity-90 transition-opacity bg-light-green"
-              disabled={isGoogleLoading || isAppleLoading}
-              onClick={() => {
-                // This button is just for display, actual login handled by separate buttons below
-              }}
-            >
-              <div className="w-14 h-14 rounded-full bg-green flex items-center justify-center">
-                <img src="/login/google.png" alt="Google" className="w-12 h-12 object-contain" />
-              </div>
+            <div className="w-full flex items-center justify-between p-1 rounded-[70px] text-white font-medium bg-light-green">
+              <button
+                type="button"
+                className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
+                disabled={isGoogleLoading || isLoading}
+                onClick={async () => {
+                  setIsGoogleLoading(true)
+                  try {
+                    await signIn('google', { callbackUrl: '/' })
+                  } catch (error: any) {
+                    if (error?.message?.includes('OAuthAccountNotLinked')) {
+                      toast.error('This email is already registered with a different method')
+                    } else if (error?.message?.includes('Configuration')) {
+                      toast.info('Google login is not configured yet')
+                    } else {  
+                      toast.error('Google login failed. Please try again.')
+                    }
+                  } finally {
+                    setIsGoogleLoading(false)
+                  }
+                }}
+              >
+                {isGoogleLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <img src="/login/google.png" alt="Google" className="w-12 h-12 object-contain" />
+                )}
+              </button>
               <span className="text-center flex-1">Login with</span>
-              <div className="w-14 h-14 rounded-full bg-green flex items-center justify-center">
-                <img src="/login/apple.png" alt="Apple" className="w-12 h-12 object-contain" />
-              </div>
-            </button>
+              <button
+                type="button"
+                className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
+                disabled={isAppleLoading || isLoading}
+                onClick={async () => {
+                  setIsAppleLoading(true)
+                  try {
+                    await signIn('apple', { callbackUrl: '/' })
+                  } catch (error: any) {
+                    if (error?.message?.includes('OAuthAccountNotLinked')) {
+                      toast.error('This email is already registered with a different method')
+                    } else if (error?.message?.includes('Configuration')) {
+                      toast.info('Apple login is not configured yet')
+                    } else {
+                      toast.error('Apple login failed. Please try again.')
+                    }
+                  } finally {
+                    setIsAppleLoading(false)
+                  }
+                }}
+              >
+                {isAppleLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <img src="/login/apple.png" alt="Apple" className="w-12 h-12 object-contain" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Divider */}
@@ -133,6 +175,7 @@ export function LoginForm() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">
                 Email Address
@@ -175,9 +218,9 @@ export function LoginForm() {
                 <p className="text-sm text-red-600">{errors.password.message}</p>
               )}
               <div className="text-right mt-2">
-                <a href="/forgot-password" className="text-sm text-green hover:text-light-green">
+                <Link href="/forgot-password" className="text-sm text-green hover:text-light-green">
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -197,9 +240,9 @@ export function LoginForm() {
           {/* Sign Up Link */}
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
-            <a href="/register" className="font-medium hover:underline text-green">
+            <Link href="/register" className="font-medium hover:underline text-green">
               Sign up
-            </a>
+            </Link>
           </p>
         </div>
       </div>

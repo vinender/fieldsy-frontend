@@ -18,7 +18,7 @@ const config: Config = {
           'light-green': '#8FB366', // Pastel green
           'dark-green': '#192215',  // Dark green
           cream: '#F8F1D7',    
-          light: 'FFFCF3',    // Light yellow/cream
+          light: '#FFFCF3',    // Light yellow/cream
           'light-cream': '#FFFCF3', // Very light background
           yellow: '#FFBD00',       // Dark yellow/gold
         // },

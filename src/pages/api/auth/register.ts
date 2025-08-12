@@ -1,52 +1,104 @@
-import type { NextApiRequest, NextApiResponse } from "next"
-import bcrypt from "bcryptjs"
-import { prisma } from "@/lib/db"
+import { NextApiRequest, NextApiResponse } from 'next';
+import { hashPassword, validatePassword } from '@/lib/auth/password-utils';
+import { generateTokens } from '@/lib/auth/jwt-utils';
+import { setCookie } from 'cookies-next';
+
+// Temporary in-memory storage (replace with database in production)
+const users: any[] = [];
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { name, email, password, role } = req.body
+    const { email, password, name } = req.body;
 
     // Validate input
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Missing required fields" })
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ 
+        error: 'Password does not meet requirements',
+        details: passwordValidation.errors
+      });
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
-
+    const existingUser = users.find(u => u.email === email);
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists with this email" })
+      return res.status(409).json({ error: 'User already exists' });
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await hashPassword(password);
 
     // Create user
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: role || "USER",
+    const newUser = {
+      id: `user_${Date.now()}`,
+      email,
+      name,
+      password: hashedPassword,
+      createdAt: new Date().toISOString(),
+      emailVerified: false,
+    };
+
+    // Save user (in production, save to database)
+    users.push(newUser);
+
+    // Generate tokens
+    const tokens = await generateTokens({
+      userId: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+    });
+
+    // Set secure HTTP-only cookies
+    setCookie('access_token', tokens.accessToken, {
+      req,
+      res,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60, // 1 hour
+      path: '/',
+    });
+
+    setCookie('refresh_token', tokens.refreshToken, {
+      req,
+      res,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+    });
+
+    // Return user data (without password)
+    res.status(201).json({
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        emailVerified: newUser.emailVerified,
       },
-    })
-
-    // Remove password from response
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...userWithoutPassword } = user
-
-    return res.status(201).json(userWithoutPassword)
+      tokens,
+    });
   } catch (error) {
-    console.error("Registration error:", error)
-    return res.status(500).json({ message: "Internal server error" })
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }

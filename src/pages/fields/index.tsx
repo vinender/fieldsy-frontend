@@ -44,7 +44,7 @@ export default function SearchResults() {
   };
 
   const handleBookNow = (fieldId: string) => {
-    console.log('Book now for field:', fieldId);
+    router.push(`/fields/claim-field?id=${fieldId}`)
   };
 
   return (
@@ -57,12 +57,12 @@ export default function SearchResults() {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder="Enter location..."
-            className="flex-1 w-full bg-white md:w-auto text-[14px] md:text-[16px] text-[#192215] outline-none placeholder-gray-400"
+            className="flex-1 w-full bg-white md:w-auto text-[14px] md:text-[16px] text-dark-green outline-none placeholder-gray-400"
           />
           <div className="flex items-center gap-3 w-full md:w-auto">
             {searchValue && (
               <X 
-                className="w-[18px] h-[18px] text-[#192215] cursor-pointer hover:text-[#3A6B22] transition-colors" 
+                className="w-[18px] h-[18px] text-dark-green cursor-pointer hover:text-[#3A6B22] transition-colors" 
                 onClick={() => setSearchValue('')}
               />
             )}
@@ -101,7 +101,7 @@ export default function SearchResults() {
               filtersOpen ? 'fixed left-0 top-0 h-full w-[85%] max-w-[375px] bg-white overflow-y-auto' : 'w-full lg:w-[375px] bg-white rounded-[22px] border border-black/[0.06]'
             } p-6`}>
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-[18px] font-semibold text-[#192215]">Filters</h2>
+              <h2 className="text-[18px] font-semibold text-dark-green">Filters</h2>
               <div className="flex items-center gap-3">
                 <button className="text-[14px] font-semibold text-[#e31c20]">Reset All</button>
                 {filtersOpen && (
@@ -118,7 +118,7 @@ export default function SearchResults() {
             {/* Field Size */}
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2.5">
-                <h3 className="text-[14px] font-bold text-[#192215]">Field Size</h3>
+                <h3 className="text-[14px] font-bold text-dark-green">Field Size</h3>
                 <button onClick={() => toggleSection('fieldSize')}>
                   {expandedSections.fieldSize ? 
                     <ChevronUp className="w-4 h-4" /> : 
@@ -150,7 +150,7 @@ export default function SearchResults() {
             {/* Amenities */}
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2.5">
-                <h3 className="text-[14px] font-bold text-[#192215]">Amenities</h3>
+                <h3 className="text-[14px] font-bold text-dark-green">Amenities</h3>
                 <button onClick={() => toggleSection('amenities')}>
                   {expandedSections.amenities ? 
                     <ChevronUp className="w-4 h-4" /> : 
@@ -188,7 +188,7 @@ export default function SearchResults() {
             {/* Price */}
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2.5">
-                <h3 className="text-[14px] font-bold text-[#192215]">Price</h3>
+                <h3 className="text-[14px] font-bold text-dark-green">Price</h3>
                 <div className="flex items-center gap-2">
                   <span className="text-[14px] font-medium text-[#3A6B22]">${priceRange[0]} to ${priceRange[1]}</span>
                   <button onClick={() => toggleSection('price')}>
@@ -209,7 +209,7 @@ export default function SearchResults() {
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                   />
-                  <div className="flex justify-between text-[12px] text-[#192215] mt-2">
+                  <div className="flex justify-between text-[12px] text-dark-green mt-2">
                     <span>${mockData.filterOptions.priceRange.min}</span>
                     <span>${mockData.filterOptions.priceRange.max}</span>
                   </div>
@@ -222,7 +222,7 @@ export default function SearchResults() {
             {/* Distance */}
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2.5">
-                <h3 className="text-[14px] font-bold text-[#192215]">Distance away</h3>
+                <h3 className="text-[14px] font-bold text-dark-green">Distance away</h3>
                 <div className="flex items-center gap-2">
                   <span className="text-[14px] font-medium text-[#3A6B22]">{distanceRange[0]} mile to {distanceRange[1]} Miles</span>
                   <button onClick={() => toggleSection('distance')}>
@@ -243,7 +243,7 @@ export default function SearchResults() {
                     value={distanceRange[1]}
                     onChange={(e) => setDistanceRange([distanceRange[0], parseInt(e.target.value)])}
                   />
-                  <div className="flex justify-between text-[12px] text-[#192215] mt-2">
+                  <div className="flex justify-between text-[12px] text-dark-green mt-2">
                     <span>{mockData.filterOptions.distanceRange.min} mile</span>
                     <span>{mockData.filterOptions.distanceRange.max} miles</span>
                   </div>
@@ -256,7 +256,7 @@ export default function SearchResults() {
             {/* Rating */}
             <div className="mb-5">
               <div className="flex justify-between items-center mb-2.5">
-                <h3 className="text-[14px] font-bold text-[#192215]">Rating</h3>
+                <h3 className="text-[14px] font-bold text-dark-green">Rating</h3>
                 <button onClick={() => toggleSection('rating')}>
                   {expandedSections.rating ? 
                     <ChevronUp className="w-4 h-4" /> : 
@@ -289,7 +289,7 @@ export default function SearchResults() {
             <div className="mb-5">
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-2.5">
-                  <h3 className="text-[14px] font-bold text-[#192215]">Date</h3>
+                  <h3 className="text-[14px] font-bold text-dark-green">Date</h3>
                   <button onClick={() => toggleSection('date')}>
                     {expandedSections.date ? 
                       <ChevronUp className="w-4 h-4" /> : 
@@ -307,7 +307,7 @@ export default function SearchResults() {
 
               <div>
                 <div className="flex justify-between items-center mb-2.5">
-                  <h3 className="text-[14px] font-bold text-[#192215]">Availability</h3>
+                  <h3 className="text-[14px] font-bold text-dark-green">Availability</h3>
                   <button onClick={() => toggleSection('availability')}>
                     {expandedSections.availability ? 
                       <ChevronUp className="w-4 h-4" /> : 
@@ -342,11 +342,11 @@ export default function SearchResults() {
         {/* Results */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-[#192215]">Over {mockData.fields.length * 15} results</h1>
+              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">Over {mockData.fields.length * 15} results</h1>
               <button className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4">
                 <div className="flex items-center gap-2">
-                  <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-[#192215]" />
-                  <span className="text-[13px] md:text-[14px] font-medium text-[#192215]">Sort By</span>
+                  <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-dark-green" />
+                  <span className="text-[13px] md:text-[14px] font-medium text-dark-green">Sort By</span>
                 </div>
                 <ChevronDown className="w-4 h-4" />
               </button>
@@ -369,15 +369,15 @@ export default function SearchResults() {
 
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6 lg:mt-8">
-              <span className="text-[12px] md:text-[14px] text-[#192215]">Showing 1-{mockData.searchDefaults.resultsPerPage} of {mockData.fields.length * 15}</span>
+              <span className="text-[12px] md:text-[14px] text-dark-green">Showing 1-{mockData.searchDefaults.resultsPerPage} of {mockData.fields.length * 15}</span>
               <div className="flex gap-1 flex-wrap justify-center">
                 <button className="w-7 h-7 md:w-8 md:h-8 rounded bg-[#3A6B22] text-white text-[12px] md:text-[14px] font-medium">1</button>
-                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">2</button>
-                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">3</button>
-                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">4</button>
-                <span className="px-2 text-[#192215] hidden sm:inline">...</span>
-                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-[#192215] text-[12px] md:text-[14px]">10</button>
-                <button className="px-2 text-[#192215] text-[12px] md:text-[14px]">Next</button>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-dark-green text-[12px] md:text-[14px]">2</button>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-dark-green text-[12px] md:text-[14px]">3</button>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-dark-green text-[12px] md:text-[14px]">4</button>
+                <span className="px-2 text-dark-green hidden sm:inline">...</span>
+                <button className="w-7 h-7 md:w-8 md:h-8 rounded text-dark-green text-[12px] md:text-[14px]">10</button>
+                <button className="px-2 text-dark-green text-[12px] md:text-[14px]">Next</button>
               </div>
             </div>
           </div>

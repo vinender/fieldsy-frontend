@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Search, MapPin, Calendar, Star, Shield } from "lucide-react"
+import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
 
 export function HeroSection() {
   return (
@@ -37,25 +38,32 @@ export function HeroSection() {
             </p>
 
             {/* Search Bar */}
-            <div className="mt-8 bg-white rounded-2xl shadow-xl p-2 w-full">
+            <div className="mt-8 bg-white rounded-2xl shadow-xl p-2 w-full relative">
               <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex-1 flex items-center px-4 py-3 border-r border-gray-200">
+                <div className="flex-1 flex items-center px-4 py-3 border-r border-gray-200 relative">
                   <MapPin className="w-5 h-5 text-gray-400 mr-3" />
-                  <input
-                    type="text"
-                    placeholder="Location"
+                  <PlacesAutocomplete
+                    placeholder="Enter postcode or location"
                     className="w-full outline-none text-gray-700"
+                    recentSearches={[
+                      { title: "Sunny Paws Reserve", subtitle: "South London · 4 km away" },
+                      { title: "Whispering Pines", subtitle: "Northfield · 6 km away" },
+                      { title: "The Bark Yard", subtitle: "East Kent · 2.5 km away" },
+                      { title: "Green Meadows Field", subtitle: "Kent TN25 · 3.1 km away" },
+                      { title: "Doggie Dunes", subtitle: "Coastal Downs · 7 km away" },
+                      { title: "Muddy Tails Trail", subtitle: "Riverbank · 5.5 km away" },
+                    ]}
                   />
                 </div>
                 <div className="flex-1 flex items-center px-4 py-3 border-r border-gray-200">
                   <Calendar className="w-5 h-5 text-gray-400 mr-3" />
                   <input
                     type="text"
-                    placeholder="Date & Time"
+                    placeholder="Date & Time" 
                     className="w-full outline-none text-gray-700"
                   />
                 </div>
-                <Button size="lg" className="px-8">
+                <Button className="px-8 h-12">
                   <Search className="w-5 h-5 mr-2" />
                   Search
                 </Button>
@@ -65,12 +73,12 @@ export function HeroSection() {
             {/* Quick Actions */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center">
               <Link href="/fields">
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto h-12">
                   Browse All Fields
                 </Button>
               </Link>
               <Link href="/register">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto h-12">
                   List Your Field
                 </Button>
               </Link>

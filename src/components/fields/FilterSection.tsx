@@ -50,7 +50,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
   return (
     <div className="bg-white rounded-[12px] p-5 shadow-[0px_4px_10px_0px_rgba(0,0,0,0.06)]">
       <div className="flex justify-between items-center mb-5">
-        <h2 className="text-[18px] font-semibold text-[#192215]">Filters</h2>
+        <h2 className="text-[18px] font-semibold text-dark-green">Filters</h2>
         <button className="text-[12px] text-red-500 hover:text-red-600 font-medium">
           Reset All
         </button>
@@ -62,7 +62,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
           onClick={() => toggleSection('fieldSize')}
           className="flex justify-between items-center w-full text-left"
         >
-          <h3 className="text-[14px] font-medium text-[#192215]">Field Size</h3>
+          <h3 className="text-[14px] font-medium text-dark-green">Field Size</h3>
           {expandedSections.fieldSize ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (
@@ -93,7 +93,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
           onClick={() => toggleSection('amenities')}
           className="flex justify-between items-center w-full text-left"
         >
-          <h3 className="text-[14px] font-medium text-[#192215]">Amenities</h3>
+          <h3 className="text-[14px] font-medium text-dark-green">Amenities</h3>
           {expandedSections.amenities ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (
@@ -124,7 +124,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
           onClick={() => toggleSection('price')}
           className="flex justify-between items-center w-full text-left"
         >
-          <h3 className="text-[14px] font-medium text-[#192215]">Price</h3>
+          <h3 className="text-[14px] font-medium text-dark-green">Price</h3>
           {expandedSections.price ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (
@@ -160,7 +160,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
           onClick={() => toggleSection('distance')}
           className="flex justify-between items-center w-full text-left"
         >
-          <h3 className="text-[14px] font-medium text-[#192215]">Distance away</h3>
+          <h3 className="text-[14px] font-medium text-dark-green">Distance away</h3>
           {expandedSections.distance ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (
@@ -196,7 +196,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
           onClick={() => toggleSection('rating')}
           className="flex justify-between items-center w-full text-left"
         >
-          <h3 className="text-[14px] font-medium text-[#192215]">Rating</h3>
+          <h3 className="text-[14px] font-medium text-dark-green">Rating</h3>
           {expandedSections.rating ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (
@@ -270,7 +270,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
 
       {/* Date */}
       <div className="border-b border-gray-100 pb-4 mb-4">
-        <h3 className="text-[14px] font-medium text-[#192215] mb-3">Date</h3>
+        <h3 className="text-[14px] font-medium text-dark-green mb-3">Date</h3>
         <input
           type="date"
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[12px] focus:outline-none focus:border-[#3a6b22]"
@@ -284,7 +284,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
           onClick={() => toggleSection('availability')}
           className="flex justify-between items-center w-full text-left"
         >
-          <h3 className="text-[14px] font-medium text-[#192215]">Availability</h3>
+          <h3 className="text-[14px] font-medium text-dark-green">Availability</h3>
           {expandedSections.availability ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (

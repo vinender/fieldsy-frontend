@@ -105,9 +105,9 @@ const PrivacyPolicy = () => {
         {/* Back Button and Title */}
         <div className="flex items-center gap-4 mt-[20px] mb-8 lg:mb-10">
           <button className="flex items-center justify-center w-12 h-12 bg-[#F8F1D7] rounded-full hover:bg-[#F0EAB9] transition-colors">
-            <img src="/back.svg" alt="Arrow Left" className="w-6 h-6 text-[#192215] object-contain" />
+            <img src="/back.svg" alt="Arrow Left" className="w-6 h-6 text-dark-green object-contain" />
           </button>
-          <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-[#192215] drop-shadow-sm">
+          <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
             Privacy Policy
           </h1>
         </div>
@@ -141,7 +141,7 @@ const PrivacyPolicy = () => {
                     </p>
                     {section.subsections.map((subsection, subIndex) => (
                       <div key={subIndex} className="mt-3">
-                        <p className="text-base lg:text-[16px] font-semibold text-[#192215] leading-[28px] mb-1">
+                        <p className="text-base lg:text-[16px] font-semibold text-dark-green leading-[28px] mb-1">
                           {subsection.subtitle}
                         </p>
                         {subsection.isList && (
