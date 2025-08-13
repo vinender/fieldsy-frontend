@@ -58,7 +58,18 @@ export default function App({
             </main>
             {!hideLayout && <Footer />}
           </div>
-          <Toaster />
+          <Toaster 
+            toastOptions={{
+              style: {
+                background: '#2D3748', // Dark gray background
+                color: '#FFFFFF', // White text
+                border: '1px solid #4A5568', // Slightly lighter border
+              },
+              className: 'sonner-toast',
+              descriptionClassName: 'sonner-description',
+            }}
+            richColors
+          />
         </div>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

@@ -1,25 +1,28 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({ className, type, style, ...props }: React.ComponentProps<"input">) {
   return (
     <input
       type={type}
       data-slot="input"
+      style={{
+        color: '#6B6B6B',
+        WebkitTextFillColor: '#6B6B6B',
+        ...style
+      }}
       className={cn(
         // Base styles
         "flex w-full rounded-[70px] border bg-white px-[16px] py-[8px] text-base transition-all duration-200",
         
-        // Text and placeholder
-        "text-gray-input placeholder:text-gray-400",
+        // Text and placeholder - FORCE gray color
+        "text-[#6B6B6B] placeholder:text-gray-400",
+        "[color:#6B6B6B_!important]",
         
-        // Autofill styles - IMPORTANT: prevents white text on autofill
-        "autofill:shadow-[inset_0_0_0px_1000px_white]",
-        "autofill:[-webkit-text-fill-color:#6B6B6B]",
-        "autofill:hover:shadow-[inset_0_0_0px_1000px_white]",
-        "autofill:hover:[-webkit-text-fill-color:#6B6B6B]",
-        "autofill:focus:shadow-[inset_0_0_0px_1000px_white]",
-        "autofill:focus:[-webkit-text-fill-color:#6B6B6B]",
+        // Force text color on all states
+        "focus:text-[#6B6B6B]",
+        "hover:text-[#6B6B6B]",
+        "active:text-[#6B6B6B]",
         
         // Border
         "border-gray-300",

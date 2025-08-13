@@ -38,14 +38,6 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Dynamic navigation based on user role
-  const baseNavigation = [
-    { name: "Home", href: "/" },
-    { name: "About Us", href: "/about" },
-    { name: "How it works", href: "/how-it-works" },
-    { name: "FAQ's", href: "/faqs" },
-  ]
-
   // Use state to manage local user to avoid hydration issues
   const [localUser, setLocalUser] = useState<any>(null)
   
@@ -68,15 +60,32 @@ export function Header() {
   const navigation = useMemo(() => {
     // For initial render (both server and client), use base navigation
     if (!currentUser) {
-      return baseNavigation // Just show base navigation without Search Fields
+      // Show limited navigation for non-authenticated users
+      return [
+        { name: "Home", href: "/" },
+        { name: "About Us", href: "/about" },
+        { name: "How it works", href: "/how-it-works" },
+        { name: "FAQ's", href: "/faqs" },
+      ]
     }
     
-    // After hydration, show role-specific navigation
+    // For FIELD_OWNER role
+    if (currentUser.role === 'FIELD_OWNER') {
+      return [
+        { name: "Dashboard", href: "/field-owner" },
+        { name: "My Fields", href: "/field-owner-dashboard" },
+        { name: "About Us", href: "/about" },
+        { name: "FAQ's", href: "/faqs" },
+      ]
+    }
+    
+    // For DOG_OWNER role (default)
     return [
-      ...baseNavigation.slice(0, 2), // Home, About Us
-      ...(currentUser.role === 'DOG_OWNER' ? [{ name: "Search Fields", href: "/fields" }] : []),
-      ...(currentUser.role === 'FIELD_OWNER' ? [{ name: "My Fields", href: "/field-owner-dashboard" }] : []),
-      ...baseNavigation.slice(2), // How it works, FAQ's
+      { name: "Home", href: "/" },
+      { name: "About Us", href: "/about" },
+      { name: "Search Fields", href: "/fields" },
+      { name: "How it works", href: "/how-it-works" },
+      { name: "FAQ's", href: "/faqs" },
     ]
   }, [currentUser])
 
@@ -98,7 +107,6 @@ export function Header() {
   // Determine header styles based on page and scroll position
   const headerBg = !isLandingPage || scrolled ? "bg-white shadow-sm" : "bg-transparent"
   const textColor = !isLandingPage || scrolled ? "text-gray-700" : "text-white"
-  const logoColor = !isLandingPage || scrolled ? "text-gray-900" : "text-white"
   const navLinkColor = !isLandingPage || scrolled 
     ? "text-gray-600 hover:text-gray-900" 
     : "text-white/90 hover:text-white"
