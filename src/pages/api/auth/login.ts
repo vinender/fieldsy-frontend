@@ -2,10 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyPassword } from '@/lib/auth/password-utils';
 import { generateTokens } from '@/lib/auth/jwt-utils';
 import { setCookie } from 'cookies-next';
-
-// Temporary in-memory storage (replace with database in production)
-// This should be shared with register.ts in production
-const users: any[] = [];
+import { findUserByEmail } from '@/lib/auth/user-store';
 
 export default async function handler(
   req: NextApiRequest,
@@ -24,7 +21,7 @@ export default async function handler(
     }
 
     // Find user by email (in production, query database)
-    const user = users.find(u => u.email === email);
+    const user = findUserByEmail(email);
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -42,6 +39,7 @@ export default async function handler(
       userId: user.id,
       email: user.email,
       name: user.name,
+      role: user.role,
     });
 
     // Set secure HTTP-only cookies
@@ -71,6 +69,7 @@ export default async function handler(
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
         emailVerified: user.emailVerified,
       },
       tokens,

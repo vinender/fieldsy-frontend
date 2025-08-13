@@ -8,6 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 const resetPasswordSchema = z.object({
   password: z
@@ -160,9 +162,9 @@ export default function ResetPasswordForm() {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   {/* New Password */}
                   <div>
-                    <label className="text-gray-700 text-sm font-medium">New Password</label>
+                    <Label className="text-gray-700 text-sm font-medium">New Password</Label>
                     <div className="relative mt-1">
-                      <input
+                      <Input
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter new password"
                         {...register("password")}
@@ -185,9 +187,9 @@ export default function ResetPasswordForm() {
 
                   {/* Confirm Password */}
                   <div>
-                    <label className="text-gray-700 text-sm font-medium">Confirm Password</label>
+                    <Label className="text-gray-700 text-sm font-medium">Confirm Password</Label>
                     <div className="relative mt-1">
-                      <input
+                      <Input
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm new password"
                         {...register("confirmPassword")}

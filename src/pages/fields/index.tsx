@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, SortDesc, Calendar, X, Navigation, Filter } from 'lucide-react';
 import { FieldCard } from '@/components/fields/FieldCard';
+import { Input } from '@/components/ui/input';
+import { UserLayout } from '@/components/layout/UserLayout';
 import mockData from '@/data/mock-data.json';
 import { useRouter } from 'next/router';
 
@@ -48,16 +50,17 @@ export default function SearchResults() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFCF3] w-full">
+    <UserLayout requireRole="DOG_OWNER">
+      <div className="min-h-screen bg-[#FFFCF3] w-full">
       {/* Search Bar - Sticky below header */}
       <div className="bg-light-cream my-10 sticky top-[80px] md:top-[120px] z-30 px-4 sm:px-6 lg:px-20 py-4">
         <div className="bg-white rounded-[30px] md:rounded-[90px] min-h-[50px] md:h-[60px] flex flex-col md:flex-row items-center px-4 md:px-6 py-3 md:py-0 border border-black/10 shadow-[0px_12px_13px_0px_rgba(0,0,0,0.05)] gap-3 md:gap-0">
-          <input 
+          <Input 
             type="text" 
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder="Enter location..."
-            className="flex-1 w-full bg-white md:w-auto text-[14px] md:text-[16px] text-dark-green outline-none placeholder-gray-400"
+            className="flex-1 border-0 shadow-none px-0 focus:ring-0 rounded-none text-[14px] md:text-[16px]"
           />
           <div className="flex items-center gap-3 w-full md:w-auto">
             {searchValue && (
@@ -384,5 +387,6 @@ export default function SearchResults() {
         </div>
       </div>
     </div>
+    </UserLayout>
   );
 }

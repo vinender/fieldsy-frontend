@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Input } from '@/components/ui/input';
 
 // Image imports (these would be your actual image paths)
 const imgChip = '/tmp/f1b998b054ed1c8d78c778006f40226242b6fdcc.svg';
@@ -10,9 +11,9 @@ const imgVuesaxBoldTrash = '/tmp/6f2cb1407e19975d4c20b873c5b68c84053e7063.svg';
 function TrashIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M21 5.98C17.67 5.65 14.32 5.48 10.98 5.48C9 5.48 7.02 5.58 5.04 5.78L3 5.98" stroke="#e31c20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M8.5 4.97L8.72 3.66C8.88 2.71 9 2 10.69 2H13.31C15 2 15.13 2.75 15.28 3.67L15.5 4.97" stroke="#e31c20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M18.85 9.14L18.2 19.21C18.09 20.78 18 22 15.21 22H8.79C6 22 5.91 20.78 5.8 19.21L5.15 9.14" stroke="#e31c20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M21 5.98C17.67 5.65 14.32 5.48 10.98 5.48C9 5.48 7.02 5.58 5.04 5.78L3 5.98" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-red"/>
+      <path d="M8.5 4.97L8.72 3.66C8.88 2.71 9 2 10.69 2H13.31C15 2 15.13 2.75 15.28 3.67L15.5 4.97" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-red"/>
+      <path d="M18.85 9.14L18.2 19.21C18.09 20.78 18 22 15.21 22H8.79C6 22 5.91 20.78 5.8 19.21L5.15 9.14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-red"/>
     </svg>
   );
 }
@@ -25,7 +26,7 @@ function CreditCard({ cardNumber, isDefault, onToggleDefault, onDelete }) {
       <div className="absolute bg h-[120px] ml-4 mt-14 rounded-xl shadow-lg w-[296px]" />
       
       {/* Card */}
-      <div className="relative h-44 w-[328px] overflow-hidden rounded-xl" style={{ backgroundColor: '#8ad04d' }}>
+      <div className="relative h-44 w-[328px] overflow-hidden rounded-xl bg-green-light">
         {/* Card Background Pattern */}
         <div className="absolute inset-0 opacity-15">
           <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
@@ -104,15 +105,10 @@ function CreditCard({ cardNumber, isDefault, onToggleDefault, onDelete }) {
             type="checkbox"
             checked={isDefault}
             onChange={onToggleDefault}
-            className="w-5 h-5 bg-white"
-            style={{ accentColor: '#3A6B22' }}
+            className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-2 focus:ring-green/20"
           />
           <span 
-            className="text-sm font-medium"
-            style={{ 
-              color: '#192215',
-              fontFamily: "'DM Sans', sans-serif"
-            }}
+            className="text-sm font-medium text-dark-green font-sans"
           >
             {isDefault ? 'Default card' : 'Make default'}
           </span>
@@ -172,21 +168,17 @@ export default function SavedCards() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fffcf3] xl:mt-32 mt-16 pb-16">
+    <div className="min-h-screen bg-light xl:mt-32 mt-16 pb-16">
       <div className="container mx-auto px-20">
         {/* Page Title */}
         <div className="flex items-center gap-4 mb-8">
-          <button className="w-12 h-12 bg-[#f8f1d7] rounded-full flex items-center justify-center">
+          <button className="w-12 h-12 bg-cream rounded-full flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M15 19L8 12L15 5" stroke="#192215" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-dark-green"/>
             </svg>
           </button>
           <h1 
-            className="text-3xl font-semibold"
-            style={{ 
-              color: '#192215',
-              fontFamily: "'DM Sans', sans-serif"
-            }}
+            className="text-3xl font-semibold text-dark-green font-sans"
           >
             Saved Cards
           </h1>
@@ -245,17 +237,13 @@ export default function SavedCards() {
                   >
                     Card Number
                   </label>
-                  <input
+                  <Input
                     type="text"
                     name="cardNumber"
                     value={formData.cardNumber}
                     onChange={handleInputChange}
                     placeholder="Enter card number"
-                    className="w-full px-4 py-3 bg-white rounded-full border border-gray-200 focus:outline-none focus:border-green-600"
-                    style={{
-                      borderColor: '#e3e3e3',
-                      fontFamily: "'DM Sans', sans-serif"
-                    }}
+                    className="py-3 border-[#e3e3e3] focus:border-green font-sans"
                   />
                 </div>
                 <div>
@@ -268,17 +256,13 @@ export default function SavedCards() {
                   >
                     Name on Card
                   </label>
-                  <input
+                  <Input
                     type="text"
                     name="nameOnCard"
                     value={formData.nameOnCard}
                     onChange={handleInputChange}
                     placeholder="Enter name on card"
-                    className="w-full px-4 py-3 bg-white rounded-full border border-gray-200 focus:outline-none focus:border-green-600"
-                    style={{
-                      borderColor: '#e3e3e3',
-                      fontFamily: "'DM Sans', sans-serif"
-                    }}
+                    className="py-3 border-[#e3e3e3] focus:border-green font-sans"
                   />
                 </div>
               </div>
@@ -296,17 +280,13 @@ export default function SavedCards() {
                     Valid Thru
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       type="text"
                       name="validThru"
                       value={formData.validThru}
                       onChange={handleInputChange}
                       placeholder="Valid thru: MM/YYYY"
-                      className="w-full px-4 py-3 bg-white pr-12 rounded-full border border-gray-200 focus:outline-none focus:border-green-600"
-                      style={{
-                        borderColor: '#e3e3e3',
-                        fontFamily: "'DM Sans', sans-serif"
-                      }}
+                      className="py-3 pr-12 border-[#e3e3e3] focus:border-green font-sans"
                     />
                     {formData.validThru && (
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -329,17 +309,13 @@ export default function SavedCards() {
                     CVV
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       type="text"
                       name="cvv"
                       value={formData.cvv}
                       onChange={handleInputChange}
                       placeholder="Enter CVV"
-                      className="w-full px-4 py-3 bg-white pr-12 rounded-full border border-gray-200 focus:outline-none focus:border-green-600"
-                      style={{
-                        borderColor: '#e3e3e3',
-                        fontFamily: "'DM Sans', sans-serif"
-                      }}
+                      className="py-3 pr-12 border-[#e3e3e3] focus:border-green font-sans"
                     />
                     {formData.cvv && (
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -360,8 +336,7 @@ export default function SavedCards() {
                   name="makeDefault"
                   checked={formData.makeDefault}
                   onChange={handleInputChange}
-                  className="w-5 h-5 bg-white"
-                  style={{ accentColor: '#3A6B22' }}
+                  className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-2 focus:ring-green/20"
                 />
                 <span 
                   className="text-sm font-medium"

@@ -2,9 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { hashPassword, validatePassword } from '@/lib/auth/password-utils';
 import { generateTokens } from '@/lib/auth/jwt-utils';
 import { setCookie } from 'cookies-next';
-
-// Temporary in-memory storage (replace with database in production)
-const users: any[] = [];
+import { findUserByEmail, createUser } from '@/lib/auth/user-store';
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,11 +13,17 @@ export default async function handler(
   }
 
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, role } = req.body;
 
     // Validate input
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !role) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate role
+    const validRoles = ['DOG_OWNER', 'FIELD_OWNER'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role specified' });
     }
 
     // Validate email format
@@ -38,7 +42,7 @@ export default async function handler(
     }
 
     // Check if user already exists
-    const existingUser = users.find(u => u.email === email);
+    const existingUser = findUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({ error: 'User already exists' });
     }
@@ -47,23 +51,20 @@ export default async function handler(
     const hashedPassword = await hashPassword(password);
 
     // Create user
-    const newUser = {
-      id: `user_${Date.now()}`,
+    const newUser = createUser({
       email,
       name,
+      role: role as 'DOG_OWNER' | 'FIELD_OWNER',
       password: hashedPassword,
-      createdAt: new Date().toISOString(),
-      emailVerified: false,
-    };
-
-    // Save user (in production, save to database)
-    users.push(newUser);
+      phone: req.body.phone,
+    });
 
     // Generate tokens
     const tokens = await generateTokens({
       userId: newUser.id,
       email: newUser.email,
       name: newUser.name,
+      role: newUser.role,
     });
 
     // Set secure HTTP-only cookies
@@ -93,6 +94,7 @@ export default async function handler(
         id: newUser.id,
         email: newUser.email,
         name: newUser.name,
+        role: newUser.role,
         emailVerified: newUser.emailVerified,
       },
       tokens,

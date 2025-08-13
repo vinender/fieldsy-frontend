@@ -9,6 +9,7 @@ interface TokenPayload {
   userId: string;
   email: string;
   name?: string;
+  role?: 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN';
   provider?: string;
 }
 
@@ -57,6 +58,7 @@ export async function refreshTokens(refreshToken: string) {
       userId: payload.userId,
       email: payload.email,
       name: payload.name,
+      role: payload.role,
       provider: payload.provider,
     });
 

@@ -143,6 +143,7 @@ class S3Uploader {
       'image/jpeg',
       'image/jpg',
       'image/png',
+      'image/webp',
       'image/gif',
       'application/pdf',
       'application/msword',

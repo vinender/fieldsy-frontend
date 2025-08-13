@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import axios from 'axios';
+import { apiClient } from '@/lib/api/client';
 
 interface RegisterData {
   name: string;
   email: string;
   password: string;
+  role?: 'DOG_OWNER' | 'FIELD_OWNER';
+  phone?: string;
 }
 
 interface LoginData {
@@ -26,72 +28,100 @@ export function useAuth() {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      const response = await axios.post('/api/auth/register', data);
-      return response.data;
+      try {
+        const response = await apiClient.post('/auth/register', data);
+        return response.data;
+      } catch (error: any) {
+        // Extract the error message from the backend response
+        const errorMessage = error?.response?.data?.message || error?.response?.data?.error || 'Registration failed';
+        throw new Error(errorMessage);
+      }
     },
-    onSuccess: async (data) => {
-      // Auto-login after registration
-      await signIn('credentials', {
-        email: data.user.email,
-        password: data.password,
+    onSuccess: async (response) => {
+      if (typeof window !== 'undefined') {
+        // Store user and token
+        localStorage.setItem('currentUser', JSON.stringify(response.data.user));
+        localStorage.setItem('authToken', response.data.token);
+        
+        // Set token in axios headers
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      }
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      
+      // Sign in with NextAuth to create session
+      const result = await signIn('credentials', {
+        email: response.data.user.email,
+        token: response.data.token,
         redirect: false,
       });
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.push('/');
-    },
-    onError: (error: any) => {
-      console.error('Registration error:', error);
-      throw error;
+      
+      if (result?.ok) {
+        router.push('/');
+      }
     },
   });
 
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
+      try {
+        const response = await apiClient.post('/auth/login', data);
+        return response.data;
+      } catch (error: any) {
+        // Extract the error message from the backend response
+        const errorMessage = error?.response?.data?.message || error?.response?.data?.error || 'Login failed';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: async (response) => {
+      if (typeof window !== 'undefined') {
+        // Store user and token
+        localStorage.setItem('currentUser', JSON.stringify(response.data.user));
+        localStorage.setItem('authToken', response.data.token);
+        
+        // Set token in axios headers
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      }
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      
+      // Sign in with NextAuth to create session
       const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
+        email: response.data.user.email,
+        token: response.data.token,
         redirect: false,
       });
       
-      if (result?.error) {
-        throw new Error(result.error);
+      if (result?.ok) {
+        // Get the callback URL from query params or default to home
+        const callbackUrl = router.query.callbackUrl as string || '/';
+        router.push(callbackUrl);
       }
-      
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.push('/');
-    },
-    onError: (error: any) => {
-      console.error('Login error:', error);
-      throw error;
     },
   });
 
   // Social login
-  const socialLogin = async (provider: 'google' | 'apple') => {
-    try {
-      await signIn(provider, { callbackUrl: '/' });
-    } catch (error) {
-      console.error(`${provider} login error:`, error);
-    }
+  const socialLogin = async (_provider: 'google' | 'apple') => {
+    // Placeholder: direct backend social flow not implemented yet
+    console.warn('Social login not implemented for direct backend mode');
   };
 
   // Logout
   const logout = async () => {
-    await signOut({ redirect: false });
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('authToken');
+    }
     queryClient.clear();
+    await signOut({ redirect: false });
     router.push('/login');
   };
 
   return {
-    user,
+    user: (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('currentUser') || 'null') : null) || user,
     isAuthenticated,
     isLoading,
-    register: registerMutation.mutate,
-    login: loginMutation.mutate,
+    register: registerMutation.mutateAsync,
+    login: loginMutation.mutateAsync,
     socialLogin,
     logout,
     isRegistering: registerMutation.isPending,

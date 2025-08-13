@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useRouter } from "next/router"
 import { signIn } from "next-auth/react"
+import { useAuth } from "@/hooks/auth/useAuth"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -9,6 +10,7 @@ import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ImageGrid } from "@/components/forms/ImageGrid"
+import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 import Link from "next/link"
 
 const loginSchema = z.object({
@@ -24,6 +26,9 @@ export function LoginForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [isAppleLoading, setIsAppleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [showRoleModal, setShowRoleModal] = useState(false)
+  const [pendingProvider, setPendingProvider] = useState<'google' | 'apple' | null>(null)
+  const { login } = useAuth()
 
   const {
     register,
@@ -36,22 +41,59 @@ export function LoginForm() {
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true)
     try {
-      const result = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        toast.error("Invalid email or password")
+      await login({ email: data.email, password: data.password })
+      toast.success("Login successful!")
+      // Don't redirect here - let useAuth handle it with callbackUrl
+    } catch (error: any) {
+      const errorMessage = error?.message || "Invalid email or password";
+      
+      // Show specific error messages with suggestions
+      if (errorMessage.includes("social login")) {
+        toast.error(
+          <div>
+            <p className="font-semibold">Social login required</p>
+            <p className="text-sm mt-1">{errorMessage}</p>
+          </div>,
+          { duration: 5000 }
+        );
       } else {
-        toast.success("Login successful!")
-        router.push("/")
+        toast.error(errorMessage);
       }
-    } catch {
-      toast.error("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Handle role selection from modal
+  async function handleRoleSelection(role: 'DOG_OWNER' | 'FIELD_OWNER') {
+    if (!pendingProvider) return;
+    
+    const isGoogle = pendingProvider === 'google';
+    if (isGoogle) {
+      setIsGoogleLoading(true);
+    } else {
+      setIsAppleLoading(true);
+    }
+    
+    try {
+      // Call the social login with the selected role
+      await signIn(pendingProvider, { 
+        callbackUrl: '/',
+        role // Pass the role to the provider
+      });
+    } catch (error: any) {
+      if (error?.message?.includes('OAuthAccountNotLinked')) {
+        toast.error('This email is already registered with a different method');
+      } else if (error?.message?.includes('Configuration')) {
+        toast.info(`${pendingProvider === 'google' ? 'Google' : 'Apple'} login is not configured yet`);
+      } else {
+        toast.error(`${pendingProvider === 'google' ? 'Google' : 'Apple'} login failed. Please try again.`);
+      }
+    } finally {
+      setShowRoleModal(false);
+      setPendingProvider(null);
+      setIsGoogleLoading(false);
+      setIsAppleLoading(false);
     }
   }
 
@@ -107,21 +149,9 @@ export function LoginForm() {
                 type="button"
                 className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
                 disabled={isGoogleLoading || isLoading}
-                onClick={async () => {
-                  setIsGoogleLoading(true)
-                  try {
-                    await signIn('google', { callbackUrl: '/' })
-                  } catch (error: any) {
-                    if (error?.message?.includes('OAuthAccountNotLinked')) {
-                      toast.error('This email is already registered with a different method')
-                    } else if (error?.message?.includes('Configuration')) {
-                      toast.info('Google login is not configured yet')
-                    } else {  
-                      toast.error('Google login failed. Please try again.')
-                    }
-                  } finally {
-                    setIsGoogleLoading(false)
-                  }
+                onClick={() => {
+                  setPendingProvider('google')
+                  setShowRoleModal(true)
                 }}
               >
                 {isGoogleLoading ? (
@@ -135,21 +165,9 @@ export function LoginForm() {
                 type="button"
                 className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
                 disabled={isAppleLoading || isLoading}
-                onClick={async () => {
-                  setIsAppleLoading(true)
-                  try {
-                    await signIn('apple', { callbackUrl: '/' })
-                  } catch (error: any) {
-                    if (error?.message?.includes('OAuthAccountNotLinked')) {
-                      toast.error('This email is already registered with a different method')
-                    } else if (error?.message?.includes('Configuration')) {
-                      toast.info('Apple login is not configured yet')
-                    } else {
-                      toast.error('Apple login failed. Please try again.')
-                    }
-                  } finally {
-                    setIsAppleLoading(false)
-                  }
+                onClick={() => {
+                  setPendingProvider('apple')
+                  setShowRoleModal(true)
                 }}
               >
                 {isAppleLoading ? (
@@ -251,6 +269,17 @@ export function LoginForm() {
       <div className="absolute top-4 left-4 text-gray-400 text-sm">
         Login
       </div>
+
+      {/* Role Selection Modal */}
+      <RoleSelectionModal
+        isOpen={showRoleModal}
+        onClose={() => {
+          setShowRoleModal(false);
+          setPendingProvider(null);
+        }}
+        onSelectRole={handleRoleSelection}
+        isLoading={isGoogleLoading || isAppleLoading}
+      />
     </div>
   )
 }

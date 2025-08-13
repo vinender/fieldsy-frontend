@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import mockData from '@/data/mock-data.json';
 
 const BookFieldPage = () => {
@@ -17,9 +18,11 @@ const BookFieldPage = () => {
   
   if (!field) {
     return (
-      <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
-        <p className="text-xl text-dark-green">Field not found</p>
-      </div>
+      <UserLayout requireRole="DOG_OWNER">
+        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
+          <p className="text-xl text-dark-green">Field not found</p>
+        </div>
+      </UserLayout>
     );
   }
 
@@ -56,7 +59,8 @@ const BookFieldPage = () => {
   };
 
   return (
-    <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3]">
+    <UserLayout requireRole="DOG_OWNER">
+      <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3]">
       {/* Main Container */}
       <div className="container mx-auto px-4 lg:px-20 py-8 lg:py-10">
         
@@ -152,12 +156,12 @@ const BookFieldPage = () => {
                   Number of Dogs
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     type="text"
                     value={numberOfDogs}
                     onChange={(e) => setNumberOfDogs(e.target.value)}
                     placeholder="Enter number of dogs"
-                    className="w-full h-14 px-4 rounded-full border bg-white text-gray-600 border-[#E3E3E3] focus:border-[#3A6B22] focus:outline-none transition-colors text-[15px]"
+                    className="h-14 border-[#E3E3E3] focus:border-[#3A6B22] text-[15px]"
                   />
                   {/* <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" /> */}
                 </div>
@@ -169,11 +173,11 @@ const BookFieldPage = () => {
                   Choose Date
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     type="date"
                     value={selectedDate}
                     readOnly
-                    className="w-full h-14 px-4  rounded-full bg-white border text-gray-600 border-[#E3E3E3] focus:border-[#3A6B22] focus:outline-none transition-colors text-[15px] font-medium cursor-pointer"
+                    className="h-14 border-[#E3E3E3] focus:border-[#3A6B22] text-[15px] font-medium cursor-pointer"
                   />
                   <img src='/book-field/calendar.svg' className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[#3A6B22] pointer-events-none" />
                 </div>
@@ -345,6 +349,7 @@ const BookFieldPage = () => {
         </div>
       </div>
     </div>
+    </UserLayout>
   );
 };
 

@@ -109,7 +109,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
                   type="checkbox"
                   checked={filters.amenities.includes(amenity)}
                   onChange={() => handleAmenityToggle(amenity)}
-                  className="w-3.5 h-3.5 text-[#3a6b22] rounded border-gray-300 focus:ring-[#3a6b22] focus:ring-1"
+                  className="w-3.5 h-3.5 bg-white accent-green appearance-none border border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
                 />
                 <span className="text-[12px] text-gray-700">{amenity}</span>
               </label>

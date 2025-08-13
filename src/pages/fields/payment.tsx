@@ -21,9 +21,11 @@ const PaymentPage = () => {
   
   if (!field) {
     return (
-      <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
-        <p className="text-xl text-dark-green">Field not found</p>
-      </div>
+      <UserLayout requireRole="DOG_OWNER">
+        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
+          <p className="text-xl text-dark-green">Field not found</p>
+        </div>
+      </UserLayout>
     );
   }
   
@@ -60,7 +62,8 @@ const PaymentPage = () => {
   const total = subtotal + fieldsyFee;
 
   return (
-    <div className="min-h-screen bg-[#FFFCF3]">
+    <UserLayout requireRole="DOG_OWNER">
+      <div className="min-h-screen bg-[#FFFCF3]">
       {/* Main Container */}
       <div className="container mx-auto mt-16 xl:mt-24 px-4 lg:px-20 py-8 lg:py-10">
         
@@ -148,7 +151,7 @@ const PaymentPage = () => {
                       type="checkbox"
                       checked={card.isDefault}
                       onChange={() => {}}
-                      className="w-6 h-6  accent-[#3A6B22]"
+                      className="w-6 h-6 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-2 focus:ring-green/20"
                     />
                     <span className="text-[14px] font-medium text-[#192215]">
                       {card.isDefault ? 'Default card' : 'Make default'}
@@ -289,6 +292,7 @@ const PaymentPage = () => {
         </div>
       </div>
     </div>
+    </UserLayout>
   );
 };
 

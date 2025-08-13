@@ -6,14 +6,15 @@ import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, X } from "lucide-react"
 import { ProfileDropdown } from "@/components/profile/ProfileDropdown"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 
 export function Header() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(false)
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   
   // SIMULATED LOGIN STATE - Remove this when using real auth
   const [isSimulatedLoggedIn, setIsSimulatedLoggedIn] = useState(false)
@@ -21,7 +22,7 @@ export function Header() {
     name: "John Doe",
     email: "john.doe@example.com",
     image: null, // Set to null to show default avatar, or provide an image URL
-    role: "USER" // or "FIELD_OWNER"
+    role: "DOG_OWNER" as const // or "FIELD_OWNER"
   }
   
   // Check if we're on the landing page
@@ -37,19 +38,62 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const navigation = [
+  // Dynamic navigation based on user role
+  const baseNavigation = [
     { name: "Home", href: "/" },
     { name: "About Us", href: "/about" },
-    { name: "Search Fields", href: "/fields" },
     { name: "How it works", href: "/how-it-works" },
     { name: "FAQ's", href: "/faqs" },
   ]
 
-  const userNavigation = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "My Bookings", href: "/bookings" },
-    { name: "Profile", href: "/profile" },
-  ]
+  // Use state to manage local user to avoid hydration issues
+  const [localUser, setLocalUser] = useState<any>(null)
+  
+  useEffect(() => {
+    // Only access localStorage after component mounts (client-side only)
+    const storedUser = localStorage.getItem('currentUser')
+    if (storedUser) {
+      try {
+        setLocalUser(JSON.parse(storedUser))
+      } catch (e) {
+        console.error('Failed to parse stored user:', e)
+      }
+    }
+  }, [])
+  
+  const isAuthenticated = status === "authenticated" || !!localUser || isSimulatedLoggedIn
+  const currentUser = session?.user || localUser || (isSimulatedLoggedIn ? simulatedUser : null)
+
+  // Add role-specific navigation items - use consistent initial state
+  const navigation = useMemo(() => {
+    // For initial render (both server and client), use base navigation
+    if (!currentUser) {
+      return baseNavigation // Just show base navigation without Search Fields
+    }
+    
+    // After hydration, show role-specific navigation
+    return [
+      ...baseNavigation.slice(0, 2), // Home, About Us
+      ...(currentUser.role === 'DOG_OWNER' ? [{ name: "Search Fields", href: "/fields" }] : []),
+      ...(currentUser.role === 'FIELD_OWNER' ? [{ name: "My Fields", href: "/field-owner-dashboard" }] : []),
+      ...baseNavigation.slice(2), // How it works, FAQ's
+    ]
+  }, [currentUser])
+
+  // Dynamic user navigation based on role
+  const userNavigation = currentUser?.role === 'FIELD_OWNER' 
+    ? [
+        { name: "Dashboard", href: "/field-owner-dashboard" },
+        { name: "Add Field", href: "/field-owner" },
+        { name: "My Fields", href: "/fields/manage" },
+        { name: "Profile", href: "/user/profile" },
+      ]
+    : [
+        { name: "Dashboard", href: "/dashboard" },
+        { name: "My Bookings", href: "/user/my-bookings" },
+        { name: "Saved Fields", href: "/user/saved-fields" },
+        { name: "Profile", href: "/user/profile" },
+      ]
 
   // Determine header styles based on page and scroll position
   const headerBg = !isLandingPage || scrolled ? "bg-white shadow-sm" : "bg-transparent"
@@ -58,10 +102,6 @@ export function Header() {
   const navLinkColor = !isLandingPage || scrolled 
     ? "text-gray-600 hover:text-gray-900" 
     : "text-white/90 hover:text-white"
-
-  // Use simulated login state if auth is not connected
-  const isAuthenticated = status === "authenticated" || isSimulatedLoggedIn
-  const currentUser = session?.user || (isSimulatedLoggedIn ? simulatedUser : null)
 
   return (
     <header className={cn(
@@ -99,19 +139,20 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
-            {isAuthenticated && currentUser?.role === "FIELD_OWNER" && (
+            {/* Additional role-specific navigation - only render after hydration */}
+            {localUser && currentUser?.role === "FIELD_OWNER" && (
               <Link
-                href="/fields/manage"
+                href="/field-owner"
                 className={cn(
                   "text-base font-medium transition-colors",
-                  pathname === "/fields/manage"
+                  pathname === "/field-owner"
                     ? !isLandingPage || scrolled 
                       ? "text-green-600" 
                       : "text-white"
                     : navLinkColor
                 )}
               >
-                Manage Fields
+                Add Field
               </Link>
             )}
           </div>
@@ -148,8 +189,10 @@ export function Header() {
                 </button>
                 
                 {/* Profile Dropdown */}
-                <div className="relative group">
+                <div className="relative">
                   <button 
+                    data-profile-button
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="flex items-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                     aria-label="User menu"
                   >
@@ -170,14 +213,27 @@ export function Header() {
                     </div>
                   </button>
                   
-                  {/* Dropdown Menu (hover reveal) */}
+                  {/* Dropdown Menu */}
                   <ProfileDropdown
                     user={{ name: currentUser?.name || "User", email: currentUser?.email || "", image: currentUser?.image || null }}
+                    isOpen={profileDropdownOpen}
+                    onClose={() => setProfileDropdownOpen(false)}
                     onLogout={() => {
                       if (isSimulatedLoggedIn) {
                         setIsSimulatedLoggedIn(false)
                       } else {
-                        signOut({ callbackUrl: "/" })
+                        // Clear our custom auth
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('currentUser');
+                        setLocalUser(null);
+                        
+                        // Also clear NextAuth session if exists
+                        if (status === 'authenticated') {
+                          signOut({ callbackUrl: "/" });
+                        } else {
+                          // Just redirect to home
+                          window.location.href = '/';
+                        }
                       }
                     }}
                   />
@@ -296,18 +352,19 @@ export function Header() {
                     {item.name}
                   </Link>
                 ))}
+                {/* Additional role-specific mobile navigation */}
                 {isAuthenticated && currentUser?.role === "FIELD_OWNER" && (
                   <Link
-                    href="/fields/manage"
+                    href="/field-owner"
                     className={cn(
                       "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                      pathname === "/fields/manage"
+                      pathname === "/field-owner"
                         ? "bg-green-100 text-green-900"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     )}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Manage Fields
+                    Add Field
                   </Link>
                 )}
               </nav>
@@ -340,6 +397,11 @@ export function Header() {
                       <div className="text-sm font-medium text-gray-500">
                         {currentUser?.email}
                       </div>
+                      {currentUser?.role && (
+                        <div className="text-xs font-medium text-green-600">
+                          {currentUser.role.replace('_', ' ')}
+                        </div>
+                      )}
                     </div>
                   </div>
                   

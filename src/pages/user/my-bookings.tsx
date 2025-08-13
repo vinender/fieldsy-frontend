@@ -11,6 +11,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { BookingDetailsModal } from '@/components/modal/BookingDetailModal';
+import { UserLayout } from '@/components/layout/UserLayout';
 // import BookingDetailsModal from '@/components/modal/BookingDetailModal';
 
 // MongoDB Document Structure for Bookings
@@ -278,8 +279,9 @@ const BookingHistoryPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-light xl:mt-24 mt-16">
-      <div className="max-w-full mx-auto px-20 py-10">
+    <UserLayout>
+      <div className="min-h-screen bg-light xl:mt-24 mt-16">
+        <div className="max-w-full mx-auto px-20 py-10">
         {/* Page Title with Back Button */}
         <div className="flex items-center gap-4 mb-8">
           <button className="w-12 h-12 bg-[#f8f1d7] rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors">
@@ -374,6 +376,7 @@ const BookingHistoryPage = () => {
         booking={selectedBooking}
       />
     </div>
+    </UserLayout>
   );
 };
 

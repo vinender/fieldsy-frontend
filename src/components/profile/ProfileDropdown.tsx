@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { useEffect, useRef } from "react"
 import {
   User,
   Calendar,
@@ -16,23 +17,51 @@ type ProfileDropdownProps = {
   user?: { name?: string | null; email?: string | null; image?: string | null }
   onLogout?: () => void
   className?: string
+  isOpen: boolean
+  onClose: () => void
 }
 
-export function ProfileDropdown({ user, onLogout, className }: ProfileDropdownProps) {
+export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: ProfileDropdownProps) {
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        // Check if the click is not on the profile button itself
+        const profileButton = document.querySelector('[data-profile-button]')
+        if (profileButton && !profileButton.contains(event.target as Node)) {
+          onClose()
+        }
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen, onClose])
+
   const menuItems: { icon: any; label: string; href: string }[] = [
-    { icon: User, label: "My Profile", href: "/profile" },
-    { icon: Calendar, label: "Booking History", href: "/bookings" },
-    { icon: MessageSquare, label: "Messages", href: "/messages" },
-    { icon: Heart, label: "Saved Fields", href: "/favorites" },
-    { icon: CreditCard, label: "Saved Cards", href: "/wallet" },
+    { icon: User, label: "My Profile", href: "/user/profile" },
+    { icon: Calendar, label: "My Bookings", href: "/user/my-bookings" },
+    { icon: MessageSquare, label: "Messages", href: "/user/messages" },
+    { icon: Heart, label: "Saved Fields", href: "/user/saved-fields" },
+    { icon: CreditCard, label: "Saved Cards", href: "/user/saved-cards" },
   ]
 
   const displayInitial = (user?.name || user?.email || "U").charAt(0).toUpperCase()
 
+  if (!isOpen) return null
+
   return (
     <div
+      ref={dropdownRef}
       className={cn(
-        "absolute top-full mt-2 right-0 w-[320px] max-w-[90vw] bg-white rounded-2xl shadow-lg border border-black/5 overflow-hidden z-50 hidden group-hover:block",
+        "absolute top-full mt-2 right-0 w-[320px] max-w-[90vw] bg-white rounded-2xl shadow-lg border border-black/5 overflow-hidden z-50",
         className
       )}
     >
@@ -65,6 +94,7 @@ export function ProfileDropdown({ user, onLogout, className }: ProfileDropdownPr
             <Link
               key={item.label}
               href={item.href}
+              onClick={onClose}
               className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors group"
             >
               <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white">
@@ -78,7 +108,10 @@ export function ProfileDropdown({ user, onLogout, className }: ProfileDropdownPr
 
         {/* Logout Button */}
         <button
-          onClick={onLogout}
+          onClick={() => {
+            onLogout?.()
+            onClose()
+          }}
           className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-red-50 transition-colors group"
         >
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white">

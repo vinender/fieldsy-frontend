@@ -7,6 +7,8 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Link from "next/link"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -102,9 +104,9 @@ export default function ForgotPasswordForm() {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div>
-                <label className="text-gray-700 text-sm font-medium">Email Address</label>
+                <Label className="text-gray-700 text-sm font-medium">Email Address</Label>
                 <div className="relative mt-2">
-                  <input
+                  <Input
                     type="email"
                     placeholder="Enter your email address"
                     {...register("email")}

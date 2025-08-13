@@ -8,6 +8,7 @@ import {
   Check,
   MessageCircle
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import BlockUserModal from '@/components/modal/BlockUserModal';
 import ReportUserModal from '@/components/modal/ReportUserModal';
 
@@ -272,30 +273,30 @@ const MessagesPage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#FFFCF3] pt-16 xl:pt-24">
+    <div className="h-screen flex flex-col bg-light pt-16 xl:pt-24">
       <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-10 xl:px-20 py-4 lg:py-6 xl:py-8 overflow-hidden">
         {/* Page Title */}
         <div className="flex items-center gap-4 mb-4 lg:mb-6">
-          <button className="w-10 h-10 lg:w-12 lg:h-12 bg-cream rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors">
-            <ArrowLeft className="w-5 h-5 lg:w-6 lg:h-6 text-[#192215]" />
+          <button className="w-10 h-10 lg:w-12 lg:h-12 bg-cream rounded-full flex items-center justify-center hover:bg-cream-hover transition-colors">
+            <ArrowLeft className="w-5 h-5 lg:w-6 lg:h-6 text-dark-green" />
           </button>
-          <h1 className="text-xl lg:text-2xl xl:text-[29px] font-semibold text-[#192215]">Messages</h1>
+          <h1 className="text-xl lg:text-2xl xl:text-[29px] font-semibold text-dark-green">Messages</h1>
         </div>
 
         {/* Messages Container - Takes remaining height */}
-        <div className="flex-1 flex gap-0 bg-white rounded-[22px] border border-[#e3e3e3] overflow-hidden min-h-0">
+        <div className="flex-1 flex gap-0 bg-white rounded-[22px] border border-gray-border overflow-hidden min-h-0">
           {/* Conversations List */}
-          <div className="hidden sm:flex sm:w-[280px] md:w-[320px] lg:w-[350px] xl:w-[432px] border-r border-[#e3e3e3] flex-col">
+          <div className="hidden sm:flex sm:w-[280px] md:w-[320px] lg:w-[350px] xl:w-[432px] border-r border-gray-border flex-col">
             {/* Search Bar */}
-            <div className="p-4 lg:p-6 border-b border-[#e3e3e3] flex-shrink-0">
+            <div className="p-4 lg:p-6 border-b border-gray-border flex-shrink-0">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8d8d8d]" />
-                <input
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-text" />
+                <Input
                   type="text"
                   placeholder="Search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-14 pl-12 pr-4 bg-white border border-black/10 rounded-full text-[16px] placeholder:text-[#8d8d8d] focus:outline-none focus:border-[#3a6b22] transition-colors"
+                  className="h-14 pl-12 border-black/10 text-[16px] focus:border-green"
                 />
               </div>
             </div>
@@ -307,12 +308,12 @@ const MessagesPage = () => {
                   key={conversation._id}
                   onClick={() => setSelectedConversation(conversation)}
                   className={`flex items-center gap-3 lg:gap-4 px-4 lg:px-6 py-3 lg:py-4 hover:bg-gray-50 cursor-pointer transition-colors relative ${
-                    selectedConversation._id === conversation._id ? 'bg-[#f8f1d7]' : ''
+                    selectedConversation._id === conversation._id ? 'bg-cream' : ''
                   }`}
                 >
                   {/* Active indicator */}
                   {selectedConversation._id === conversation._id && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3a6b22]" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-green" />
                   )}
 
                   {/* Avatar */}
@@ -330,25 +331,25 @@ const MessagesPage = () => {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-[16px] font-semibold text-[#192215] truncate">
+                      <h3 className="text-[16px] font-semibold text-dark-green truncate">
                         {conversation.user.name}
                       </h3>
-                      <span className="text-[13px] text-[#8d8d8d]">
+                      <span className="text-[13px] text-gray-text">
                         {formatTime(conversation.lastMessage.timestamp)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <p className={`text-[14px] truncate ${
-                        conversation.isTyping ? 'text-[#3a6b22]' : 'text-[#8d8d8d]'
+                        conversation.isTyping ? 'text-green' : 'text-gray-text'
                       }`}>
                         {conversation.lastMessage.text}
                       </p>
                       <div className="flex items-center gap-1">
                         {conversation.user.hasReadReceipt && (
-                          <Check className="w-5 h-5 text-[#3a6b22]" />
+                          <Check className="w-5 h-5 text-green" />
                         )}
                         {conversation.unreadCount > 0 && (
-                          <Circle className="w-2 h-2 fill-[#3a6b22] text-[#3a6b22]" />
+                          <Circle className="w-2 h-2 fill-green text-green" />
                         )}
                       </div>
                     </div>
@@ -361,7 +362,7 @@ const MessagesPage = () => {
           {/* Chat Area */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Chat Header */}
-            <div className="px-4 lg:px-6 py-4 lg:py-6 border-b border-[#e3e3e3] bg-white flex-shrink-0">
+            <div className="px-4 lg:px-6 py-4 lg:py-6 border-b border-gray-border bg-white flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <img
@@ -370,10 +371,10 @@ const MessagesPage = () => {
                     className="w-14 h-14 rounded-full object-cover"
                   />
                   <div>
-                    <h2 className="text-[18px] font-semibold text-[#192215]">
+                    <h2 className="text-[18px] font-semibold text-dark-green">
                       {messagesData.conversations[0].user.name}
                     </h2>
-                    <p className="text-[16px] text-[#3a6b22]">
+                    <p className="text-[16px] text-green">
                       {messagesData.conversations[0].user.status}
                     </p>
                   </div>
@@ -383,7 +384,7 @@ const MessagesPage = () => {
                     onClick={() => setShowOptions(!showOptions)}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                   >
-                    <MoreVertical className="w-6 h-6 text-[#192215]" />
+                    <MoreVertical className="w-6 h-6 text-dark-green" />
                   </button>
                   
                   {/* Options Dropdown */}
@@ -396,7 +397,7 @@ const MessagesPage = () => {
                           setShowBlockModal(true);
                           setShowOptions(false);
                         }}
-                        className="block w-full text-left text-[14px] text-[#192215] py-3 px-4 hover:bg-gray-50 transition-colors"
+                        className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
                       >
                         Block User
                       </button>
@@ -407,7 +408,7 @@ const MessagesPage = () => {
                           setShowReportModal(true);
                           setShowOptions(false);
                         }}
-                        className="block w-full text-left text-[14px] text-[#192215] py-3 px-4 hover:bg-gray-50 transition-colors"
+                        className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
                       >
                         Report User
                       </button>
@@ -428,10 +429,10 @@ const MessagesPage = () => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto bg-[#f7f7f7] p-4 lg:p-6 no-scrollbar">
+            <div className="flex-1 overflow-y-auto bg-gray-lighter p-4 lg:p-6 no-scrollbar">
               {/* Today Divider */}
               <div className="flex justify-center mb-6">
-                <span className="bg-[#f8f1d7] px-3 py-1 rounded-full text-[13px] font-semibold text-[#192215]">
+                <span className="bg-cream px-3 py-1 rounded-full text-[13px] font-semibold text-dark-green">
                   Today
                 </span>
               </div>
@@ -447,13 +448,13 @@ const MessagesPage = () => {
                       <div
                         className={`px-6 py-4 ${
                           message.senderId === 'user_001'
-                            ? 'bg-[#8fb366] text-white rounded-tl-[60px] rounded-bl-[60px] rounded-tr-[30px]'
-                            : 'bg-[#f8f1d7] text-[#192215] rounded-tr-[60px] rounded-br-[60px] rounded-tl-[30px]'
+                            ? 'bg-light-green text-white rounded-tl-[60px] rounded-bl-[60px] rounded-tr-[30px]'
+                            : 'bg-cream text-dark-green rounded-tr-[60px] rounded-br-[60px] rounded-tl-[30px]'
                         }`}
                       >
                         <p className="text-[15px] leading-[22px]">{message.text}</p>
                       </div>
-                      <span className={`text-[14px] text-[#8d8d8d] ${
+                      <span className={`text-[14px] text-gray-text ${
                         message.senderId === 'user_001' ? 'text-right' : 'text-left'
                       }`}>
                         {formatMessageTime(message.timestamp)}
@@ -465,20 +466,20 @@ const MessagesPage = () => {
             </div>
 
             {/* Message Input */}
-            <div className="px-4 lg:px-6 py-3 lg:py-4 bg-white border-t border-[#e3e3e3] flex-shrink-0">
+            <div className="px-4 lg:px-6 py-3 lg:py-4 bg-white border-t border-gray-border flex-shrink-0">
               <div className="flex items-center gap-4">
-                <input
+                <Input
                   type="text"
                   placeholder="Type your message here…"
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
-                  className="flex-1 h-12 text-[16px] bg-white placeholder:text-[#8d8d8d] focus:outline-none"
+                  className="flex-1 h-12 text-[16px] border-0 shadow-none px-0 focus:ring-0 rounded-none"
                 />
                 <button
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
                     messageInput.trim() 
-                      ? 'bg-[#3a6b22] hover:bg-[#2d5319]' 
-                      : 'bg-[#8d8d8d]'
+                      ? 'bg-green hover:bg-green-hover' 
+                      : 'bg-gray-text'
                   }`}
                   disabled={!messageInput.trim()}
                 >

@@ -11,7 +11,15 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         "flex w-full rounded-[70px] border bg-white px-[16px] py-[8px] text-base transition-all duration-200",
         
         // Text and placeholder
-        "text-gray-700 placeholder:text-gray-400",
+        "text-gray-input placeholder:text-gray-400",
+        
+        // Autofill styles - IMPORTANT: prevents white text on autofill
+        "autofill:shadow-[inset_0_0_0px_1000px_white]",
+        "autofill:[-webkit-text-fill-color:#6B6B6B]",
+        "autofill:hover:shadow-[inset_0_0_0px_1000px_white]",
+        "autofill:hover:[-webkit-text-fill-color:#6B6B6B]",
+        "autofill:focus:shadow-[inset_0_0_0px_1000px_white]",
+        "autofill:focus:[-webkit-text-fill-color:#6B6B6B]",
         
         // Border
         "border-gray-300",

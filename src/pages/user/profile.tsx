@@ -9,6 +9,7 @@ import {
   Upload
 } from 'lucide-react';
 import ChangePasswordSidebar from '@/components/sidebar/ChangePasswordSidebar';
+import { Input } from '@/components/ui/input';
 
 const MyProfilePage = () => {
   const [isPasswordSidebarOpen, setIsPasswordSidebarOpen] = useState(false);
@@ -111,11 +112,11 @@ const MyProfilePage = () => {
                   <label className="block text-[15px] font-medium text-[#192215] mb-2">
                     Full Name
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    className="w-full h-14 px-4 bg-white border border-[#e3e3e3] rounded-full text-[15px] text-[#192215] focus:outline-none focus:border-[#3a6b22] transition-colors"
+                    className="h-14 text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                   />
                 </div>
 
@@ -124,11 +125,11 @@ const MyProfilePage = () => {
                     Email Address
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       type="email"
                       value={formData.email}
                       disabled
-                      className="w-full h-14 px-4 pr-12 bg-white border border-[#e3e3e3] rounded-full text-[15px] text-[#192215] text-opacity-30"
+                      className="h-14 pr-12 text-[15px] border-[#e3e3e3] text-opacity-30"
                     />
                     <Check className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[#3a6b22]" />
                   </div>
@@ -145,11 +146,11 @@ const MyProfilePage = () => {
                     <span className="text-[15px] text-[#192215]">{formData.countryCode}</span>
                     <ChevronDown className="w-5 h-5 text-[#192215]" />
                   </div>
-                  <input
+                  <Input
                     type="tel"
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                    className="flex-1 ml-3 text-[15px] bg-white text-[#192215] focus:outline-none"
+                    className="flex-1 ml-3 text-[15px] border-0 px-0 focus:ring-0"
                   />
                   <Check className="w-6 h-6 text-[#3a6b22]" />
                 </div>

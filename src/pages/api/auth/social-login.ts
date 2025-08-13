@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateTokens } from '@/lib/auth/jwt-utils';
 import { setCookie } from 'cookies-next';
-
-// Temporary in-memory storage (replace with database in production)
-const users: any[] = [];
+import { findUserByEmail, createUser, users } from '@/lib/auth/user-store';
 
 export default async function handler(
   req: NextApiRequest,
@@ -14,37 +12,37 @@ export default async function handler(
   }
 
   try {
-    const { email, name, image, provider, providerId } = req.body;
+    const { email, name, image, provider, providerId, role } = req.body;
 
     // Validate input
     if (!email || !provider || !providerId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Validate role if provided
+    let userRole: 'DOG_OWNER' | 'FIELD_OWNER' = 'DOG_OWNER'; // Default to DOG_OWNER
+    if (role) {
+      const validRoles = ['DOG_OWNER', 'FIELD_OWNER'];
+      if (validRoles.includes(role)) {
+        userRole = role as 'DOG_OWNER' | 'FIELD_OWNER';
+      }
+    }
+
     // Check if user exists
-    let user = users.find(u => u.email === email);
+    let user = findUserByEmail(email);
     
     if (!user) {
       // Create new user from social login
-      user = {
-        id: `user_${Date.now()}`,
+      user = createUser({
         email,
         name: name || email.split('@')[0],
-        image,
-        provider,
-        providerId,
-        createdAt: new Date().toISOString(),
-        emailVerified: true, // Social logins are pre-verified
-      };
-      
-      users.push(user);
+        role: userRole,
+        password: `social_${provider}_${providerId}`, // Placeholder password for social logins
+        phone: '',
+      });
     } else {
-      // Update existing user with social login info
-      user.provider = provider;
-      user.providerId = providerId;
-      if (image) user.image = image;
-      if (name) user.name = name;
-      user.emailVerified = true;
+      // If user exists, just use their existing role
+      // Don't update the role on subsequent logins
     }
 
     // Generate tokens
@@ -52,7 +50,8 @@ export default async function handler(
       userId: user.id,
       email: user.email,
       name: user.name,
-      provider: user.provider,
+      role: user.role,
+      provider,
     });
 
     // Set secure HTTP-only cookies
@@ -82,8 +81,8 @@ export default async function handler(
         id: user.id,
         email: user.email,
         name: user.name,
-        image: user.image,
-        provider: user.provider,
+        role: user.role,
+        provider,
         emailVerified: user.emailVerified,
       },
       tokens,

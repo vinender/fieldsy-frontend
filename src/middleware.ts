@@ -1,78 +1,50 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    // Add custom logic here if needed
+export function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  
+  // Public paths that don't require authentication
+  const publicPaths = [
+    "/",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-otp",
+    "/about",
+    "/how-it-works",
+    "/faqs",
+    "/privacy-policy",
+    "/terms-conditions",
+    "/unauthorized",
+    "/fields", // Public field listing
+  ];
+  
+  // Check if the path is public
+  const isPublicPath = publicPaths.some(publicPath => 
+    path === publicPath || (publicPath !== "/" && path.startsWith(`${publicPath}/`))
+  );
+  
+  if (isPublicPath) {
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const path = req.nextUrl.pathname;
-        
-        // Public paths that don't require authentication
-        const publicPaths = [
-          "/",
-          "/login",
-          "/register",
-          "/forgot-password",
-          "/reset-password",
-          "/about",
-          "/how-it-works",
-          "/faqs",
-          "/privacy-policy",
-          "/terms-conditions",
-        ];
-        
-        // Check if the path is public
-        const isPublicPath = publicPaths.some(publicPath => 
-          path === publicPath || path.startsWith(`${publicPath}/`)
-        );
-        
-        if (isPublicPath) {
-          return true;
-        }
-        
-        // Protected paths that require authentication
-        const protectedPaths = [
-          "/dashboard",
-          "/profile",
-          "/fields/claim-field-form",
-          "/bookings",
-          "/messages",
-          "/settings",
-        ];
-        
-        // Check if the path is protected
-        const isProtectedPath = protectedPaths.some(protectedPath => 
-          path === protectedPath || path.startsWith(`${protectedPath}/`)
-        );
-        
-        if (isProtectedPath) {
-          return !!token;
-        }
-        
-        // Allow all other paths
-        return true;
-      },
-    },
-    pages: {
-      signIn: "/login",
-      error: "/login",
-    },
   }
-);
+  
+  // For protected routes, we'll let the page handle auth check
+  // This prevents the redirect loop with NextAuth
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
     /*
-     * Match only specific protected paths
+     * Match all request paths except for the ones starting with:
+     * - api (API routes) except api/auth which needs middleware
+     * - _next/static (static files)
+     * - _next/image (image optimization files)  
+     * - favicon.ico (favicon file)
+     * - Files with extensions (images, fonts, etc.)
      */
-    "/dashboard/:path*",
-    "/profile/:path*",
-    "/bookings/:path*",
-    "/messages/:path*",
-    "/settings/:path*",
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|otf)).*)',
   ],
 };

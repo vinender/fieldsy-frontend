@@ -138,22 +138,18 @@ export default function ReportUserModal({
             {/* Header */}
             <div className="flex flex-col gap-2">
               <h2 
-                className="text-3xl font-semibold"
+                className="text-3xl font-semibold text-dark-green font-sans"
                 style={{ 
-                  fontSize: '29px',
-                  color: '#192215',
-                  fontFamily: "'DM Sans', sans-serif"
+                  fontSize: '29px'
                 }}
               >
                 Report {userName}
               </h2>
               <p 
-                className="text-gray-500"
+                className="text-gray-text font-sans"
                 style={{ 
-                  color: '#8d8d8d',
                   fontSize: '15px',
-                  lineHeight: '22px',
-                  fontFamily: "'DM Sans', sans-serif"
+                  lineHeight: '22px'
                 }}
               >
                 Help us keep Fieldsy safe and respectful. Choose a reason below to report behavior that violates our community guidelines.
@@ -168,12 +164,9 @@ export default function ReportUserModal({
                   className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
                 >
                   <span 
-                    className="text-base bg-whit font-medium"
+                    className="text-base bg-white font-medium text-dark-green font-sans"
                     style={{ 
-                        backgroundColor: '#ffffff',
-                      color: '#192215',
-                      fontSize: '15px',
-                      fontFamily: "'DM Sans', sans-serif"
+                      fontSize: '15px'
                     }}
                   >
                     {reason.label}
@@ -184,11 +177,7 @@ export default function ReportUserModal({
                     value={reason.id}
                     checked={selectedReason === reason.id}
                     onChange={(e) => setSelectedReason(e.target.value)}
-                    className="w-5 h-5 bg-white cursor-pointer"
-                    style={{
-                      backgroundColor: '#ffffff',
-                      accentColor: '#3A6B22'
-                    }}
+                    className="w-5 h-5 bg-white cursor-pointer accent-green"
                   />
                 </label>
               ))}
@@ -198,11 +187,9 @@ export default function ReportUserModal({
             {selectedReason === 'other' && (
               <div className="flex flex-col gap-2">
                 <label 
-                  className="text-base bg-white font-medium"
+                  className="text-base bg-white font-medium text-dark-green font-sans"
                   style={{ 
-                    color: '#192215',
-                    fontSize: '15px',
-                    fontFamily: "'DM Sans', sans-serif"
+                    fontSize: '15px'
                   }}
                 >
                   Write Reason
@@ -211,13 +198,10 @@ export default function ReportUserModal({
                   value={otherReason}
                   onChange={(e) => setOtherReason(e.target.value)}
                   placeholder="Write your reason here..."
-                  className="w-full p-4 border border-gray-200 bg-white rounded-xl resize-none focus:outline-none focus:border-green-600"
-                  rows="4"
+                  className="w-full p-4 border border-gray-border bg-white rounded-xl resize-none focus:outline-none focus:border-green font-sans"
+                  rows={4}
                   style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: '15px',
-                    borderColor: '#e3e3e3',
-                    focusBorderColor: '#3A6B22'
+                    fontSize: '15px'
                   }}
                 />
               </div>
@@ -227,25 +211,20 @@ export default function ReportUserModal({
             <div className="flex gap-4 mt-4">
               <button
                 onClick={handleCancel}
-                className="flex-1 py-4 px-6 bg-white border-2 rounded-full font-semibold text-center transition-all hover:bg-gray-50"
+                className="flex-1 py-4 px-6 bg-white border-2 border-green text-green rounded-full font-semibold text-center transition-all hover:bg-gray-50 font-sans"
                 style={{ 
-                  borderColor: '#3A6B22',
-                  color: '#3A6B22',
                   borderRadius: '70px',
-                  fontSize: '16px',
-                  fontFamily: "'DM Sans', sans-serif"
+                  fontSize: '16px'
                 }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 py-4 px-6 text-white rounded-full font-semibold text-center transition-all hover:opacity-90"
+                className="flex-1 py-4 px-6 bg-green text-white rounded-full font-semibold text-center transition-all hover:opacity-90 font-sans"
                 style={{ 
-                  backgroundColor: '#3A6B22',
                   borderRadius: '50px',
-                  fontSize: '16px',
-                  fontFamily: "'DM Sans', sans-serif"
+                  fontSize: '16px'
                 }}
               >
                 Submit

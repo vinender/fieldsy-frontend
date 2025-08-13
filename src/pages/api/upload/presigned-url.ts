@@ -32,6 +32,7 @@ export default async function handler(
       'image/jpeg',
       'image/jpg',
       'image/png',
+      'image/webp',
       'image/gif',
       'application/pdf',
       'application/msword',

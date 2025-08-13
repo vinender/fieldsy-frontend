@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Upload, X, Loader2, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { Input } from '@/components/ui/input';
 import mockData from '@/data/mock-data.json';
 import { s3Uploader, UploadProgress } from '@/utils/s3Upload';
 
@@ -201,7 +202,8 @@ const ClaimFieldPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-light">
+    <UserLayout requireRole="DOG_OWNER">
+      <div className="min-h-screen bg-light">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 lg:px-20">
@@ -281,13 +283,13 @@ const ClaimFieldPage = () => {
                 <label className="block text-sm font-medium text-dark-green mb-2">
                   Full Name
                 </label>
-                <input
+                <Input
                   type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
                   placeholder="Enter full name"
-                  className="w-full px-4 py-3 bg-white rounded-[76px] border border-gray-200 focus:border-[#3A6B22] focus:outline-none focus:ring-1 focus:ring-[#3A6B22] transition-colors"
+                  className="py-3 border-gray-200 focus:border-[#3A6B22] focus:ring-[#3A6B22]"
                 />
               </div>
 
@@ -296,13 +298,13 @@ const ClaimFieldPage = () => {
                 <label className="block text-sm font-medium text-dark-green mb-2">
                   Email Address
                 </label>
-                <input
+                <Input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter email address"
-                  className="w-full px-4 py-3 bg-white rounded-[76px] border border-gray-200 focus:border-[#3A6B22] focus:outline-none focus:ring-1 focus:ring-[#3A6B22] transition-colors"
+                  className="py-3 border-gray-200 focus:border-[#3A6B22] focus:ring-[#3A6B22]"
                 />
               </div>
 
@@ -322,13 +324,13 @@ const ClaimFieldPage = () => {
                     <option value="+91">+91</option>
                   </select>
                   <div className="h-10my-auto w-px bg-gray-300"></div>
-                  <input
+                  <Input
                     type="tel"
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="Enter phone number"
-                    className="flex-1 px-4 py-3 bg-white border-l-0 rounded-l-none rounded-[76px] border border-gray-200 focus:border-[#3A6B22] focus:outline-none focus:ring-1 focus:ring-[#3A6B22] transition-colors"
+                    className="flex-1 py-3 border-l-0 rounded-l-none rounded-[76px] border-gray-200 focus:border-[#3A6B22] focus:ring-[#3A6B22]"
                   />
                 </div>
               </div>
@@ -483,6 +485,7 @@ const ClaimFieldPage = () => {
 
   
     </div>
+    </UserLayout>
   );
 };
 

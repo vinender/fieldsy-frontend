@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Eye, EyeOff, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface ChangePasswordSidebarProps {
   isOpen?: boolean;
@@ -145,12 +146,12 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
                 Old Password
               </label>
               <div className="relative">
-                <input
+                <Input
                   type={showPasswords.old ? 'text' : 'password'}
                   value={formData.oldPassword}
                   onChange={(e) => handleInputChange('oldPassword', e.target.value)}
                   placeholder="Enter old password"
-                  className="w-full h-14 px-4 pr-12 bg-white border border-[#e3e3e3] rounded-full text-[15px] text-[#192215] placeholder:text-[#8d8d8d] focus:outline-none focus:border-[#3a6b22] transition-colors"
+                  className="h-14 pr-12 text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                 />
                 <button
                   onClick={() => togglePasswordVisibility('old')}
@@ -171,12 +172,12 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
                 New Password
               </label>
               <div className="relative">
-                <input
+                <Input
                   type={showPasswords.new ? 'text' : 'password'}
                   value={formData.newPassword}
                   onChange={(e) => handleInputChange('newPassword', e.target.value)}
                   placeholder="Enter new password"
-                  className="w-full h-14 px-4 pr-12 bg-white border border-[#e3e3e3] rounded-full text-[15px] text-[#192215] placeholder:text-[#8d8d8d] focus:outline-none focus:border-[#3a6b22] transition-colors"
+                  className="h-14 pr-12 text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                 />
                 <button
                   onClick={() => togglePasswordVisibility('new')}
@@ -197,12 +198,12 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
                 Confirm New Password
               </label>
               <div className="relative">
-                <input
+                <Input
                   type={showPasswords.confirm ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   placeholder="Confirm new password"
-                  className="w-full h-14 px-4 pr-12 bg-white border border-[#e3e3e3] rounded-full text-[15px] text-[#192215] placeholder:text-[#8d8d8d] focus:outline-none focus:border-[#3a6b22] transition-colors"
+                  className="h-14 pr-12 text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                 />
                 <button
                   onClick={() => togglePasswordVisibility('confirm')}

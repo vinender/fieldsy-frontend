@@ -1,15 +1,20 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
-import { Eye, EyeOff, User, MapPin } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Link from "next/link"
+import { useRouter } from "next/router"
 import { signIn } from "next-auth/react"
+import { useAuth } from "@/hooks/auth/useAuth"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
+import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 
-type Role = "DOG_OWNER" | "FIELD_OWNER"
 
 const registerSchema = z
   .object({
@@ -35,9 +40,12 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>
 
 export default function RegisterForm() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [isAppleLoading, setIsAppleLoading] = useState(false)
+  const [showRoleModal, setShowRoleModal] = useState(false)
+  const [pendingProvider, setPendingProvider] = useState<'google' | 'apple' | null>(null)
 
   const defaultValues: RegisterFormData = useMemo(
     () => ({
@@ -65,30 +73,89 @@ export default function RegisterForm() {
   })
 
   const selectedRole = watch("role")
+  const { register: registerUser } = useAuth()
 
   async function onSubmit(values: RegisterFormData) {
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.fullName,
-          email: values.email,
-          password: values.password,
-          role: values.role === "FIELD_OWNER" ? "FIELD_OWNER" : "USER",
-          phone: `${values.phoneCode} ${values.phoneNumber}`,
-        }),
+      await registerUser({
+        name: values.fullName,
+        email: values.email,
+        password: values.password,
+        role: values.role,
+        phone: `${values.phoneCode} ${values.phoneNumber}`,
       })
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data?.message || "Registration failed")
-      }
-
-      toast.success("Account created successfully. Please log in.")
-      window.location.href = "/login"
+      toast.success("Account created successfully.")
     } catch (e: any) {
-      toast.error(e?.message || "Something went wrong. Please try again.")
+      const errorMessage = e?.message || "Registration failed";
+      
+      // Show specific error messages with suggestions
+      if (errorMessage.includes("Google/Apple")) {
+        toast.error(
+          <div>
+            <p className="font-semibold">Email already registered</p>
+            <p className="text-sm mt-1">{errorMessage}</p>
+            <button 
+              onClick={() => router.push('/login')}
+              className="text-sm text-green underline mt-2"
+            >
+              Go to Login
+            </button>
+          </div>,
+          { duration: 6000 }
+        );
+      } else if (errorMessage.includes("already exists")) {
+        toast.error(
+          <div>
+            <p className="font-semibold">Account exists</p>
+            <p className="text-sm mt-1">{errorMessage}</p>
+            <button 
+              onClick={() => router.push('/login')}
+              className="text-sm text-green underline mt-2"
+            >
+              Sign in instead
+            </button>
+          </div>,
+          { duration: 6000 }
+        );
+      } else {
+        toast.error(errorMessage);
+      }
+    }
+  }
+
+  // Handle role selection from modal for social login
+  async function handleSocialRoleSelection(role: 'DOG_OWNER' | 'FIELD_OWNER') {
+    if (!pendingProvider) return;
+    
+    const isGoogle = pendingProvider === 'google';
+    if (isGoogle) {
+      setIsGoogleLoading(true);
+    } else {
+      setIsAppleLoading(true);
+    }
+    
+    try {
+      // Store the role in session storage for the callback to use
+      sessionStorage.setItem('pendingUserRole', role);
+      
+      // Call the social login
+      await signIn(pendingProvider, { 
+        callbackUrl: '/',
+        role // Pass the role to the provider
+      });
+    } catch (error: any) {
+      if (error?.message?.includes('OAuthAccountNotLinked')) {
+        toast.error('This email is already registered with a different method');
+      } else if (error?.message?.includes('Configuration')) {
+        toast.info(`${pendingProvider === 'google' ? 'Google' : 'Apple'} signup is not configured yet`);
+      } else {
+        toast.error(`${pendingProvider === 'google' ? 'Google' : 'Apple'} signup failed. Please try again.`);
+      }
+    } finally {
+      setShowRoleModal(false);
+      setPendingProvider(null);
+      setIsGoogleLoading(false);
+      setIsAppleLoading(false);
     }
   }
 
@@ -154,21 +221,9 @@ export default function RegisterForm() {
                 type="button"
                 className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
                 disabled={isGoogleLoading || isSubmitting}
-                onClick={async () => {
-                  setIsGoogleLoading(true)
-                  try {
-                    await signIn('google', { callbackUrl: '/' })
-                  } catch (error: any) {
-                    if (error?.message?.includes('OAuthAccountNotLinked')) {
-                      toast.error('This email is already registered with a different method')
-                    } else if (error?.message?.includes('Configuration')) {
-                      toast.info('Google signup is not configured yet')
-                    } else {
-                      toast.error('Google signup failed. Please try again.')
-                    }
-                  } finally {
-                    setIsGoogleLoading(false)
-                  }
+                onClick={() => {
+                  setPendingProvider('google')
+                  setShowRoleModal(true)
                 }}
               >
                 {isGoogleLoading ? (
@@ -182,21 +237,9 @@ export default function RegisterForm() {
                 type="button"
                 className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
                 disabled={isAppleLoading || isSubmitting}
-                onClick={async () => {
-                  setIsAppleLoading(true)
-                  try {
-                    await signIn('apple', { callbackUrl: '/' })
-                  } catch (error: any) {
-                    if (error?.message?.includes('OAuthAccountNotLinked')) {
-                      toast.error('This email is already registered with a different method')
-                    } else if (error?.message?.includes('Configuration')) {
-                      toast.info('Apple signup is not configured yet')
-                    } else {
-                      toast.error('Apple signup failed. Please try again.')
-                    }
-                  } finally {
-                    setIsAppleLoading(false)
-                  }
+                onClick={() => {
+                  setPendingProvider('apple')
+                  setShowRoleModal(true)
                 }}
               >
                 {isAppleLoading ? (
@@ -232,7 +275,11 @@ export default function RegisterForm() {
                   }`}
                   id="DOG_OWNER"
                 >
-                  <img src='/login/dog-owner.svg' className="w-6 h-6" /> Dog Owner
+                  <img 
+                    src={selectedRole === "DOG_OWNER" ? '/login/dog-owner.svg' : '/login/dog-owner-black.svg'} 
+                    className="w-6 h-6" 
+                    alt="Dog Owner"
+                  /> Dog Owner
                 </button>
                 <button
                   type="button"
@@ -244,19 +291,23 @@ export default function RegisterForm() {
                   }`}
                   id="FIELD_OWNER"
                 >
-                  <img src='/login/field-owner.svg' className="w-6 h-6" /> Field Owner
+                  <img 
+                    src={selectedRole === "FIELD_OWNER" ? '/login/field-owner-white.svg' : '/login/field-owner.svg'} 
+                    className="w-6 h-6" 
+                    alt="Field Owner"
+                  /> Field Owner
                 </button>
               </div>
             </div>
 
             {/* Full Name */}
             <div>
-              <label className="text-gray-700 text-sm">Full Name</label>
-              <input
+              <Label className="text-gray-700 text-sm">Full Name</Label>
+              <Input
                 type="text"
                 placeholder="Enter full name"
                 {...register("fullName")}
-                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
                 autoComplete="name"
               />
               <div className="h-5">
@@ -266,12 +317,12 @@ export default function RegisterForm() {
 
             {/* Email */}
             <div>
-              <label className="text-gray-700 text-sm">Email Address</label>
-              <input
+              <Label className="text-gray-700 text-sm">Email Address</Label>
+              <Input
                 type="email"
                 placeholder="Enter email address"
                 {...register("email")}
-                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
                 autoComplete="email"
               />
               <div className="h-5">
@@ -281,38 +332,40 @@ export default function RegisterForm() {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-gray-900">Phone Number</label>
-              <div className="flex gap-2 mt-1">
-                <select
-                  {...register("phoneCode")}
-                  className="px-3 bg-white py-2 md:py-2.5 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
-                >
-                  <option value="+44">+44</option>
-                  <option value="+1">+1</option>
-                  <option value="+91">+91</option>
-                </select>
-                <input
-                  type="tel"
-                  placeholder="Enter phone number"
-                  {...register("phoneNumber")}
-                  className="flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
-                  autoComplete="tel"
-                />
-              </div>
-              <div className="h-5">
-                {errors.phoneNumber && <p className="text-xs text-red-600 mt-1">{errors.phoneNumber.message}</p>}
-              </div>
+              <Label className="block text-sm font-medium text-gray-700">Phone Number</Label>
+                <div className="flex mt-1">
+                  
+                  <Select
+                    {...register("phoneCode")}
+                    className="px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] rounded-r-none text-gray-input border border-gray-300 border-r-0 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                  >
+                    <option value="+44">+44</option>
+                    <option value="+1">+1</option>
+                    <option value="+91">+91</option>
+                  </Select>
+
+                  <Input
+                    type="tel"
+                    placeholder="Enter phone number"
+                    {...register("phoneNumber")}
+                    className="flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-r-[76px] rounded-l-none border border-gray-300 border-l-0 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
+                    autoComplete="tel"
+                  />
+                </div>
+                <div className="h-5">
+                  {errors.phoneNumber && <p className="text-xs text-red-600 mt-1">{errors.phoneNumber.message}</p>}
+                </div>
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-gray-700 text-sm">Password</label>
+              <Label className="text-gray-700 text-sm">Password</Label>
               <div className="relative mt-1">
-                <input
+                <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
                   {...register("password")}
-                  className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 pr-10 md:pr-12 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
+                  className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 pr-10 md:pr-12 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
                   autoComplete="new-password"
                 />
                 <button
@@ -355,6 +408,17 @@ export default function RegisterForm() {
           </div>
         </div>
       </div>
+
+      {/* Role Selection Modal */}
+      <RoleSelectionModal
+        isOpen={showRoleModal}
+        onClose={() => {
+          setShowRoleModal(false);
+          setPendingProvider(null);
+        }}
+        onSelectRole={handleSocialRoleSelection}
+        isLoading={isGoogleLoading || isAppleLoading}
+      />
     </div>
   )
 }

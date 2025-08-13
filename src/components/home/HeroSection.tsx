@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Search, MapPin, Calendar, Star, Shield } from "lucide-react"
 import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
 
@@ -57,10 +58,10 @@ export function HeroSection() {
                 </div>
                 <div className="flex-1 flex items-center px-4 py-3 border-r border-gray-200">
                   <Calendar className="w-5 h-5 text-gray-400 mr-3" />
-                  <input
+                  <Input
                     type="text"
                     placeholder="Date & Time" 
-                    className="w-full outline-none text-gray-700"
+                    className="border-0 shadow-none px-0 focus:ring-0 rounded-none"
                   />
                 </div>
                 <Button className="px-8 h-12">
