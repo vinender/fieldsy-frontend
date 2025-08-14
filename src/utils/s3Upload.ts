@@ -22,7 +22,8 @@ class S3Uploader {
   private apiBaseUrl: string;
 
   constructor() {
-    this.apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+    // Upload API is on the frontend server, not backend
+    this.apiBaseUrl = '/api';
   }
 
   /**
@@ -67,23 +68,41 @@ class S3Uploader {
     formData.append('file', file);
 
     try {
-      await axios.post(presignedData.uploadUrl, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
+      // Use XMLHttpRequest for better CORS handling with S3
+      const xhr = new XMLHttpRequest();
+      
+      return new Promise((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (onProgress && e.lengthComputable) {
             const progress: UploadProgress = {
-              loaded: progressEvent.loaded,
-              total: progressEvent.total,
-              percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              loaded: e.loaded,
+              total: e.total,
+              percentage: Math.round((e.loaded * 100) / e.total)
             };
             onProgress(progress);
           }
-        }
-      });
+        });
 
-      return presignedData.fileUrl;
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(presignedData.fileUrl);
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error during upload'));
+        });
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('Upload aborted'));
+        });
+
+        xhr.open('POST', presignedData.uploadUrl);
+        // Don't set Content-Type header, let browser set it with boundary
+        xhr.send(formData);
+      });
     } catch (error) {
       console.error('Error uploading to S3:', error);
       throw new Error('Failed to upload file');

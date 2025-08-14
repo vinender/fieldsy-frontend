@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
 import { Input } from '@/components/ui/input';
 import { Upload, X, CheckCircle, Image } from 'lucide-react';
-import { s3Uploader, UploadProgress } from '@/utils/s3Upload';
+import { s3DirectUploader, UploadProgress } from '@/utils/s3UploadDirect';
+import { useRouter } from 'next/router';
+import { toast } from 'sonner';
+import axiosClient from '@/lib/api/axios-client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Sidebar Navigation Component
-function Sidebar({ activeSection, onSectionChange }: { activeSection: string; onSectionChange: (sectionId: string) => void }) {
+function Sidebar({ activeSection, onSectionChange, stepStatus }: { 
+  activeSection: string; 
+  onSectionChange: (sectionId: string) => void;
+  stepStatus: { [key: string]: boolean };
+}) {
   const sections = [
-    { id: 'field-details', label: 'Field Details', completed: true },
-    { id: 'upload-images', label: 'Upload Images', completed: false },
-    { id: 'pricing-availability', label: 'Pricing & Availability', completed: false },
-    { id: 'booking-rules', label: 'Booking Rules & Policies', completed: false }
+    { id: 'field-details', label: 'Field Details', completed: stepStatus['fieldDetails'] || false },
+    { id: 'upload-images', label: 'Upload Images', completed: stepStatus['uploadImages'] || false },
+    { id: 'pricing-availability', label: 'Pricing & Availability', completed: stepStatus['pricingAvailability'] || false },
+    { id: 'booking-rules', label: 'Booking Rules & Policies', completed: stepStatus['bookingRules'] || false }
   ];
 
   return (
@@ -274,25 +283,43 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Start Time
               </label>
-              <Input
-                type="time"
-                name="startTime"
-                value={formData.startTime}
-                onChange={handleInputChange}
-                className="py-3 border-gray-border focus:border-green font-sans"
-              />
+              <div className="relative">
+                <Input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleInputChange}
+                  className="py-3 pr-12 border-gray-border focus:border-green font-sans"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <img 
+                    src="/add-field/clock.svg" 
+                    alt="Clock" 
+                    className="w-5 h-5 "
+                  />
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 End Time
               </label>
-              <Input
-                type="time"
-                name="endTime"
-                value={formData.endTime}
-                onChange={handleInputChange}
-                className="py-3 border-gray-border focus:border-green font-sans"
-              />
+              <div className="relative">
+                <Input
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleInputChange}
+                  className="py-3 pr-12 border-gray-border focus:border-green font-sans"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <img 
+                    src="/add-field/clock.svg" 
+                    alt="Clock" 
+                    className="w-5 h-5"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -306,13 +333,19 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
         
         <div className="flex flex-wrap gap-3">
           {Object.entries({
-            secureFencing: '🔒 Secure fencing',
-            waterAccess: '💧 Water Access',
-            parking: '🚗 Parking',
-            toilet: '🚻 Toilet',
-            shelter: '🏠 Shelter',
-            wasteDisposal: '🗑️ Waste Disposal'
-          }).map(([key, label]) => (
+            secureFencing: { icon: '/field-details/fence.svg', label: 'Secure Fencing' },
+            waterAccess: { icon: '/add-field/water.svg', label: 'Water Access' },
+            parking: { icon: '/payment/card.svg', label: 'Parking Available' },
+            toilet: { icon: '/field-details/home.svg', label: 'Toilet Facilities' },
+            shelter: { icon: '/add-field/shelter.svg', label: 'Shelter' },
+            wasteDisposal: { icon: '/field-details/bin.svg', label: 'Waste Disposal' },
+            dogAgility: { icon: '/add-field/dog-agility.svg', label: 'Dog Agility' },
+            swimming: { icon: '/add-field/swimming.svg', label: 'Swimming Area' },
+            playArea: { icon: '/add-field/dog-play.svg', label: 'Play Area' },
+            cctv: { icon: '/add-field/cctv.svg', label: 'CCTV Security' },
+            shadeAreas: { icon: '/add-field/tree.svg', label: 'Shade Areas' },
+            lighting: { icon: '/add-field/clock.svg', label: 'Night Lighting' }
+          }).map(([key, { icon, label }]) => (
             <div
               key={key}
               role="button"
@@ -335,9 +368,16 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
                 checked={formData.amenities[key] || false}
                 onChange={() => handleAmenityToggle(key)}
               />
-              <span className="font-sans text-sm text-dark-green">
-                {label}
-              </span>
+              <div className="flex items-center gap-2">
+                <img 
+                  src={icon} 
+                  alt={label} 
+                  className="w-5 h-5 object-contain"
+                />
+                <span className="font-sans text-sm text-dark-green">
+                  {label}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -495,7 +535,7 @@ function UploadImages({ formData, setFormData }: any) {
     // Start real uploads with progress updates
     newImages.forEach(async (image) => {
       try {
-        const fileUrl = await s3Uploader.uploadFile({
+        const fileUrl = await s3DirectUploader.uploadFile({
           file: image.file,
           onProgress: (progress: UploadProgress) => {
             setUploadedImages(prev => prev.map(img => {
@@ -1004,7 +1044,18 @@ function BookingRules({ formData, setFormData }: any) {
 
 // Main Component
 export default function AddYourField() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('field-details');
+  const [fieldId, setFieldId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [stepStatus, setStepStatus] = useState({
+    fieldDetails: false,
+    uploadImages: false,
+    pricingAvailability: false,
+    bookingRules: false
+  });
   const [formData, setFormData] = useState({
     fieldName: '',
     fieldSize: '',
@@ -1034,6 +1085,110 @@ export default function AddYourField() {
     rules: '',
     policies: ''
   });
+
+  // Fetch existing field data using React Query
+  const { data: fieldData, isLoading: fetchingField } = useQuery({
+    queryKey: ['owner-field'],
+    queryFn: async () => {
+      const response = await axiosClient.get('/fields/owner/field');
+      return response.data;
+    },
+    enabled: !!user && user.role === 'FIELD_OWNER',
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Load field data when fetched
+  useEffect(() => {
+    if (fieldData?.field) {
+      setFieldId(fieldData.field.id);
+      setStepStatus(fieldData.field.stepStatus || {
+        fieldDetails: false,
+        uploadImages: false,
+        pricingAvailability: false,
+        bookingRules: false
+      });
+      
+      // Pre-populate form data
+      setFormData({
+        fieldName: fieldData.field.name || '',
+        fieldSize: fieldData.field.size || '',
+        terrainType: fieldData.field.type || '',
+        fenceType: fieldData.field.fenceType || '',
+        fenceSize: fieldData.field.fenceSize || '',
+        surfaceType: fieldData.field.surfaceType || '',
+        maxDogs: fieldData.field.maxDogs?.toString() || '',
+        description: fieldData.field.description || '',
+        openingDays: fieldData.field.operatingDays?.[0] || '',
+        startTime: fieldData.field.openingTime || '',
+        endTime: fieldData.field.closingTime || '',
+        amenities: fieldData.field.amenities?.reduce((acc: any, amenity: string) => {
+          acc[amenity] = true;
+          return acc;
+        }, {}) || {},
+        streetAddress: fieldData.field.address || '',
+        apartment: fieldData.field.apartment || '',
+        city: fieldData.field.city || '',
+        county: fieldData.field.state || '',
+        postalCode: fieldData.field.zipCode || '',
+        country: fieldData.field.country || '',
+        pricePerHour: fieldData.field.pricePerHour?.toString() || '',
+        bookingDuration: fieldData.field.bookingDuration || '30min',
+        weekendPrice: fieldData.field.pricePerDay?.toString() || '',
+        instantBooking: fieldData.field.instantBooking || false,
+        requireDeposit: false,
+        rules: fieldData.field.rules?.[0] || '',
+        policies: fieldData.field.cancellationPolicy || ''
+      });
+    }
+  }, [fieldData]);
+
+  // Remove auto-save - only save on button click
+
+  // Save progress mutation
+  const saveProgressMutation = useMutation({
+    mutationFn: async () => {
+      const response = await axiosClient.post('/fields/save-progress', {
+        step: activeSection,
+        data: formData,
+        fieldId
+      });
+      return response.data;
+    },
+    onSuccess: (result) => {
+      if (result.fieldId && !fieldId) {
+        setFieldId(result.fieldId);
+      }
+      
+      const stepMap: { [key: string]: string } = {
+        'field-details': 'fieldDetails',
+        'upload-images': 'uploadImages',
+        'pricing-availability': 'pricingAvailability',
+        'booking-rules': 'bookingRules'
+      };
+      
+      setStepStatus(prev => ({
+        ...prev,
+        [stepMap[activeSection]]: true
+      }));
+
+      toast.success('Progress saved successfully!');
+      queryClient.invalidateQueries({ queryKey: ['owner-field'] });
+      handleNext();
+    },
+    onError: (error: any) => {
+      console.error('Error saving progress:', error);
+      toast.error(error.response?.data?.message || 'Failed to save progress. Please try again.');
+    }
+  });
+
+  const handleSaveProgress = async () => {
+    setIsLoading(true);
+    try {
+      await saveProgressMutation.mutateAsync();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBack = () => {
     const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
@@ -1066,6 +1221,12 @@ export default function AddYourField() {
     }
   };
 
+  if (fetchingField) {
+    return <div className="min-h-screen bg-light py-8 mt-32 flex items-center justify-center">
+      <div className="text-lg">Loading...</div>
+    </div>;
+  }
+
   return (
     <div className="min-h-screen bg-light py-8 mt-32">
       <div className="container mx-auto px-20">
@@ -1082,7 +1243,7 @@ export default function AddYourField() {
         {/* Main Content */}
         <div className="flex gap-8">
           {/* Sidebar */}
-          <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+          <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} stepStatus={stepStatus} />
 
           {/* Form Content */}
           <div className="flex-1 bg-white rounded-2xl p-10">
@@ -1092,15 +1253,21 @@ export default function AddYourField() {
             <div className="flex gap-4 mt-10">
               <button
                 onClick={handleBack}
-                className="flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50"
+                disabled={activeSection === 'field-details'}
+                className="flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Back
               </button>
               <button
-                onClick={handleNext}
-                className="flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90"
+                onClick={handleSaveProgress}
+                disabled={isLoading}
+                className="flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                Save & Next
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                ) : (
+                  'Save & Next'
+                )}
               </button>
             </div>
           </div>

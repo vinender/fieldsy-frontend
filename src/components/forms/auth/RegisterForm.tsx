@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
+import { socialRoleStore } from "@/lib/auth/social-role-store"
 
 
 const registerSchema = z
@@ -103,6 +104,29 @@ export default function RegisterForm() {
           </div>,
           { duration: 6000 }
         );
+      } else if (errorMessage.includes("phone number is already registered")) {
+        toast.error(
+          <div>
+            <p className="font-semibold">Phone number already in use</p>
+            <p className="text-sm mt-1">{errorMessage}</p>
+            <div className="flex gap-2 mt-2">
+              <button 
+                onClick={() => router.push('/login')}
+                className="text-sm text-green underline"
+              >
+                Sign in instead
+              </button>
+              <span className="text-sm text-gray-400">or</span>
+              <button 
+                onClick={() => router.push('/forgot-password')}
+                className="text-sm text-green underline"
+              >
+                Reset password
+              </button>
+            </div>
+          </div>,
+          { duration: 8000 }
+        );
       } else if (errorMessage.includes("already exists")) {
         toast.error(
           <div>
@@ -125,6 +149,7 @@ export default function RegisterForm() {
 
   // Handle role selection from modal for social login
   async function handleSocialRoleSelection(role: 'DOG_OWNER' | 'FIELD_OWNER') {
+    console.log('role selected', role)
     if (!pendingProvider) return;
     
     const isGoogle = pendingProvider === 'google';
@@ -135,18 +160,25 @@ export default function RegisterForm() {
     }
     
     try {
-      // Store the role in session storage for the callback to use
-      sessionStorage.setItem('pendingUserRole', role);
+      // Store the role in localStorage - simple and works across platforms
+      localStorage.setItem('pendingUserRole', role);
+      console.log('[RegisterForm] Stored role in localStorage:', role);
       
       // Call the social login
-      await signIn(pendingProvider, { 
+      const result = await signIn(pendingProvider, { 
         callbackUrl: '/',
-        role // Pass the role to the provider
       });
+      
+      if (result?.error) {
+        if (result.error.includes('OAuthAccountNotLinked')) {
+          toast.error('This email is already registered with a different method');
+        } else {
+          toast.error(`${pendingProvider === 'google' ? 'Google' : 'Apple'} signup failed. Please try again.`);
+        }
+      }
     } catch (error: any) {
-      if (error?.message?.includes('OAuthAccountNotLinked')) {
-        toast.error('This email is already registered with a different method');
-      } else if (error?.message?.includes('Configuration')) {
+      console.error('Social login error:', error);
+      if (error?.message?.includes('Configuration')) {
         toast.info(`${pendingProvider === 'google' ? 'Google' : 'Apple'} signup is not configured yet`);
       } else {
         toast.error(`${pendingProvider === 'google' ? 'Google' : 'Apple'} signup failed. Please try again.`);

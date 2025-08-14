@@ -6,6 +6,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { verifyPassword } from '@/lib/auth/password-utils';
 import { generateTokens, verifyToken } from '@/lib/auth/jwt-utils';
 import { findUserByEmail } from '@/lib/auth/user-store';
+import { parse } from 'cookie';
 
 interface ExtendedSession extends Session {
   accessToken?: string;
@@ -34,6 +35,9 @@ export const authOptions: NextAuthOptions = {
                 access_type: "offline",
                 response_type: "code",
               },
+            },
+            httpOptions: {
+              timeout: 10000,
             },
           }),
         ]
@@ -136,6 +140,18 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
+      // Handle session updates
+      if (trigger === 'update' && session) {
+        // Update the token with new session data
+        return {
+          ...token,
+          user: {
+            ...(token.user as any),
+            role: session.user?.role || (token.user as any)?.role,
+          }
+        };
+      }
+
       // Return previous token if the access token has not expired yet
       if (Date.now() < (token.accessTokenExpires as number)) {
         return token;
@@ -159,36 +175,46 @@ export const authOptions: NextAuthOptions = {
       } as ExtendedSession;
     },
 
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, credentials }) {
       // Handle social login with role
       if (account?.provider === 'google' || account?.provider === 'apple') {
-        // Try to get the role from session storage (set by the modal)
-        // This is a client-side value, so we'll need to handle it differently
-        
-        // For now, we'll create/update the user with a default role
-        // In production, you would:
-        // 1. Check if user exists in database
-        // 2. If new user, use the role passed from the client
-        // 3. If existing user, use their stored role
-        
-        const response = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/social-login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            provider: account.provider,
-            providerId: account.providerAccountId,
-            role: 'DOG_OWNER', // Default role, should be passed from client
-          }),
-        });
-        
-        if (!response.ok) {
+        try {
+          // Note: We can't access localStorage here as this runs server-side
+          // The role will need to be passed differently
+          
+          const response = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/social-login`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              provider: account.provider,
+              providerId: account.providerAccountId,
+              // Role will be updated after user creation via a separate call
+            }),
+          });
+          
+          if (!response.ok) {
+            console.error('Social login failed:', await response.text());
+            return false;
+          }
+          
+          const data = await response.json();
+          
+          // Store the user data for use in JWT callback
+          (user as any).id = data.user.id;
+          (user as any).role = data.user.role;
+          (user as any).provider = data.user.provider;
+          (user as any).accessToken = data.token;
+          
+          return true; // Allow sign-in
+        } catch (error) {
+          console.error('Social sign-in error:', error);
           return false;
         }
-        
-        return true; // Allow sign-in
       }
       return true;
     },

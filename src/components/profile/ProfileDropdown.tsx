@@ -4,17 +4,12 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useEffect, useRef } from "react"
 import {
-  User,
-  Calendar,
-  MessageSquare,
-  Heart,
-  CreditCard,
-  LogOut,
   ChevronRight,
 } from "lucide-react"
+import Image from "next/image"
 
 type ProfileDropdownProps = {
-  user?: { name?: string | null; email?: string | null; image?: string | null }
+  user?: { name?: string | null; email?: string | null; image?: string | null; role?: string | null }
   onLogout?: () => void
   className?: string
   isOpen: boolean
@@ -45,13 +40,22 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
     }
   }, [isOpen, onClose])
 
-  const menuItems: { icon: any; label: string; href: string }[] = [
-    { icon: User, label: "My Profile", href: "/user/profile" },
-    { icon: Calendar, label: "My Bookings", href: "/user/my-bookings" },
-    { icon: MessageSquare, label: "Messages", href: "/user/messages" },
-    { icon: Heart, label: "Saved Fields", href: "/user/saved-fields" },
-    { icon: CreditCard, label: "Saved Cards", href: "/user/saved-cards" },
-  ]
+  // Determine menu items based on user role
+  const menuItems: { icon: string; label: string; href: string }[] = user?.role === 'FIELD_OWNER' 
+    ? [
+        { icon: '/profile/profile.svg', label: "My Profile", href: "/user/profile" },
+        { icon: '/profile/booking.svg', label: "Booking History", href: "/field-owner" },
+        { icon: '/profile/payout.svg', label: "Payout History", href: "/field-owner/payouts" },
+        { icon: '/profile/messages.svg', label: "Messages", href: "/user/messages" },
+        { icon: '/profile/field.svg', label: "My Field", href: "/add-field" },
+      ]
+    : [
+        { icon: '/profile/profile.svg', label: "My Profile", href: "/user/profile" },
+        { icon: '/profile/booking.svg', label: "My Bookings", href: "/user/my-bookings" },
+        { icon: '/profile/messages.svg', label: "Messages", href: "/user/messages" },
+        { icon: '/profile/heart.svg', label: "Saved Fields", href: "/user/saved-fields" },
+        { icon: '/profile/saved-cards.svg', label: "Saved Cards", href: "/user/saved-cards" },
+      ]
 
   const displayInitial = (user?.name || user?.email || "U").charAt(0).toUpperCase()
 
@@ -88,23 +92,26 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
 
       {/* Menu Items */}
       <div className="p-6 pt-4 space-y-1">
-        {menuItems.map((item) => {
-          const Icon = item.icon
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              onClick={onClose}
-              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors group"
-            >
-              <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white">
-                <Icon className="w-5 h-5 text-[#192215]" strokeWidth={2.5} />
-              </div>
-              <span className="flex-1 text-left text-base font-medium text-[#192215]">{item.label}</span>
-              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-            </Link>
-          )
-        })}
+        {menuItems.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            onClick={onClose}
+            className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors group"
+          >
+            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white">
+              <Image 
+                src={item.icon} 
+                alt={item.label} 
+                width={20} 
+                height={20}
+                className="w-5 h-5"
+              />
+            </div>
+            <span className="flex-1 text-left text-base font-medium text-[#192215]">{item.label}</span>
+            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          </Link>
+        ))}
 
         {/* Logout Button */}
         <button
@@ -115,7 +122,13 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
           className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-red-50 transition-colors group"
         >
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white">
-            <LogOut className="w-5 h-5 text-[#e31c20]" strokeWidth={2.5} />
+            <Image 
+              src="/profile/logout.svg" 
+              alt="Logout" 
+              width={20} 
+              height={20}
+              className="w-5 h-5"
+            />
           </div>
           <span className="flex-1 text-left text-base font-medium text-[#e31c20]">Logout</span>
         </button>

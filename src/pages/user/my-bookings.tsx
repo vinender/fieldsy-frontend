@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { BookingDetailsModal } from '@/components/modal/BookingDetailModal';
 import { UserLayout } from '@/components/layout/UserLayout';
-// import BookingDetailsModal from '@/components/modal/BookingDetailModal';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 // MongoDB Document Structure for Bookings
 interface Booking {
@@ -38,13 +39,126 @@ interface Booking {
 }
 
 const BookingHistoryPage = () => {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showFilter, setShowFilter] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalBookings, setTotalBookings] = useState(0);
 
-  // Upcoming bookings data
-  const upcomingBookings: Booking[] = [
+  useEffect(() => {
+    // Reset page when tab changes
+    if (activeTab) {
+      setPage(1);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [activeTab, page, session]);
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Get token from session or localStorage
+      let token = session?.accessToken;
+      
+      if (!token) {
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.token;
+        }
+      }
+
+      if (!token) {
+        setError('Please login to view bookings');
+        setLoading(false);
+        return;
+      }
+
+      // Prepare query params
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', '10');
+      if (activeTab === 'previous') {
+        params.append('status', 'COMPLETED');
+      } else {
+        params.append('status', 'PENDING');
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/bookings/my-bookings?${params.toString()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const bookingData = data.data || [];
+        
+        // Transform backend data to match frontend interface
+        const transformedBookings = bookingData.map((booking: any) => ({
+          _id: booking.id,
+          fieldId: booking.fieldId,
+          userId: booking.dogOwnerId,
+          name: booking.field?.name || 'Field',
+          duration: '30min',
+          price: booking.totalPrice,
+          currency: '£',
+          image: booking.field?.images?.[0] || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop',
+          features: booking.field?.description || 'Field description',
+          location: booking.field?.city ? `${booking.field.city}, ${booking.field.state}` : 'Location',
+          distance: '2.0 km away',
+          time: `${booking.startTime} – ${booking.endTime}`,
+          date: new Date(booking.date).toLocaleDateString('en-GB', { 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric' 
+          }),
+          dogs: booking.numberOfDogs || 1,
+          recurring: null,
+          status: booking.status.toLowerCase() as any,
+          paymentStatus: 'paid',
+          createdAt: booking.createdAt,
+          updatedAt: booking.updatedAt
+        }));
+        
+        setBookings(transformedBookings);
+        
+        // Set pagination info
+        if (data.pagination) {
+          setTotalPages(data.pagination.totalPages || Math.ceil(data.pagination.total / data.pagination.limit));
+          setTotalBookings(data.pagination.total || 0);
+        }
+      } else if (response.status === 401) {
+        setError('Session expired. Please login again');
+        router.push('/login');
+      } else {
+        setError('Failed to fetch bookings');
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      setError('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data as fallback (will be removed once API is fully integrated)
+  const mockUpcomingBookings: Booking[] = [
     {
       _id: '507f1f77bcf86cd799439011',
       fieldId: '507f1f77bcf86cd799439001',
@@ -110,8 +224,7 @@ const BookingHistoryPage = () => {
     }
   ];
 
-  // Previous bookings data
-  const previousBookings: Booking[] = [
+  const mockPreviousBookings: Booking[] = [
     {
       _id: '507f1f77bcf86cd799439014',
       fieldId: '507f1f77bcf86cd799439004',
@@ -177,8 +290,9 @@ const BookingHistoryPage = () => {
     }
   ];
 
-  // Get bookings based on active tab
-  const bookings = activeTab === 'upcoming' ? upcomingBookings : previousBookings;
+  // Use mock data if no real bookings are loaded
+  const displayBookings = bookings.length > 0 ? bookings : 
+    (activeTab === 'upcoming' ? mockUpcomingBookings : mockPreviousBookings);
 
   const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -329,41 +443,112 @@ const BookingHistoryPage = () => {
 
         {/* Bookings List */}
         <div className="bg-light rounded-2xl p-6 mb-6">
-          {bookings.map((booking) => (
-            <BookingCard key={booking._id} booking={booking} />
-          ))}
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-[#3A6B22] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading bookings...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-red-500 font-medium mb-2">{error}</p>
+              <button 
+                onClick={fetchBookings}
+                className="text-[#3A6B22] font-medium hover:underline"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : displayBookings.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">
+                No {activeTab} bookings
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {activeTab === 'upcoming' 
+                  ? "You don't have any upcoming bookings."
+                  : "You don't have any previous bookings."}
+              </p>
+              <button 
+                onClick={() => router.push('/fields')}
+                className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
+              >
+                Find Fields
+              </button>
+            </div>
+          ) : (
+            displayBookings.map((booking) => (
+              <BookingCard key={booking._id} booking={booking} />
+            ))
+          )}
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between">
-          <p className="text-[14px] font-semibold italic text-[#192215]">
-            Showing 1-10 of 50
-          </p>
-          
-          <div className="flex items-center gap-2">
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 transition-colors">
-              <ChevronLeft className="w-5 h-5 text-[#192215]" />
-            </button>
+        {!loading && !error && displayBookings.length > 0 && (
+          <div className="flex items-center justify-between">
+            <p className="text-[14px] font-semibold italic text-[#192215]">
+              Showing {(page - 1) * 10 + 1}-{Math.min(page * 10, totalBookings)} of {totalBookings}
+            </p>
             
-            <button className="w-8 h-8 flex items-center justify-center rounded bg-[#3a6b22] text-white text-sm font-medium">
-              1
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 text-[#192215] text-sm font-medium transition-colors">
-              2
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 text-[#192215] text-sm font-medium transition-colors">
-              3
-            </button>
-            <span className="text-[#192215]">...</span>
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 text-[#192215] text-sm font-medium transition-colors">
-              10
-            </button>
-            
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 transition-colors">
-              <ChevronRight className="w-5 h-5 text-[#192215]" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 transition-colors disabled:opacity-50"
+              >
+                <ChevronLeft className="w-5 h-5 text-[#192215]" />
+              </button>
+              
+              {[...Array(Math.min(5, totalPages))].map((_, index) => {
+                const pageNum = index + 1;
+                return (
+                  <button 
+                    key={pageNum}
+                    onClick={() => setPage(pageNum)}
+                    className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors ${
+                      pageNum === page 
+                        ? 'bg-[#3a6b22] text-white' 
+                        : 'hover:bg-white/50 text-[#192215]'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              {totalPages > 5 && (
+                <>
+                  <span className="text-[#192215]">...</span>
+                  <button 
+                    onClick={() => setPage(totalPages)}
+                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 text-[#192215] text-sm font-medium transition-colors"
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+              
+              <button 
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 transition-colors disabled:opacity-50"
+              >
+                <ChevronRight className="w-5 h-5 text-[#192215]" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {/* Booking Details Modal */}

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { MapPin, Star, Shield, Heart, MessageSquare, ChevronLeft, ChevronRight, ArrowLeft, BadgeCheck, ChevronDown, PawPrint, Clock, RotateCcw, Info, CheckCircle } from 'lucide-react';
-import mockData from '@/data/mock-data.json';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
+import { UserLayout } from '@/components/layout/UserLayout';
 
 const FieldDetailsScreen = () => {
   const router = useRouter();
@@ -14,22 +14,96 @@ const FieldDetailsScreen = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(true);
   const [bookingOpen, setBookingOpen] = useState(true);
+  const [field, setField] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Find the field from mock data - default to first field if not found
-  const field = mockData.fields.find(f => f.id === field_id) || mockData.fields[0];
-  const spec = (field as any).specifications || {};
-  const isClaimed = (field as any).is_claimed || false;
+  useEffect(() => {
+    if (field_id) {
+      fetchFieldDetails();
+    }
+  }, [field_id]);
+
+  const fetchFieldDetails = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/fields/${field_id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setField(data.data);
+      } else if (response.status === 404) {
+        setError('Field not found');
+      } else {
+        setError('Failed to load field details');
+      }
+    } catch (error) {
+      console.error('Error fetching field details:', error);
+      setError('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <UserLayout requireRole="DOG_OWNER">
+        <div className="min-h-screen bg-[#FFFCF3] mt-32 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-[#3A6B22] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading field details...</p>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
+  if (error || !field) {
+    return (
+      <UserLayout requireRole="DOG_OWNER">
+        <div className="min-h-screen bg-[#FFFCF3] mt-32 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 max-w-md">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Found</h3>
+              <p className="text-gray-600 mb-4">{error || 'The field you are looking for does not exist.'}</p>
+              <button 
+                onClick={() => router.push('/fields')}
+                className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
+              >
+                Back to Fields
+              </button>
+            </div>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+  const isClaimed = field?.isActive || false;
   const specifications: { label: string; value: string }[] = [
-    { label: 'Field Size', value: spec.fieldSize || '1.5 acres' },
-    { label: 'Fence type & size', value: spec.fenceType || '6 ft steel mesh, fully enclosed' },
-    { label: 'Terrain Type', value: spec.terrainType || spec.surfaceType || 'Soft grass + walking path' },
-    { label: 'Surface type', value: spec.surfaceType2 || 'Flat with gentle slopes' },
-    { label: 'Max Dogs', value: spec.maxDogs || '4 dogs Allowed' },
-    { label: 'Opening Hours', value: spec.openingHours || spec.bookingType || 'Monday to Friday (6:00 AM – 8:00 PM)' },
+    { label: 'Field Size', value: field?.size || 'Not specified' },
+    { label: 'Fence type & size', value: field?.fenceType || '6 ft steel mesh, fully enclosed' },
+    { label: 'Terrain Type', value: field?.type || 'Soft grass + walking path' },
+    { label: 'Surface type', value: field?.surfaceType || 'Flat with gentle slopes' },
+    { label: 'Max Dogs', value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : '4 dogs allowed' },
+    { label: 'Opening Hours', value: field?.openingTime && field?.closingTime ? `${field.openingTime} - ${field.closingTime}` : 'Monday to Friday (6:00 AM – 8:00 PM)' },
   ];
 
 
-  const fieldImages = field.images || [ 
+  const fieldImages = field?.images && field.images.length > 0 ? field.images : [ 
     'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop',
@@ -151,12 +225,12 @@ const FieldDetailsScreen = () => {
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
                 <div className="flex items-baseline flex-wrap gap-2">
                   <h1 className="text-2xl lg:text-3xl font-semibold text-dark-green">
-                    {field.name}
+                    {field?.name || 'Field'}
                   </h1>
                   <span className="text-xl lg:text-2xl text-dark-green">•</span>
                   <div className="flex items-baseline">
-                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">${field.price}</span>
-                    <span className="text-sm lg:text-base text-gray-500 ml-1">/{field.priceUnit}</span>
+                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.pricePerHour || 0}</span>
+                    <span className="text-sm lg:text-base text-gray-500 ml-1">/hour</span>
                   </div>
                 </div>
                 <button 
@@ -172,18 +246,18 @@ const FieldDetailsScreen = () => {
                 <div className="flex items-center text-sm lg:text-base text-dark-green">
                   {/* <MapPin className="w-5 h-5 text-[#8FB366] mr-1" /> */}
                   <img src='/location.svg' className="w-5 h-5 text-[#8FB366] mr-1" />
-                  <span>{field.fullLocation || field.location} • {field.distance}</span>
+                  <span>{field?.city ? `${field.city}, ${field.state}` : 'Location not specified'} • {field?.distance || '0 miles'}</span>
                 </div>
                 <div className="flex items-center bg-dark-green text-white px-2 py-1 rounded-md">
                   <Star className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
-                  <span className="text-sm font-semibold">{field.rating}</span>
+                  <span className="text-sm font-semibold">{field?.rating || 4.5}</span>
                 </div>
               </div>
             </div>
 
             {/* Amenities */}
             <div className="flex flex-wrap gap-2">
-              {field.amenities.map((amenity, index) => {
+              {(field?.amenities || []).map((amenity: string, index: number) => {
                 const iconPath = amenityIconPaths[amenity];
                 return (
                   <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
@@ -207,10 +281,10 @@ const FieldDetailsScreen = () => {
                     <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
                     <div>
                       <div className="flex items-center">
-                        <span className="font-medium text-[#090F1F] mr-1">{field.owner}</span>
+                        <span className="font-medium text-[#090F1F] mr-1">{field?.owner?.name || 'Field Owner'}</span>
                         <BadgeCheck className="w-4 h-4 text-[#3A6B22]" />
                       </div>
-                      <span className="text-xs text-gray-500">Joined on {field.ownerJoined || 'March 2025'}</span>
+                      <span className="text-xs text-gray-500">Joined on {field?.owner?.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'March 2025'}</span>
                     </div>
                   </div>
                   <button className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2">
@@ -256,8 +330,10 @@ const FieldDetailsScreen = () => {
             <div>
               <h3 className="font-bold text-lg text-dark-green mb-2">Description</h3>
               <p className="text-dark-green leading-relaxed">
-                {field.description || "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups."}
-                <button className="text-[#3A6B22] font-bold underline ml-1">Show more</button>
+                {field?.description || "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups."}
+                {field?.description && field.description.length > 200 && (
+                  <button className="text-[#3A6B22] font-bold underline ml-1">Show more</button>
+                )}
               </p>
             </div>
 
@@ -392,7 +468,10 @@ const FieldDetailsScreen = () => {
 
             {/* Book Now Button - Only for claimed fields */}
             {isClaimed && (
-              <button className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition">
+              <button 
+                onClick={() => router.push(`/fields/book-field?id=${field_id}`)}
+                className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
+              >
                 Book Now
               </button>
             )}
@@ -403,7 +482,7 @@ const FieldDetailsScreen = () => {
         {isClaimed && (
           <div className="mt-12 lg:mt-16">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-dark-green">Reviews & Ratings ({field.reviewCount || 273} Reviews)</h2>
+            <h2 className="text-2xl font-bold text-dark-green">Reviews & Ratings ({field?.reviews?.length || 0} Reviews)</h2>
           </div>
 
           {/* Summary row */}
@@ -414,13 +493,13 @@ const FieldDetailsScreen = () => {
               <div className="flex gap-6">
                 {/* Average score */}
                 <div className="w-36 bg-black flex flex-col items-center justify-center rounded-xl  p-4">
-                  <div className="text-4xl font-bold text-white">{field.rating}</div>
+                  <div className="text-4xl font-bold text-white">{field?.rating || 4.5}</div>
                   <div className="flex items-center mt-2">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-4 h-4 mr-1 ${i < Math.round(field.rating) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} />
+                      <Star key={i} className={`w-4 h-4 mr-1 ${i < Math.round(field?.rating || 4.5) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} />
                     ))}
                   </div>
-                  <div className="text-xs text-gray-200 mt-2">{field.reviewCount || 273} Reviews</div>
+                  <div className="text-xs text-gray-200 mt-2">{field?.reviews?.length || 0} Reviews</div>
                 </div>
                 {/* Rating bars */}
                 <div className="flex-1">

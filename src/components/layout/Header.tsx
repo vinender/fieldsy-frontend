@@ -2,16 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut, useSession } from "next-auth/react"
+import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, X } from "lucide-react"
 import { ProfileDropdown } from "@/components/profile/ProfileDropdown"
 import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function Header() {
   const pathname = usePathname()
-  const { data: session, status } = useSession()
+  const { user, isLoading } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
@@ -53,8 +54,8 @@ export function Header() {
     }
   }, [])
   
-  const isAuthenticated = status === "authenticated" || !!localUser || isSimulatedLoggedIn
-  const currentUser = session?.user || localUser || (isSimulatedLoggedIn ? simulatedUser : null)
+  const isAuthenticated = !!user || !!localUser || isSimulatedLoggedIn
+  const currentUser = user || localUser || (isSimulatedLoggedIn ? simulatedUser : null)
 
   // Add role-specific navigation items - use consistent initial state
   const navigation = useMemo(() => {
@@ -72,9 +73,10 @@ export function Header() {
     // For FIELD_OWNER role
     if (currentUser.role === 'FIELD_OWNER') {
       return [
-        { name: "Dashboard", href: "/field-owner" },
-        { name: "My Fields", href: "/field-owner-dashboard" },
-        { name: "About Us", href: "/about" },
+        { name: "Home", href: "/" },
+        { name: "Why Choose Us", href: "/about" },
+        { name: "How It Works", href: "/how-it-works" },
+        { name: "Testimonials", href: "/#testimonials" },
         { name: "FAQ's", href: "/faqs" },
       ]
     }
@@ -92,8 +94,7 @@ export function Header() {
   // Dynamic user navigation based on role
   const userNavigation = currentUser?.role === 'FIELD_OWNER' 
     ? [
-        { name: "Dashboard", href: "/field-owner-dashboard" },
-        { name: "Add Field", href: "/field-owner" },
+        { name: "Add Field", href: "/add-field" },
         { name: "My Fields", href: "/fields/manage" },
         { name: "Profile", href: "/user/profile" },
       ]
@@ -104,10 +105,14 @@ export function Header() {
         { name: "Profile", href: "/user/profile" },
       ]
 
-  // Determine header styles based on page and scroll position
-  const headerBg = !isLandingPage || scrolled ? "bg-white shadow-sm" : "bg-transparent"
-  const textColor = !isLandingPage || scrolled ? "text-gray-700" : "text-white"
-  const navLinkColor = !isLandingPage || scrolled 
+  // Check if field owner is viewing homepage (which shows their dashboard)
+  const isFieldOwnerHomepage = isLandingPage && currentUser?.role === 'FIELD_OWNER'
+  
+  // Determine header styles based on page, user role, and scroll position
+  // For field owners on homepage, always use white background
+  const headerBg = !isLandingPage || scrolled || isFieldOwnerHomepage ? "bg-white shadow-sm" : "bg-transparent"
+  const textColor = !isLandingPage || scrolled || isFieldOwnerHomepage ? "text-gray-700" : "text-white"
+  const navLinkColor = !isLandingPage || scrolled || isFieldOwnerHomepage
     ? "text-gray-600 hover:text-gray-900" 
     : "text-white/90 hover:text-white"
 
@@ -124,7 +129,7 @@ export function Header() {
                 alt='logo' 
                 width={500} 
                 height={500} 
-                src={`${!isLandingPage || scrolled ? '/logo/logo-green.png' : '/logo/logo.png'}`} 
+                src={`${!isLandingPage || scrolled || isFieldOwnerHomepage ? '/logo/logo-green.png' : '/logo/logo.png'}`} 
                 className='object-contain w-[120px] sm:w-[140px] xl:w-[163px] h-[48px] sm:h-[56px] xl:h-[64px]' 
               />
             </Link>
@@ -138,7 +143,7 @@ export function Header() {
                 className={cn(
                   "text-base font-medium transition-colors",
                   pathname === item.href
-                    ? !isLandingPage || scrolled 
+                    ? !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "text-gray-900" 
                       : "text-white"
                     : navLinkColor
@@ -154,7 +159,7 @@ export function Header() {
                 className={cn(
                   "text-base font-medium transition-colors",
                   pathname === "/field-owner"
-                    ? !isLandingPage || scrolled 
+                    ? !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "text-green-600" 
                       : "text-white"
                     : navLinkColor
@@ -173,7 +178,7 @@ export function Header() {
                 <button 
                   className={cn(
                     "p-2 rounded-full transition-colors relative",
-                    !isLandingPage || scrolled 
+                    !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "hover:bg-gray-100" 
                       : "hover:bg-white/10"
                   )}
@@ -186,7 +191,7 @@ export function Header() {
                 <button 
                   className={cn(
                     "p-2 rounded-full transition-colors relative",
-                    !isLandingPage || scrolled 
+                    !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "hover:bg-gray-100" 
                       : "hover:bg-white/10"
                   )}
@@ -223,7 +228,12 @@ export function Header() {
                   
                   {/* Dropdown Menu */}
                   <ProfileDropdown
-                    user={{ name: currentUser?.name || "User", email: currentUser?.email || "", image: currentUser?.image || null }}
+                    user={{ 
+                      name: currentUser?.name || "User", 
+                      email: currentUser?.email || "", 
+                      image: currentUser?.image || null,
+                      role: currentUser?.role || null
+                    }}
                     isOpen={profileDropdownOpen}
                     onClose={() => setProfileDropdownOpen(false)}
                     onLogout={() => {

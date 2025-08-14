@@ -76,10 +76,13 @@ export function LoginForm() {
     }
     
     try {
-      // Call the social login with the selected role
+      // Store the role in localStorage - simple and works across platforms
+      localStorage.setItem('pendingUserRole', role);
+      console.log('[LoginForm] Stored role in localStorage:', role);
+      
+      // Call the social login
       await signIn(pendingProvider, { 
         callbackUrl: '/',
-        role // Pass the role to the provider
       });
     } catch (error: any) {
       if (error?.message?.includes('OAuthAccountNotLinked')) {

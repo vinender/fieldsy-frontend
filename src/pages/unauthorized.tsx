@@ -48,12 +48,12 @@ export default function UnauthorizedPage() {
             
              {session?.user?.role === 'FIELD_OWNER' && (
               <>
-                <Link href="/field-owner-dashboard">
+                <Link href="/">
                   <button className="w-full py-3 px-4 rounded-full bg-green text-white font-medium hover:opacity-90 transition-opacity">
                     Field Owner Dashboard
                   </button>
                 </Link>
-                <Link href="/field-owner">
+                <Link href="/add-field">
                   <button className="w-full py-3 px-4 rounded-full border-2 border-green text-green font-medium hover:bg-green hover:text-white transition-all">
                     Add New Field
                   </button>
