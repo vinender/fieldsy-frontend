@@ -21,15 +21,21 @@ axiosClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${session.accessToken}`;
     } else {
       // Fallback to localStorage token if available
-      const storedUser = localStorage.getItem('currentUser');
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          if (user.token) {
-            config.headers.Authorization = `Bearer ${user.token}`;
+      const authToken = localStorage.getItem('authToken');
+      if (authToken) {
+        config.headers.Authorization = `Bearer ${authToken}`;
+      } else {
+        // Also check for token in currentUser (legacy)
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          try {
+            const user = JSON.parse(storedUser);
+            if (user.token) {
+              config.headers.Authorization = `Bearer ${user.token}`;
+            }
+          } catch (e) {
+            console.error('Failed to parse stored user:', e);
           }
-        } catch (e) {
-          console.error('Failed to parse stored user:', e);
         }
       }
     }

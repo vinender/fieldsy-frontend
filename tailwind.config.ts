@@ -29,7 +29,8 @@ const config: Config = {
         'gray-light': '#F8F9FA',     // Light gray background
         'gray-lighter': '#f7f7f7',   // Lighter gray background
         'gray-lightest': '#F0F0F0',  // Lightest gray
-        'gray-input': '#6B6B6B',     // Gray color for input text
+        'gray-input': '#434141',     // STANDARD INPUT TEXT COLOR - Used for all input, textarea, and select text
+        'placeholder-gray': '#999a9b', // rgb(153, 154, 155) - Standard placeholder color for all inputs
         'green-hover': '#2d5319',    // Dark green hover
         'green-darker': '#2D5A1B',   // Even darker green
         'green-light': '#8ad04d',    // Light green (card)

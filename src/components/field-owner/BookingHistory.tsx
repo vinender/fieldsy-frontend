@@ -136,7 +136,7 @@ export default function BookingHistory() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-semibold text-dark-green font-sans">Field Owner Dashboard</h1>
           <button
-            onClick={() => router.push('/add-field')}
+            onClick={() => router.push('/')}
             className="px-6 py-2.5 bg-green text-white rounded-full font-medium hover:bg-green/90 transition-colors font-sans"
           >
             Edit My Field

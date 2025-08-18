@@ -41,7 +41,13 @@ export function LoginForm() {
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true)
     try {
-      await login({ email: data.email, password: data.password })
+      // Get the role from the URL query params if present
+      const roleFromQuery = router.query.role as string;
+      await login({ 
+        email: data.email, 
+        password: data.password,
+        ...(roleFromQuery && { role: roleFromQuery })
+      })
       toast.success("Login successful!")
       // Don't redirect here - let useAuth handle it with callbackUrl
     } catch (error: any) {
@@ -76,9 +82,17 @@ export function LoginForm() {
     }
     
     try {
-      // Store the role in localStorage - simple and works across platforms
+      // Store the role in both localStorage (for client) and server storage
       localStorage.setItem('pendingUserRole', role);
       console.log('[LoginForm] Stored role in localStorage:', role);
+      
+      // Store on server for NextAuth callback to retrieve
+      await fetch('/api/auth/store-pending-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+      console.log('[LoginForm] Stored role on server:', role);
       
       // Call the social login
       await signIn(pendingProvider, { 

@@ -58,7 +58,7 @@ export function CustomSelect({
           focus:outline-none focus:border-green font-sans text-left flex items-center justify-between
           transition-colors hover:border-green/50 ${className}`}
       >
-        <span className={value ? 'text-gray-input' : 'text-gray-400'}>
+        <span className={value ? 'text-gray-input' : 'text-gray-200'}>
           {displayText}
         </span>
         <ChevronDown 

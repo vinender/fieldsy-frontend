@@ -53,7 +53,7 @@ export default function UnauthorizedPage() {
                     Field Owner Dashboard
                   </button>
                 </Link>
-                <Link href="/add-field">
+                <Link href="/">
                   <button className="w-full py-3 px-4 rounded-full border-2 border-green text-green font-medium hover:bg-green hover:text-white transition-all">
                     Add New Field
                   </button>

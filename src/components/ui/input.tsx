@@ -1,28 +1,80 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import styles from "./input.module.css"
 
-function Input({ className, type, style, ...props }: React.ComponentProps<"input">) {
+function Input({ className, type, style, placeholder, ...props }: React.ComponentProps<"input">) {
+  // Create a unique class name for this input to apply styles
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  
+  React.useEffect(() => {
+    if (inputRef.current) {
+      // Apply placeholder styles directly via JavaScript
+      const styleSheet = document.createElement('style');
+      styleSheet.textContent = `
+        input[data-slot="input"]::placeholder {
+          color: rgb(153, 154, 155) !important;
+          opacity: 1 !important;
+        }
+        input[data-slot="input"]::-webkit-input-placeholder {
+          color: rgb(153, 154, 155) !important;
+          opacity: 1 !important;
+        }
+        input[data-slot="input"]::-moz-placeholder {
+          color: rgb(153, 154, 155) !important;
+          opacity: 1 !important;
+        }
+        input[data-slot="input"]:-ms-input-placeholder {
+          color: rgb(153, 154, 155) !important;
+          opacity: 1 !important;
+        }
+        input[data-slot="input"]:focus::placeholder {
+          color: rgb(153, 154, 155) !important;
+          opacity: 1 !important;
+        }
+      `;
+      // Only add if not already added
+      if (!document.head.querySelector('[data-input-placeholder-styles]')) {
+        styleSheet.setAttribute('data-input-placeholder-styles', 'true');
+        document.head.appendChild(styleSheet);
+      }
+    }
+  }, []);
+
   return (
     <input
+      ref={inputRef}
       type={type}
       data-slot="input"
+      placeholder={placeholder}
       style={{
-        color: '#6B6B6B',
-        WebkitTextFillColor: '#6B6B6B',
         ...style
       }}
       className={cn(
+        styles.input,
         // Base styles
         "flex w-full rounded-[70px] border bg-white px-[16px] py-[8px] text-base transition-all duration-200",
         
-        // Text and placeholder - FORCE gray color
-        "text-[#6B6B6B] placeholder:text-gray-400",
-        "[color:#6B6B6B_!important]",
+        // Text color - dark gray for input text
+        "text-gray-800",
         
-        // Force text color on all states
-        "focus:text-[#6B6B6B]",
-        "hover:text-[#6B6B6B]",
-        "active:text-[#6B6B6B]",
+        // Placeholder - light gray color (gray-200)
+        "[&::placeholder]:text-gray-200",
+        "[&::placeholder]:opacity-100",
+        "[&:focus::placeholder]:text-gray-200",
+        "[&:focus::placeholder]:opacity-100",
+        
+        // Maintain text color on all states
+        "focus:text-gray-800",
+        "hover:text-gray-800", 
+        "active:text-gray-800",
+        
+        // Autofill styles to maintain consistent text color
+        "autofill:text-gray-800",
+        "[&:-webkit-autofill]:text-gray-800",
+        "[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(31,41,55)]",
+        "[&:-webkit-autofill:hover]:[-webkit-text-fill-color:rgb(31,41,55)]",
+        "[&:-webkit-autofill:focus]:[-webkit-text-fill-color:rgb(31,41,55)]",
+        "[&:-webkit-autofill:active]:[-webkit-text-fill-color:rgb(31,41,55)]",
         
         // Border
         "border-gray-300",

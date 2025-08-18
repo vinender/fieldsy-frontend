@@ -17,15 +17,6 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   
-  // SIMULATED LOGIN STATE - Remove this when using real auth
-  const [isSimulatedLoggedIn, setIsSimulatedLoggedIn] = useState(false)
-  const simulatedUser = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    image: null, // Set to null to show default avatar, or provide an image URL
-    role: "DOG_OWNER" as const // or "FIELD_OWNER"
-  }
-  
   // Check if we're on the landing page
   const isLandingPage = pathname === "/"
 
@@ -38,24 +29,20 @@ export function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  // Use state to manage local user to avoid hydration issues
-  const [localUser, setLocalUser] = useState<any>(null)
   
+  // Use auth context for authentication state
+  const isAuthenticated = !!user && !isLoading
+  const currentUser = user
+  console.log('currentUser', currentUser)
+  console.log('isLoading', isLoading)
+  
+  // Debug localStorage
   useEffect(() => {
-    // Only access localStorage after component mounts (client-side only)
-    const storedUser = localStorage.getItem('currentUser')
-    if (storedUser) {
-      try {
-        setLocalUser(JSON.parse(storedUser))
-      } catch (e) {
-        console.error('Failed to parse stored user:', e)
-      }
+    if (typeof window !== 'undefined') {
+      console.log('[Header] authToken:', localStorage.getItem('authToken'));
+      console.log('[Header] currentUser:', localStorage.getItem('currentUser'));
     }
   }, [])
-  
-  const isAuthenticated = !!user || !!localUser || isSimulatedLoggedIn
-  const currentUser = user || localUser || (isSimulatedLoggedIn ? simulatedUser : null)
 
   // Add role-specific navigation items - use consistent initial state
   const navigation = useMemo(() => {
@@ -94,7 +81,7 @@ export function Header() {
   // Dynamic user navigation based on role
   const userNavigation = currentUser?.role === 'FIELD_OWNER' 
     ? [
-        { name: "Add Field", href: "/add-field" },
+        { name: "Add Field", href: "/" },
         { name: "My Fields", href: "/fields/manage" },
         { name: "Profile", href: "/user/profile" },
       ]
@@ -152,22 +139,6 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
-            {/* Additional role-specific navigation - only render after hydration */}
-            {localUser && currentUser?.role === "FIELD_OWNER" && (
-              <Link
-                href="/field-owner"
-                className={cn(
-                  "text-base font-medium transition-colors",
-                  pathname === "/field-owner"
-                    ? !isLandingPage || scrolled || isFieldOwnerHomepage
-                      ? "text-green-600" 
-                      : "text-white"
-                    : navLinkColor
-                )}
-              >
-                Add Field
-              </Link>
-            )}
           </div>
           
           {/* Right side items */}
@@ -237,22 +208,17 @@ export function Header() {
                     isOpen={profileDropdownOpen}
                     onClose={() => setProfileDropdownOpen(false)}
                     onLogout={() => {
-                      if (isSimulatedLoggedIn) {
-                        setIsSimulatedLoggedIn(false)
-                      } else {
-                        // Clear our custom auth
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('currentUser');
-                        setLocalUser(null);
-                        
-                        // Also clear NextAuth session if exists
-                        if (status === 'authenticated') {
-                          signOut({ callbackUrl: "/" });
-                        } else {
-                          // Just redirect to home
-                          window.location.href = '/';
-                        }
-                      }
+                      // Clear all localStorage items
+                      localStorage.removeItem('authToken');
+                      localStorage.removeItem('currentUser');
+                      localStorage.removeItem('pendingUserRole');
+                      sessionStorage.clear();
+                      
+                      // Sign out and redirect to home page
+                      signOut({ 
+                        callbackUrl: "/",
+                        redirect: true 
+                      });
                     }}
                   />
                 </div>
@@ -370,21 +336,6 @@ export function Header() {
                     {item.name}
                   </Link>
                 ))}
-                {/* Additional role-specific mobile navigation */}
-                {isAuthenticated && currentUser?.role === "FIELD_OWNER" && (
-                  <Link
-                    href="/field-owner"
-                    className={cn(
-                      "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                      pathname === "/field-owner"
-                        ? "bg-green-100 text-green-900"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    )}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Add Field
-                  </Link>
-                )}
               </nav>
             </div>
             
@@ -450,11 +401,13 @@ export function Header() {
                       className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       onClick={() => {
                         setMobileMenuOpen(false)
-                        if (isSimulatedLoggedIn) {
-                          setIsSimulatedLoggedIn(false)
-                        } else {
-                          signOut({ callbackUrl: "/" })
-                        }
+                        // Clear localStorage items
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('pendingUserRole');
+                        sessionStorage.clear();
+                        // Sign out
+                        signOut({ callbackUrl: "/" })
                       }}
                     >
                       Sign Out

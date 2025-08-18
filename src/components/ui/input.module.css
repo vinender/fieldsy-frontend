@@ -1,0 +1,41 @@
+/* Input component specific styles */
+.input::placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}
+
+.input::-webkit-input-placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}
+
+.input::-moz-placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}
+
+.input:-ms-input-placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}
+
+.input::-ms-input-placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}
+
+/* Ensure placeholder doesn't change on focus */
+.input:focus::placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}
+
+.input:focus::-webkit-input-placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}
+
+.input:focus::-moz-placeholder {
+  color: rgb(153, 154, 155) !important;
+  opacity: 1 !important;
+}

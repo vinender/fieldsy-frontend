@@ -3,24 +3,18 @@ import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
 import { Input } from '@/components/ui/input';
 import { Upload, X, CheckCircle, Image } from 'lucide-react';
-import { s3DirectUploader, UploadProgress } from '@/utils/s3UploadDirect';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
-import axiosClient from '@/lib/api/axios-client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOwnerField, useSaveFieldProgress, useDirectUpload } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Sidebar Navigation Component
-function Sidebar({ activeSection, onSectionChange, stepStatus }: { 
-  activeSection: string; 
-  onSectionChange: (sectionId: string) => void;
-  stepStatus: { [key: string]: boolean };
-}) {
+// Sidebar Navigation Component - Keep original design with hardcoded completion status
+function Sidebar({ activeSection, onSectionChange }: { activeSection: string; onSectionChange: (sectionId: string) => void }) {
   const sections = [
-    { id: 'field-details', label: 'Field Details', completed: stepStatus['fieldDetails'] || false },
-    { id: 'upload-images', label: 'Upload Images', completed: stepStatus['uploadImages'] || false },
-    { id: 'pricing-availability', label: 'Pricing & Availability', completed: stepStatus['pricingAvailability'] || false },
-    { id: 'booking-rules', label: 'Booking Rules & Policies', completed: stepStatus['bookingRules'] || false }
+    { id: 'field-details', label: 'Field Details', completed: true },
+    { id: 'upload-images', label: 'Upload Images', completed: false },
+    { id: 'pricing-availability', label: 'Pricing & Availability', completed: false },
+    { id: 'booking-rules', label: 'Booking Rules & Policies', completed: false }
   ];
 
   return (
@@ -81,7 +75,7 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
   };
 
   return (
-    <div className="space-y-8 ">
+    <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold mb-2 text-dark-green font-sans">
           Tell us about your field
@@ -130,7 +124,7 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
               />
             </div>
 
-            <div>
+            <div className=''>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Terrain Type
               </label>
@@ -150,7 +144,7 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
               />
             </div>
 
-            <div>
+            <div className='w-full'>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Fence Type
               </label>
@@ -400,7 +394,7 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
               value={formData.streetAddress}
               onChange={handleInputChange}
               placeholder="42 Meadowcroft Lane"
-              className="py-3 border-gray-border focus:border-green font-sans"
+              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
             />
           </div>
           <div>
@@ -478,7 +472,8 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
 function UploadImages({ formData, setFormData }: any) {
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [dragActive, setDragActive] = useState(false);
-
+  const uploadMutation = useDirectUpload();
+  console.log('images', uploadedImages);
   const handleDrag = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
@@ -518,14 +513,14 @@ function UploadImages({ formData, setFormData }: any) {
       file.type.startsWith('image/')
     );
 
-    const newImages = imageFiles.map((file: File, index: number) => ({
+    const newImages = imageFiles?.map((file: File, index: number) => ({
       id: Date.now() + index,
       name: file.name,
       size: formatFileSize(file.size),
       file: file,
       preview: URL.createObjectURL(file),
       uploaded: false,
-      progress: 0,
+      progress: undefined, // Start with undefined to show 0 initially
       url: undefined as string | undefined,
       error: undefined as string | undefined,
     }));
@@ -533,20 +528,72 @@ function UploadImages({ formData, setFormData }: any) {
     setUploadedImages(prev => [...prev, ...newImages]);
 
     // Start real uploads with progress updates
-    newImages.forEach(async (image) => {
+    newImages.forEach(async (image, index) => {
+      // Stagger uploads for better UX
+      await new Promise(resolve => setTimeout(resolve, index * 150 + 50));
+      
+      // Initialize progress at 0
+      setUploadedImages(prev => prev.map(img => 
+        img.id === image.id ? { ...img, progress: 0 } : img
+      ));
+      
+      // Small delay to ensure UI updates with 0% first
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Create simulated progress for better UX
+      let simulatedProgress = 0;
+      let progressInterval: ReturnType<typeof setInterval> | null = null;
+      
+      // Start simulated progress animation
+      const startSimulatedProgress = () => {
+        progressInterval = setInterval(() => {
+          const increment = simulatedProgress < 30 
+            ? Math.random() * 8 + 3  // 3-11% at start
+            : simulatedProgress < 60 
+            ? Math.random() * 5 + 2  // 2-7% in middle
+            : Math.random() * 3 + 1; // 1-4% near end
+          
+          simulatedProgress = Math.min(simulatedProgress + increment, 85);
+          
+          setUploadedImages(prev => prev.map(img => 
+            img.id === image.id 
+              ? { ...img, progress: Math.round(simulatedProgress) } 
+              : img
+          ));
+        }, 400); // Update every 400ms
+      };
+      
       try {
-        const fileUrl = await s3DirectUploader.uploadFile({
+        startSimulatedProgress();
+        
+        const fileUrl = await uploadMutation.mutateAsync({
           file: image.file,
-          onProgress: (progress: UploadProgress) => {
-            setUploadedImages(prev => prev.map(img => {
-              if (img.id === image.id) {
-                return { ...img, progress: progress.percentage };
-              }
-              return img;
-            }));
-          },
           folder: 'field-images',
+          onProgress: (progress) => {
+            // Use actual progress if higher than simulated
+            if (progress > simulatedProgress) {
+              simulatedProgress = progress;
+              setUploadedImages(prev => prev.map(img => 
+                img.id === image.id 
+                  ? { ...img, progress: Math.min(progress, 95) } 
+                  : img
+              ));
+            }
+          }
         });
+        
+        // Clear interval
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+        
+        // Set to 100%
+        setUploadedImages(prev => prev.map(img => 
+          img.id === image.id ? { ...img, progress: 100 } : img
+        ));
+        
+        // Small delay to show 100%
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         setUploadedImages(prev => prev.map(img => {
           if (img.id === image.id) {
@@ -561,9 +608,14 @@ function UploadImages({ formData, setFormData }: any) {
           images: Array.isArray(prev.images) ? [...prev.images, fileUrl] : [fileUrl],
         }));
       } catch (err) {
+        // Clear interval on error
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+        
         setUploadedImages(prev => prev.map(img => {
           if (img.id === image.id) {
-            return { ...img, error: 'Failed to upload' };
+            return { ...img, error: 'Failed to upload', progress: 0 };
           }
           return img;
         }));
@@ -625,16 +677,16 @@ function UploadImages({ formData, setFormData }: any) {
       </div>
 
       {/* In-Progress Uploads List */}
-      {uploadedImages.some((img) => !img.uploaded) && (
+      {uploadedImages?.some((img) => !img.uploaded) && (
         <div className="mt-4 space-y-3">
-          {uploadedImages.filter((img) => !img.uploaded).map((img) => (
+          {uploadedImages?.filter((img) => !img.uploaded).map((img) => (
             <div key={img.id} className="bg-white border border-gray-border rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-dark-green font-medium truncate mr-3">{img.name}</p>
-                <span className="text-xs text-gray-text">{img.progress}%</span>
+                <span className="text-xs text-gray-text">{img.progress !== undefined ? img.progress : 0}%</span>
               </div>
               <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-green rounded-full" style={{ width: `${img.progress}%` }} />
+                <div className="h-full bg-green rounded-full transition-all duration-300 ease-out" style={{ width: `${img.progress !== undefined ? img.progress : 0}%` }} />
               </div>
               {img.error && (
                 <p className="text-xs text-red mt-2">{img.error}</p>
@@ -683,7 +735,7 @@ function UploadImages({ formData, setFormData }: any) {
       )}
 
       {/* Image Count Info */}
-      {uploadedImages.length > 0 && (
+      {/* {uploadedImages.length > 0 && (
         <div className="bg-cream rounded-xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-green rounded-full flex items-center justify-center">
@@ -705,7 +757,7 @@ function UploadImages({ formData, setFormData }: any) {
             Clear all
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
@@ -744,7 +796,7 @@ function PricingAvailability({ formData, setFormData }: any) {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
-              £
+              $
             </span>
             <Input
               type="number"
@@ -800,7 +852,7 @@ function PricingAvailability({ formData, setFormData }: any) {
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
-              £
+              $
             </span>
             <Input
               type="number"
@@ -824,7 +876,7 @@ function PricingAvailability({ formData, setFormData }: any) {
         {/* Cancellation Policy Section */}
         <div className="mt-10 pt-10 border-t border-gray-200">
           <div className="space-y-6">
-            <div className="bg-cream rounded-2xl p-6">
+            <div className="bg- rounded-2xl p-6">
               <h3 className="text-lg font-semibold text-red mb-3 font-sans">
                 Cancellation & Refund Policy:
               </h3>
@@ -845,7 +897,7 @@ function PricingAvailability({ formData, setFormData }: any) {
               </p>
             </div>
 
-            <div className="bg-green-lighter rounded-2xl p-6">
+            <div className=" rounded-2xl p-6">
               <p className="text-base leading-relaxed font-sans">
                 <span className="font-bold text-green">
                   Note:
@@ -856,35 +908,8 @@ function PricingAvailability({ formData, setFormData }: any) {
               </p>
             </div>
 
-            {/* Availability Settings */}
-            <div>
-              <h3 className="text-lg font-semibold text-dark-green mb-4 font-sans">
-                Availability Settings
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-border">
-                  <div>
-                    <p className="font-medium text-dark-green font-sans">Accept instant bookings</p>
-                    <p className="text-sm text-gray-text font-sans">Allow users to book without approval</p>
-                  </div>
-                  <CustomCheckbox
-                    checked={formData.instantBooking || false}
-                    onChange={(checked) => setFormData((prev: any) => ({ ...prev, instantBooking: checked }))}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-border">
-                  <div>
-                    <p className="font-medium text-dark-green font-sans">Require deposit</p>
-                    <p className="text-sm text-gray-text font-sans">Request a deposit for bookings</p>
-                  </div>
-                  <CustomCheckbox
-                    checked={formData.requireDeposit || false}
-                    onChange={(checked) => setFormData((prev: any) => ({ ...prev, requireDeposit: checked }))}
-                  />
-                </div>
-              </div>
-            </div>
+           
+         
           </div>
         </div>
       </div>
@@ -1046,16 +1071,9 @@ function BookingRules({ formData, setFormData }: any) {
 export default function AddYourField() {
   const router = useRouter();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('field-details');
   const [fieldId, setFieldId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [stepStatus, setStepStatus] = useState({
-    fieldDetails: false,
-    uploadImages: false,
-    pricingAvailability: false,
-    bookingRules: false
-  });
   const [formData, setFormData] = useState({
     fieldName: '',
     fieldSize: '',
@@ -1086,105 +1104,77 @@ export default function AddYourField() {
     policies: ''
   });
 
-  // Fetch existing field data using React Query
-  const { data: fieldData, isLoading: fetchingField } = useQuery({
-    queryKey: ['owner-field'],
-    queryFn: async () => {
-      const response = await axiosClient.get('/fields/owner/field');
-      return response.data;
-    },
+  // Fetch existing field data using custom hook
+  const { 
+    data: fieldData, 
+    isLoading: fetchingField,
+    refetch
+  } = useOwnerField({
     enabled: !!user && user.role === 'FIELD_OWNER',
-    staleTime: 5 * 60 * 1000,
   });
 
   // Load field data when fetched
   useEffect(() => {
-    if (fieldData?.field) {
-      setFieldId(fieldData.field.id);
-      setStepStatus(fieldData.field.stepStatus || {
-        fieldDetails: false,
-        uploadImages: false,
-        pricingAvailability: false,
-        bookingRules: false
-      });
+    if (fieldData) {
+      setFieldId(fieldData.id);
       
       // Pre-populate form data
-      setFormData({
-        fieldName: fieldData.field.name || '',
-        fieldSize: fieldData.field.size || '',
-        terrainType: fieldData.field.type || '',
-        fenceType: fieldData.field.fenceType || '',
-        fenceSize: fieldData.field.fenceSize || '',
-        surfaceType: fieldData.field.surfaceType || '',
-        maxDogs: fieldData.field.maxDogs?.toString() || '',
-        description: fieldData.field.description || '',
-        openingDays: fieldData.field.operatingDays?.[0] || '',
-        startTime: fieldData.field.openingTime || '',
-        endTime: fieldData.field.closingTime || '',
-        amenities: fieldData.field.amenities?.reduce((acc: any, amenity: string) => {
+      setFormData(prev => ({
+        ...prev,
+        fieldName: fieldData.name || '',
+        fieldSize: fieldData.size || '',
+        terrainType: fieldData.terrainType || '',
+        fenceType: fieldData.fenceType || '',
+        fenceSize: fieldData.fenceSize || '',
+        surfaceType: fieldData.surfaceType || '',
+        maxDogs: fieldData.maxDogs?.toString() || '',
+        description: fieldData.description || '',
+        openingDays: fieldData.operatingDays?.[0] || '',
+        startTime: fieldData.openingTime || '',
+        endTime: fieldData.closingTime || '',
+        amenities: fieldData.amenities?.reduce((acc: any, amenity: string) => {
           acc[amenity] = true;
           return acc;
         }, {}) || {},
-        streetAddress: fieldData.field.address || '',
-        apartment: fieldData.field.apartment || '',
-        city: fieldData.field.city || '',
-        county: fieldData.field.state || '',
-        postalCode: fieldData.field.zipCode || '',
-        country: fieldData.field.country || '',
-        pricePerHour: fieldData.field.pricePerHour?.toString() || '',
-        bookingDuration: fieldData.field.bookingDuration || '30min',
-        weekendPrice: fieldData.field.pricePerDay?.toString() || '',
-        instantBooking: fieldData.field.instantBooking || false,
+        streetAddress: fieldData.address || '',
+        apartment: fieldData.apartment || '',
+        city: fieldData.city || '',
+        county: fieldData.state || '',
+        postalCode: fieldData.zipCode || '',
+        country: fieldData.country || '',
+        pricePerHour: fieldData.pricePerHour?.toString() || '',
+        bookingDuration: fieldData.bookingDuration || '30min',
+        weekendPrice: fieldData.pricePerDay?.toString() || '',
+        instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
-        rules: fieldData.field.rules?.[0] || '',
-        policies: fieldData.field.cancellationPolicy || ''
-      });
+        rules: fieldData.rules?.[0] || '',
+        policies: fieldData.cancellationPolicy || ''
+      }));
     }
   }, [fieldData]);
 
   // Remove auto-save - only save on button click
 
-  // Save progress mutation
-  const saveProgressMutation = useMutation({
-    mutationFn: async () => {
-      const response = await axiosClient.post('/fields/save-progress', {
-        step: activeSection,
-        data: formData,
-        fieldId
-      });
-      return response.data;
-    },
+  // Use custom save progress mutation hook
+  const saveProgressMutation = useSaveFieldProgress({
     onSuccess: (result) => {
       if (result.fieldId && !fieldId) {
         setFieldId(result.fieldId);
       }
-      
-      const stepMap: { [key: string]: string } = {
-        'field-details': 'fieldDetails',
-        'upload-images': 'uploadImages',
-        'pricing-availability': 'pricingAvailability',
-        'booking-rules': 'bookingRules'
-      };
-      
-      setStepStatus(prev => ({
-        ...prev,
-        [stepMap[activeSection]]: true
-      }));
-
-      toast.success('Progress saved successfully!');
-      queryClient.invalidateQueries({ queryKey: ['owner-field'] });
+      // Refetch field data after saving
+      refetch();
       handleNext();
-    },
-    onError: (error: any) => {
-      console.error('Error saving progress:', error);
-      toast.error(error.response?.data?.message || 'Failed to save progress. Please try again.');
     }
   });
 
   const handleSaveProgress = async () => {
     setIsLoading(true);
     try {
-      await saveProgressMutation.mutateAsync();
+      await saveProgressMutation.mutateAsync({
+        step: activeSection,
+        data: formData,
+        fieldId
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1221,6 +1211,15 @@ export default function AddYourField() {
     }
   };
 
+  // Check if user is authenticated and is a field owner
+  if (!user || user.role !== 'FIELD_OWNER') {
+    // Redirect to login if not authenticated or not a field owner
+    if (typeof window !== 'undefined') {
+      router.push('/login');
+    }
+    return null;
+  }
+
   if (fetchingField) {
     return <div className="min-h-screen bg-light py-8 mt-32 flex items-center justify-center">
       <div className="text-lg">Loading...</div>
@@ -1243,25 +1242,24 @@ export default function AddYourField() {
         {/* Main Content */}
         <div className="flex gap-8">
           {/* Sidebar */}
-          <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} stepStatus={stepStatus} />
+          <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
 
           {/* Form Content */}
           <div className="flex-1 bg-white rounded-2xl p-10">
             {renderSection()}
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Keep original design */}
             <div className="flex gap-4 mt-10">
               <button
                 onClick={handleBack}
-                disabled={activeSection === 'field-details'}
-                className="flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50"
               >
                 Back
               </button>
               <button
                 onClick={handleSaveProgress}
                 disabled={isLoading}
-                className="flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />

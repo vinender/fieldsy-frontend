@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { MapPin, Star, Shield, Heart, MessageSquare, ChevronLeft, ChevronRight, ArrowLeft, BadgeCheck, ChevronDown, PawPrint, Clock, RotateCcw, Info, CheckCircle } from 'lucide-react';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { UserLayout } from '@/components/layout/UserLayout';
+import { useFieldDetails } from '@/hooks';
 
 const FieldDetailsScreen = () => {
   const router = useRouter();
@@ -14,45 +15,12 @@ const FieldDetailsScreen = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(true);
   const [bookingOpen, setBookingOpen] = useState(true);
-  const [field, setField] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (field_id) {
-      fetchFieldDetails();
-    }
-  }, [field_id]);
-
-  const fetchFieldDetails = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/fields/${field_id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setField(data.data);
-      } else if (response.status === 404) {
-        setError('Field not found');
-      } else {
-        setError('Failed to load field details');
-      }
-    } catch (error) {
-      console.error('Error fetching field details:', error);
-      setError('Network error. Please check your connection.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use custom hook for fetching field details
+  const { 
+    data: field, 
+    isLoading: loading, 
+    error 
+  } = useFieldDetails(field_id as string);
 
   if (loading) {
     return (

@@ -45,6 +45,9 @@ export function useAuth() {
         
         // Set token in axios headers
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        
+        // Dispatch custom event to notify AuthContext
+        window.dispatchEvent(new Event('authTokenChanged'));
       }
       queryClient.invalidateQueries({ queryKey: ['user'] });
       
@@ -81,6 +84,9 @@ export function useAuth() {
         
         // Set token in axios headers
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        
+        // Dispatch custom event to notify AuthContext
+        window.dispatchEvent(new Event('authTokenChanged'));
       }
       queryClient.invalidateQueries({ queryKey: ['user'] });
       

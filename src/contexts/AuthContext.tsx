@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import axiosClient from '@/lib/api/axios-client';
+import { useCurrentUser, useUpdateRole } from '@/hooks';
 
 interface User {
   id: string;
@@ -34,53 +34,77 @@ export const useAuth = () => {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  
+  // Check for token in localStorage as fallback
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('authToken');
+      setAuthToken(token);
+      
+      // Listen for storage changes
+      const handleStorageChange = () => {
+        const newToken = localStorage.getItem('authToken');
+        console.log('[AuthContext] Storage changed, new token:', newToken);
+        setAuthToken(newToken);
+        // The token change will trigger a refetch via the useCurrentUser enabled prop
+      };
+      
+      window.addEventListener('storage', handleStorageChange);
+      
+      // Also listen for custom event when we update localStorage
+      window.addEventListener('authTokenChanged', handleStorageChange);
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('authTokenChanged', handleStorageChange);
+      };
+    }
+  }, []);
+  
+  // Use custom hook for fetching user data
+  const { 
+    data: userData, 
+    isLoading: userLoading, 
+    refetch: refetchUser 
+  } = useCurrentUser({
+    enabled: (status === 'authenticated' && !!session?.accessToken) || !!authToken,
+  });
+  
+  // Use custom hook for updating role
+  const updateRoleMutation = useUpdateRole();
+  
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
-  const fetchUserData = useCallback(async () => {
-    if (!session?.accessToken) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await axiosClient.get('/auth/me');
-      console.log('[AuthContext] Fetched user data:', response.data.data);
-      setUser({
-        id: response.data.data.id,
-        email: response.data.data.email,
-        name: response.data.data.name,
-        image: response.data.data.image,
-        role: response.data.data.role,
-        provider: response.data.data.provider,
-      });
-    } catch (error: any) {
-      console.error('[AuthContext] Error fetching user data:', error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session?.accessToken]);
-
-  const refetchUser = useCallback(async () => {
-    setIsLoading(true);
-    await fetchUserData();
-  }, [fetchUserData]);
-
+  // Update local user state when userData changes
   useEffect(() => {
-    if (status === 'loading') {
-      return;
-    }
-
-    if (status === 'authenticated' && session) {
-      fetchUserData();
-    } else {
+    console.log('[AuthContext] userData:', userData);
+    console.log('[AuthContext] status:', status);
+    console.log('[AuthContext] authToken:', authToken);
+    
+    if (userData) {
+      setUser({
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        image: userData.image || userData.avatar,
+        role: userData.role as 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN',
+        provider: userData.provider,
+      });
+      setIsLoading(false);
+    } else if (status === 'unauthenticated' && !authToken) {
+      // Only clear user if we don't have a token in localStorage
       setUser(null);
       setIsLoading(false);
+    } else if (status === 'loading' || userLoading) {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
     }
-  }, [status, session, fetchUserData]);
+  }, [userData, status, userLoading, authToken]);
 
   // Handle OAuth role update
   useEffect(() => {
@@ -91,11 +115,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (user.role !== pendingRole) {
           console.log('[AuthContext] Updating role from', user.role, 'to', pendingRole);
           
-          axiosClient.patch('/auth/update-role', { 
-            email: user.email, 
-            role: pendingRole 
+          updateRoleMutation.mutateAsync({ 
+            role: pendingRole,
+            userId: user.id
           })
-            .then(async (response) => {
+            .then(async () => {
               console.log('[AuthContext] Role updated successfully');
               localStorage.removeItem('pendingUserRole');
               await refetchUser();
@@ -109,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
-  }, [status, session, user, refetchUser]);
+  }, [status, session, user, refetchUser, updateRoleMutation]);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, refetchUser }}>

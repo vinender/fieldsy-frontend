@@ -87,10 +87,25 @@ export default function RegisterForm() {
       })
       toast.success("Account created successfully.")
     } catch (e: any) {
-      const errorMessage = e?.message || "Registration failed";
+      const errorMessage = e?.message || e?.response?.data?.message || "Registration failed";
       
       // Show specific error messages with suggestions
-      if (errorMessage.includes("Google/Apple")) {
+      if (errorMessage.includes("already registered as")) {
+        // Role conflict error
+        toast.error(
+          <div>
+            <p className="font-semibold">Role Conflict</p>
+            <p className="text-sm mt-1">{errorMessage}</p>
+            <button 
+              onClick={() => router.push('/login')}
+              className="text-sm text-green underline mt-2"
+            >
+              Sign in with existing account
+            </button>
+          </div>,
+          { duration: 8000 }
+        );
+      } else if (errorMessage.includes("Google/Apple")) {
         toast.error(
           <div>
             <p className="font-semibold">Email already registered</p>
@@ -160,9 +175,17 @@ export default function RegisterForm() {
     }
     
     try {
-      // Store the role in localStorage - simple and works across platforms
+      // Store the role in both localStorage (for client) and server storage
       localStorage.setItem('pendingUserRole', role);
       console.log('[RegisterForm] Stored role in localStorage:', role);
+      
+      // Store on server for NextAuth callback to retrieve
+      await fetch('/api/auth/store-pending-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+      console.log('[RegisterForm] Stored role on server:', role);
       
       // Call the social login
       const result = await signIn(pendingProvider, { 

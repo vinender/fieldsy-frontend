@@ -179,8 +179,21 @@ export const authOptions: NextAuthOptions = {
       // Handle social login with role
       if (account?.provider === 'google' || account?.provider === 'apple') {
         try {
-          // Note: We can't access localStorage here as this runs server-side
-          // The role will need to be passed differently
+          // Try to get the pending role for this social login
+          let role = 'DOG_OWNER'; // Default role
+          
+          try {
+            const roleResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/store-pending-role?email=${encodeURIComponent(user.email || '')}`);
+            if (roleResponse.ok) {
+              const roleData = await roleResponse.json();
+              if (roleData.role) {
+                role = roleData.role;
+                console.log('[NextAuth] Retrieved pending role:', role, 'for email:', user.email);
+              }
+            }
+          } catch (error) {
+            console.log('[NextAuth] Could not retrieve pending role:', error);
+          }
           
           const response = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/social-login`, {
             method: 'POST',
@@ -193,7 +206,7 @@ export const authOptions: NextAuthOptions = {
               image: user.image,
               provider: account.provider,
               providerId: account.providerAccountId,
-              // Role will be updated after user creation via a separate call
+              role, // Pass the role from pending storage
             }),
           });
           

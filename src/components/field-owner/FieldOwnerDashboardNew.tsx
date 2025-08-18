@@ -4,14 +4,13 @@ import { useSession } from 'next-auth/react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
 import { Input } from '@/components/ui/input';
+import { ImageUploader } from '@/components/ui/image-uploader';
 import { Upload, X, CheckCircle, Image, ArrowLeft } from 'lucide-react';
 import { s3DirectUploader, UploadProgress } from '@/utils/s3UploadDirect';
 import { toast } from 'sonner';
 import FieldPreview from './FieldPreview';
 import ThankYouModal from '@/components/modal/ThankYouModal';
-import axiosClient from '@/lib/api/axios-client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAutoSaveField } from '@/hooks/useAutoSaveField';
+import { useOwnerField, useSaveFieldProgress, useSubmitFieldForReview } from '@/hooks';
 
 // Sidebar Navigation Component
 function Sidebar({ activeSection, onSectionChange, stepStatus }: { 
@@ -157,6 +156,68 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+                Fence Type
+              </label>
+              <CustomSelect
+                name="fenceType"
+                value={formData.fenceType}
+                onChange={(value) => handleInputChange({ target: { name: 'fenceType', value } } as any)}
+                placeholder="Select fence type"
+                options={[
+                  { value: 'Wooden', label: 'Wooden' },
+                  { value: 'Metal', label: 'Metal' },
+                  { value: 'Mesh', label: 'Mesh' },
+                  { value: 'Electric', label: 'Electric' },
+                  { value: 'Stone', label: 'Stone' },
+                  { value: 'Mixed', label: 'Mixed' }
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+                Fence Size
+              </label>
+              <CustomSelect
+                name="fenceSize"
+                value={formData.fenceSize}
+                onChange={(value) => handleInputChange({ target: { name: 'fenceSize', value } } as any)}
+                placeholder="Select fence size"
+                options={[
+                  { value: '3ft', label: '3ft' },
+                  { value: '4ft', label: '4ft' },
+                  { value: '5ft', label: '5ft' },
+                  { value: '6ft', label: '6ft' },
+                  { value: '6ft+', label: '6ft+' }
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+                Surface Type
+              </label>
+              <CustomSelect
+                name="surfaceType"
+                value={formData.surfaceType}
+                onChange={(value) => handleInputChange({ target: { name: 'surfaceType', value } } as any)}
+                placeholder="Select surface type"
+                options={[
+                  { value: 'Soft Sand', label: 'Soft Sand' },
+                  { value: 'Grass', label: 'Grass' },
+                  { value: 'Artificial Grass', label: 'Artificial Grass' },
+                  { value: 'Concrete', label: 'Concrete' },
+                  { value: 'Mixed', label: 'Mixed' }
+                ]}
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
               Maximum Dogs Allowed
@@ -256,12 +317,15 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
             'Lighting',
             'Seating'
           ].map((amenity) => (
-            <CustomCheckbox
-              key={amenity}
-              label={amenity}
-              checked={formData.amenities[amenity] || false}
-              onChange={() => handleAmenityToggle(amenity)}
-            />
+            <div key={amenity} className="flex items-center space-x-2">
+              <CustomCheckbox
+                checked={formData.amenities[amenity] || false}
+                onChange={() => handleAmenityToggle(amenity)}
+              />
+              <label className="text-sm font-medium text-dark-green font-sans cursor-pointer" onClick={() => handleAmenityToggle(amenity)}>
+                {amenity}
+              </label>
+            </div>
           ))}
         </div>
       </div>
@@ -348,211 +412,54 @@ function FieldDetails({ formData, setFormData }: { formData: any; setFormData: (
   );
 }
 
-// Upload Images Component  
+// Upload Images Component using the new ImageUploader
 function UploadImages({ formData, setFormData }: any) {
-  const [uploadedImages, setUploadedImages] = useState<any[]>(formData.images || []);
-  const [dragActive, setDragActive] = useState(false);
-
-  useEffect(() => {
-    setFormData((prev: any) => ({
-      ...prev,
-      images: uploadedImages.filter(img => img.uploaded).map(img => img.url)
-    }));
-  }, [uploadedImages, setFormData]);
-
-  const handleDrag = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleFileInput = (e: any) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFiles(e.target.files);
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const handleFiles = async (files: FileList) => {
-    const imageFiles = Array.from(files).filter((file: File) => 
-      file.type.startsWith('image/')
-    );
-
-    const newImages = imageFiles.map((file: File, index: number) => ({
-      id: Date.now() + index,
-      name: file.name,
-      size: formatFileSize(file.size),
-      file: file,
-      preview: URL.createObjectURL(file),
-      uploaded: false,
-      progress: 0,
-      url: undefined as string | undefined,
-      error: undefined as string | undefined,
-    }));
-
-    setUploadedImages(prev => [...prev, ...newImages]);
-
-    // Start real uploads with progress updates
-    newImages.forEach(async (image) => {
-      try {
-        const fileUrl = await s3DirectUploader.uploadFile({
-          file: image.file,
-          onProgress: (progress: UploadProgress) => {
-            setUploadedImages(prev => prev.map(img => {
-              if (img.id === image.id) {
-                return { ...img, progress: progress.percentage };
-              }
-              return img;
-            }));
-          },
-          folder: 'field-images',
-        });
-
-        setUploadedImages(prev => prev.map(img => {
-          if (img.id === image.id) {
-            return { ...img, uploaded: true, progress: 100, url: fileUrl };
-          }
-          return img;
-        }));
-
-      } catch (error) {
-        console.error('Upload failed:', error);
-        setUploadedImages(prev => prev.map(img => {
-          if (img.id === image.id) {
-            return { ...img, error: 'Upload failed', progress: 0 };
-          }
-          return img;
-        }));
-      }
-    });
-  };
-
-  const removeImage = (id: number) => {
-    setUploadedImages(prev => prev.filter(img => img.id !== id));
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold mb-2 text-dark-green font-sans">
-          Upload Images
-        </h1>
-        <p className="text-base text-gray-text font-sans">
-          Add photos that showcase your field's best features
+        <h2 className="text-2xl font-bold text-dark-green mb-2">
+          Upload Field Images
+        </h2>
+        <p className="text-gray-600">
+          Add photos to showcase your field
         </p>
       </div>
 
-      {/* Upload Area */}
-      <div
-        className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${
-          dragActive ? 'border-green bg-green/5' : 'border-gray-300 bg-gray-50'
-        }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <input
-          type="file"
-          id="file-upload"
-          multiple
-          accept="image/*"
-          onChange={handleFileInput}
-          className="hidden"
-        />
-        
-        <label
-          htmlFor="file-upload"
-          className="cursor-pointer flex flex-col items-center"
-        >
-          <Upload className="w-12 h-12 text-gray-400 mb-4" />
-          <p className="text-lg font-medium text-dark-green mb-1">
-            Drop your images here, or browse
-          </p>
-          <p className="text-sm text-gray-text">
-            Supports: JPG, PNG, GIF (Max 10MB)
-          </p>
-        </label>
-      </div>
+      <ImageUploader
+        value={formData.images}
+        onChange={(images) => {
+          setFormData((prev: any) => ({
+            ...prev,
+            images: images
+          }));
+        }}
+        multiple={true}
+        maxFiles={10}
+        maxSize={10}
+        folder="field-images"
+        label="Field Images"
+        description="Upload up to 10 images of your field. High-quality images help attract more bookings."
+        gridCols={3}
+        showPreview={true}
+      />
 
-      {/* Uploaded Images Grid */}
-      {uploadedImages.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
-          {uploadedImages.map((image) => (
-            <div key={image.id} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                {image.preview && (
-                  <img
-                    src={image.preview}
-                    alt={image.name}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-              
-              {/* Progress Bar */}
-              {!image.uploaded && !image.error && (
-                <div className="absolute bottom-0 left-0 right-0 bg-white/90 p-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green h-2 rounded-full transition-all"
-                      style={{ width: `${image.progress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {/* Success Badge */}
-              {image.uploaded && (
-                <div className="absolute top-2 right-2 bg-green text-white p-1 rounded-full">
-                  <CheckCircle className="w-4 h-4" />
-                </div>
-              )}
-              
-              {/* Error State */}
-              {image.error && (
-                <div className="absolute inset-0 bg-red/10 flex items-center justify-center">
-                  <p className="text-red text-sm">{image.error}</p>
-                </div>
-              )}
-              
-              {/* Remove Button */}
-              <button
-                onClick={() => removeImage(image.id)}
-                className="absolute top-2 left-2 bg-white/90 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
-          ))}
+      {formData.images && formData.images.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-sm text-green-700">
+            ✓ {formData.images.length} image(s) uploaded successfully
+          </p>
         </div>
       )}
     </div>
   );
 }
 
-// Pricing & Availability Component
+// OLD Upload Images Component - REMOVED (now using ImageUploader component)
+/* OLD CODE REMOVED - The old upload component has been replaced with the reusable ImageUploader component */
+
+// The old upload component code has been removed - now using the reusable ImageUploader
+
+// Pricing & Availability Component  
 function PricingAvailability({ formData, setFormData }: any) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -617,17 +524,25 @@ function PricingAvailability({ formData, setFormData }: any) {
         </h2>
         
         <div className="space-y-4">
-          <CustomCheckbox
-            label="Enable instant booking (no approval required)"
-            checked={formData.instantBooking}
-            onChange={(checked) => setFormData((prev: any) => ({ ...prev, instantBooking: checked }))}
-          />
+          <div className="flex items-center space-x-2">
+            <CustomCheckbox
+              checked={formData.instantBooking}
+              onChange={(checked) => setFormData((prev: any) => ({ ...prev, instantBooking: checked }))}
+            />
+            <label className="text-sm font-medium text-dark-green font-sans cursor-pointer" onClick={() => setFormData((prev: any) => ({ ...prev, instantBooking: !formData.instantBooking }))}>
+              Enable instant booking (no approval required)
+            </label>
+          </div>
           
-          <CustomCheckbox
-            label="Require deposit for bookings"
-            checked={formData.requireDeposit}
-            onChange={(checked) => setFormData((prev: any) => ({ ...prev, requireDeposit: checked }))}
-          />
+          <div className="flex items-center space-x-2">
+            <CustomCheckbox
+              checked={formData.requireDeposit}
+              onChange={(checked) => setFormData((prev: any) => ({ ...prev, requireDeposit: checked }))}
+            />
+            <label className="text-sm font-medium text-dark-green font-sans cursor-pointer" onClick={() => setFormData((prev: any) => ({ ...prev, requireDeposit: !formData.requireDeposit }))}>
+              Require deposit for bookings
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -704,7 +619,6 @@ function BookingRules({ formData, setFormData }: any) {
 export default function FieldOwnerDashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('field-details');
   const [isLoading, setIsLoading] = useState(false);
   const [fieldId, setFieldId] = useState<string | null>(null);
@@ -717,10 +631,38 @@ export default function FieldOwnerDashboard() {
     bookingRules: false
   });
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fieldName: string;
+    fieldSize: string;
+    terrainType: string;
+    fenceType: string;
+    fenceSize: string;
+    surfaceType: string;
+    maxDogs: string;
+    description: string;
+    openingDays: string;
+    startTime: string;
+    endTime: string;
+    amenities: Record<string, any>;
+    streetAddress: string;
+    city: string;
+    county: string;
+    postalCode: string;
+    country: string;
+    images: string[];
+    pricePerHour: string;
+    weekendPrice: string;
+    instantBooking: boolean;
+    requireDeposit: boolean;
+    rules: string;
+    policies: string;
+  }>({
     fieldName: '',
     fieldSize: '',
     terrainType: '',
+    fenceType: '',
+    fenceSize: '',
+    surfaceType: '',
     maxDogs: '',
     description: '',
     openingDays: '',
@@ -741,22 +683,20 @@ export default function FieldOwnerDashboard() {
     policies: ''
   });
 
-  // Fetch existing field data using React Query
-  const { data: fieldData, isLoading: fetchingField } = useQuery({
-    queryKey: ['owner-field'],
-    queryFn: async () => {
-      const response = await axiosClient.get('/fields/owner/field');
-      return response.data;
-    },
+  // Fetch existing field data using custom hook
+  const { 
+    data: fieldData, 
+    isLoading: fetchingField,
+    refetch
+  } = useOwnerField({
     enabled: status === 'authenticated' && session?.user?.role === 'FIELD_OWNER',
-    staleTime: 5 * 60 * 1000,
   });
 
   // Load field data when fetched
   useEffect(() => {
-    if (fieldData?.field) {
-      setFieldId(fieldData.field.id);
-      setStepStatus(fieldData.field.stepStatus || {
+    if (fieldData) {
+      setFieldId(fieldData.id);
+      setStepStatus(fieldData.stepStatus || {
         fieldDetails: false,
         uploadImages: false,
         pricingAvailability: false,
@@ -765,66 +705,41 @@ export default function FieldOwnerDashboard() {
       
       // Pre-populate form data
       setFormData({
-        fieldName: fieldData.field.name || '',
-        fieldSize: fieldData.field.size || '',
-        terrainType: fieldData.field.type || '',
-        maxDogs: fieldData.field.maxDogs?.toString() || '',
-        description: fieldData.field.description || '',
-        openingDays: fieldData.field.operatingDays?.[0] || '',
-        startTime: fieldData.field.openingTime || '',
-        endTime: fieldData.field.closingTime || '',
-        amenities: fieldData.field.amenities?.reduce((acc: any, amenity: string) => {
+        fieldName: fieldData.name || '',
+        fieldSize: fieldData.size || '',
+        terrainType: fieldData.type || '',
+        fenceType: fieldData.fenceType || '',
+        fenceSize: fieldData.fenceSize || '',
+        surfaceType: fieldData.surfaceType || '',
+        maxDogs: fieldData.maxDogs?.toString() || '',
+        description: fieldData.description || '',
+        openingDays: fieldData.operatingDays?.[0] || '',
+        startTime: fieldData.openingTime || '',
+        endTime: fieldData.closingTime || '',
+        amenities: fieldData.amenities?.reduce((acc: any, amenity: string) => {
           acc[amenity] = true;
           return acc;
         }, {}) || {},
-        streetAddress: fieldData.field.address || '',
-        city: fieldData.field.city || '',
-        county: fieldData.field.state || '',
-        postalCode: fieldData.field.zipCode || '',
-        country: fieldData.field.country || '',
-        images: fieldData.field.images || [],
-        pricePerHour: fieldData.field.pricePerHour?.toString() || '',
-        weekendPrice: fieldData.field.pricePerDay?.toString() || '',
-        instantBooking: fieldData.field.instantBooking || false,
+        streetAddress: fieldData.address || '',
+        city: fieldData.city || '',
+        county: fieldData.state || '',
+        postalCode: fieldData.zipCode || '',
+        country: fieldData.country || '',
+        images: fieldData.images || [],
+        pricePerHour: fieldData.pricePerHour?.toString() || '',
+        weekendPrice: fieldData.pricePerDay?.toString() || '',
+        instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
-        rules: fieldData.field.rules?.[0] || '',
-        policies: fieldData.field.cancellationPolicy || ''
+        rules: fieldData.rules?.[0] || '',
+        policies: fieldData.cancellationPolicy || ''
       });
     }
   }, [fieldData]);
 
-  // Auto-save hook
-  const { isSaving: autoSaving } = useAutoSaveField({
-    fieldId,
-    activeSection,
-    formData,
-    onFieldCreated: (newFieldId) => {
-      setFieldId(newFieldId);
-    },
-    onStepCompleted: (step) => {
-      const stepMap: { [key: string]: string } = {
-        'field-details': 'fieldDetails',
-        'upload-images': 'uploadImages',
-        'pricing-availability': 'pricingAvailability',
-        'booking-rules': 'bookingRules'
-      };
-      setStepStatus(prev => ({
-        ...prev,
-        [stepMap[step]]: true
-      }));
-    }
-  });
+  // Remove auto-save - only save on button click
 
-  // Save progress mutation
-  const saveProgressMutation = useMutation({
-    mutationFn: async ({ step, data }: { step: string; data: any }) => {
-      const response = await axiosClient.post('/fields/save-progress', {
-        step,
-        data,
-        fieldId
-      });
-      return response.data;
-    },
+  // Use custom save progress mutation hook
+  const saveProgressMutation = useSaveFieldProgress({
     onSuccess: (result) => {
       // Update field ID if returned
       if (result.fieldId && !fieldId) {
@@ -843,11 +758,9 @@ export default function FieldOwnerDashboard() {
         ...prev,
         [stepMap[activeSection]]: true
       }));
-
-      toast.success('Progress saved successfully!');
       
-      // Invalidate query to refetch field data
-      queryClient.invalidateQueries({ queryKey: ['owner-field'] });
+      // Refetch field data immediately after saving
+      refetch();
       
       // Check if all steps completed
       if (result.allStepsCompleted && activeSection === 'booking-rules') {
@@ -855,10 +768,6 @@ export default function FieldOwnerDashboard() {
       } else {
         handleNext();
       }
-    },
-    onError: (error: any) => {
-      console.error('Error saving progress:', error);
-      toast.error(error.response?.data?.message || 'Failed to save progress. Please try again.');
     }
   });
 
@@ -867,37 +776,28 @@ export default function FieldOwnerDashboard() {
     try {
       await saveProgressMutation.mutateAsync({
         step: activeSection,
-        data: formData
+        data: formData,
+        fieldId
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Submit field mutation
-  const submitFieldMutation = useMutation({
-    mutationFn: async () => {
-      const response = await axiosClient.post('/fields/submit-for-review', {
-        fieldId
-      });
-      return response.data;
-    },
+  // Use custom submit field mutation hook
+  const submitFieldMutation = useSubmitFieldForReview({
     onSuccess: () => {
       setShowThankYouModal(true);
       setTimeout(() => {
         router.push('/field-owner');
       }, 3000);
-    },
-    onError: (error: any) => {
-      console.error('Error submitting field:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit field. Please try again.');
     }
   });
 
   const handleSubmitField = async () => {
     setIsLoading(true);
     try {
-      await submitFieldMutation.mutateAsync();
+      await submitFieldMutation.mutateAsync({ fieldId });
     } finally {
       setIsLoading(false);
     }
@@ -997,14 +897,7 @@ export default function FieldOwnerDashboard() {
           />
 
           {/* Form Content */}
-          <div className="flex-1 bg-white rounded-2xl p-10 relative">
-            {/* Auto-save indicator */}
-            {autoSaving && (
-              <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-gray-500">
-                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                <span>Saving...</span>
-              </div>
-            )}
+          <div className="flex-1 bg-white rounded-2xl p-10">
             {renderSection()}
 
             {/* Action Buttons */}

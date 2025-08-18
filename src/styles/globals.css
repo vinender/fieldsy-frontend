@@ -2,6 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global Input Autofill Styles */
+@layer base {
+  /* Force text color for autofilled inputs */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: rgb(31, 41, 55) !important; /* gray-800 */
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    box-shadow: 0 0 0 30px white inset !important;
+    caret-color: rgb(31, 41, 55) !important;
+  }
+  
+  /* Default input text color - dark gray (without !important to allow overrides) */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  select,
+  textarea {
+    color: rgb(31, 41, 55); /* gray-800 - default, can be overridden */
+  }
+  
+  /* Keep the same dark color on focus (without !important) */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    color: rgb(31, 41, 55); /* gray-800 - default, can be overridden */
+  }
+  
+  /* Ensure text is visible when selected */
+  input::selection,
+  select::selection,
+  textarea::selection {
+    background-color: rgba(143, 179, 102, 0.3) !important; /* light green selection */
+  }
+  
+  /* Light placeholder text - custom gray */
+  input::placeholder,
+  textarea::placeholder {
+    color: rgb(153, 154, 155) !important; /* custom placeholder gray */
+    opacity: 1 !important;
+  }
+  
+  /* For Firefox */
+  input::-moz-placeholder,
+  textarea::-moz-placeholder {
+    color: rgb(153, 154, 155) !important; /* custom placeholder gray */
+    opacity: 1 !important;
+  }
+  
+  /* Ensure placeholder doesn't change on focus */
+  input:focus::placeholder,
+  textarea:focus::placeholder {
+    color: rgb(153, 154, 155) !important; /* custom placeholder gray - same on focus */
+    opacity: 1 !important;
+  }
+  
+  /* For Firefox - focus state */
+  input:focus::-moz-placeholder,
+  textarea:focus::-moz-placeholder {
+    color: rgb(153, 154, 155) !important; /* custom placeholder gray - same on focus */
+    opacity: 1 !important;
+  }
+}
+
 /* Custom Scrollbar Styles */
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -66,37 +144,8 @@
   }
 }
 
-/* Override browser autofill styles */
-@layer base {
-  /* Force text color to always be gray */
-  input {
-    color: #6B6B6B !important;
-    -webkit-text-fill-color: #6B6B6B !important;
-  }
-  
-  /* For Webkit browsers (Chrome, Safari, etc.) */
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus,
-  input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px white inset !important;
-    -webkit-text-fill-color: #6B6B6B !important;
-    background-color: white !important;
-    color: #6B6B6B !important;
-  }
-  
-  /* For Firefox */
-  input:autofill {
-    background-color: white !important;
-    color: #6B6B6B !important;
-  }
-  
-  /* Ensure text is visible on focus */
-  input:focus {
-    color: #6B6B6B !important;
-    -webkit-text-fill-color: #6B6B6B !important;
-  }
-}
+/* Remove conflicting override styles - handled in base layer above */
+/* Autofill and focus styles are already properly defined in the base layer */
 
 /* Sonner toast custom styles for better contrast */
 [data-sonner-toast] {
