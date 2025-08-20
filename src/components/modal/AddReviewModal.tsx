@@ -54,7 +54,7 @@ export const AddReviewModal = ({
         images,
       });
       
-      // Reset form
+      // Only reset and close on success
       setRating(0);
       setReviewText('');
       setReviewTitle('');
@@ -67,8 +67,11 @@ export const AddReviewModal = ({
       
       onClose();
       toast.success('Thank you for your review!');
-    } catch (error) {
+    } catch (error: any) {
+      // Error is handled by the mutation's onError callback
+      // Just log it and keep the modal open
       console.error('Error submitting review:', error);
+      // Don't close the modal or reset the form on error
     }
   };
 

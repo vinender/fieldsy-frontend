@@ -89,7 +89,7 @@ class ReviewsAPI {
     reviewData: CreateReviewData,
     token: string
   ): Promise<{ success: boolean; data: Review }> {
-    const { data } = await axios.post(
+    return axios.post(
       `${API_URL}/reviews/field/${fieldId}`,
       reviewData,
       {
@@ -97,8 +97,12 @@ class ReviewsAPI {
           Authorization: `Bearer ${token}`,
         },
       }
-    );
-    return data;
+    ).then(response => response.data)
+     .catch(error => {
+       // The error will be caught by the mutation's onError handler
+       // We just need to make sure it doesn't cause an unhandled rejection
+       return Promise.reject(error);
+     });
   }
 
   // Update a review

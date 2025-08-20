@@ -55,17 +55,23 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingReview) {
-      await updateReviewMutation.mutateAsync({
-        reviewId: editingReview,
-        reviewData: reviewForm,
-      });
-      setEditingReview(null);
-    } else {
-      await createReviewMutation.mutateAsync(reviewForm);
+    try {
+      if (editingReview) {
+        await updateReviewMutation.mutateAsync({
+          reviewId: editingReview,
+          reviewData: reviewForm,
+        });
+        setEditingReview(null);
+      } else {
+        await createReviewMutation.mutateAsync(reviewForm);
+      }
+      setShowReviewForm(false);
+      setReviewForm({ rating: 5, title: '', comment: '', images: [] });
+    } catch (error) {
+      // Error is already handled by the mutation's onError callback with toast
+      // Just keep the form open so user can see the error message
+      console.error('Review submission error:', error);
     }
-    setShowReviewForm(false);
-    setReviewForm({ rating: 5, title: '', comment: '', images: [] });
   };
 
   const handleDeleteReview = async (reviewId: string) => {

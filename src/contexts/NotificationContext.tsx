@@ -233,6 +233,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       socketInstance.on('connect', () => {
         console.log('Connected to notification server');
+        console.log('Socket ID:', socketInstance.id);
+        console.log('Auth token being used:', token?.substring(0, 20) + '...');
         setIsConnected(true);
       });
 
@@ -243,7 +245,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       // Handle new notification
       socketInstance.on('notification', (notification: Notification) => {
-        console.log('New notification received:', notification);
+        console.log('=== New Notification Received ===');
+        console.log('Notification ID:', notification.id);
+        console.log('For User ID:', notification.userId);
+        console.log('Type:', notification.type);
+        console.log('Title:', notification.title);
         
         // Add to notifications list
         setNotifications(prev => [notification, ...prev]);

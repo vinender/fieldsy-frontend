@@ -33,7 +33,7 @@ export function useCreateReview(fieldId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (reviewData: CreateReviewData) => {
+    mutationFn: async (reviewData: CreateReviewData) => {
       if (!session?.accessToken) {
         throw new Error('Not authenticated');
       }
@@ -44,17 +44,35 @@ export function useCreateReview(fieldId: string) {
       toast.success('Review created successfully!');
     },
     onError: (error: any) => {
+      console.log('Review creation error:', error);
+      
+      // Get error details from axios error structure
       const apiMessage = error?.response?.data?.message || error?.message || '';
-      // Handle already reviewed case and other server errors
-      if (apiMessage.toLowerCase().includes('already') || apiMessage.toLowerCase().includes('duplicate')) {
-        toast.error('You have already submitted a review for this field.');
-      } else if (error?.response?.status === 409) {
-        toast.error('You have already submitted a review for this field.');
-      } else if (error?.response?.status === 400) {
-        toast.error(apiMessage || 'Invalid review data.');
+      const status = error?.response?.status;
+      
+      // Handle specific error cases
+      if (status === 409 || apiMessage.toLowerCase().includes('already reviewed')) {
+        toast.error('You have already reviewed this field. You can edit your existing review from the reviews section.');
+      } else if (status === 401) {
+        toast.error('Please login to submit a review.');
+      } else if (status === 400) {
+        if (apiMessage.toLowerCase().includes('rating')) {
+          toast.error('Please select a rating.');
+        } else if (apiMessage.toLowerCase().includes('comment')) {
+          toast.error('Please write a comment for your review.');
+        } else {
+          toast.error(apiMessage || 'Invalid review data. Please check your input.');
+        }
+      } else if (status === 404) {
+        toast.error('Field not found. Please refresh the page.');
+      } else if (status >= 500) {
+        toast.error('Server error. Please try again later.');
       } else {
-        toast.error(apiMessage || 'Failed to create review');
+        toast.error(apiMessage || 'Failed to create review. Please try again.');
       }
+      
+      // Prevent the error from bubbling up as unhandled
+      return;
     },
   });
 }
