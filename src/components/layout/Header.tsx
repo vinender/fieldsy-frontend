@@ -10,10 +10,12 @@ import { ProfileDropdown } from "@/components/profile/ProfileDropdown"
 import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
+import { useNotifications } from "@/contexts/NotificationContext"
 
 export function Header() {
   const pathname = usePathname()
   const { user, isLoading } = useAuth()
+  const { unreadCount } = useNotifications()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
@@ -172,7 +174,13 @@ export function Header() {
                   onClick={() => setNotificationsOpen(true)}
                 >
                   <Bell className={cn("h-5 w-5", textColor)} />
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 bg-red-500 rounded-full">
+                      <span className="text-xs text-white font-semibold">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    </span>
+                  )}
                 </button>
                 
                 {/* Profile Dropdown */}
@@ -382,9 +390,21 @@ export function Header() {
                     <button className="p-2 rounded-full hover:bg-gray-100">
                       <MessageCircle className="h-5 w-5 text-gray-600" />
                     </button>
-                    <button className="p-2 rounded-full hover:bg-gray-100 relative">
+                    <button 
+                      className="p-2 rounded-full hover:bg-gray-100 relative"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setNotificationsOpen(true);
+                      }}
+                    >
                       <Bell className="h-5 w-5 text-gray-600" />
-                      <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 bg-red-500 rounded-full">
+                          <span className="text-xs text-white font-semibold">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        </span>
+                      )}
                     </button>
                   </div>
                   

@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { Header } from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
 import { AuthProvider } from "@/contexts/AuthContext"
+import { NotificationProvider } from "@/contexts/NotificationContext"
 import "@/styles/globals.css"
 
 const dmSans = DM_Sans({
@@ -52,27 +53,29 @@ export default function App({
     <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
-            <div className="min-h-screen flex flex-col overflow-x-hidden">
-              {!hideLayout && <Header />}
-              <main className="flex-grow overflow-x-hidden">
-                <Component {...pageProps} />
-              </main>
-              {!hideLayout && <Footer />}
+          <NotificationProvider>
+            <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
+              <div className="min-h-screen flex flex-col overflow-x-hidden">
+                {!hideLayout && <Header />}
+                <main className="flex-grow overflow-x-hidden">
+                  <Component {...pageProps} />
+                </main>
+                {!hideLayout && <Footer />}
+              </div>
+              <Toaster 
+                toastOptions={{
+                  style: {
+                    background: '#2D3748', // Dark gray background
+                    color: '#FFFFFF', // White text
+                    border: '1px solid #4A5568', // Slightly lighter border
+                  },
+                  className: 'sonner-toast',
+                  descriptionClassName: 'sonner-description',
+                }}
+                richColors
+              />
             </div>
-            <Toaster 
-              toastOptions={{
-                style: {
-                  background: '#2D3748', // Dark gray background
-                  color: '#FFFFFF', // White text
-                  border: '1px solid #4A5568', // Slightly lighter border
-                },
-                className: 'sonner-toast',
-                descriptionClassName: 'sonner-description',
-              }}
-              richColors
-            />
-          </div>
+          </NotificationProvider>
         </AuthProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
