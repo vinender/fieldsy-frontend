@@ -224,11 +224,7 @@ export default function OTPVerificationForm() {
               disabled={isVerifying || otp.join("").length !== 6}
               className="w-full py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-90 bg-green mb-6"
             >
-              {isVerifying ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent bg-green rounded-full animate-spin mx-auto" />
-              ) : (
-                "Verify Email"
-              )}
+              {isVerifying ? "Verifying..." : "Verify Email"}
             </button>
 
 

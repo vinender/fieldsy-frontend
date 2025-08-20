@@ -1,17 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/router';
 import FieldPreview from '@/components/field-owner/FieldPreview';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useOwnerField, useSubmitFieldForReview } from '@/hooks';
 import { toast } from 'sonner';
+import ThankYouModal from '@/components/modal/ThankYouModal';
+import axiosClient from '@/lib/api/axios-client';
 
 export default function PreviewPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [showThankYou, setShowThankYou] = useState(false);
   
   // Fetch the field data
-  const { data: fieldData, isLoading: fetchingField } = useOwnerField({
+  const { data: fieldData, isLoading: fetchingField, refetch } = useOwnerField({
     enabled: !!user && user.role === 'FIELD_OWNER',
   });
 
@@ -19,7 +22,7 @@ export default function PreviewPage() {
   const submitFieldMutation = useSubmitFieldForReview({
     onSuccess: () => {
       toast.success('Field submitted successfully!');
-      router.push('/field-owner');
+      setShowThankYou(true);
     }
   });
 
@@ -37,6 +40,17 @@ export default function PreviewPage() {
   const handleSubmit = async () => {
     if (fieldData?.id) {
       await submitFieldMutation.mutateAsync({ fieldId: fieldData.id });
+      refetch();
+    }
+  };
+
+  const handleToggleActive = async () => {
+    if (!fieldData?.id) return;
+    try {
+      await axiosClient.patch(`/fields/${fieldData.id}/toggle-status`);
+      refetch();
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -76,7 +90,7 @@ export default function PreviewPage() {
     return (
       <UserLayout>
         <div className="flex justify-center items-center min-h-[400px]">
-          <div className="w-8 h-8 border-3 border-green border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600">Loading preview...</p>
         </div>
       </UserLayout>
     );
@@ -100,11 +114,20 @@ export default function PreviewPage() {
 
   return (
     <UserLayout>
+      <ThankYouModal 
+        isOpen={showThankYou}
+        onGoHome={() => router.push('/')}
+        onPreviewListing={() => router.push('/field-owner/preview')}
+        onClose={() => setShowThankYou(false)}
+      />
       <FieldPreview 
         formData={formData}
         onEdit={handleEdit}
         onSubmit={handleSubmit}
         isLoading={submitFieldMutation.isPending}
+        isSubmitted={!!fieldData?.isSubmitted}
+        isActive={!!fieldData?.isActive}
+        onToggleActive={handleToggleActive}
       />
     </UserLayout>
   );

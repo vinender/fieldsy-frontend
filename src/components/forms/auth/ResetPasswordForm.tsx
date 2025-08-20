@@ -217,11 +217,7 @@ export default function ResetPasswordForm() {
                     disabled={isSubmitting} 
                     className="w-full py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 bg-green"
                   >
-                    {isSubmitting ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                    ) : (
-                      "submit"
-                    )}
+                    {isSubmitting ? "Resetting..." : "submit"}
                   </button>
                 </form>
 

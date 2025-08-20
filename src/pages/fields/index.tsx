@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { UserLayout } from '@/components/layout/UserLayout';
 import mockData from '@/data/mock-data.json';
 import { useRouter } from 'next/router';
+import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
 
 export default function SearchResults() {
   const router = useRouter();
@@ -433,12 +434,7 @@ export default function SearchResults() {
 
             {/* Fields Grid using the refactored FieldCard component */}
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="text-center">
-                  <div className="w-12 h-12 border-4 border-[#3A6B22] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading fields...</p>
-                </div>
-              </div>
+              <FieldGridSkeleton count={12} />
             ) : error ? (
               <div className="bg-white rounded-2xl p-8">
                 <div className="text-center">

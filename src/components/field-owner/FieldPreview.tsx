@@ -1,18 +1,27 @@
 import React from 'react';
-import FieldDetailsDisplay from '@/components/fields/FieldDetailsDisplay';
+import FieldDetailsScreen from '@/components/fields/FieldDetailsScreen';
+import { Switch } from '@/components/ui/switch';
 
 interface FieldPreviewProps {
   formData: any;
   onEdit: () => void;
   onSubmit: () => void;
   isLoading?: boolean;
+  isSubmitted?: boolean;
+  isActive?: boolean;
+  onToggleActive?: () => void;
 }
 
-export default function FieldPreview({ formData, onEdit, onSubmit, isLoading }: FieldPreviewProps) {
+export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, onToggleActive }: FieldPreviewProps) {
   // Transform formData to match field structure if needed
   const field = {
     ...formData,
     name: formData?.fieldName,
+    address: formData?.streetAddress,
+    apartment: formData?.apartment,
+    city: formData?.city,
+    zipCode: formData?.postalCode,
+    country: formData?.country,
     // Map amenities from object format to array format
     amenities: formData?.amenities 
       ? Object.entries(formData.amenities)
@@ -45,7 +54,12 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading }: 
     type: formatLabel(formData?.terrainType),
     surfaceType: formatLabel(formData?.surfaceType),
     rules: formData?.rules,
-    policies: formData?.policies
+    cancellationPolicy: formData?.policies,
+    instantBooking: formData?.instantBooking,
+    maxDogs: formData?.maxDogs,
+    minBookingDuration: formData?.bookingDuration,
+    // Set isActive to true for preview to show all sections
+    isActive: true
   };
 
   function formatLabel(value: string) {
@@ -94,37 +108,39 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading }: 
   const headerContent = (
     <div className="flex justify-between items-center">
       <div>
-        <h1 className="text-3xl font-semibold text-dark-green font-sans">
-          Preview Your Field
-        </h1>
-        <p className="text-base text-gray-text font-sans mt-1">
-          Review how your field will appear to potential customers
-        </p>
+        
+        <h1 className="text-3xl font-semibold text-dark-green font-sans">{isSubmitted ? 'My Field' : 'Preview '}</h1>
+        {/* {!isSubmitted && (
+          <p className="text-base text-gray-text font-sans mt-1">Review how your field will appear to potential customers</p>
+        )} */}
       </div>
-      <div className="flex gap-3">
+      <div className="flex items-center gap-3">
         <button
           onClick={onEdit}
-          className="px-6 py-2 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50"
+          className="px-[20px] py-[16px] w-[120px] rounded-[70px] border border-green text-green text-[16px] font-[700] font-sans bg-cream transition-colors hover:bg-gray-50"
         >
           Edit
         </button>
-        <button
-          onClick={onSubmit}
-          disabled={isLoading}
-          className="px-6 py-2 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {isLoading ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-          ) : (
-            'Submit for Review'
-          )}
-        </button>
+        {isSubmitted ? (
+          <div className="flex items-center bg-cream border border-green gap-2 rounded-[70px] px-[20px] py-[16px]">
+            <span className="text-[16px] font-[700] w-[110px] text-green">{isActive ? 'Enabled' : 'Disable Field'}</span>
+            <Switch checked={!!isActive} onCheckedChange={() => onToggleActive?.()} />
+          </div>
+        ) : (
+          <button
+            onClick={onSubmit}
+            disabled={isLoading}
+            className="px-[20px] py-[16px] w-[120px] rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {isLoading ? 'Submitting...' : 'Submit'}
+          </button>
+        )}
       </div>
     </div>
   );
 
   return (
-    <FieldDetailsDisplay
+    <FieldDetailsScreen
       field={field}
       isPreview={true}
       showReviews={false}

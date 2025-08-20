@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, X } from "lucide-react"
+import NotificationsSidebar from "@/components/sidebar/NotificationsSidebar"
 import { ProfileDropdown } from "@/components/profile/ProfileDropdown"
 import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
@@ -16,6 +17,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   
   // Check if we're on the landing page
   const isLandingPage = pathname === "/"
@@ -82,7 +84,7 @@ export function Header() {
   const userNavigation = currentUser?.role === 'FIELD_OWNER' 
     ? [
         { name: "Add Field", href: "/" },
-        { name: "My Fields", href: "/fields/manage" },
+        { name: "My Field", href: "/field-owner/preview" },
         { name: "Profile", href: "/user/profile" },
       ]
     : [
@@ -167,6 +169,7 @@ export function Header() {
                       : "hover:bg-white/10"
                   )}
                   aria-label="Notifications"
+                  onClick={() => setNotificationsOpen(true)}
                 >
                   <Bell className={cn("h-5 w-5", textColor)} />
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span>
@@ -438,6 +441,7 @@ export function Header() {
             </div>
           </div>
       </div>
+      <NotificationsSidebar isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
     </header>
   )
 }

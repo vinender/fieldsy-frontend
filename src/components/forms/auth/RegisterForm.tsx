@@ -281,11 +281,7 @@ export default function RegisterForm() {
                   setShowRoleModal(true)
                 }}
               >
-                {isGoogleLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <img src="/login/google.png" alt="Google" className="w-10 h-10 object-contain" />
-                )}
+                <img src="/login/google.png" alt="Google" className={`w-10 h-10 object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
               </button>
               <span className="text-center flex-1 text-sm">Sign up with</span>
               <button 
@@ -297,11 +293,7 @@ export default function RegisterForm() {
                   setShowRoleModal(true)
                 }}
               >
-                {isAppleLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <img src="/login/apple.png" alt="Apple" className="w-10 h-10 object-contain" />
-                )}
+                <img src="/login/apple.png" alt="Apple" className={`w-10 h-10 object-contain ${isAppleLoading ? 'opacity-50' : ''}`} />
               </button>
             </div>
           </div>
@@ -452,7 +444,7 @@ export default function RegisterForm() {
             </div>
 
             <button type="submit" disabled={isSubmitting} className="w-full py-2.5 md:py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 bg-green">
-              {isSubmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" /> : "Sign Up"}
+              {isSubmitting ? "Creating account..." : "Sign Up"}
             </button>
 
             <p className="text-center text-gray-600 text-sm">

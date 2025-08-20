@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import mockData from '@/data/mock-data.json';
+import { UserLayout } from '@/components/layout/UserLayout';
 
 const BookFieldPage = () => {
   const router = useRouter();

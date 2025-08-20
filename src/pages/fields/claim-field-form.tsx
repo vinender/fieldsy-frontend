@@ -22,7 +22,7 @@ const ClaimFieldPage = () => {
     email: string;
     phoneNumber: string;
     isLegalOwner: boolean | null;
-  }>({
+  }>({  
     fullName: '',
     email: '',
     phoneNumber: '',

@@ -171,11 +171,7 @@ export function LoginForm() {
                   setShowRoleModal(true)
                 }}
               >
-                {isGoogleLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <img src="/login/google.png" alt="Google" className="w-12 h-12 object-contain" />
-                )}
+                <img src="/login/google.png" alt="Google" className={`w-12 h-12 object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
               </button>
               <span className="text-center flex-1">Login with</span>
               <button
@@ -187,11 +183,7 @@ export function LoginForm() {
                   setShowRoleModal(true)
                 }}
               >
-                {isAppleLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <img src="/login/apple.png" alt="Apple" className="w-12 h-12 object-contain" />
-                )}
+                <img src="/login/apple.png" alt="Apple" className={`w-12 h-12 object-contain ${isAppleLoading ? 'opacity-50' : ''}`} />
               </button>
             </div>
           </div>
@@ -264,11 +256,7 @@ export function LoginForm() {
               disabled={isLoading}
               className="w-full py-4 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 mt-6 bg-green"
             >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-              ) : (
-                'Login'
-              )}
+              {isLoading ? 'Signing in...' : 'Login'}
             </button>
           </form>
 

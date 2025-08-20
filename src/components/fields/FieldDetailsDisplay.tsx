@@ -160,7 +160,7 @@ export default function FieldDetailsDisplay({
                   </h1>
                   <span className="text-xl lg:text-2xl text-dark-green">•</span>
                   <div className="flex items-baseline">
-                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.pricePerHour || 0}</span>
+                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">${field?.pricePerHour || 0}</span>
                     <span className="text-sm lg:text-base text-gray-500 ml-1">/hour</span>
                   </div>
                 </div>

@@ -49,6 +49,7 @@ export interface OwnerFieldResponse {
   success: boolean;
   field: FieldData | null;
   message?: string;
+  showAddForm?: boolean;
 }
 
 // Hook to fetch owner's field
@@ -66,6 +67,8 @@ export function useOwnerField(options?: Omit<UseQueryOptions<OwnerFieldResponse,
 
   return {
     data: query.data?.field,
+    showAddForm: query.data?.showAddForm || false,
+    message: query.data?.message,
     loading: query.isLoading,
     isLoading: query.isLoading,
     error: query.error,

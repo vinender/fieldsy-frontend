@@ -117,7 +117,7 @@ const BookingHistoryPage = () => {
           name: booking.field?.name || 'Field',
           duration: '30min',
           price: booking.totalPrice,
-          currency: '£',
+          currency: '$',
           image: booking.field?.images?.[0] || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop',
           features: booking.field?.description || 'Field description',
           location: booking.field?.city ? `${booking.field.city}, ${booking.field.state}` : 'Location',
@@ -446,7 +446,6 @@ const BookingHistoryPage = () => {
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="text-center">
-                <div className="w-12 h-12 border-4 border-[#3A6B22] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading bookings...</p>
               </div>
             </div>

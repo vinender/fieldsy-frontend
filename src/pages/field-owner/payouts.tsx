@@ -105,7 +105,7 @@ export default function PayoutHistory() {
                 <p className="text-gray-text font-sans">Total Earnings</p>
               </div>
               <p className="text-3xl font-bold text-dark-green font-sans">
-                £{totalEarnings.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                ${totalEarnings.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
               </p>
             </div>
 
@@ -117,7 +117,7 @@ export default function PayoutHistory() {
                 <p className="text-gray-text font-sans">Pending Payouts</p>
               </div>
               <p className="text-3xl font-bold text-dark-green font-sans">
-                £{pendingAmount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                ${pendingAmount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
               </p>
             </div>
 
@@ -204,7 +204,7 @@ export default function PayoutHistory() {
                         {payout.bookingsCount} bookings
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-dark-green">
-                        £{payout.amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                        ${payout.amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-text">
                         {payout.method}

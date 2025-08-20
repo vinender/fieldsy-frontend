@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useOwnerField, useSaveFieldProgress } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
+import { FieldOwnerDashboardSkeleton } from '@/components/skeletons/FieldOwnerDashboardSkeleton';
 
 // Import form components
 import FieldDetails from './forms/FieldDetails';
@@ -264,9 +265,7 @@ export default function AddYourField() {
   }
 
   if (fetchingField) {
-    return <div className="min-h-screen bg-light py-8 mt-32 flex items-center justify-center">
-      <div className="text-lg">Loading...</div>
-    </div>;
+    return <FieldOwnerDashboardSkeleton />;
   }
 
   return (
@@ -304,13 +303,12 @@ export default function AddYourField() {
                 disabled={isLoading}
                 className="flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90"
               >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                ) : (
-                  activeSection === 'booking-rules' 
+                {isLoading ? 
+                  'Saving...' 
+                  : activeSection === 'booking-rules' 
                     ? (isCurrentSectionCompleted() ? 'Update & Preview' : 'Save & Preview')
                     : (isCurrentSectionCompleted() ? 'Update & Next' : 'Save & Next')
-                )}
+                }
               </button>
             </div>
           </div>

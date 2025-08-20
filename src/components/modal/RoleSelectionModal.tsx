@@ -97,7 +97,7 @@ export function RoleSelectionModal({
           {/* Loading indicator */}
           {isLoading && (
             <div className="absolute inset-0 bg-white/80 rounded-3xl flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-green border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-600">Processing...</p>
             </div>
           )}
 

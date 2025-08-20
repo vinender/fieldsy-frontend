@@ -3,10 +3,12 @@ import { CheckCircle } from 'lucide-react';
 
 interface ThankYouModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onGoHome: () => void;
+  onPreviewListing: () => void;
+  onClose?: () => void;
 }
 
-export default function ThankYouModal({ isOpen, onClose }: ThankYouModalProps) {
+export default function ThankYouModal({ isOpen, onGoHome, onPreviewListing, onClose }: ThankYouModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -14,7 +16,7 @@ export default function ThankYouModal({ isOpen, onClose }: ThankYouModalProps) {
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50"
-        onClick={onClose}
+        onClick={onClose || onGoHome}
       />
       
       {/* Modal */}
@@ -44,13 +46,21 @@ export default function ThankYouModal({ isOpen, onClose }: ThankYouModalProps) {
           </p>
         </div>
         
-        {/* Button */}
-        <button
-          onClick={onClose}
-          className="w-full py-3 rounded-full bg-green text-white font-semibold transition-opacity hover:opacity-90"
-        >
-          Go to Dashboard
-        </button>
+        {/* Actions */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+          <button
+            onClick={onGoHome}
+            className="w-full py-3 rounded-full bg-green text-white font-semibold transition-opacity hover:opacity-90"
+          >
+            Go to Home
+          </button>
+          <button
+            onClick={onPreviewListing}
+            className="w-full py-3 rounded-full border-2 border-green text-green font-semibold transition-colors hover:bg-gray-50"
+          >
+            Preview My Listing
+          </button>
+        </div>
       </div>
     </div>
   );

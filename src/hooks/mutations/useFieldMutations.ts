@@ -15,6 +15,9 @@ export interface SaveProgressResponse {
   fieldId?: string;
   allStepsCompleted?: boolean;
   message?: string;
+  isNewField?: boolean;
+  stepCompleted?: boolean;
+  isActive?: boolean;
 }
 
 // Hook to save field progress
@@ -35,7 +38,13 @@ export function useSaveFieldProgress(
     onSuccess: (result) => {
       // Invalidate and refetch owner field data
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
-      toast.success('Progress saved successfully!');
+      
+      // Show appropriate message based on whether field was created or updated
+      if (result.isNewField) {
+        toast.success('Field created and progress saved successfully!');
+      } else {
+        toast.success('Progress saved successfully!');
+      }
       
       if (options?.onSuccess) {
         options.onSuccess(result, {} as SaveProgressData, {} as any);

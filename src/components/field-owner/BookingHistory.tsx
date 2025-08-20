@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { BookingHistorySkeleton } from '@/components/skeletons/BookingHistorySkeleton';
 
 interface Booking {
   id: string;
@@ -122,26 +123,20 @@ export default function BookingHistory() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-GB', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'GBP',
+      currency: 'USD',
       minimumFractionDigits: 2
     }).format(amount);
   };
 
+  if (loading && bookings.length === 0) {
+    return <BookingHistorySkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-light pt-32 pb-20">
       <div className="container mx-auto px-20">
-        {/* Header with Edit Field Button */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-semibold text-dark-green font-sans">Field Owner Dashboard</h1>
-          <button
-            onClick={() => router.push('/')}
-            className="px-6 py-2.5 bg-green text-white rounded-full font-medium hover:bg-green/90 transition-colors font-sans"
-          >
-            Edit My Field
-          </button>
-        </div>
 
         {/* Quick Stats Section */}
         <div className="mb-8">
@@ -213,7 +208,6 @@ export default function BookingHistory() {
           {loading ? (
             <div className="bg-white rounded-2xl p-8">
               <div className="flex flex-col items-center justify-center">
-                <div className="w-12 h-12 border-4 border-green border-t-transparent rounded-full animate-spin mb-4"></div>
                 <p className="text-gray-text font-sans">Loading bookings...</p>
               </div>
             </div>

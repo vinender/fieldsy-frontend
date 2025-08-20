@@ -44,10 +44,10 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
   const menuItems: { icon: string; label: string; href: string }[] = user?.role === 'FIELD_OWNER' 
     ? [
         { icon: '/profile/profile.svg', label: "My Profile", href: "/user/profile" },
-        { icon: '/profile/booking.svg', label: "Booking History", href: "/field-owner" },
+        { icon: '/profile/booking.svg', label: "Booking History", href: "/" },
         { icon: '/profile/payout.svg', label: "Payout History", href: "/field-owner/payouts" },
         { icon: '/profile/messages.svg', label: "Messages", href: "/user/messages" },
-        { icon: '/profile/field.svg', label: "My Field", href: "/" },
+        { icon: '/profile/field.svg', label: "My Field", href: "/field-owner/preview" },
       ]
     : [
         { icon: '/profile/profile.svg', label: "My Profile", href: "/user/profile" },

@@ -1,57 +1,82 @@
 import React, { useState } from 'react';
-import { X, Star } from 'lucide-react';
+import { X, Star, Upload, Loader2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useCreateReview } from '@/hooks/useReviews';
+import { toast } from 'sonner';
 
-export const AddReviewModal = ({ isOpen, onClose, fieldName = "Green Meadows Field" }) => {
+interface AddReviewModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  fieldId: string;
+  fieldName?: string;
+  onReviewAdded?: () => void;
+}
+
+export const AddReviewModal = ({ 
+  isOpen, 
+  onClose, 
+  fieldId,
+  fieldName = "Field",
+  onReviewAdded 
+}: AddReviewModalProps) => {
+  const { data: session } = useSession();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  
+  const createReviewMutation = useCreateReview(fieldId);
 
-  // User data (would come from auth context in real app)
+  // User data from session
   const userData = {
-    name: 'David Wood',
-    avatar: 'https://i.pravatar.cc/150?img=8',
-    date: '30 Jun, 2025'
+    name: session?.user?.name || 'User',
+    avatar: session?.user?.image || 'https://i.pravatar.cc/150?img=8',
+    date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
-      alert('Please select a rating');
+      toast.error('Please select a rating');
       return;
     }
     if (reviewText.trim().length < 10) {
-      alert('Please write at least 10 characters in your review');
+      toast.error('Please write at least 10 characters in your review');
       return;
     }
 
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Review submitted:', {
+    try {
+      await createReviewMutation.mutateAsync({
         rating,
-        reviewText,
-        fieldName,
-        user: userData.name,
-        date: new Date().toISOString()
+        title: reviewTitle.trim() || undefined,
+        comment: reviewText.trim(),
+        images,
       });
       
       // Reset form
       setRating(0);
       setReviewText('');
-      setIsSubmitting(false);
-      onClose();
+      setReviewTitle('');
+      setImages([]);
       
-      // Show success message (in real app, use toast notification)
-      alert('Thank you for your review!');
-    }, 1000);
+      // Call callback if provided
+      if (onReviewAdded) {
+        onReviewAdded();
+      }
+      
+      onClose();
+      toast.success('Thank you for your review!');
+    } catch (error) {
+      console.error('Error submitting review:', error);
+    }
   };
 
-  const handleStarClick = (starIndex) => {
+  const handleStarClick = (starIndex: number) => {
     setRating(starIndex);
   };
 
-  const handleStarHover = (starIndex) => {
+  const handleStarHover = (starIndex: number) => {
     setHoveredRating(starIndex);
   };
 
@@ -143,17 +168,32 @@ export const AddReviewModal = ({ isOpen, onClose, fieldName = "Green Meadows Fie
               )}
             </div>
 
+            {/* Review Title (Optional) */}
+            <div className="mb-6">
+              <label className="block text-[15px] font-medium text-[#192215] mb-2">
+                Review Title (Optional)
+              </label>
+              <input
+                type="text"
+                value={reviewTitle}
+                onChange={(e) => setReviewTitle(e.target.value)}
+                placeholder="Summarize your experience"
+                className="w-full p-4 bg-white border border-[#e3e3e3] rounded-[20px] text-[15px] text-[#192215] placeholder:text-[#8d8d8d] focus:outline-none focus:border-[#3a6b22] transition-colors"
+                maxLength={100}
+              />
+            </div>
+
             {/* Review Text Area */}
             <div className="mb-8">
               <label className="block text-[15px] font-medium text-[#192215] mb-2">
-                Write Review
+                Write Review <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 placeholder="Write about your experience...."
                 className="w-full h-[122px] p-4 bg-white border border-[#e3e3e3] rounded-[20px] text-[15px] text-[#192215] placeholder:text-[#8d8d8d] leading-[24px] resize-none focus:outline-none focus:border-[#3a6b22] transition-colors"
-                maxLength={500}
+                maxLength={1000}
               />
               <div className="flex justify-between mt-2">
                 <p className="text-[13px] text-[#8d8d8d]">
@@ -162,7 +202,7 @@ export const AddReviewModal = ({ isOpen, onClose, fieldName = "Green Meadows Fie
                     : ''}
                 </p>
                 <p className="text-[13px] text-[#8d8d8d]">
-                  {reviewText.length}/500
+                  {reviewText.length}/1000
                 </p>
               </div>
             </div>
@@ -170,14 +210,14 @@ export const AddReviewModal = ({ isOpen, onClose, fieldName = "Green Meadows Fie
             {/* Submit Button */}
             <button 
               onClick={handleSubmit}
-              disabled={isSubmitting || rating === 0 || reviewText.trim().length < 10}
-              className={`w-full h-14 rounded-full text-white text-[16px] font-semibold transition-all ${
-                isSubmitting || rating === 0 || reviewText.trim().length < 10
+              disabled={createReviewMutation.isPending || rating === 0 || reviewText.trim().length < 10}
+              className={`w-full h-14 rounded-full text-white text-[16px] font-semibold transition-all flex items-center justify-center gap-2 ${
+                createReviewMutation.isPending || rating === 0 || reviewText.trim().length < 10
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-[#3a6b22] hover:bg-[#2d5319]'
               }`}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Review'}
+              {createReviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
             </button>
           </div>
         </div>

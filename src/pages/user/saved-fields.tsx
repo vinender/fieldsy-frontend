@@ -26,7 +26,7 @@ export default function SavedFieldsPage() {
         name: 'Sunny Meadow Field',
         location: 'Manchester, UK',
         distance: '3.2 km away',
-        price: '£25/hour',
+        price: '$25/hour',
         rating: 4.9,
         reviews: 128,
         image: 'https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=400&h=300&fit=crop',
@@ -40,7 +40,7 @@ export default function SavedFieldsPage() {
         name: 'Riverside Dog Park',
         location: 'Liverpool, UK',
         distance: '5.8 km away',
-        price: '£30/hour',
+        price: '$30/hour',
         rating: 4.7,
         reviews: 89,
         image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop',
@@ -54,7 +54,7 @@ export default function SavedFieldsPage() {
         name: 'Green Valley Field',
         location: 'Leeds, UK',
         distance: '8.1 km away',
-        price: '£20/hour',
+        price: '$20/hour',
         rating: 4.8,
         reviews: 156,
         image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop',
@@ -74,7 +74,7 @@ export default function SavedFieldsPage() {
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green border-t-transparent rounded-full animate-spin" />
+        <p className="text-gray-600">Loading saved fields...</p>
       </div>
     );
   }
