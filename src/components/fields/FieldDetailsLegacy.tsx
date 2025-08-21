@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Star, Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle } from 'lucide-react';
+import { Star, Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useFieldReviews } from '@/hooks/useReviews';
 import { format } from 'date-fns';
@@ -206,7 +206,63 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                       <span className="text-xs text-gray-500">Joined on {field?.joinedOn || (field?.owner?.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'March 2025')}</span>
                     </div>
                   </div>
-                  <button className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2 flex-shrink-0 w-full sm:w-auto justify-center">
+                  <button 
+                    onClick={async () => {
+                      if (!session) {
+                        setLoginModalMessage('Please login or sign up to message field owners');
+                        setShowLoginModal(true);
+                        return;
+                      }
+                      
+                      // Create or get conversation and redirect to messages page
+                      const fieldOwnerId = field?.ownerId || field?.owner?._id || field?.owner?.id || field?.userId;
+                      
+                      if (!fieldOwnerId) {
+                        console.error('No field owner ID found');
+                        return;
+                      }
+                      
+                      console.log('Creating conversation with field owner:', fieldOwnerId);
+                      console.log('Field data:', field);
+                      
+                      try {
+                        // Get token from session or localStorage
+                        const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
+                        
+                        if (!token) {
+                          console.error('No authentication token found');
+                          setLoginModalMessage('Please login or sign up to message field owners');
+                          setShowLoginModal(true);
+                          return;
+                        }
+                        
+                        const response = await fetch('/api/chat/conversations', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                          },
+                          body: JSON.stringify({
+                            receiverId: fieldOwnerId,
+                            fieldId: field?._id || field?.id
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const conversation = await response.json();
+                          console.log('Conversation created/retrieved:', conversation);
+                          // Redirect to messages page with conversation ID
+                          router.push(`/user/messages?conversationId=${conversation.id || conversation._id}`);
+                        } else {
+                          const error = await response.json();
+                          console.error('Failed to create conversation:', error);
+                        }
+                      } catch (error) {
+                        console.error('Error creating conversation:', error);
+                      }
+                    }}
+                    className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2 flex-shrink-0 w-full sm:w-auto justify-center hover:bg-[#8FB366]/10 transition-colors"
+                  >
                    <img src='/msg.svg' className="w-4 h-4 text-[#8FB366] mr-1" />
                     <span className="text-xs font-semibold text-dark-green">Send a Message</span>
                   </button>
@@ -534,18 +590,20 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             )}
 
             {isClaimed && !isPreview && (
-              <button 
-                onClick={() => {
-                  if (!session) {
-                    router.push('/login');
-                  } else {
-                    router.push(`/fields/book-field?id=${field?._id || field?.id}`);
-                  }
-                }}
-                className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
-              >
-                Book Now
-              </button>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => {
+                    if (!session) {
+                      router.push('/login');
+                    } else {
+                      router.push(`/fields/book-field?id=${field?._id || field?.id}`);
+                    }
+                  }}
+                  className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
+                >
+                  Book Now
+                </button>
+              </div>
             )}
 
         

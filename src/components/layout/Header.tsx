@@ -96,6 +96,7 @@ export function Header() {
         { name: "Dashboard", href: "/field-owner/dashboard" },
         { name: "My Field", href: "/field-owner/preview" },
         { name: "Bookings", href: "/field-owner/bookings" },
+        { name: "Messages", href: "/user/messages" },
         { name: "Profile", href: "/user/profile" },
       ]
     }
@@ -104,6 +105,7 @@ export function Header() {
     return [
       { name: "My Bookings", href: "/user/my-bookings" },
       { name: "Saved Fields", href: "/user/saved-fields" },
+      { name: "Messages", href: "/user/messages" },
       { name: "Profile", href: "/user/profile" },
     ]
   }, [currentUser, isAuthenticated])
