@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
-const BookingSuccessModal = ({ isOpen = true, onClose, onCheckHistory, onGoHome }) => {
+export const BookingSuccessModal = ({ isOpen = true, onClose, onCheckHistory, onGoHome }) => {
   if (!isOpen) return null;
 
   return (
@@ -30,7 +30,7 @@ const BookingSuccessModal = ({ isOpen = true, onClose, onCheckHistory, onGoHome 
             {/* Illustration */}
             <div className="flex-1 flex items-center justify-center w-full max-w-[400px] mx-auto">
               <img 
-                src="/modals/walking-dog.svg"
+                src="/modal/walking-dog.svg"
                 alt="Person walking dog illustration"
                 className="w-full h-auto max-h-[250px] object-contain"
               />

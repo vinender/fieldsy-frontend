@@ -8,7 +8,7 @@ export default function FieldDetailsPage() {
   const { field_id } = router.query;
 
   return (
-    <UserLayout requireRole="DOG_OWNER">
+    <UserLayout>
       <FieldDetailsScreen fieldId={typeof field_id === 'string' ? field_id : undefined} />
     </UserLayout>
   );

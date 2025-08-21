@@ -1,27 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import mockData from '@/data/mock-data.json';
 import { UserLayout } from '@/components/layout/UserLayout';
+import { useFieldDetails } from '@/hooks';
+import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
 
 const BookFieldPage = () => {
   const router = useRouter();
-  const { field_id } = router.query;
+  const { id, field_id } = router.query;
+  const fieldIdToUse = id ; // Support both query parameters
+  console.log('id', router.query?.id)
   const [numberOfDogs, setNumberOfDogs] = useState('');
-  const [selectedDate, setSelectedDate] = useState('July 02');
+  const [selectedDate, setSelectedDate] = useState('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('8:00AM - 9:00AM');
-  const [repeatBooking, setRepeatBooking] = useState('Weekly');
+  const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState('morning');
 
-  // Find the field from mock data
-  const field = field_id ? mockData.fields.find(f => f.id === field_id) : mockData.fields[0];
+  // Fetch field details using the hook
+  const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string);
+  const field = fieldData?.data || fieldData;
+
+  // Set default date to today
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    setSelectedDate(today);
+  }, []);
   
-  if (!field) {
+  if (isLoading) {
+    return (
+      <UserLayout requireRole="DOG_OWNER">
+        <FieldDetailsSkeleton />
+      </UserLayout>
+    );
+  }
+
+  if (!field || error) {
     return (
       <UserLayout requireRole="DOG_OWNER">
         <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
-          <p className="text-xl text-dark-green">Field not found</p>
+          <div className="bg-white rounded-2xl p-8 max-w-md">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Found</h3>
+              <p className="text-gray-600">The field you are looking for does not exist.</p>
+            </div>
+          </div>
         </div>
       </UserLayout>
     );
@@ -63,30 +91,30 @@ const BookFieldPage = () => {
     <UserLayout requireRole="DOG_OWNER">
       <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3]">
       {/* Main Container */}
-      <div className="container mx-auto px-4 lg:px-20 py-8 lg:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
         
         {/* Back Button and Title */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <button 
-            onClick={() => router.push(`/fields/${field_id}`)}
-            className="flex items-center hover:border-cream hover:border-2 justify-center w-12 h-12 bg-[#F8F1D7] rounded-full hover:bg-light transition-colors">
-            <img src='/cream-back.svg' className="w-12 h-12 cursor-pointer text-dark-green" />
+            onClick={() => router.push(`/fields/${fieldIdToUse}`)}
+            className="flex items-center hover:border-cream hover:border-2 justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[#F8F1D7] rounded-full hover:bg-light transition-colors">
+            <img src='/cream-back.svg' className="w-10 h-10 sm:w-12 sm:h-12 cursor-pointer text-dark-green" />
           </button>
-          <h1 className="text-2xl lg:text-[29px] font-semibold text-dark-green">
+          <h1 className="text-xl sm:text-2xl lg:text-[29px] font-semibold text-dark-green">
             Book Field
           </h1>
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
           
           {/* Left Column - Field Details Card */}
-          <div className="bg-white rounded-[20px] p-4 shadow-sm border border-black/5">
+          <div className="bg-white rounded-[16px] sm:rounded-[20px] p-4 sm:p-5 shadow-sm border border-black/5">
             {/* Field Image */}
             <div 
-              className="w-full h-[263px] rounded-[10px] bg-cover bg-center mb-5"
+              className="w-full h-[200px] sm:h-[240px] md:h-[263px] rounded-[10px] bg-cover bg-center mb-4 sm:mb-5"
               style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&h=400&fit=crop')`
+                backgroundImage: `url('${field.images?.[0] || '/green-field.png'}')`
               }}
             />
 
@@ -94,53 +122,63 @@ const BookFieldPage = () => {
             <div className="space-y-6">
               {/* Title and Price */}
               <div className="space-y-2.5">
-                <div className="flex justify-between items-start">
-                  <h2 className="text-[29px] font-semibold text-dark-green">
-                    {field.name || 'Green Meadows Field'}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                  <h2 className="text-xl sm:text-2xl lg:text-[29px] font-semibold text-dark-green">
+                    {field.name}
                   </h2>
-                  <div className="text-right">
-                    <span className="text-[24px] font-bold text-[#3A6B22]">${field.pricePerDog || 18}</span>
-                    <span className="text-[16px] text-dark-green/70">/dog/hour</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">${field.pricePerHour || field.price || 0}</span>
+                    <span className="text-sm sm:text-[16px] text-dark-green/70">/hour</span>
                   </div>
                 </div>
                 
                 {/* Location and Rating */}
-                <div className="flex justify-between items-end">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
                   <div className="flex items-center gap-1">
-                    <img src='/location.svg' className="w-5 h-5 text-[#3A6B22]" />
-                    <span className="text-[16px] text-dark-green">{field.location || 'Kent TN25, UK'} • {field.distance || '3km away'}</span>
+                    <img src='/location.svg' className="w-4 h-4 sm:w-5 sm:h-5 text-[#3A6B22]" />
+                    <span className="text-sm sm:text-[16px] text-dark-green truncate">
+                      {field.city && field.postalCode ? `${field.city} ${field.postalCode}` : field.address || 'Location not specified'}
+                    </span>
                   </div>
-                  <div className="bg-dark-green px-1.5 py-1 rounded-md flex items-center gap-0.5">
-                    <Star className="w-[18px] h-[18px] text-yellow-400 fill-yellow" />
-                    <span className="text-white text-[14px] font-semibold">{field.rating || 4.5}</span>
-                  </div>
+                  {field.averageRating && (
+                    <div className="bg-dark-green px-1.5 py-1 rounded-md flex items-center gap-0.5">
+                      <Star className="w-[18px] h-[18px] text-yellow-400 fill-yellow" />
+                      <span className="text-white text-[14px] font-semibold">{field.averageRating.toFixed(1)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Owner Information */}
-              <div>
-                <h3 className="text-[18px] font-bold text-dark-green mb-2.5">Owner Information</h3>
-                <div className="bg-[#F8F1D7] rounded-lg p-2.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <img 
-                      src="https://i.pravatar.cc/40?img=8" 
-                      alt="Alex Smith" 
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[16px] font-medium text-[#090F1F]">{field.owner || 'Alex Smith'}</span>
-                        <Check className="w-4 h-4 text-[#3A6B22]" />
+              {field.owner && (
+                <div>
+                  <h3 className="text-[18px] font-bold text-dark-green mb-2.5">Owner Information</h3>
+                  <div className="bg-[#F8F1D7] rounded-lg p-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <img 
+                        src={field.owner.profileImage || "https://i.pravatar.cc/40?img=8"} 
+                        alt={field.owner.name || 'Field Owner'} 
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[16px] font-medium text-[#090F1F]">
+                            {field.owner.name || field.owner.email || 'Field Owner'}
+                          </span>
+                          {field.owner.isVerified && <Check className="w-4 h-4 text-[#3A6B22]" />}
+                        </div>
+                        <span className="text-[14px] text-[#545662]/70">
+                          Joined {field.owner.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}
+                        </span>
                       </div>
-                      <span className="text-[14px] text-[#545662]/70">Joined on {field.ownerJoined || 'March 2025'}</span>
                     </div>
+                    <button className="bg-white border border-[#8FB366]/40 rounded-[10px] px-2.5 py-2.5 flex items-center gap-1.5 hover:bg-gray-50 transition-colors">
+                      <img src='/msg.svg' className="w-5 h-5" />
+                      <span className="text-[12px] font-semibold text-dark-green">Send a Message</span>
+                    </button>
                   </div>
-                  <button className="bg-white border border-[#8FB366]/40 rounded-[10px] px-2.5 py-2.5 flex items-center gap-1.5 hover:bg-gray-50 transition-colors">
-                    <img src='/msg.svg' className="w-5 h-5" />
-                    <span className="text-[12px] font-semibold text-dark-green">Send a Message</span>
-                  </button>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -177,7 +215,8 @@ const BookFieldPage = () => {
                   <Input
                     type="date"
                     value={selectedDate}
-                    readOnly
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
                     className="h-14 border-[#E3E3E3] focus:border-[#3A6B22] text-[15px] font-medium cursor-pointer"
                   />
                   <img src='/book-field/calendar.svg' className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[#3A6B22] pointer-events-none" />
@@ -206,7 +245,7 @@ const BookFieldPage = () => {
                     </button>
                     
                     {expandedSection === 'morning' && (
-                      <div className="px-4 pb-4 flex flex-wrap gap-[9px]">
+                      <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                         {timeSlots.morning.map((slot, index) => (
                           <button
                             key={index}
@@ -242,7 +281,7 @@ const BookFieldPage = () => {
                     </button>
                     
                     {expandedSection === 'afternoon' && (
-                      <div className="px-4 pb-4 flex flex-wrap gap-[9px]">
+                      <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                         {timeSlots.afternoon.map((slot, index) => (
                           <button
                             key={index}
@@ -278,7 +317,7 @@ const BookFieldPage = () => {
                     </button>
                     
                     {expandedSection === 'evening' && (
-                      <div className="px-4 pb-4 flex flex-wrap gap-[9px]">
+                      <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                         {timeSlots.evening.map((slot, index) => (
                           <button
                             key={index}
@@ -303,16 +342,16 @@ const BookFieldPage = () => {
 
               {/* Repeat Booking */}
               <div>
-                <h3 className="text-[18px] font-bold text-dark-green mb-2.5">Repeat This Booking?</h3>
-                <p className="text-[16px] text-[#8D8D8D] mb-4">
+                <h3 className="text-base sm:text-[18px] font-bold text-dark-green mb-2.5">Repeat This Booking?</h3>
+                <p className="text-sm sm:text-[16px] text-[#8D8D8D] mb-3 sm:mb-4">
                   Need regular access? Set up a weekly or monthly recurring booking.
                 </p>
-                <div className="flex gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   {['None', 'Daily', 'Weekly', 'Monthly'].map((option) => (
                     <button
                       key={option}
                       onClick={() => setRepeatBooking(option)}
-                      className={`w-[120px] py-2 px-3.5 rounded-[14px] text-[14px] font-medium transition-colors ${
+                      className={`w-full py-2 px-3 sm:px-3.5 rounded-[10px] sm:rounded-[14px] text-xs sm:text-[14px] font-medium transition-colors ${
                         repeatBooking === option
                           ? 'bg-[#8FB366] text-white'
                           : 'bg-white text-[#8D8D8D] border border-black/6 hover:bg-gray-50'
@@ -334,11 +373,12 @@ const BookFieldPage = () => {
                   router.push({
                     pathname: '/fields/payment',
                     query: {
-                      field_id: field_id,
+                      field_id: fieldIdToUse,
                       numberOfDogs: numberOfDogs,
                       date: selectedDate,
                       timeSlot: selectedTimeSlot,
-                      repeatBooking: repeatBooking
+                      repeatBooking: repeatBooking,
+                      price: field.pricePerHour || field.price || 0
                     }
                   });
                 }}

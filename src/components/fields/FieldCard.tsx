@@ -1,5 +1,10 @@
-import { Heart, MapPin, Star } from "lucide-react"
+import { MapPin, Star } from "lucide-react"
 import Image from "next/image"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/router"
+import { useToggleFavorite, useFavoriteStatus } from "@/hooks/useFavorites"
+import { LoginPromptModal } from "@/components/modal/LoginPromptModal"
 
 export interface FieldCardProps {
   id: string
@@ -12,9 +17,11 @@ export interface FieldCardProps {
   image: string
   amenities?: string[]
   isLiked?: boolean
+  isClaimed?: boolean
   onLike?: (id: string) => void
   onViewDetails?: (id: string) => void
   onBookNow?: (id: string) => void
+  onClaimField?: (id: string) => void
   owner?: string
   variant?: 'compact' | 'expanded'
   showAmenityLimit?: number
@@ -30,15 +37,64 @@ export function FieldCard({
   rating,
   image,
   amenities = [],
-  isLiked = false,
+  isLiked: propIsLiked = false,
+  isClaimed = true,
   onLike,
   onViewDetails,
   onBookNow,
+  onClaimField,
   owner = "Owner",
   variant = 'compact',
   showAmenityLimit = 2
 }: FieldCardProps) {
   const isExpanded = variant === 'expanded'
+  const router = useRouter()
+  const { data: session } = useSession()
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [loginModalMessage, setLoginModalMessage] = useState('')
+  
+  // Favorite status and toggle
+  const { data: isFavorited } = useFavoriteStatus(id)
+  const toggleFavoriteMutation = useToggleFavorite(id)
+  const [isLiked, setIsLiked] = useState(propIsLiked)
+  
+  useEffect(() => {
+    setIsLiked(isFavorited || propIsLiked)
+  }, [isFavorited, propIsLiked])
+  
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!session) {
+      setLoginModalMessage('Please login or sign up to save your favorite fields')
+      setShowLoginModal(true)
+      return
+    }
+    
+    try {
+      const result = await toggleFavoriteMutation.mutateAsync()
+      setIsLiked(result.isFavorited)
+      onLike?.(id)
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
+  }
+  
+  const handleBookNowClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!isClaimed) {
+      // For unclaimed fields, allow claiming without login
+      onClaimField?.(id)
+    } else if (!session) {
+      setLoginModalMessage('Please login or sign up to book this field')
+      setShowLoginModal(true)
+    } else {
+      onBookNow?.(id)
+    }
+  }
   
   const containerClasses = isExpanded 
     ? "bg-white rounded-[20px] border border-black/[0.08] w-full overflow-hidden"
@@ -50,6 +106,7 @@ export function FieldCard({
   
   if (isExpanded) {
     return (
+      <>
       <div className={containerClasses}>
         <div className={padding}>
           <div className="flex justify-between items-start mb-4">
@@ -72,13 +129,15 @@ export function FieldCard({
               />
             </div>
             <button 
-              onClick={(e) => {
-                e.preventDefault()
-                onLike?.(id)
-              }}
-              className="absolute top-2 right-2 bg-white/20 backdrop-blur-[1.5px] border border-white/20 rounded-[19px] w-[33px] h-[34px] flex items-center justify-center"
+              onClick={handleToggleFavorite}
+              disabled={toggleFavoriteMutation.isPending}
+              className="absolute top-2 right-2 bg-white/90 backdrop-blur-md rounded-full w-9 h-9 flex items-center justify-center shadow-md disabled:opacity-50"
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-white' : ''} text-white`} />
+              {isLiked ? (
+                <img src="/field-details/saved-heart.svg" alt="Saved" className="w-5 h-5" />
+              ) : (
+                <img src="/field-details/gray-heart.svg" alt="Save" className="w-5 h-5" />
+              )}
             </button>
           </div>
 
@@ -114,18 +173,27 @@ export function FieldCard({
               View Details
             </button>
             <button 
-              onClick={() => onBookNow?.(id)}
+              onClick={handleBookNowClick}
               className="flex-1 bg-[#3A6B22] text-white text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#2d5a1b] transition-colors"
             >
-              Book Now
+              {isClaimed ? 'Book Now' : 'Claim Field'}
             </button>
           </div>
         </div>
       </div>
+      
+      {/* Login Prompt Modal */}
+      <LoginPromptModal 
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        message={loginModalMessage}
+      />
+      </>
     )
   }
   
   return (
+    <>
     <div className={containerClasses}>
       <div className="px-3 pt-3 pb-2">
         <div className="flex justify-between items-start mb-1">
@@ -149,15 +217,15 @@ export function FieldCard({
         />
         
         <button
-          onClick={(e) => {
-            e.preventDefault()
-            onLike?.(id)
-          }}
-          className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md"
+          onClick={handleToggleFavorite}
+          disabled={toggleFavoriteMutation.isPending}
+          className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md disabled:opacity-50"
         >
-          <Heart 
-            className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
-          />
+          {isLiked ? (
+            <img src="/field-details/saved-heart.svg" alt="Saved" className="w-4 h-4" />
+          ) : (
+            <img src="/field-details/gray-heart.svg" alt="Save" className="w-4 h-4" />
+          )}
         </button>
 
         <div className="absolute bottom-2 left-2 bg-black/90 px-2 py-0.5 rounded-md flex items-center gap-0.5">
@@ -195,13 +263,22 @@ export function FieldCard({
             View Details
           </button>
           <button 
-            onClick={() => onBookNow?.(id)}
+            onClick={handleBookNowClick}
             className="flex-1 py-1.5 text-[10px] font-medium text-white bg-[#3a6b22] rounded-full hover:bg-[#2a5b12] transition-colors"
           >
-            Book Now
+            {isClaimed ? 'Book Now' : 'Claim Field'}
           </button>
         </div>
       </div>
+      
     </div>
+    
+    {/* Login Prompt Modal */}
+    <LoginPromptModal 
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      message={loginModalMessage}
+    />
+    </>
   )
 }

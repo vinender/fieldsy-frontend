@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent layout shift when modal opens */
+/* Always show vertical scrollbar to prevent content jumping */
+html {
+  overflow-y: scroll;
+}
+
+/* Use scrollbar-gutter for browsers that support it */
+@supports (scrollbar-gutter: stable) {
+  html {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+}
+
+/* Override Radix UI's body styles when dialog is open */
+body[style*="pointer-events"] {
+  padding-right: 0 !important;
+}
+
 /* Lazy loading animations */
 @keyframes fadeIn {
   from {

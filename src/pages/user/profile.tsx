@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   User, 
@@ -6,20 +6,46 @@ import {
   Phone, 
   Check,
   ChevronDown,
-  Upload
+  Upload,
+  Loader2
 } from 'lucide-react';
 import ChangePasswordSidebar from '@/components/sidebar/ChangePasswordSidebar';
 import { Input } from '@/components/ui/input';
+import { useProfile, useUpdateProfile, useUploadProfileImage, useDeleteProfileImage } from '@/hooks/useProfile';
+import { useRouter } from 'next/router';
+import { toast } from 'sonner';
 
 const MyProfilePage = () => {
+  const router = useRouter();
   const [isPasswordSidebarOpen, setIsPasswordSidebarOpen] = useState(false);
+  
+  // Fetch profile data
+  const { data: profile, isLoading, error } = useProfile();
+  const updateProfileMutation = useUpdateProfile();
+  const uploadImageMutation = useUploadProfileImage();
+  const deleteImageMutation = useDeleteProfileImage();
+  
+  // Form state
   const [formData, setFormData] = useState({
-    fullName: 'David Wood',
-    email: 'davidengland12@gmail.com',
+    fullName: '',
+    email: '',
     countryCode: '+44',
-    phoneNumber: '7700 123456',
-    bio: "I'm a proud dog parent always looking for safe, private spaces where my pup can run free, sniff everything, and have fun without stress. I use Fieldsy to discover hidden gems near me — and nothing makes me happier than seeing a wagging tail at the end of every walk! 🐾"
+    phoneNumber: '',
+    bio: ''
   });
+
+  // Initialize form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        fullName: profile.name || '',
+        email: profile.email || '',
+        countryCode: '+44',
+        phoneNumber: profile.phone?.replace('+44', '').trim() || '',
+        bio: profile.bio || ''
+      });
+    }
+  }, [profile]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -27,6 +53,82 @@ const MyProfilePage = () => {
       [field]: value
     }));
   };
+
+  const handleUpdate = async () => {
+    try {
+      const updates: any = {};
+      
+      if (formData.fullName !== profile?.name) {
+        updates.name = formData.fullName;
+      }
+      
+      if (formData.phoneNumber && formData.phoneNumber !== profile?.phone?.replace('+44', '').trim()) {
+        updates.phone = `${formData.countryCode}${formData.phoneNumber}`;
+      }
+      
+      if (formData.bio !== profile?.bio) {
+        updates.bio = formData.bio;
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        await updateProfileMutation.mutateAsync(updates);
+      } else {
+        toast.info('No changes to update');
+      }
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      
+      try {
+        await uploadImageMutation.mutateAsync(file);
+      } catch (error) {
+        // Error handled by mutation
+      }
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (confirm('Are you sure you want to delete your profile image?')) {
+      try {
+        await deleteImageMutation.mutateAsync();
+      } catch (error) {
+        // Error handled by mutation
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#fffcf3] py-10 mt-16 xl:mt-24 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#3A6B22]" />
+      </div>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <div className="min-h-screen bg-[#fffcf3] py-10 mt-16 xl:mt-24">
+        <div className="max-w-7xl mx-auto px-20 text-center">
+          <p className="text-red-500">Failed to load profile. Please try again.</p>
+          <button 
+            onClick={() => router.back()}
+            className="mt-4 px-6 py-2 bg-[#3A6B22] text-white rounded-full hover:bg-[#2e5519]"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fffcf3] py-10 mt-16 xl:mt-24">
@@ -47,14 +149,22 @@ const MyProfilePage = () => {
             
             {/* User Info */}
             <div className="flex items-center gap-4 mb-4">
-              <img 
-                src="https://i.pravatar.cc/150?img=8" 
-                alt="David Wood" 
-                className="w-14 h-14 rounded-full object-cover"
-              />
+              {profile.image ? (
+                <img 
+                  src={profile.image} 
+                  alt={profile.name || 'User'} 
+                  className="w-14 h-14 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                  <span className="text-white text-xl font-semibold">
+                    {profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
               <div>
-                <h3 className="text-[18px] font-semibold text-[#323232]">David Wood</h3>
-                <p className="text-[14px] text-[#323232]">davidengland12@gmail.com</p>
+                <h3 className="text-[18px] font-semibold text-[#323232]">{profile.name || 'User'}</h3>
+                <p className="text-[14px] text-[#323232]">{profile.email}</p>
               </div>
             </div>
 
@@ -67,25 +177,27 @@ const MyProfilePage = () => {
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
                   <Mail className="w-6 h-6 text-[#192215]" />
-                  <span className="text-[16px] text-[#8d8d8d]">davidengland12@gmail.com</span>
+                  <span className="text-[16px] text-[#8d8d8d]">{profile.email}</span>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <Phone className="w-6 h-6 text-[#192215]" />
-                  <span className="text-[16px] text-[#8d8d8d]">+44 7700 123456</span>
-                </div>
+                {profile.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-6 h-6 text-[#192215]" />
+                    <span className="text-[16px] text-[#8d8d8d]">{profile.phone}</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* About Me Section */}
-            <div className="mt-6">
-              <h4 className="text-[14px] font-bold text-[#192215] mb-3">About me</h4>
-              <p className="text-[16px] text-[#8d8d8d] leading-[24px]">
-                I'm a proud dog parent always looking for safe, private spaces where my pup can run free, 
-                sniff everything, and have fun without stress. I use Fieldsy to discover hidden gems near 
-                me — and nothing makes me happier than seeing a wagging tail at the end of every walk! 🐾
-              </p>
-            </div>
+            {profile.bio && (
+              <div className="mt-6">
+                <h4 className="text-[14px] font-bold text-[#192215] mb-3">About me</h4>
+                <p className="text-[16px] text-[#8d8d8d] leading-[24px]">
+                  {profile.bio}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Right Column - Edit Profile */}
@@ -94,14 +206,54 @@ const MyProfilePage = () => {
 
             {/* Profile Image Section */}
             <div className="flex items-center gap-4 mb-8">
-              <img 
-                src="https://i.pravatar.cc/150?img=8" 
-                alt="David Wood" 
-                className="w-16 h-16 rounded-full object-cover"
-              />
-              <button className="text-[16px] font-semibold text-[#3a6b22] underline hover:opacity-80 transition-opacity">
-                Change Profile Image
-              </button>
+              {profile.image ? (
+                <img 
+                  src={profile.image} 
+                  alt={profile.name || 'User'} 
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                  <span className="text-white text-2xl font-semibold">
+                    {profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center gap-4">
+                <label className="text-[16px] font-semibold text-[#3a6b22] underline hover:opacity-80 transition-opacity cursor-pointer">
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadImageMutation.isPending || deleteImageMutation.isPending}
+                  />
+                  {uploadImageMutation.isPending ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </span>
+                  ) : (
+                    'Change Profile Image'
+                  )}
+                </label>
+                {profile.image && (
+                  <button
+                    onClick={handleDeleteImage}
+                    disabled={deleteImageMutation.isPending || uploadImageMutation.isPending}
+                    className="text-[14px] font-medium text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {deleteImageMutation.isPending ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Deleting...
+                      </span>
+                    ) : (
+                      'Delete'
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Form Fields */}
@@ -170,13 +322,28 @@ const MyProfilePage = () => {
 
               {/* Actions */}
               <div className="flex items-center justify-between pt-6">
+                {profile.provider === 'general' ? (
+                  <button 
+                    onClick={() => setIsPasswordSidebarOpen(true)}
+                    className="text-[16px] font-semibold text-[#3a6b22] underline hover:opacity-80 transition-opacity">
+                    Change Password?
+                  </button>
+                ) : (
+                  <div /> // Empty div to maintain justify-between spacing
+                )}
                 <button 
-                  onClick={() => setIsPasswordSidebarOpen(true)}
-                  className="text-[16px] font-semibold text-[#3a6b22] underline hover:opacity-80 transition-opacity">
-                  Change Password?
-                </button>
-                <button className="px-12 py-4 bg-[#3a6b22] text-white text-[16px] font-semibold rounded-full hover:bg-[#2d5319] transition-colors">
-                  Update
+                  onClick={handleUpdate}
+                  disabled={updateProfileMutation.isPending}
+                  className="px-12 py-4 bg-[#3a6b22] text-white text-[16px] font-semibold rounded-full hover:bg-[#2d5319] transition-colors"
+                >
+                  {updateProfileMutation.isPending ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Updating...
+                    </span>
+                  ) : (
+                    'Update'
+                  )}
                 </button>
               </div>
             </div>

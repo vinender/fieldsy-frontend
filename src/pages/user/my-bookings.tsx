@@ -91,6 +91,8 @@ const BookingHistoryPage = () => {
       params.append('limit', '10');
       if (activeTab === 'previous') {
         params.append('status', 'COMPLETED');
+      } else if (activeTab === 'upcoming') {
+        params.append('status', 'CONFIRMED');
       } else {
         params.append('status', 'PENDING');
       }
@@ -113,25 +115,25 @@ const BookingHistoryPage = () => {
         const transformedBookings = bookingData.map((booking: any) => ({
           _id: booking.id,
           fieldId: booking.fieldId,
-          userId: booking.dogOwnerId,
+          userId: booking.userId,
           name: booking.field?.name || 'Field',
-          duration: '30min',
+          duration: booking.timeSlot ? '1hr' : '30min',
           price: booking.totalPrice,
           currency: '$',
-          image: booking.field?.images?.[0] || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop',
-          features: booking.field?.description || 'Field description',
-          location: booking.field?.city ? `${booking.field.city}, ${booking.field.state}` : 'Location',
+          image: booking.field?.images?.[0] || '/fields/field-placeholder.jpg',
+          features: booking.field?.amenities?.join(' • ') || booking.field?.description || 'Field description',
+          location: booking.field?.address ? `${booking.field.address}, ${booking.field.city}, ${booking.field.state}` : 'Location',
           distance: '2.0 km away',
-          time: `${booking.startTime} – ${booking.endTime}`,
+          time: booking.timeSlot || `${booking.startTime} – ${booking.endTime}`,
           date: new Date(booking.date).toLocaleDateString('en-GB', { 
             day: 'numeric', 
             month: 'short', 
             year: 'numeric' 
           }),
           dogs: booking.numberOfDogs || 1,
-          recurring: null,
-          status: booking.status.toLowerCase() as any,
-          paymentStatus: 'paid',
+          recurring: booking.repeatBooking && booking.repeatBooking !== 'none' ? `Recurring ${booking.repeatBooking}` : null,
+          status: booking.status.toLowerCase() === 'confirmed' ? 'upcoming' : booking.status.toLowerCase() as any,
+          paymentStatus: booking.paymentStatus?.toLowerCase() || 'paid',
           createdAt: booking.createdAt,
           updatedAt: booking.updatedAt
         }));
@@ -157,8 +159,11 @@ const BookingHistoryPage = () => {
     }
   };
 
-  // Mock data as fallback (will be removed once API is fully integrated)
-  const mockUpcomingBookings: Booking[] = [
+  // Mock data removed - now using real API data
+  const mockUpcomingBookings: Booking[] = []
+  const mockPreviousBookings: Booking[] = []
+  /* Previous mock data removed - now fetching from API
+  const mockUpcomingBookings_OLD: Booking[] = [
     {
       _id: '507f1f77bcf86cd799439011',
       fieldId: '507f1f77bcf86cd799439001',
@@ -224,7 +229,7 @@ const BookingHistoryPage = () => {
     }
   ];
 
-  const mockPreviousBookings: Booking[] = [
+  const mockPreviousBookings_OLD: Booking[] = [
     {
       _id: '507f1f77bcf86cd799439014',
       fieldId: '507f1f77bcf86cd799439004',
@@ -289,10 +294,10 @@ const BookingHistoryPage = () => {
       updatedAt: '2025-04-18T10:00:00Z'
     }
   ];
+  */
 
-  // Use mock data if no real bookings are loaded
-  const displayBookings = bookings.length > 0 ? bookings : 
-    (activeTab === 'upcoming' ? mockUpcomingBookings : mockPreviousBookings);
+  // Use actual bookings from API only
+  const displayBookings = bookings;
 
   const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -315,65 +320,67 @@ const BookingHistoryPage = () => {
   };
 
   const BookingCard = ({ booking }: { booking: Booking }) => (
-    <div className="flex gap-8 items-center bg-light py-6 border-b border-gray-200 last:border-0">
+    <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-start sm:items-center bg-light py-4 sm:py-6 border-b border-gray-200 last:border-0">
       {/* Image */}
       <img 
         src={booking.image} 
         alt={booking.name}
-        className="w-[174px] h-[140px] rounded-[20px] object-cover flex-shrink-0"
+        className="w-full sm:w-[174px] h-[200px] sm:h-[140px] rounded-[20px] object-cover flex-shrink-0"
       />
       
       {/* Content */}
-      <div className="flex-1">
+      <div className="flex-1 w-full">
         {/* Title and Price */}
-        <div className="flex items-center gap-2 mb-2.5">
-          <h3 className="text-[20px] font-semibold text-[#192215]">{booking.name}</h3>
-          <span className="text-[16px] font-semibold text-[#192215]">• {booking.duration}</span>
-          <span className="text-[16px] font-semibold text-[#3a6b22]">• {booking.currency}{booking.price}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2.5">
+          <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#192215]">{booking.name}</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] sm:text-[16px] font-semibold text-[#192215]">• {booking.duration}</span>
+            <span className="text-[14px] sm:text-[16px] font-semibold text-[#3a6b22]">• {booking.currency}{booking.price}</span>
+          </div>
         </div>
 
-        {/* Features */}
-        <p className="text-[16px] font-medium text-[#192215] mb-4">{booking.features}</p>
+        {/* Features - Hidden on mobile, shown on larger screens */}
+        <p className="hidden sm:block text-[16px] font-medium text-[#192215] mb-4 line-clamp-2">{booking.features}</p>
 
         {/* Details */}
-        <div className="flex flex-wrap gap-6 text-[14px] text-[#8d8d8d] mb-3">
+        <div className="flex flex-wrap gap-3 sm:gap-6 text-[12px] sm:text-[14px] text-[#8d8d8d] mb-3">
           <div className="flex items-center gap-1">
-            <MapPin className="w-[18px] h-[18px]" />
-            <span>{booking.location} • {booking.distance}</span>
+            <MapPin className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
+            <span className="line-clamp-1">{booking.location} • {booking.distance}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Clock className="w-[18px] h-[18px]" />
+            <Clock className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
             <span>{booking.time}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Calendar className="w-[18px] h-[18px]" />
+            <Calendar className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
             <span>{booking.date}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Dog className="w-[18px] h-[18px]" />
+            <Dog className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
             <span>{booking.dogs} Dog{booking.dogs > 1 ? 's' : ''}</span>
           </div>
         </div>
 
         {/* Recurring Badge */}
         {booking.recurring && (
-          <div className="inline-flex items-center px-4 py-1.5 bg-[#f4ffef] border border-[#3a6b221a] rounded-full">
-            <span className="text-[13px] font-bold text-[#3a6b22]">{booking.recurring}</span>
+          <div className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 bg-[#f4ffef] border border-[#3a6b221a] rounded-full">
+            <span className="text-[11px] sm:text-[13px] font-bold text-[#3a6b22]">{booking.recurring}</span>
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col gap-2.5 w-[151px] flex-shrink-0">
+      <div className="flex flex-row sm:flex-col gap-2 sm:gap-2.5 w-full sm:w-[151px] flex-shrink-0">
         {booking.status === 'upcoming' ? (
           <>
-            <button className="w-full py-2 px-2.5 bg-[#fffcf3] border border-[#3a6b22] rounded-full text-[14px] font-bold text-[#3a6b22] hover:bg-[#f8f1d7] transition-colors">
-              Cancel Booking
+            <button className="flex-1 sm:w-full py-2 px-2.5 bg-[#fffcf3] border border-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-[#3a6b22] hover:bg-[#f8f1d7] transition-colors">
+              Cancel
             </button>
             <button 
               onClick={() => handleViewDetails(booking)}
-              className="w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
-              View Details
+              className="flex-1 sm:w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
+              Details
             </button>
           </>
         ) : (
@@ -383,7 +390,7 @@ const BookingHistoryPage = () => {
             </div>
             <button 
               onClick={() => handleViewDetails(booking)}
-              className="w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
+              className="flex-1 sm:w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
               View Details
             </button>
           </>
@@ -395,54 +402,54 @@ const BookingHistoryPage = () => {
   return (
     <UserLayout>
       <div className="min-h-screen bg-light xl:mt-24 mt-16">
-        <div className="max-w-full mx-auto px-20 py-10">
+        <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-20 py-6 sm:py-10">
         {/* Page Title with Back Button */}
-        <div className="flex items-center gap-4 mb-8">
-          <button className="w-12 h-12 bg-[#f8f1d7] rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors">
-            <ArrowLeft className="w-6 h-6 text-[#192215]" />
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <button className="w-10 h-10 sm:w-12 sm:h-12 bg-[#f8f1d7] rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors">
+            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
           </button>
-          <h1 className="text-[29px] font-semibold text-[#192215]">Booking History</h1>
+          <h1 className="text-[24px] sm:text-[29px] font-semibold text-[#192215]">Booking History</h1>
         </div>
 
         {/* Tabs and Filter */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           {/* Tab Switcher */}
-          <div className="inline-flex p-1.5 bg-[#f8f1d7] rounded-full border border-black/3">
+          <div className="inline-flex p-1 sm:p-1.5 bg-[#f8f1d7] rounded-full border border-black/3 overflow-x-auto w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('upcoming')}
-              className={`px-4 py-2.5 rounded-full text-[14px] font-bold transition-all ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${
                 activeTab === 'upcoming' 
                   ? 'bg-[#8fb366] text-white' 
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
               }`}
             >
-              Upcoming Bookings
+              Upcoming
             </button>
             <button
               onClick={() => setActiveTab('previous')}
-              className={`px-4 py-2.5 rounded-full text-[14px] font-bold transition-all ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${
                 activeTab === 'previous' 
                   ? 'bg-[#8fb366] text-white' 
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
               }`}
             >
-              Previous Bookings
+              Previous
             </button>
           </div>
 
           {/* Filter Button */}
           <button 
             onClick={() => setShowFilter(!showFilter)}
-            className="flex items-center gap-2 px-5 py-3 bg-white border border-black/6 rounded-full hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-white border border-black/6 rounded-full hover:bg-gray-50 transition-colors"
           >
-            <Filter className="w-6 h-6 text-[#192215]" />
-            <span className="text-[14px] font-medium text-[#192215]">Filter</span>
-            <ChevronDown className={`w-4 h-4 text-[#192215] transition-transform ${showFilter ? 'rotate-180' : ''}`} />
+            <Filter className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
+            <span className="text-[12px] sm:text-[14px] font-medium text-[#192215]">Filter</span>
+            <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-[#192215] transition-transform ${showFilter ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
         {/* Bookings List */}
-        <div className="bg-light rounded-2xl p-6 mb-6">
+        <div className="bg-light rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6">
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="text-center">
@@ -495,8 +502,8 @@ const BookingHistoryPage = () => {
 
         {/* Pagination */}
         {!loading && !error && displayBookings.length > 0 && (
-          <div className="flex items-center justify-between">
-            <p className="text-[14px] font-semibold italic text-[#192215]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[12px] sm:text-[14px] font-semibold italic text-[#192215] text-center sm:text-left">
               Showing {(page - 1) * 10 + 1}-{Math.min(page * 10, totalBookings)} of {totalBookings}
             </p>
             

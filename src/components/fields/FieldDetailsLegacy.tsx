@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Star, Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
@@ -6,8 +6,10 @@ import { useFieldReviews } from '@/hooks/useReviews';
 import { format } from 'date-fns';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { AddReviewModal } from '@/components/modal/AddReviewModal';
+import { LoginPromptModal } from '@/components/modal/LoginPromptModal';
 import { useSession } from 'next-auth/react';
 import FieldMapWrapper from '@/components/common/FieldMapWrapper';
+import { useToggleFavorite, useFavoriteStatus } from '@/hooks/useFavorites';
 
 interface FieldDetailsLegacyProps {
   field: any;
@@ -20,13 +22,39 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   const router = useRouter();
   const { data: session } = useSession();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalMessage, setLoginModalMessage] = useState('');
   const [rulesOpen, setRulesOpen] = useState(true);  // Expanded by default
   const [bookingOpen, setBookingOpen] = useState(false);  // Collapsed by default
   console.log('field', field)
-  const isClaimed = field?.isActive || isPreview || false;
+  const isClaimed = field?.isClaimed || isPreview || false;
+  
+  // Favorite status and toggle
+  const fieldId = field?.id || field?._id;
+  const { data: isFavorited } = useFavoriteStatus(fieldId);
+  const toggleFavoriteMutation = useToggleFavorite(fieldId);
+  const [isLiked, setIsLiked] = useState(false);
+  
+  useEffect(() => {
+    setIsLiked(isFavorited || false);
+  }, [isFavorited]);
+  
+  const handleToggleFavorite = async () => {
+    if (!session) {
+      setLoginModalMessage('Please login or sign up to save your favorite fields');
+      setShowLoginModal(true);
+      return;
+    }
+    
+    try {
+      const result = await toggleFavoriteMutation.mutateAsync();
+      setIsLiked(result.isFavorited);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
 
   const specifications: { label: string; value: string }[] = [
     { label: 'Field Size', value: field?.size || 'Not specified' },
@@ -64,17 +92,18 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   ];  
 
   return (
-    <div className="min-h-screen bg-[#FFFCF3] mt-32 max-w-[1920px] mx-auto">
-      {headerContent && (
-        <div className="container mx-auto px-4 lg:px-20 pb-2">{headerContent}</div>
-      )}
+    <div className="min-h-screen bg-[#FFFCF3] mt-32 w-full">
+      <div className="max-w-[1920px] mx-auto">
+        {headerContent && (
+          <div className="px-4 lg:px-20 pb-2">{headerContent}</div>
+        )}
 
-      <main className="container  mx-auto px-4 lg:px-20 py-8 lg:py-10">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 lg:items-stretch">
-          <div className="w-full lg:w-[663px] lg:max-w-[663px] lg:flex-shrink-0">
+        <main className="px-4 lg:px-20 py-8 lg:py-10">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12 lg:items-stretch">
+          <div className="w-full lg:w-[45%] xl:w-[50%] 2xl:w-[55%] lg:flex-shrink-0">
             <div className="h-full flex flex-col space-y-4 lg:sticky lg:top-24">
               <div className="grid grid-cols-2 gap-3 lg:gap-4">
-                {fieldImages.slice(0, 6).map((img: string, index: number) => (
+                {fieldImages?.slice(0, 6).map((img: string, index: number) => (
                   <button
                     key={index}
                     type="button"
@@ -108,11 +137,11 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             </div>
           </div>
 
-          <div className="flex-1 space-y-6 lg:min-h-0">
+          <div className="flex-1 space-y-6 lg:min-h-0 lg:min-w-0 overflow-hidden">
             <div>
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
-                <div className="flex items-baseline flex-wrap gap-2">
-                  <h1 className="text-2xl lg:text-3xl font-semibold text-dark-green">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-2">
+                <div className="flex items-baseline flex-wrap gap-2 min-w-0 flex-1">
+                  <h1 className="text-2xl lg:text-3xl font-semibold text-dark-green truncate max-w-full">
                     {field?.name || field?.fieldName || 'Field'}
                   </h1>
                   <span className="text-xl lg:text-2xl text-dark-green">•</span>
@@ -122,28 +151,32 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   </div>
                 </div>
                 <button 
-                  onClick={() => setIsLiked(!isLiked)}
-                  className="mt-2 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200"
+                  onClick={handleToggleFavorite}
+                  disabled={toggleFavoriteMutation.isPending}
+                  className="mt-2 w-10 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200 disabled:opacity-50 flex-shrink-0"
                 >
-                  <svg viewBox="0 0 24 24" className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500'}`}>
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1 4.13 2.44C11.09 5 12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
+                  {isLiked ? (
+                    <img src="/field-details/saved-heart.svg" alt="Saved" className="w-5 h-5" />
+                  ) : (
+                    <img src="/field-details/gray-heart.svg" alt="Saved" className="w-5 h-5" />
+
+                  )}
                 </button>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="flex items-center text-sm lg:text-base text-dark-green">
+                <div className="flex items-center text-sm lg:text-base text-dark-green min-w-0 flex-1">
                   <img src='/location.svg' className="w-5 h-5 text-[#8FB366] mr-1" />
-                  <span>{field?.city ? `${field.city}, ${field.state || field.county}` : 'Location not specified'} • {field?.distance || '0 miles'}</span>
+                  <span className="truncate">{field?.city ? `${field.city}, ${field.state || field.county}` : 'Location not specified'} • {field?.distance || '0 miles'}</span>
                 </div>
-                <div className="flex items-center bg-dark-green text-white px-2 py-1 rounded-md">
+                <div className="flex w-16 sm:w-auto items-center bg-dark-green text-white px-2 py-1 rounded-md flex-shrink-0">
                   <Star className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
                   <span className="text-sm font-semibold">{field?.rating || 4.5}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 overflow-x-auto no-scrollbar pb-2">
               {(field?.amenities || []).map((amenity: string, index: number) => {
                 const iconPath = amenityIconPaths[amenity];
                 return (
@@ -162,18 +195,18 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             {isClaimed && (
               <div className="bg-[#F8F1D7] rounded-lg p-4">
                 <h3 className="font-bold text-lg text-dark-green mb-3">Owner Information</h3>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
                     <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center">
-                        <span className="font-medium text-[#090F1F] mr-1">{field?.ownerName || field?.owner?.name || 'Field Owner'}</span>
+                        <span className="font-medium text-[#090F1F] mr-1 truncate">{field?.ownerName || field?.owner?.name || 'Field Owner'}</span>
                         <BadgeCheck className="w-4 h-4 text-[#3A6B22]" />
                       </div>
                       <span className="text-xs text-gray-500">Joined on {field?.joinedOn || (field?.owner?.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'March 2025')}</span>
                     </div>
                   </div>
-                  <button className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2">
+                  <button className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2 flex-shrink-0 w-full sm:w-auto justify-center">
                    <img src='/msg.svg' className="w-4 h-4 text-[#8FB366] mr-1" />
                     <span className="text-xs font-semibold text-dark-green">Send a Message</span>
                   </button>
@@ -189,6 +222,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 >
                   Claim This Field
                 </button>
+                
                 <Dialog>
                   <DialogTrigger asChild>
                     <button aria-label="What does claim mean" className="w-12 h-12 rounded-full border border-[#8FB366] text-green bg-white flex items-center justify-center">
@@ -213,7 +247,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
 
             <div>
               <h3 className="font-bold text-lg text-dark-green mb-2">Description</h3>
-              <p className="text-dark-green leading-relaxed">
+              <p className="text-dark-green leading-relaxed break-words">
                 {field?.description || "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups."}
                 {field?.description && field.description.length > 200 && (
                   <button className="text-[#3A6B22] font-bold underline ml-1">Show more</button>
@@ -223,11 +257,11 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
 
             <div>
               <h3 className="font-bold text-lg text-dark-green mb-3">Field Specifications</h3>
-              <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+              <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3 overflow-x-auto">
                 {specifications.map((row) => (
-                  <div key={row.label} className="flex items-start justify-between text-sm">
-                    <span className="text-gray-600">{row.label}</span>
-                    <span className="font-medium text-dark-green text-right ml-4">{row.value}</span>
+                  <div key={row.label} className="flex items-start justify-between text-sm gap-4">
+                    <span className="text-gray-600 flex-shrink-0">{row.label}</span>
+                    <span className="font-medium text-dark-green text-right min-w-0 break-words">{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -252,14 +286,23 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             {isClaimed && (
               <div className="space-y-2">
                 {/* Availability Row */}
-                <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 gap-2">
                   <div className="flex items-center gap-2">
                     <img src="/field-details/availablity.svg" alt="availability" className="w-5 h-5" />
                     <span className="text-dark-green font-medium">Availability</span>
                   </div>
-                  <button className="inline-flex items-center text-[#3A6B22] font-medium">
-                    <span className="mr-2">Find Availability Time</span>
-                    <ChevronRight className="w-4 h-4" />
+                  <button 
+                    className="inline-flex items-center justify-center sm:justify-start text-[#3A6B22] font-medium hover:text-[#2e5519] transition-colors w-full sm:w-auto"
+                    onClick={() => {
+                      if (!session) {
+                        router.push('/login');
+                      } else {
+                        router.push(`/fields/book-field?id=${field?._id || field?.id}`);
+                      }
+                    }}
+                  >
+                    <span className="mr-2 whitespace-nowrap">Find Availability Time</span>
+                    <ChevronRight className="w-4 h-4 flex-shrink-0" />
                   </button>
                 </div>
 
@@ -279,7 +322,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   {rulesOpen && (
                     <div className="px-4 pb-4">
                       {/* Host rules cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                         <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">
                           <div className="w-10 h-10 rounded-xl bg-[#F3F7ED] flex items-center justify-center">
                             <img src="/field-details/clock.svg" alt="clock" className="w-5 h-5" />
@@ -370,7 +413,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                           return rulesToDisplay.map((rule: string, index: number) => (
                             <div key={index} className="flex items-start gap-3">
                               <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
-                              <p className="text-sm text-dark-green leading-relaxed">{rule}</p>
+                              <p className="text-sm text-dark-green leading-relaxed break-words">{rule}</p>
                             </div>
                           ));
                         })()}
@@ -480,7 +523,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                         return uniquePolicies.map((policy: string, index: number) => (
                           <div key={index} className="flex items-start gap-3">
                             <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
-                            <p className="text-sm text-dark-green leading-relaxed">{policy}</p>
+                            <p className="text-sm text-dark-green leading-relaxed break-words">{policy}</p>
                           </div>
                         ));
                       })()}
@@ -492,7 +535,13 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
 
             {isClaimed && !isPreview && (
               <button 
-                onClick={() => router.push(`/fields/book-field?id=${field?.id}`)}
+                onClick={() => {
+                  if (!session) {
+                    router.push('/login');
+                  } else {
+                    router.push(`/fields/book-field?id=${field?._id || field?.id}`);
+                  }
+                }}
                 className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
               >
                 Book Now
@@ -632,7 +681,8 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 })()}
               </div>
             )}
-      </main>
+        </main>
+      </div>
 
       {lightboxOpen && (
         <ImageLightbox images={fieldImages} open={lightboxOpen} initialIndex={currentImageIndex} onOpenChange={setLightboxOpen} />
@@ -648,6 +698,13 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
           // Refresh reviews after adding
           window.location.reload();
         }}
+      />
+      
+      {/* Login Prompt Modal */}
+      <LoginPromptModal 
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        message={loginModalMessage}
       />
     </div>
   );

@@ -6,9 +6,11 @@ import { UserLayout } from '@/components/layout/UserLayout';
 import mockData from '@/data/mock-data.json';
 import { useRouter } from 'next/router';
 import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
+import { useSession } from 'next-auth/react';
 
 export default function SearchResults() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [fields, setFields] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -118,11 +120,18 @@ export default function SearchResults() {
   };
 
   const handleBookNow = (fieldId: string) => {
-    router.push(`/fields/claim-field?id=${fieldId}`)
+    // The FieldCard component now handles authentication check and shows modal
+    // This function is called only when user is authenticated
+    router.push(`/fields/book-field?id=${fieldId}`);
+  };
+  
+  const handleClaimField = (fieldId: string) => {
+    // Redirect to claim field form - no authentication required
+    router.push(`/fields/claim-field-form?field_id=${fieldId}`);
   };
 
   return (
-    <UserLayout requireRole="DOG_OWNER">
+    <UserLayout>
       <div className="min-h-screen bg-[#FFFCF3] w-full">
       {/* Search Bar - Sticky below header */}
       <div className="bg-light-cream my-10 sticky top-[80px] md:top-[120px] z-30 px-4 sm:px-6 lg:px-20 py-4">
@@ -487,13 +496,14 @@ export default function SearchResults() {
                       image: field.images?.[0] || '/fields/field1.jpg',
                       owner: field.owner?.name || 'Field Owner',
                       ownerJoined: 'March 2025',
-                      is_claimed: field.isActive || false
+                      isClaimed: field.isClaimed !== undefined ? field.isClaimed : true
                     } : field)}
                     variant="expanded"
                     isLiked={likedFields.includes(field.id)}
                     onLike={handleLike}
                     onViewDetails={handleViewDetails}
                     onBookNow={handleBookNow}
+                    onClaimField={handleClaimField}
                   />
                 ))}
               </div>

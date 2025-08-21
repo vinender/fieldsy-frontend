@@ -48,17 +48,20 @@ export function Header() {
     }
   }, [])
 
-  // Add role-specific navigation items - use consistent initial state
+  // Navigation items based on authentication and role
   const navigation = useMemo(() => {
-    // For initial render (both server and client), use base navigation
-    if (!currentUser) {
-      // Show limited navigation for non-authenticated users
-      return [
-        { name: "Home", href: "/" },
-        { name: "About Us", href: "/about" },
-        { name: "How it works", href: "/how-it-works" },
-        { name: "FAQ's", href: "/faqs" },
-      ]
+    // Base navigation for non-authenticated users (now includes Search Fields)
+    const baseNav = [
+      { name: "Home", href: "/" },
+      { name: "About Us", href: "/about" },
+      { name: "Search Fields", href: "/fields" },
+      { name: "How it works", href: "/how-it-works" },
+      { name: "FAQ's", href: "/faqs" },
+    ]
+    
+    // If not authenticated, show base navigation with Search Fields
+    if (!isAuthenticated || !currentUser) {
+      return baseNav
     }
     
     // For FIELD_OWNER role
@@ -72,7 +75,7 @@ export function Header() {
       ]
     }
     
-    // For DOG_OWNER role (default)
+    // For DOG_OWNER role (default authenticated user)
     return [
       { name: "Home", href: "/" },
       { name: "About Us", href: "/about" },
@@ -80,21 +83,30 @@ export function Header() {
       { name: "How it works", href: "/how-it-works" },
       { name: "FAQ's", href: "/faqs" },
     ]
-  }, [currentUser])
+  }, [currentUser, isAuthenticated])
 
-  // Dynamic user navigation based on role
-  const userNavigation = currentUser?.role === 'FIELD_OWNER' 
-    ? [
-        { name: "Add Field", href: "/" },
+  // Dynamic user navigation based on role (only when authenticated)
+  const userNavigation = useMemo(() => {
+    if (!isAuthenticated || !currentUser) {
+      return []
+    }
+    
+    if (currentUser.role === 'FIELD_OWNER') {
+      return [
+        { name: "Dashboard", href: "/field-owner/dashboard" },
         { name: "My Field", href: "/field-owner/preview" },
+        { name: "Bookings", href: "/field-owner/bookings" },
         { name: "Profile", href: "/user/profile" },
       ]
-    : [
-        { name: "Dashboard", href: "/dashboard" },
-        { name: "My Bookings", href: "/user/my-bookings" },
-        { name: "Saved Fields", href: "/user/saved-fields" },
-        { name: "Profile", href: "/user/profile" },
-      ]
+    }
+    
+    // DOG_OWNER navigation
+    return [
+      { name: "My Bookings", href: "/user/my-bookings" },
+      { name: "Saved Fields", href: "/user/saved-fields" },
+      { name: "Profile", href: "/user/profile" },
+    ]
+  }, [currentUser, isAuthenticated])
 
   // Check if field owner is viewing homepage (which shows their dashboard)
   const isFieldOwnerHomepage = isLandingPage && currentUser?.role === 'FIELD_OWNER'
@@ -143,7 +155,7 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
-          </div>
+          </div>  
           
           {/* Right side items */}
           <div className="hidden xl:flex xl:items-center xl:space-x-4">
@@ -152,20 +164,20 @@ export function Header() {
                 {/* Message Icon */}
                 <button 
                   className={cn(
-                    "p-2 rounded-full transition-colors relative",
+                    "p-2 rounded-full bg-cream transition-colors relative",
                     !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "hover:bg-gray-100" 
-                      : "hover:bg-white/10"
+                      : "hover:bg-cream"
                   )}
                   aria-label="Messages"
                 >
-                  <MessageCircle className={cn("h-5 w-5", textColor)} />
+                  <img src='/header/msg.svg' className={cn("h-6 w-6", textColor)} />
                 </button>
                 
                 {/* Notification Icon with Badge */}
                 <button 
                   className={cn(
-                    "p-2 rounded-full transition-colors relative",
+                    "p-2 rounded-full bg-cream transition-colors relative",
                     !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "hover:bg-gray-100" 
                       : "hover:bg-white/10"
@@ -173,7 +185,7 @@ export function Header() {
                   aria-label="Notifications"
                   onClick={() => setNotificationsOpen(true)}
                 >
-                  <Bell className={cn("h-5 w-5", textColor)} />
+                  <img src='/header/bell.svg' className={cn("h-6 w-6", textColor)} />
                   {unreadCount > 0 && (
                     <span className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 bg-red-500 rounded-full">
                       <span className="text-xs text-white font-semibold">
@@ -330,8 +342,11 @@ export function Header() {
             </div>
             
             <div className="flex-1 h-0 pb-4 overflow-y-auto">
-              {/* Navigation */}
+              {/* Navigation - Show different nav items based on auth state */}
               <nav className="mt-4 px-2 space-y-1">
+                <div className="px-2 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Navigation
+                </div>
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
@@ -347,6 +362,30 @@ export function Header() {
                     {item.name}
                   </Link>
                 ))}
+                
+                {/* Show user-specific navigation items if authenticated */}
+                {isAuthenticated && userNavigation && (
+                  <>
+                    <div className="px-2 py-2 mt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      My Account
+                    </div>
+                    {userNavigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={cn(
+                          "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                          pathname === item.href
+                            ? "bg-green-100 text-green-900"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        )}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </>
+                )}
               </nav>
             </div>
             
@@ -408,20 +447,10 @@ export function Header() {
                     </button>
                   </div>
                   
-                  {/* User navigation */}
-                  <nav className="px-2 pb-3 space-y-1 border-t border-gray-200 pt-3">
-                    {userNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
+                  {/* Sign Out Button */}
+                  <div className="px-2 pb-3 border-t border-gray-200 pt-3">
                     <button
-                      className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                       onClick={() => {
                         setMobileMenuOpen(false)
                         // Clear localStorage items
@@ -435,7 +464,7 @@ export function Header() {
                     >
                       Sign Out
                     </button>
-                  </nav>
+                  </div>
                 </div>
               ) : (
                 <div className="p-4">

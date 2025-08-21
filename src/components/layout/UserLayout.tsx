@@ -23,8 +23,16 @@ export function UserLayout({ children, requireRole }: UserLayoutProps) {
     const authToken = localStorage.getItem('authToken');
     const currentUser = localStorage.getItem('currentUser');
 
+    // If no role is required, allow access to everyone
+    if (!requireRole) {
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // Role is required, check authentication
     if (!authToken && !session && status !== 'loading') {
-      // Not authenticated, redirect to login
+      // Not authenticated but role is required, redirect to login
       router.push(`/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
       return;
     }

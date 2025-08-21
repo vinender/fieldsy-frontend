@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { Input } from '@/components/ui/input';
 import mockData from '@/data/mock-data.json';
 import { s3Uploader, UploadProgress } from '@/utils/s3Upload';
+import { UserLayout } from '@/components/layout/UserLayout';
 
 interface UploadedFile {
   name: string;
@@ -202,7 +203,7 @@ const ClaimFieldPage = () => {
   };
 
   return (
-    <UserLayout requireRole="DOG_OWNER">
+    <UserLayout>
       <div className="min-h-screen bg-light">
       {/* Header */}
       <header className="bg-white shadow-sm">

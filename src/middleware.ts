@@ -18,7 +18,8 @@ export function middleware(request: NextRequest) {
     "/privacy-policy",
     "/terms-conditions",
     "/unauthorized",
-    "/fields", // Public field listing
+    "/fields", // Public field listing and search
+    "/fields/claim-field-form", // Allow claiming fields without auth
   ];
   
   // Check if the path is public

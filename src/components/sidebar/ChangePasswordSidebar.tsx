@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Eye, EyeOff, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useChangePassword } from '@/hooks/useProfile';
+import { toast } from 'sonner';
 
 interface ChangePasswordSidebarProps {
   isOpen?: boolean;
@@ -29,6 +31,8 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
     newPassword: '',
     confirmPassword: ''
   });
+  
+  const changePasswordMutation = useChangePassword();
 
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -56,16 +60,42 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
     }));
   };
 
-  const handleSubmit = () => {
-    // Add password change logic here
-    console.log('Password change submitted:', formData);
-    // Reset form after submission
-    setFormData({
-      oldPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setIsOpen(false);
+  const handleSubmit = async () => {
+    // Validate passwords
+    if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (formData.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters long');
+      return;
+    }
+
+    try {
+      await changePasswordMutation.mutateAsync({
+        currentPassword: formData.oldPassword,
+        newPassword: formData.newPassword
+      });
+      
+      // Reset form after successful submission
+      setFormData({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setIsOpen(false);
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      // Error is handled by the mutation hook
+    }
   };
 
   const closeSidebar = () => {
