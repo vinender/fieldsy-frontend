@@ -198,3 +198,48 @@ export function useSocialLogin(
     reset: mutation.reset,
   };
 }
+
+// Hook for storing pending role (Next.js API route)
+export function useStorePendingRole(
+  options?: Omit<UseMutationOptions<any, Error, { role: string }>, 'mutationFn'>
+) {
+  const mutation = useMutation({
+    mutationFn: async (data: { role: string }) => {
+      // This is a Next.js API route, not a backend route, so we use fetch directly
+      const response = await fetch('/api/auth/store-pending-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to store pending role');
+      }
+
+      return response.json();
+    },
+    onError: (error: any, variables) => {
+      console.error('Store pending role error:', error);
+      
+      if (options?.onError) {
+        options.onError(error, variables, {} as any);
+      }
+    },
+    ...options,
+  });
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isPending: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
+  };
+}

@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import io, { Socket } from 'socket.io-client'
+import { useSendMessage } from '@/hooks/mutations/useMessageMutations'
 
 interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
-  sendMessage: (conversationId: string, content: string, receiverId: string) => void
+  sendMessage: (conversationId: string, content: string, receiverId: string) => Promise<any>
   markAsRead: (messageIds: string[]) => void
   emitTyping: (conversationId: string, isTyping: boolean) => void
 }
@@ -13,7 +14,7 @@ interface SocketContextType {
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
-  sendMessage: () => {},
+  sendMessage: async () => null,
   markAsRead: () => {},
   emitTyping: () => {}
 })
@@ -24,10 +25,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { data: session } = useSession()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const sendMessageMutation = useSendMessage()
 
   useEffect(() => {
     // Get token from session or localStorage
-    const token = (session as any)?.accessToken || localStorage.getItem('authToken');
+    const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
     
     if (token) {
       const newSocket = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001', {
@@ -55,47 +57,31 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [session])
 
-  const sendMessage = async (conversationId: string, content: string, receiverId: string) => {
-    const token = (session as any)?.accessToken || localStorage.getItem('authToken');
-    if (!token) return null
-
+  const sendMessage = useCallback(async (conversationId: string, content: string, receiverId: string) => {
     try {
-      const response = await fetch('/api/chat/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          conversationId,
-          content,
-          receiverId
-        })
+      const result = await sendMessageMutation.mutateAsync({
+        conversationId,
+        content,
+        receiverId
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to send message')
-      }
-      
-      const message = await response.json()
-      return message
+      return result
     } catch (error) {
       console.error('Error sending message:', error)
       return null
     }
-  }
+  }, [sendMessageMutation])
 
-  const markAsRead = (messageIds: string[]) => {
+  const markAsRead = useCallback((messageIds: string[]) => {
     if (socket) {
       socket.emit('mark-as-read', { messageIds })
     }
-  }
+  }, [socket])
 
-  const emitTyping = (conversationId: string, isTyping: boolean) => {
+  const emitTyping = useCallback((conversationId: string, isTyping: boolean) => {
     if (socket) {
       socket.emit('typing', { conversationId, isTyping })
     }
-  }
+  }, [socket])
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, sendMessage, markAsRead, emitTyping }}>

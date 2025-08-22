@@ -15,7 +15,7 @@ export function AboutWhyFieldsySection() {
           </div>
           
           {/* Right Content */}
-          <div className="w-full bg-white">
+          <div className="w-full bg-">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-dark-green mb-6 sm:mb-8 leading-tight lg:leading-[60px]">
               Why Fieldsy?
             </h2>
@@ -44,16 +44,20 @@ export function AboutWhyFieldsySection() {
               </li>
             </ul>
             
-            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border-l-4 border-l-light-green">
+            <div
+              className="p-6 sm:p-8 shadow-sm border-l-4 border-l-light-green"
+              style={{
+                background: "linear-gradient(90deg, rgba(143, 179, 102, 0.20) 0%, rgba(143, 179, 102, 0.00) 100%), white"
+              }}
+            > 
               <h3 className="text-lg sm:text-xl lg:text-[24px] font-[700] text-dark-green mb-3 sm:mb-4 leading-tight lg:leading-[32px]">
-                Join Our Growing Community
+                Let's Build the Future of Field Intelligence
               </h3>
               <p className="text-sm lg:text-[16px] text-dark-green/80 mb-4 sm:mb-6 leading-relaxed lg:leading-[24px] font-[400]">
-                Fieldsy is more than an app—it's a community of dog lovers creating 
-                safer, happier experiences for our four-legged friends. Join us in 
-                making dog walks stress-free and joyful.
+                Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we’re here to help you work smarter on-site, every day.
               </p>
             </div>
+
             
             <button 
               className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors mt-6 sm:mt-8 text-sm sm:text-base"

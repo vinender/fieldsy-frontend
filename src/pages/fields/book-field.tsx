@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
@@ -12,7 +14,7 @@ const BookFieldPage = () => {
   const fieldIdToUse = id ; // Support both query parameters
   console.log('id', router.query?.id)
   const [numberOfDogs, setNumberOfDogs] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('8:00AM - 9:00AM');
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState('morning');
@@ -21,11 +23,10 @@ const BookFieldPage = () => {
   const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string);
   const field = fieldData?.data || fieldData;
 
-  // Set default date to today
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setSelectedDate(today);
-  }, []);
+  // Calculate min date (today) and max date (e.g., 3 months from now)
+  const minDate = new Date();
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 3);
   
   if (isLoading) {
     return (
@@ -212,12 +213,17 @@ const BookFieldPage = () => {
                   Choose Date
                 </label>
                 <div className="relative">
-                  <Input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="h-14 border-[#E3E3E3] focus:border-[#3A6B22] text-[15px] font-medium cursor-pointer"
+                  <DatePicker
+                    selected={selectedDate}
+                    onChange={(date: Date | null) => setSelectedDate(date)}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText="Select a date"
+                    className="h-14 bg-white w-full border-[#E3E3E3] focus:border-[#3A6B22] text-[15px] font-medium cursor-pointer px-4 py-2 border rounded-[70px] focus:outline-none focus:ring-1 focus:ring-[#3A6B22]/20"
+                    calendarClassName="fieldsy-calendar"
+                    wrapperClassName="w-full"
+                    showPopperArrow={false}
                   />
                   <img src='/book-field/calendar.svg' className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[#3A6B22] pointer-events-none" />
                 </div>
@@ -375,7 +381,7 @@ const BookFieldPage = () => {
                     query: {
                       field_id: fieldIdToUse,
                       numberOfDogs: numberOfDogs,
-                      date: selectedDate,
+                      date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
                       timeSlot: selectedTimeSlot,
                       repeatBooking: repeatBooking,
                       price: field.pricePerHour || field.price || 0

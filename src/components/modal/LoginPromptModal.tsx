@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 
@@ -29,6 +29,8 @@ export function LoginPromptModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+        {/* Visually hidden title for accessibility */}
+        <DialogTitle className="sr-only">Welcome to Fieldsy - Login or Sign Up</DialogTitle>
         <div className="relative">
           {/* Header with gradient background */}
           <div className="bg-gradient-to-r from-[#3A6B22] to-[#8FB366] p-6 text-white">

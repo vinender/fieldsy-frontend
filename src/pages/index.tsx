@@ -77,8 +77,8 @@ const TestimonialsSection = dynamic(
   }
 )
 
-const FAQSection = dynamic(
-  () => import("@/components/landing/FAQSection").then(mod => ({ default: mod.FAQSection })),
+const FAQSectionWithImage = dynamic(
+  () => import("@/components/common/FAQSectionWithImage").then(mod => ({ default: mod.FAQSectionWithImage })),
   {
     loading: () => (
       <div className="py-20 bg-light-cream">
@@ -254,7 +254,7 @@ export default function HomePage() {
           </div>
         }
       >
-        <FAQSection />
+        <FAQSectionWithImage />
       </LazySection>
 
       {/* Footer */}

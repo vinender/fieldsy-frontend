@@ -11,6 +11,7 @@ import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotifications } from "@/contexts/NotificationContext"
+import router from "next/router"
 
 export function Header() {
   const pathname = usePathname()
@@ -164,7 +165,7 @@ export function Header() {
             {isAuthenticated ? (
               <>
                 {/* Message Icon */}
-                <button 
+                <button onClick={() => router.push('/user/messages')}
                   className={cn(
                     "p-2 rounded-full bg-cream transition-colors relative",
                     !isLandingPage || scrolled || isFieldOwnerHomepage
@@ -189,8 +190,8 @@ export function Header() {
                 >
                   <img src='/header/bell.svg' className={cn("h-6 w-6", textColor)} />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 bg-red-500 rounded-full">
-                      <span className="text-xs text-white font-semibold">
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red rounded-full shadow-md">
+                      <span className="text-[11px] text-white font-bold">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     </span>
@@ -440,8 +441,8 @@ export function Header() {
                     >
                       <Bell className="h-5 w-5 text-gray-600" />
                       {unreadCount > 0 && (
-                        <span className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 bg-red-500 rounded-full">
-                          <span className="text-xs text-white font-semibold">
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-600 rounded-full shadow-md">
+                          <span className="text-[11px] text-white font-bold">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         </span>

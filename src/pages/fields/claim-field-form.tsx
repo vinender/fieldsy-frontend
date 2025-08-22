@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Upload, X, Loader2, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { Input } from '@/components/ui/input';
 import mockData from '@/data/mock-data.json';
-import { s3Uploader, UploadProgress } from '@/utils/s3Upload';
+import { DocumentUploader } from '@/components/ui/image-grid-uploader';
 import { UserLayout } from '@/components/layout/UserLayout';
-
-interface UploadedFile {
-  name: string;
-  size: string;
-  url?: string;
-  uploaded: boolean;
-  progress?: number;
-  error?: string;
-}
+import { useSubmitFieldClaim } from '@/hooks/useFieldClaim';
+import { ClaimSuccessModal } from '@/components/modal/ClaimSuccessModal';
 
 const ClaimFieldPage = () => {
   const router = useRouter();
@@ -31,9 +24,9 @@ const ClaimFieldPage = () => {
   });
   
   const [phoneCode, setPhoneCode] = useState('+44');
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [dragActive, setDragActive] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const submitClaimMutation = useSubmitFieldClaim();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,110 +36,8 @@ const ClaimFieldPage = () => {
     }));
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const uploadFile = async (file: File) => {
-    const tempFile: UploadedFile = {
-      name: file.name,
-      size: formatFileSize(file.size),
-      uploaded: false,
-      progress: 0
-    };
-
-    // Add file to list with initial state
-    setUploadedFiles(prev => [...prev, tempFile]);
-    const fileIndex = uploadedFiles.length;
-
-    try {
-      setIsUploading(true);
-      
-      const fileUrl = await s3Uploader.uploadFile({
-        file,
-        onProgress: (progress: UploadProgress) => {
-          setUploadedFiles(prev => 
-            prev.map((f, i) => 
-              i === fileIndex 
-                ? { ...f, progress: progress.percentage }
-                : f
-            )
-          );
-        }
-      });
-
-      // Update file with success status
-      setUploadedFiles(prev => 
-        prev.map((f, i) => 
-          i === fileIndex 
-            ? { ...f, url: fileUrl, uploaded: true, progress: 100 }
-            : f
-        )
-      );
-    } catch (error) {
-      // Update file with error status
-      setUploadedFiles(prev => 
-        prev.map((f, i) => 
-          i === fileIndex 
-            ? { ...f, error: error instanceof Error ? error.message : 'Upload failed', uploaded: false }
-            : f
-        )
-      );
-      console.error('Upload error:', error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const files = Array.from(e.dataTransfer.files);
-      for (const file of files) {
-        await uploadFile(file);
-      }
-    }
-  };
-
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const files = Array.from(e.target.files);
-      for (const file of files) {
-        await uploadFile(file);
-      }
-    }
-  };
-
-  const removeFile = async (index: number) => {
-    const file = uploadedFiles[index];
-    
-    // If file was uploaded to S3, delete it
-    if (file.url) {
-      try {
-        await s3Uploader.deleteFile(file.url);
-      } catch (error) {
-        console.error('Error deleting file:', error);
-      }
-    }
-    
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  const handleFilesChange = (files: string[]) => {
+    setUploadedFiles(files);
   };
 
   // Get field data based on field_id
@@ -170,36 +61,26 @@ const ClaimFieldPage = () => {
     }
 
     // Check if all files are uploaded
-    const pendingUploads = uploadedFiles.filter(f => !f.uploaded && !f.error);
-    if (pendingUploads.length > 0) {
-      alert('Please wait for all files to finish uploading');
-      return;
-    }
+    // Files are already URLs in the new component
 
-    const uploadedUrls = uploadedFiles
-      .filter(f => f.uploaded && f.url)
-      .map(f => f.url);
-
+    // Prepare data for submission
     const submitData = {
-      ...formData,
+      fieldId: field_id as string,
+      fullName: formData.fullName,
+      email: formData.email,
       phoneCode,
-      fieldId: field_id,
-      fieldName: field?.name,
-      documents: uploadedUrls,
-      submittedAt: new Date().toISOString()
+      phoneNumber: formData.phoneNumber,
+      isLegalOwner: formData.isLegalOwner!,
+      documents: uploadedFiles
     };
 
-    console.log('Form submitted:', submitData);
-    
-    // Here you would submit to backend API
-    // const response = await fetch('/api/claims/submit', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(submitData)
-    // });
-
-    alert('Claim request submitted successfully!');
-    router.push(`/fields/${field_id}`);
+    try {
+      await submitClaimMutation.mutateAsync(submitData);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Error submitting claim:', error);
+      // Error is already handled by the mutation hook (toast notification)
+    }
   };
 
   return (
@@ -248,7 +129,7 @@ const ClaimFieldPage = () => {
       </header> 
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 lg:px-20 py-8 lg:py-10">
+      <main className="container mx-auto  py-8 lg:py-10">
         {/* Back Button and Title */}
         <div className="flex items-center gap-4 mb-8">
           <button 
@@ -270,9 +151,9 @@ const ClaimFieldPage = () => {
         </div>
 
         {/* Form Container */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-2">
           {/* Left Column - Personal Information */}
-          <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm">
+          <div className="bg-white rounded-l-2xl p-6 lg:p-8 ">
             <h3 className="text-xl font-bold text-dark-green mb-2">Personal Information</h3>
             <p className="text-[#6B737D] text-sm mb-6">
               We'll use this information to contact you and verify your request.
@@ -314,38 +195,43 @@ const ClaimFieldPage = () => {
                 <label className="block text-sm font-medium text-dark-green mb-2">
                   Phone Number
                 </label>
-                <div className="flex ">
+
+                {/* Wrapper with focus-within */}
+                <div className="flex rounded-[76px] border border-gray-200 bg-white focus-within:border-[#3A6B22] focus-within:ring-1 focus-within:ring-[#3A6B22] transition-colors">
                   <select
                     value={phoneCode}
                     onChange={(e) => setPhoneCode(e.target.value)}
-                    className="px-3 py-3 rounded-[76px] border rounded-r-none border-r-0 border-gray-200 bg-white focus:border-[#3A6B22] focus:outline-none focus:ring-1 focus:ring-[#3A6B22] transition-colors"
+                    className="px-3 py-3 rounded-l-[76px] border-none  bg-transparent focus:outline-none"
                   >
                     <option value="+44">+44</option>
                     <option value="+1">+1</option>
                     <option value="+91">+91</option>
                   </select>
-                  <div className="h-10my-auto w-px bg-gray-300"></div>
+
+                  <div className="h-10 my-auto w-px bg-gray-300"></div>
+
                   <Input
                     type="tel"
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="Enter phone number"
-                    className="flex-1 py-3 border-l-0 rounded-l-none rounded-[76px] border-gray-200 focus:border-[#3A6B22] focus:ring-[#3A6B22]"
+                    className="flex-1 py-3 border-none rounded-r-[76px] focus:ring-0 border-border-none focus:outline-none bg-transparent"
                   />
                 </div>
               </div>
+
 
               {/* Legal Owner Question */}
               <div>
                 <label className="block text-sm font-medium text-dark-green mb-3">
                   Are you the legal owner of this field?
                 </label>
-                <div className="flex gap-3">
+                <div className="flex gap-3 w-1/2">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, isLegalOwner: true }))}
-                    className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                    className={`flex-1 py-3 px-4 rounded-[14px] font-medium transition-all ${
                       formData.isLegalOwner === true
                         ? 'bg-[#8FB366] text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -356,7 +242,7 @@ const ClaimFieldPage = () => {
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, isLegalOwner: false }))}
-                    className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                    className={`flex-1 py-3 px-4 rounded-[14px] font-medium transition-all ${
                       formData.isLegalOwner === false
                         ? 'bg-gray-400 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -370,122 +256,58 @@ const ClaimFieldPage = () => {
           </div>
 
           {/* Right Column - Ownership Proof */}
-          <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm">
+          <div className="bg-white rounded-r-2xl p-6 lg:p-8">
             <h3 className="text-xl font-bold text-dark-green mb-2">Ownership Proof</h3>
             <p className="text-[#6B737D] text-sm mb-6">
               We require ownership evidence to ensure the field is genuine & secure.
             </p>
-
-            {/* Upload Area */}
-            <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                dragActive ? 'border-[#3A6B22] bg-green-50' : 'border-gray-300 bg-[#F8F9FA]'
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                id="file-upload"
-                multiple
-                onChange={handleFileInput}
-                className="hidden"
-              />
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <div className="w-16 h-16 mx-auto mb-4 bg-[#E8F5E1] rounded-full flex items-center justify-center">
-                  <Upload className="w-8 h-8 text-[#3A6B22]" />
-                </div>
-                <p className="text-lg font-semibold text-dark-green mb-2">Upload ID Here</p>
-                <p className="text-sm text-[#6B737D]">
-                  Drag and drop here or <span className="text-[#3A6B22] font-semibold">click to upload</span>
-                </p>
-                <p className="text-xs text-[#9CA3AF] mt-2">
-                  Supported format : png, jpg, pdf
-                </p>
-              </label>
-            </div>
-
-            {/* Uploaded Files */}
-            {uploadedFiles.length > 0 && (
-              <div className="mt-6 space-y-3">
-                {uploadedFiles.map((file, index) => (
-                  <div key={index} className={`flex items-center justify-between p-3 rounded-lg transition-all ${
-                    file.error ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
-                  }`}>
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`w-10 h-10 rounded flex items-center justify-center ${
-                        file.error ? 'bg-red-100' : file.uploaded ? 'bg-green-100' : 'bg-[#F8F1D7]'
-                      }`}>
-                        {file.error ? (
-                          <X className="w-5 h-5 text-red-500" />
-                        ) : file.uploaded ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        ) : file.progress && file.progress > 0 ? (
-                          <Loader2 className="w-5 h-5 text-[#3A6B22] animate-spin" />
-                        ) : (
-                          <span className="text-lg">📄</span>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-dark-green">{file.name}</p>
-                        <div className="flex items-center gap-2">
-                          {file.size && <p className="text-xs text-[#6B737D]">{file.size}</p>}
-                          {file.error && (
-                            <p className="text-xs text-red-600">{file.error}</p>
-                          )}
-                          {file.uploaded && !file.error && (
-                            <p className="text-xs text-green-600">Uploaded successfully</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {file.uploaded || file.error ? (
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
-                        disabled={isUploading && !file.uploaded && !file.error}
-                      >
-                        <X className="w-4 h-4 text-gray-600" />
-                      </button>
-                    ) : (
-                      <div className="w-24">
-                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#3A6B22] transition-all duration-300"
-                            style={{ width: `${file.progress || 0}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-gray-500 text-center mt-1">{file.progress || 0}%</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            <DocumentUploader
+              value={uploadedFiles}
+              onChange={handleFilesChange}
+              uploadText="Upload ID Here"
+            />
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-center gap-4 mt-8">
+        <div className="flex justify-center py-4 bg-white gap-4 ">
           <button 
             onClick={() => router.push(`/fields/${field_id}`)}
-            className="px-8 py-3 border border-gray-300 rounded-full font-semibold text-dark-green hover:bg-gray-50 transition-colors min-w-[150px]"
+            disabled={submitClaimMutation.isPending}
+            className="px-8 py-3 border border-gray-300 rounded-full font-semibold text-dark-green hover:bg-gray-50 transition-colors min-w-[150px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-8 py-3 bg-[#3A6B22] text-white rounded-full font-semibold hover:bg-[#2D5A1B] transition-colors min-w-[150px]"
+            disabled={submitClaimMutation.isPending}
+            className="px-8 py-3 bg-[#3A6B22] text-white rounded-full font-semibold hover:bg-[#2D5A1B] transition-colors min-w-[150px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Submit Claim
+            {submitClaimMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Claim'
+            )}
           </button>
         </div>
       </main>
 
   
     </div>
+    
+    {/* Success Modal */}
+    <ClaimSuccessModal
+      isOpen={showSuccessModal}
+      onClose={() => {
+        setShowSuccessModal(false);
+        router.push(`/fields/${field_id}`);
+      }}
+      fieldName={field?.name}
+      fieldId={field_id as string}
+    />
     </UserLayout>
   );
 };

@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label"
 import { ImageGrid } from "@/components/forms/ImageGrid"
 import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 import Link from "next/link"
+import { useLoginWithOtpCheck } from "@/hooks/mutations/useOtpMutations"
+import { useStorePendingRole } from "@/hooks/mutations/useAuthMutations"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -22,13 +24,15 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export function LoginForm() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [isAppleLoading, setIsAppleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [pendingProvider, setPendingProvider] = useState<'google' | 'apple' | null>(null)
   const { login } = useAuth()
+  
+  // Use mutation for storing pending role
+  const storePendingRoleMutation = useStorePendingRole()
 
   const {
     register,
@@ -38,35 +42,54 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
   })
 
+  // Use the OTP login mutation hook
+  const loginWithOtpCheckMutation = useLoginWithOtpCheck({
+    onSuccess: async (result, variables) => {
+      // Store token and user data
+      if (result.data?.token) {
+        localStorage.setItem('token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
+      }
+
+      // Login successful, use NextAuth for session management
+      const roleFromQuery = router.query.role as string;
+      await login({ 
+        email: variables.email, 
+        password: variables.password,
+        ...(roleFromQuery && { role: roleFromQuery })
+      });
+      
+      // Redirect based on role or callback URL
+      const callbackUrl = router.query.callbackUrl as string || '/';
+      router.push(callbackUrl);
+    },
+    onError: (error: any) => {
+      const response = error?.response;
+      
+      // Check if email verification is required and redirect
+      if (response?.status === 403 && response?.data?.data?.requiresVerification) {
+        const email = response.data.data.email;
+        const role = response.data.data.role;
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=login`);
+      }
+    }
+  });
+
   async function onSubmit(data: LoginFormData) {
-    setIsLoading(true)
     try {
       // Get the role from the URL query params if present
       const roleFromQuery = router.query.role as string;
-      await login({ 
-        email: data.email, 
-        password: data.password,
-        ...(roleFromQuery && { role: roleFromQuery })
-      })
-      toast.success("Login successful!")
-      // Don't redirect here - let useAuth handle it with callbackUrl
-    } catch (error: any) {
-      const errorMessage = error?.message || "Invalid email or password";
       
-      // Show specific error messages with suggestions
-      if (errorMessage.includes("social login")) {
-        toast.error(
-          <div>
-            <p className="font-semibold">Social login required</p>
-            <p className="text-sm mt-1">{errorMessage}</p>
-          </div>,
-          { duration: 5000 }
-        );
-      } else {
-        toast.error(errorMessage);
-      }
-    } finally {
-      setIsLoading(false)
+      // Use the mutation to login with OTP check
+      await loginWithOtpCheckMutation.mutateAsync({
+        email: data.email,
+        password: data.password,
+        role: roleFromQuery || 'DOG_OWNER',
+      });
+    } catch (error) {
+      // Error is already handled by the mutation's onError callback
+      // Just catch it here to prevent unhandled promise rejection
+      console.log('Login error handled by mutation hook');
     }
   }
 
@@ -87,11 +110,7 @@ export function LoginForm() {
       console.log('[LoginForm] Stored role in localStorage:', role);
       
       // Store on server for NextAuth callback to retrieve
-      await fetch('/api/auth/store-pending-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
-      });
+      await storePendingRoleMutation.mutateAsync({ role });
       console.log('[LoginForm] Stored role on server:', role);
       
       // Call the social login
@@ -165,7 +184,7 @@ export function LoginForm() {
               <button
                 type="button"
                 className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
-                disabled={isGoogleLoading || isLoading}
+                disabled={isGoogleLoading || loginWithOtpCheckMutation.isLoading}
                 onClick={() => {
                   setPendingProvider('google')
                   setShowRoleModal(true)
@@ -177,7 +196,7 @@ export function LoginForm() {
               <button
                 type="button"
                 className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
-                disabled={isAppleLoading || isLoading}
+                disabled={isAppleLoading || loginWithOtpCheckMutation.isLoading}
                 onClick={() => {
                   setPendingProvider('apple')
                   setShowRoleModal(true)
@@ -212,7 +231,7 @@ export function LoginForm() {
                 type="email"
                 {...register("email")}
                 placeholder="Enter email address"
-                disabled={isLoading}
+                disabled={loginWithOtpCheckMutation.isLoading}
                 className="h-12 border-gray-300 focus:border-green focus:ring-green/20"
               />
               {errors.email && (
@@ -230,7 +249,7 @@ export function LoginForm() {
                   type={showPassword ? "text" : "password"}
                   {...register("password")}
                   placeholder="Enter password"
-                  disabled={isLoading}
+                  disabled={loginWithOtpCheckMutation.isLoading}
                   className="h-12 pr-12 border-gray-300  focus:border-green focus:ring-green/20"
                 />
                 <button
@@ -253,10 +272,10 @@ export function LoginForm() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loginWithOtpCheckMutation.isLoading}
               className="w-full py-4 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 mt-6 bg-green"
             >
-              {isLoading ? 'Signing in...' : 'Login'}
+              {loginWithOtpCheckMutation.isLoading ? 'Signing in...' : 'Login'}
             </button>
           </form>
 

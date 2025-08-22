@@ -7,8 +7,10 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRequestPasswordReset } from "@/hooks/mutations/useOtpMutations"
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -17,10 +19,11 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>
 
 export default function ForgotPasswordForm() {
+  const router = useRouter()
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ForgotPasswordData>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -28,20 +31,22 @@ export default function ForgotPasswordForm() {
     },
   })
 
+  // Use the password reset mutation hook
+  const requestPasswordResetMutation = useRequestPasswordReset({
+    onSuccess: (data, variables) => {
+      // Redirect to OTP verification page for password reset
+      router.push(`/verify-otp?email=${encodeURIComponent(variables.email)}&from=reset`)
+    }
+  })
+
   async function onSubmit(values: ForgotPasswordData) {
     try {
-      // Simulate API call for email verification
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Store email for OTP page
-      const emailParam = encodeURIComponent(values.email)
-      
-      toast.success("Verification code sent to your email!")
-      
-      // Redirect to OTP verification page
-      window.location.href = `/verify-otp?email=${emailParam}`
-    } catch (e: any) {
-      toast.error(e?.message || "Something went wrong. Please try again.")
+      await requestPasswordResetMutation.mutateAsync({
+        email: values.email
+      })
+    } catch (error) {
+      // Error is already handled by the mutation's onError callback
+      console.log('Password reset request error handled by mutation hook')
     }
   }
 
@@ -122,10 +127,10 @@ export default function ForgotPasswordForm() {
 
               <button 
                 type="submit" 
-                disabled={isSubmitting} 
+                disabled={requestPasswordResetMutation.isLoading} 
                 className="w-full py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 bg-green"
               >
-                {isSubmitting ? "Sending..." : "Continue"}
+                {requestPasswordResetMutation.isLoading ? "Sending..." : "Continue"}
               </button>
             </form>
 

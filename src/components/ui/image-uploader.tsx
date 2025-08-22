@@ -258,7 +258,7 @@ export function ImageUploader({
         // Slower, more realistic progress increments
         const increment = simulatedProgress < 30 
           ? Math.random() * 8 + 3  // 3-11% at start
-          : simulatedProgress < 60 
+          : simulatedProgress < 60  
           ? Math.random() * 5 + 2  // 2-7% in middle
           : Math.random() * 3 + 1  // 1-4% near end
         

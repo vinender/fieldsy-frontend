@@ -3,6 +3,13 @@ import { useSession } from 'next-auth/react';
 import { useAuth } from '@/contexts/AuthContext';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
+import { useNotifications as useNotificationQuery, useUnreadNotificationsCount } from '@/hooks/queries/useNotificationQueries';
+import { 
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+  useDeleteNotification,
+  useClearAllNotifications
+} from '@/hooks/mutations/useNotificationMutations';
 
 interface Notification {
   id: string;
@@ -21,7 +28,7 @@ interface NotificationContextType {
   unreadCount: number;
   isConnected: boolean;
   loading: boolean;
-  fetchNotifications: () => Promise<void>;
+  fetchNotifications: () => void;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
@@ -42,10 +49,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const { data: session, status } = useSession();
   const { user: authUser } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
-  const [loading, setLoading] = useState(false);
+  
+  // Use React Query hooks for notifications
+  const { data: notificationData, isLoading, refetch: refetchNotifications } = useNotificationQuery();
+  const { data: unreadData } = useUnreadNotificationsCount();
+  
+  // Mutations
+  const markNotificationAsReadMutation = useMarkNotificationAsRead();
+  const markAllAsReadMutation = useMarkAllNotificationsAsRead();
+  const deleteNotificationMutation = useDeleteNotification();
+  const clearAllMutation = useClearAllNotifications();
+  
+  const notifications = notificationData?.notifications || [];
+  const unreadCount = unreadData?.count || 0;
+  const loading = isLoading;
 
   // Get auth token from either NextAuth or custom auth
   const getAuthToken = useCallback(() => {
@@ -70,150 +88,56 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return null;
   }, [session?.accessToken]);
 
-  // Fetch notifications from API
-  const fetchNotifications = useCallback(async () => {
-    const token = getAuthToken();
-    if (!token) return;
-    
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/notifications`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.data.notifications);
-        setUnreadCount(data.data.unreadCount);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [getAuthToken]);
+  // Fetch notifications (trigger refetch)
+  const fetchNotifications = useCallback(() => {
+    refetchNotifications();
+  }, [refetchNotifications]);
 
   // Mark notification as read
   const markAsRead = useCallback(async (id: string) => {
-    const token = getAuthToken();
-    if (!token) return;
-
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/notifications/${id}/read`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        setNotifications(prev =>
-          prev.map(n => (n.id === id ? { ...n, read: true, readAt: new Date().toISOString() } : n))
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-        
-        // Also emit through socket if connected
-        if (socket) {
-          socket.emit('markAsRead', id);
-        }
+      await markNotificationAsReadMutation.mutateAsync(id);
+      
+      // Also emit through socket if connected
+      if (socket) {
+        socket.emit('markAsRead', id);
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
-  }, [getAuthToken, socket]);
+  }, [markNotificationAsReadMutation, socket]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
-    const token = getAuthToken();
-    if (!token) return;
-
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/notifications/read-all`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        setNotifications(prev =>
-          prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() }))
-        );
-        setUnreadCount(0);
-        
-        // Also emit through socket if connected
-        if (socket) {
-          socket.emit('markAllAsRead');
-        }
+      await markAllAsReadMutation.mutateAsync();
+      
+      // Also emit through socket if connected
+      if (socket) {
+        socket.emit('markAllAsRead');
       }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
-  }, [getAuthToken, socket]);
+  }, [markAllAsReadMutation, socket]);
 
   // Delete notification
   const deleteNotification = useCallback(async (id: string) => {
-    const token = getAuthToken();
-    if (!token) return;
-
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/notifications/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const notification = notifications.find(n => n.id === id);
-        setNotifications(prev => prev.filter(n => n.id !== id));
-        if (notification && !notification.read) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
-      }
+      await deleteNotificationMutation.mutateAsync(id);
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
-  }, [getAuthToken, notifications]);
+  }, [deleteNotificationMutation]);
 
   // Clear all notifications
   const clearAll = useCallback(async () => {
-    const token = getAuthToken();
-    if (!token) return;
-
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/notifications/clear-all`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        setNotifications([]);
-        setUnreadCount(0);
-      }
+      await clearAllMutation.mutateAsync();
     } catch (error) {
       console.error('Error clearing notifications:', error);
     }
-  }, [getAuthToken]);
+  }, [clearAllMutation]);
 
   // Setup WebSocket connection
   useEffect(() => {
@@ -251,9 +175,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         console.log('Type:', notification.type);
         console.log('Title:', notification.title);
         
-        // Add to notifications list
-        setNotifications(prev => [notification, ...prev]);
-        setUnreadCount(prev => prev + 1);
+        // Refetch notifications to update the list
+        refetchNotifications();
         
         // Show toast notification
         toast.success(notification.title, {
@@ -264,7 +187,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       // Handle unread count update
       socketInstance.on('unreadCount', (count: number) => {
-        setUnreadCount(count);
+        // Refetch to update unread count
+        refetchNotifications();
       });
 
       setSocket(socketInstance);
@@ -276,7 +200,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         socketInstance.disconnect();
       };
     }
-  }, [getAuthToken, fetchNotifications]);
+  }, [getAuthToken, refetchNotifications]);
 
   return (
     <NotificationContext.Provider

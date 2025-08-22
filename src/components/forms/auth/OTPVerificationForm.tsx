@@ -4,16 +4,74 @@ import React, { useState, useRef, useEffect } from "react"
 import { toast } from "sonner"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { useVerifyOtp, useResendOtp, useVerifyPasswordResetOtp } from "@/hooks/mutations/useOtpMutations"
+import { signIn } from "next-auth/react"
 
 export default function OTPVerificationForm() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [isResending, setIsResending] = useState(false)
   const [resendTimer, setResendTimer] = useState(30)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
+  const role = searchParams.get("role") || "DOG_OWNER"
+  const from = searchParams.get("from") || "signup" // 'signup', 'login', or 'reset'
+
+  // Use appropriate mutation based on the flow
+  const verifyOtpMutation = useVerifyOtp({
+    onSuccess: async (result) => {
+      // For signup or login flow, log the user in after successful verification
+      if ((from === 'signup' || from === 'login') && result.data?.token) {
+        // Store token and user data
+        localStorage.setItem('token', result.data.token)
+        localStorage.setItem('user', JSON.stringify(result.data.user))
+        
+        // Use NextAuth to establish session with the token
+        const signInResult = await signIn('credentials', {
+          email: result.data.user.email,
+          token: result.data.token,
+          redirect: false,
+        })
+        
+        if (signInResult?.ok) {
+          // Redirect to home or dashboard
+          router.push('/')
+        } else {
+          toast.error('Failed to establish session. Please try logging in.')
+          router.push('/login')
+        }
+      }
+    },
+    onError: () => {
+      // Clear OTP fields on error
+      setOtp(["", "", "", "", "", ""])
+      inputRefs.current[0]?.focus()
+    }
+  })
+
+  const verifyPasswordResetMutation = useVerifyPasswordResetOtp({
+    onSuccess: (result) => {
+      // Store the OTP in session storage for the reset password page
+      const otpCode = otp.join("")
+      sessionStorage.setItem('reset_otp', otpCode)
+      
+      // For password reset, redirect to reset password page
+      router.push(`/reset-password?email=${encodeURIComponent(email)}&verified=true`)
+    },
+    onError: () => {
+      // Clear OTP fields on error
+      setOtp(["", "", "", "", "", ""])
+      inputRefs.current[0]?.focus()
+    }
+  })
+
+  const resendOtpMutation = useResendOtp({
+    onSuccess: () => {
+      setResendTimer(30)
+      setOtp(["", "", "", "", "", ""])
+      inputRefs.current[0]?.focus()
+    }
+  })
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -85,42 +143,38 @@ export default function OTPVerificationForm() {
       return
     }
 
-    setIsVerifying(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // For demo: accept OTP "123456"
-      if (code === "123456") {
-        toast.success("Email verified successfully!")
-        // Redirect to reset password page with a token
-        router.push(`/reset-password?token=${btoa(email)}&verified=true`)
+      // Use appropriate mutation based on flow
+      if (from === 'reset') {
+        await verifyPasswordResetMutation.mutateAsync({
+          email,
+          otp: code,
+        })
       } else {
-        throw new Error("Invalid OTP")
+        await verifyOtpMutation.mutateAsync({
+          email,
+          otp: code,
+          role,
+        })
       }
-    } catch (e: any) {
-      toast.error(e?.message || "Invalid OTP. Please try again.")
-      // Clear OTP fields on error
-      setOtp(["", "", "", "", "", ""])
-      inputRefs.current[0]?.focus()
-    } finally {
-      setIsVerifying(false)
+    } catch (error: any) {
+      // Error is already handled by the mutation's onError callback which shows toast
+      // Just catch it here to prevent unhandled promise rejection
+      console.log('OTP verification error handled by mutation hook')
     }
   }
 
   const handleResend = async () => {
-    setIsResending(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success("New OTP sent to your email!")
-      setResendTimer(30)
-      setOtp(["", "", "", "", "", ""])
-      inputRefs.current[0]?.focus()
-    } catch {
-      toast.error("Failed to resend OTP. Please try again.")
-    } finally {
-      setIsResending(false)
+      const otpType = from === 'reset' ? 'RESET_PASSWORD' : 'SIGNUP'
+      await resendOtpMutation.mutateAsync({
+        email,
+        type: otpType,
+      })
+    } catch (error: any) {
+      // Error is already handled by the mutation's onError callback which shows toast
+      // Just catch it here to prevent unhandled promise rejection
+      console.log('Resend OTP error handled by mutation hook')
     }
   }
 
@@ -169,9 +223,11 @@ export default function OTPVerificationForm() {
 
             {/* Header */}
             <div className="text-left mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">OTP Verification for Email</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                {from === 'reset' ? 'Reset Password Verification' : 'Email Verification'}
+              </h2>
               <p className="text-gray-500">
-              Enter 6-digit OTP sent on your registered email davidengland12@gmail.com.
+                Enter 6-digit OTP sent to {email || 'your registered email'}.
               </p>
             </div>
 
@@ -193,7 +249,7 @@ export default function OTPVerificationForm() {
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={index === 0 ? handlePaste : undefined}
                     className="w-[56px] h-[56px] px-[8px] py-[16px] text-center text-xl font-semibold bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green/20 transition-all"
-                    disabled={isVerifying}
+                    disabled={verifyOtpMutation.isLoading || verifyPasswordResetMutation.isLoading}
                   />
                 ))}
               </div>
@@ -205,35 +261,40 @@ export default function OTPVerificationForm() {
                 ) : (
                   <button
                     onClick={handleResend}
-                    disabled={isResending}
+                    disabled={resendOtpMutation.isLoading}
                     className="text-green hover:underline font-medium"
                   >
-                    {isResending ? 'Sending...' : 'Resend OTP'}
+                    {resendOtpMutation.isLoading ? 'Sending...' : 'Resend OTP'}
                   </button>
                 )}
-              </p>
-              
-              <p className="text-left text-sm text-gray-500 mt-2">
-                For testing, use: <span className="font-mono font-semibold">123456</span>
               </p>
             </div>
 
             {/* Verify Button */}
             <button
               onClick={() => handleVerify()}
-              disabled={isVerifying || otp.join("").length !== 6}
+              disabled={verifyOtpMutation.isLoading || verifyPasswordResetMutation.isLoading || otp.join("").length !== 6}
               className="w-full py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-90 bg-green mb-6"
             >
-              {isVerifying ? "Verifying..." : "Verify Email"}
+              {(verifyOtpMutation.isLoading || verifyPasswordResetMutation.isLoading) ? "Verifying..." : "Verify Email"}
             </button>
 
 
-            {/* Back to login */}
-            <div className=" text-center mx-auto">
-              <Link href="/forgot-password" className="inline-flex text-[16px] font-[600] items-center gap-2 text-gray-600 hover:text-gray-800">
-                {/* <ArrowLeft className="w-4 h-4" /> */}
-               Change you email? <span className="text-green">Back to SignUp</span>  
-              </Link>
+            {/* Back to login/signup */}
+            <div className="text-center mx-auto">
+              {from === 'reset' ? (
+                <Link href="/forgot-password" className="inline-flex text-[16px] font-[600] items-center gap-2 text-gray-600 hover:text-gray-800">
+                  Change your email? <span className="text-green">Back to Reset</span>
+                </Link>
+              ) : from === 'login' ? (
+                <Link href="/login" className="inline-flex text-[16px] font-[600] items-center gap-2 text-gray-600 hover:text-gray-800">
+                  Change your email? <span className="text-green">Back to Login</span>
+                </Link>
+              ) : (
+                <Link href="/register" className="inline-flex text-[16px] font-[600] items-center gap-2 text-gray-600 hover:text-gray-800">
+                  Change your email? <span className="text-green">Back to Sign Up</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

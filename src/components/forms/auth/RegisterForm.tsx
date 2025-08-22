@@ -9,12 +9,13 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import { signIn } from "next-auth/react"
-import { useAuth } from "@/hooks/auth/useAuth"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 import { socialRoleStore } from "@/lib/auth/social-role-store"
+import { useRegisterWithOtp } from "@/hooks/mutations/useOtpMutations"
+import { useStorePendingRole } from "@/hooks/mutations/useAuthMutations"
 
 
 const registerSchema = z
@@ -74,91 +75,32 @@ export default function RegisterForm() {
   })
 
   const selectedRole = watch("role")
-  const { register: registerUser } = useAuth()
+  
+  // Use the OTP registration mutation hook
+  const registerWithOtpMutation = useRegisterWithOtp({
+    onSuccess: (data, variables) => {
+      // Redirect to verification page after successful registration
+      router.push(`/verify-otp?email=${encodeURIComponent(variables.email)}&role=${variables.role}&from=signup`);
+    }
+  });
+
+  // Use mutation for storing pending role
+  const storePendingRoleMutation = useStorePendingRole();
 
   async function onSubmit(values: RegisterFormData) {
     try {
-      await registerUser({
+      // Use the mutation to register with OTP
+      await registerWithOtpMutation.mutateAsync({
         name: values.fullName,
         email: values.email,
         password: values.password,
         role: values.role,
         phone: `${values.phoneCode} ${values.phoneNumber}`,
-      })
-      toast.success("Account created successfully.")
-    } catch (e: any) {
-      const errorMessage = e?.message || e?.response?.data?.message || "Registration failed";
-      
-      // Show specific error messages with suggestions
-      if (errorMessage.includes("already registered as")) {
-        // Role conflict error
-        toast.error(
-          <div>
-            <p className="font-semibold">Role Conflict</p>
-            <p className="text-sm mt-1">{errorMessage}</p>
-            <button 
-              onClick={() => router.push('/login')}
-              className="text-sm text-green underline mt-2"
-            >
-              Sign in with existing account
-            </button>
-          </div>,
-          { duration: 8000 }
-        );
-      } else if (errorMessage.includes("Google/Apple")) {
-        toast.error(
-          <div>
-            <p className="font-semibold">Email already registered</p>
-            <p className="text-sm mt-1">{errorMessage}</p>
-            <button 
-              onClick={() => router.push('/login')}
-              className="text-sm text-green underline mt-2"
-            >
-              Go to Login
-            </button>
-          </div>,
-          { duration: 6000 }
-        );
-      } else if (errorMessage.includes("phone number is already registered")) {
-        toast.error(
-          <div>
-            <p className="font-semibold">Phone number already in use</p>
-            <p className="text-sm mt-1">{errorMessage}</p>
-            <div className="flex gap-2 mt-2">
-              <button 
-                onClick={() => router.push('/login')}
-                className="text-sm text-green underline"
-              >
-                Sign in instead
-              </button>
-              <span className="text-sm text-gray-400">or</span>
-              <button 
-                onClick={() => router.push('/forgot-password')}
-                className="text-sm text-green underline"
-              >
-                Reset password
-              </button>
-            </div>
-          </div>,
-          { duration: 8000 }
-        );
-      } else if (errorMessage.includes("already exists")) {
-        toast.error(
-          <div>
-            <p className="font-semibold">Account exists</p>
-            <p className="text-sm mt-1">{errorMessage}</p>
-            <button 
-              onClick={() => router.push('/login')}
-              className="text-sm text-green underline mt-2"
-            >
-              Sign in instead
-            </button>
-          </div>,
-          { duration: 6000 }
-        );
-      } else {
-        toast.error(errorMessage);
-      }
+      });
+    } catch (error) {
+      // Error is already handled by the mutation's onError callback
+      // Just catch it here to prevent unhandled promise rejection
+      console.log('Registration error handled by mutation hook');
     }
   }
 
@@ -180,11 +122,7 @@ export default function RegisterForm() {
       console.log('[RegisterForm] Stored role in localStorage:', role);
       
       // Store on server for NextAuth callback to retrieve
-      await fetch('/api/auth/store-pending-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
-      });
+      await storePendingRoleMutation.mutateAsync({ role });
       console.log('[RegisterForm] Stored role on server:', role);
       
       // Call the social login
@@ -443,8 +381,8 @@ export default function RegisterForm() {
               </div>
             </div>
 
-            <button type="submit" disabled={isSubmitting} className="w-full py-2.5 md:py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 bg-green">
-              {isSubmitting ? "Creating account..." : "Sign Up"}
+            <button type="submit" disabled={registerWithOtpMutation.isLoading} className="w-full py-2.5 md:py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 bg-green">
+              {registerWithOtpMutation.isLoading ? "Creating account..." : "Sign Up"}
             </button>
 
             <p className="text-center text-gray-600 text-sm">

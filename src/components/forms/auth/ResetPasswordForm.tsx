@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useResetPasswordWithOtp } from "@/hooks/mutations/useOtpMutations"
 
 const resetPasswordSchema = z.object({
   password: z
@@ -32,13 +33,15 @@ export default function ResetPasswordForm() {
   const [isSuccess, setIsSuccess] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const token = searchParams.get("token")
+  const email = searchParams.get("email") || ""
+  const verified = searchParams.get("verified") === "true"
+  const [otp, setOtp] = useState("") // Store OTP from previous verification
 
   const {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ResetPasswordData>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
@@ -46,6 +49,16 @@ export default function ResetPasswordForm() {
       confirmPassword: "",
     },
     mode: "onBlur",
+  })
+
+  // Use the reset password mutation hook
+  const resetPasswordMutation = useResetPasswordWithOtp({
+    onSuccess: () => {
+      setIsSuccess(true)
+      setTimeout(() => {
+        router.push("/login")
+      }, 3000)
+    }
   })
   
   // Debug errors
@@ -64,46 +77,51 @@ export default function ResetPasswordForm() {
   const hasMinLength = password?.length >= 8
 
   useEffect(() => {
-    // For demo purposes, we'll allow the form to work even without a token
-    // In production, you would validate the token here
-    if (!token) {
-      console.log("No token provided, but allowing for demo purposes")
-      // Optionally show a warning instead of redirecting
-      // toast.warning("Demo mode: No token required")
+    // Check if user has been verified via OTP
+    if (!verified || !email) {
+      toast.error("Please verify your email first")
+      router.push("/forgot-password")
     }
-  }, [token])
+    
+    // Get the OTP from session storage (stored during verification)
+    const storedOtp = sessionStorage.getItem('reset_otp')
+    if (storedOtp) {
+      setOtp(storedOtp)
+    }
+  }, [verified, email, router])
 
   async function onSubmit(values: ResetPasswordData) {
-    console.log("Form submitted with values:", values)
-    
     try {
       // Validate passwords match
       if (values.password !== values.confirmPassword) {
-        throw new Error("Passwords do not match")
+        toast.error("Passwords do not match")
+        return
       }
       
-      // Simulate API call for password reset
-      console.log("Resetting password with:", { token, password: values.password })
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // For demo purposes, always succeed
-      setIsSuccess(true)
-      toast.success("Password reset successfully!")
-      
-      // Store the new password in localStorage for demo (in production, this would be handled by the backend)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('demo_password', values.password)
-        console.log("Password saved for demo:", values.password)
+      // Get OTP from session storage or prompt user
+      let otpToUse = otp
+      if (!otpToUse) {
+        otpToUse = sessionStorage.getItem('reset_otp') || ''
       }
       
-      setTimeout(() => {
-        router.push("/login")
-      }, 3000)
-    } catch (e: any) {
-      console.error("Password reset error:", e)
-      toast.error(e?.message || "Something went wrong. Please try again.")
+      if (!otpToUse) {
+        toast.error("OTP verification required. Please go back to forgot password.")
+        router.push("/forgot-password")
+        return
+      }
+      
+      // Reset password with OTP
+      await resetPasswordMutation.mutateAsync({
+        email,
+        otp: otpToUse,
+        newPassword: values.password,
+      })
+      
+      // Clear stored OTP
+      sessionStorage.removeItem('reset_otp')
+    } catch (error) {
+      // Error is already handled by the mutation's onError callback
+      console.log('Password reset error handled by mutation hook')
     }
   }
 
@@ -214,10 +232,10 @@ export default function ResetPasswordForm() {
 
                   <button 
                     type="submit" 
-                    disabled={isSubmitting} 
+                    disabled={resetPasswordMutation.isLoading} 
                     className="w-full py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 bg-green"
                   >
-                    {isSubmitting ? "Resetting..." : "submit"}
+                    {resetPasswordMutation.isLoading ? "Resetting..." : "Submit"}
                   </button>
                 </form>
 

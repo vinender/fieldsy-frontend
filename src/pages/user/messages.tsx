@@ -14,6 +14,7 @@ import ReportUserModal from '@/components/modal/ReportUserModal';
 import { useSession } from 'next-auth/react';
 import { useSocket } from '@/contexts/SocketContext';
 import { useRouter } from 'next/router';
+import styles from '@/styles/messages.module.css';
 
 interface User {
   id: string;
@@ -49,7 +50,7 @@ interface Conversation {
 }
 
 const MessagesPage = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { conversationId: queryConversationId } = router.query;
   const { socket, sendMessage, markAsRead, emitTyping } = useSocket();
@@ -57,6 +58,7 @@ const MessagesPage = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showOptions, setShowOptions] = useState(false);
@@ -70,6 +72,7 @@ const MessagesPage = () => {
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
   // Get current user ID from session or localStorage
@@ -93,15 +96,21 @@ const MessagesPage = () => {
 
   // Redirect if not logged in
   useEffect(() => {
+    // Don't redirect while session is loading
+    if (status === 'loading') return;
+    
     // Check both session and localStorage for authentication
     const hasAuth = session || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
-    if (!hasAuth) {
+    if (status === 'unauthenticated' && !hasAuth) {
       router.push('/login');
     }
-  }, [session, router]);
+  }, [session, status, router]);
 
   // Load conversations
   useEffect(() => {
+    // Don't load while session is still loading
+    if (status === 'loading') return;
+    
     // Check if we have any auth token available
     const hasAuth = session || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
     if (hasAuth) {
@@ -109,7 +118,7 @@ const MessagesPage = () => {
     } else {
       setIsLoading(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   // Auto-select conversation from query parameter
   useEffect(() => {
@@ -146,6 +155,18 @@ const MessagesPage = () => {
             return [...prev, message];
           });
           
+          // Track as new message for animation
+          setNewMessageIds(prev => new Set(prev).add(message.id));
+          
+          // Remove from new messages after animation
+          setTimeout(() => {
+            setNewMessageIds(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(message.id);
+              return newSet;
+            });
+          }, 500);
+          
           // Mark as read if we're the receiver
           if (message.receiverId === currentUserId) {
             markAsRead([message.id]);
@@ -174,11 +195,15 @@ const MessagesPage = () => {
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollToBottom();
+    // Small delay to ensure DOM has updated
+    setTimeout(scrollToBottom, 100);
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll the messages container, not the entire page
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   const loadConversations = async () => {
@@ -253,6 +278,9 @@ const MessagesPage = () => {
     if (socket) {
       socket.emit('join-conversation', conversation.id);
     }
+    
+    // Scroll to bottom after loading messages
+    setTimeout(scrollToBottom, 200);
   };
 
   const handleSendMessage = async () => {
@@ -272,9 +300,21 @@ const MessagesPage = () => {
     // Send message and get the created message back
     const newMessage = await sendMessage(selectedConversation.id, content, otherUser.id);
     
-    // Add the message to the UI immediately
+    // Add the message to the UI immediately with animation
     if (newMessage) {
       setMessages(prev => [...prev, newMessage]);
+      
+      // Track this as a new message for animation
+      setNewMessageIds(prev => new Set(prev).add(newMessage.id));
+      
+      // Remove from new messages after animation completes
+      setTimeout(() => {
+        setNewMessageIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(newMessage.id);
+          return newSet;
+        });
+      }, 500);
       
       // Update the conversation's last message
       setConversations(prev => prev.map(conv => 
@@ -347,8 +387,21 @@ const MessagesPage = () => {
     });
   };
 
-  if (!session) {
+  // Don't render anything if not authenticated after loading
+  if (status === 'unauthenticated' && !(typeof window !== 'undefined' && localStorage.getItem('authToken'))) {
     return null;
+  }
+
+  // Show loading state while session is loading
+  if (status === 'loading') {
+    return (
+      <div className="h-screen flex items-center justify-center bg-light">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+          <p className="mt-4 text-gray-600">Loading messages...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -548,7 +601,7 @@ const MessagesPage = () => {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto bg-gray-lighter p-4 lg:p-6 no-scrollbar">
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto bg-gray-lighter p-4 lg:p-6 no-scrollbar">
                 {/* Today Divider */}
                 <div className="flex justify-center mb-6">
                   <span className="bg-cream px-3 py-1 rounded-full text-[13px] font-semibold text-dark-green">
@@ -561,21 +614,27 @@ const MessagesPage = () => {
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'} ${
+                        newMessageIds.has(message.id) ? styles.newMessage : ''
+                      }`}
                     >
                       <div className={`max-w-[528px] ${message.senderId === currentUserId ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
                         <div
-                          className={`px-6 py-4 ${
+                          className={`px-6 py-4 ${styles.messageBubble} ${
                             message.senderId === currentUserId
                               ? 'bg-light-green text-white rounded-tl-[60px] rounded-bl-[60px] rounded-tr-[30px]'
                               : 'bg-cream text-dark-green rounded-tr-[60px] rounded-br-[60px] rounded-tl-[30px]'
+                          } ${
+                            newMessageIds.has(message.id) ? 'transition-all duration-300' : ''
                           }`}
                         >
                           <p className="text-[15px] leading-[22px]">{message.content}</p>
                         </div>
                         <span className={`text-[14px] text-gray-text ${
                           message.senderId === currentUserId ? 'text-right' : 'text-left'
-                        }`}>
+                        } ${newMessageIds.has(message.id) ? 'opacity-0 animate-fadeIn' : ''}`}
+                          style={newMessageIds.has(message.id) ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}
+                        >
                           {formatMessageTime(message.createdAt)}
                         </span>
                       </div>

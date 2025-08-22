@@ -12,6 +12,7 @@ import { AuthProvider } from "@/contexts/AuthContext"
 import { NotificationProvider } from "@/contexts/NotificationContext"
 import { SocketProvider } from "@/contexts/SocketContext"
 import "@/styles/globals.css"
+import "@/lib/utils/suppress-dev-errors"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -40,6 +41,18 @@ export default function App({
           queries: {
             staleTime: 60 * 1000, // 1 minute
             refetchOnWindowFocus: false,
+          },
+          mutations: {
+            // Don't retry mutations by default
+            retry: false,
+            // Handle errors globally (but let individual mutations override)
+            onError: (error: any) => {
+              // Errors are handled in individual mutation hooks
+              // This prevents unhandled promise rejections
+              if (process.env.NODE_ENV === 'development') {
+                console.log('Mutation error handled:', error?.response?.status);
+              }
+            },
           },
         },
       })
