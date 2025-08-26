@@ -54,8 +54,12 @@ export default function BookingHistory() {
   };
 
   const handleSendMessage = (bookingId: string) => {
-    // Open message modal or navigate to messages
-    console.log('Send message for booking:', bookingId);
+    // Find the booking to get user details
+    const booking = bookings.find(b => b.id === bookingId);
+    if (booking) {
+      // Navigate to messages page with the user ID to open conversation
+      router.push(`/user/messages?userId=${booking.userId}`);
+    }
   };
 
   const formatCurrency = (amount: number) => {

@@ -52,7 +52,7 @@ interface Conversation {
 const MessagesPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { conversationId: queryConversationId } = router.query;
+  const { conversationId: queryConversationId, userId: queryUserId } = router.query;
   const { socket, sendMessage, markAsRead, emitTyping } = useSocket();
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -134,6 +134,27 @@ const MessagesPage = () => {
       }
     }
   }, [queryConversationId, conversations]);
+
+  // Auto-open or create conversation with specific user
+  useEffect(() => {
+    if (queryUserId && conversations.length > 0) {
+      // Find conversation with this user
+      const targetConversation = conversations.find(conv => 
+        conv.participants.some(p => p.id === queryUserId)
+      );
+      
+      if (targetConversation) {
+        handleSelectConversation(targetConversation);
+      } else {
+        // If no existing conversation, create or initiate one
+        // This would require an API endpoint to create a conversation
+        createConversationWithUser(queryUserId as string);
+      }
+      
+      // Clear the query parameter after processing
+      router.replace('/user/messages', undefined, { shallow: true });
+    }
+  }, [queryUserId, conversations]);
 
   // Socket event listeners
   useEffect(() => {
@@ -281,6 +302,39 @@ const MessagesPage = () => {
     
     // Scroll to bottom after loading messages
     setTimeout(scrollToBottom, 200);
+  };
+
+  const createConversationWithUser = async (userId: string) => {
+    // Get token from session or localStorage
+    const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
+    if (!token) {
+      console.log('No auth token for creating conversation');
+      return;
+    }
+
+    try {
+      // Create or get existing conversation with this user
+      const response = await fetch('/api/chat/conversations/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Reload conversations to include the new one
+        await loadConversations();
+        // Select the newly created conversation
+        if (data.conversation) {
+          handleSelectConversation(data.conversation);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+    }
   };
 
   const handleSendMessage = async () => {
