@@ -4,6 +4,7 @@ import axiosClient from '@/lib/api/axios-client';
 // Query keys
 export const fieldQueryKeys = {
   all: ['fields'] as const,
+  list: (params: any) => ['fields', 'list', params] as const,
   ownerField: () => ['owner-field'] as const,
   ownerBookings: () => ['owner-bookings'] as const,
   fieldDetails: (id: string) => ['field', id] as const,
@@ -50,6 +51,64 @@ export interface OwnerFieldResponse {
   field: FieldData | null;
   message?: string;
   showAddForm?: boolean;
+}
+
+export interface FieldsResponse {
+  success: boolean;
+  data: FieldData[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface FieldsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  city?: string;
+  state?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  amenities?: string[];
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+// Hook to fetch fields with pagination and filters
+export function useFields(
+  params: FieldsParams = {},
+  options?: Omit<UseQueryOptions<FieldsResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: fieldQueryKeys.list(params),
+    queryFn: async () => {
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      
+      // Add all params to query string
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          if (Array.isArray(value)) {
+            // For arrays, join with comma
+            if (value.length > 0) {
+              queryParams.append(key, value.join(','));
+            }
+          } else {
+            queryParams.append(key, String(value));
+          }
+        }
+      });
+
+      const response = await axiosClient.get(`/fields?${queryParams.toString()}`);
+      return response.data as FieldsResponse;
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  });
 }
 
 // Hook to fetch owner's field

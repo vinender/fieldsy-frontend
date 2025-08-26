@@ -2,6 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
+import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 
 interface FieldDetailsProps {
   formData: any;
@@ -59,7 +60,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Field Size
@@ -225,7 +226,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Start Time
@@ -336,21 +337,39 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
           Address
         </h2>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
               Street Address
             </label>
-            <Input
-              type="text"
+            <AddressAutocomplete
               name="streetAddress"
               value={formData.streetAddress}
               onChange={handleInputChange}
               placeholder="42 Meadowcroft Lane"
-              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
+              className="w-full px-4 py-3 bg-white rounded-2xl border border-gray-border focus:outline-none focus:border-green font-sans text-gray-input placeholder:text-gray-400"
+              onAddressSelect={(components) => {
+                setFormData((prev: any) => ({
+                  ...prev,
+                  streetAddress: components.streetAddress,
+                  city: components.city,
+                  county: components.county,
+                  postalCode: components.postalCode,
+                  // Store the complete location object
+                  location: {
+                    streetAddress: components.streetAddress,
+                    city: components.city,
+                    county: components.county,
+                    postalCode: components.postalCode,
+                    lat: components.lat,
+                    lng: components.lng,
+                    formatted_address: components.formatted_address
+                  }
+                }));
+              }}
             />
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
               Apartment/Suite
             </label>
@@ -362,7 +381,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               placeholder="Flat 5B"
               className="py-3 border-gray-border focus:border-green font-sans"
             />
-          </div>
+          </div> */}
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
               City
@@ -373,7 +392,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               value={formData.city}
               onChange={handleInputChange}
               placeholder="Guildford"
-              className="py-3 border-gray-border focus:border-green font-sans"
+              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
             />
           </div>
           <div>
@@ -386,7 +405,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               value={formData.county}
               onChange={handleInputChange}
               placeholder="Surrey"
-              className="py-3 border-gray-border focus:border-green font-sans"
+              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
             />
           </div>
           <div>
@@ -399,20 +418,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               value={formData.postalCode}
               onChange={handleInputChange}
               placeholder="GU1 1AA"
-              className="py-3 border-gray-border focus:border-green font-sans"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              Country
-            </label>
-            <Input
-              type="text"
-              name="country"
-              value={formData.country}
-              onChange={handleInputChange}
-              placeholder="United Kingdom"
-              className="py-3 border-gray-border focus:border-green font-sans"
+              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
             />
           </div>
         </div>

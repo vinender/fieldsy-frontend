@@ -20,8 +20,8 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
     markAllAsRead, 
     deleteNotification,
     clearAll 
-  } = useNotifications()
-
+  } = useNotifications();
+console.log('notification',notifications)
   useEffect(() => {
     setIsOpen(isOpenProp)
   }, [isOpenProp])
@@ -147,7 +147,7 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
         <div className="px-6 py-6 h-[calc(100%-140px)] overflow-y-auto">
           {loading ? (
             <div className="text-center text-gray-600 mt-10">Loading notifications...</div>
-          ) : notifications.length === 0 ? (
+          ) : notifications?.length === 0 ? (
             <div className="text-center mt-10">
               <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-600">No notifications yet</p>
@@ -157,7 +157,7 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
             </div>
           ) : (
             <div className="space-y-3">
-              {notifications.map((notification) => (
+              {notifications?.map((notification) => (
                 <div
                   key={notification.id}
                   className={`rounded-2xl border p-4 transition-all ${

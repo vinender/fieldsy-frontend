@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, SortDesc, Calendar, X, Navigation, Filter } from 'lucide-react';
 import { FieldCard } from '@/components/fields/FieldCard';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,13 @@ import mockData from '@/data/mock-data.json';
 import { useRouter } from 'next/router';
 import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
 import { useSession } from 'next-auth/react';
+import { useFields, FieldsParams } from '@/hooks/queries/useFieldQueries';
 
 export default function SearchResults() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [fields, setFields] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalResults, setTotalResults] = useState(0);
-  const [searchValue, setSearchValue] = useState(mockData.searchDefaults.location);
+  const [searchValue, setSearchValue] = useState('');
   const [selectedSize, setSelectedSize] = useState('Large (3+ Acres)');
   const [selectedAmenities, setSelectedAmenities] = useState(['Secure fencing']);
   const [selectedRating, setSelectedRating] = useState('4.5+');
@@ -35,62 +31,31 @@ export default function SearchResults() {
     availability: true
   });
 
-  // Fetch fields from API with pagination
-  useEffect(() => {
-    fetchFields();
-  }, [currentPage]);
-
-  const fetchFields = async (page = currentPage) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Build query parameters
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', '12');
-      if (searchValue && searchValue !== mockData.searchDefaults.location) {
-        params.append('search', searchValue);
-      }
-      // TODO: Add more filter parameters when API supports them
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/fields?${params.toString()}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setFields(data.data || []);
-        
-        // Update pagination info
-        if (data.pagination) {
-          setTotalPages(data.pagination.totalPages || 1);
-          setTotalResults(data.pagination.total || 0);
-          setCurrentPage(data.pagination.page || 1);
-        }
-      } else if (response.status === 404) {
-        setFields([]);
-        setTotalResults(0);
-      } else {
-        setError('Failed to fetch fields. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error fetching fields:', error);
-      setError('Network error. Please check your connection.');
-      setFields([]);
-    } finally {
-      setLoading(false);
-    }
+  // Build query parameters for React Query
+  const queryParams: FieldsParams = {
+    page: currentPage,
+    limit: 12,
+    ...(searchValue && { search: searchValue }),
+    // TODO: Add more filter parameters when API supports them
   };
+
+  // Use React Query hook to fetch fields
+  const { 
+    data: fieldsData, 
+    isLoading, 
+    isError, 
+    error,
+    refetch 
+  } = useFields(queryParams);
+
+  // Extract data from response
+  const fields = fieldsData?.data || [];
+  const totalPages = fieldsData?.pagination?.totalPages || 1;
+  const totalResults = fieldsData?.pagination?.total || 0;
 
   const handleSearch = () => {
     setCurrentPage(1);
-    fetchFields(1);
+    // React Query will automatically refetch with new params
   };
 
   const handlePageChange = (page: number) => {
@@ -419,7 +384,8 @@ export default function SearchResults() {
             <button 
               onClick={() => {
                 setFiltersOpen(false);
-                fetchFields();
+                // Filters will be applied through state changes
+                // React Query will automatically refetch
               }}
               className="w-full bg-[#3A6B22] text-white py-4 rounded-[50px] text-[16px] font-semibold"
             >
@@ -431,7 +397,7 @@ export default function SearchResults() {
         {/* Results */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">{loading ? 'Loading...' : `Over ${totalResults} results`}</h1>
+              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">{isLoading ? 'Loading...' : `Over ${totalResults} results`}</h1>
               <button className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4">
                 <div className="flex items-center gap-2">
                   <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-dark-green" />
@@ -442,9 +408,9 @@ export default function SearchResults() {
             </div>
 
             {/* Fields Grid using the refactored FieldCard component */}
-            {loading ? (
+            {isLoading ? (
               <FieldGridSkeleton count={12} />
-            ) : error ? (
+            ) : isError ? (
               <div className="bg-white rounded-2xl p-8">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -452,9 +418,9 @@ export default function SearchResults() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <p className="text-red-500 font-medium mb-2">{error}</p>
+                  <p className="text-red-500 font-medium mb-2">{error?.message || 'Failed to fetch fields. Please try again.'}</p>
                   <button 
-                    onClick={fetchFields}
+                    onClick={() => refetch()}
                     className="text-[#3A6B22] font-medium hover:underline"
                   >
                     Try Again
@@ -510,7 +476,7 @@ export default function SearchResults() {
             )}
 
             {/* Pagination */}
-            {!loading && !error && fields.length > 0 && totalPages > 1 && (
+            {!isLoading && !isError && fields.length > 0 && totalPages > 1 && (
               <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6 lg:mt-8">
                 <span className="text-[12px] md:text-[14px] text-dark-green">
                   Showing {((currentPage - 1) * 12) + 1}-{Math.min(currentPage * 12, totalResults)} of {totalResults}

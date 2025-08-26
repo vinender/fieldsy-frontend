@@ -34,7 +34,7 @@ export default function PreviewPage() {
   }, [user, router]);
 
   const handleEdit = () => {
-    router.push('/');
+    router.push('/?edit=true');
   };
 
   const handleSubmit = async () => {

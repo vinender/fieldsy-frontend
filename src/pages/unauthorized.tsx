@@ -63,7 +63,8 @@ export default function UnauthorizedPage() {
             
             <Link href="/">
               <button className="w-full py-3 px-4 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
-                Go to Homepage
+                Go to Homepage      
+                
               </button>
             </Link>
           </div>

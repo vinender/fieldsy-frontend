@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { toast } from 'sonner';
 import { useOwnerField, useSaveFieldProgress } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
 import { FieldOwnerDashboardSkeleton } from '@/components/skeletons/FieldOwnerDashboardSkeleton';
+import BackButton from '@/components/common/BackButton';
 
 // Import form components
 import FieldDetails from './forms/FieldDetails';
@@ -24,9 +24,23 @@ function Sidebar({ activeSection, onSectionChange, fieldData }: {
     { id: 'booking-rules', label: 'Booking Rules & Policies', completed: fieldData?.bookingRulesCompleted || false }
   ];
 
+  const handleSectionClick = (sectionId: string) => {
+    onSectionChange(sectionId);
+    
+    // On small screens, scroll to form section
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setTimeout(() => {
+        const formElement = document.getElementById('form-content');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  };
+
   return (
-    <div className="w-[432px] bg-white rounded-2xl p-8 h-fit">
-      <h2 className="text-xl font-semibold mb-2 text-dark-green font-sans">
+    <div className="w-full lg:w-[432px] bg-white rounded-2xl p-4 sm:p-6 lg:p-8 h-fit lg:sticky lg:top-8">
+      <h2 className="text-lg sm:text-xl font-semibold mb-2 text-dark-green font-sans">
         Add your field by following these quick steps.
       </h2>
       
@@ -34,7 +48,7 @@ function Sidebar({ activeSection, onSectionChange, fieldData }: {
         {sections.map((section, index) => (
           <div key={section.id}>
             <button
-              onClick={() => onSectionChange(section.id)}
+              onClick={() => handleSectionClick(section.id)}
               className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
                 activeSection === section.id ? 'bg-gray-50' : 'hover:bg-gray-50'
               }`}
@@ -269,39 +283,37 @@ export default function AddYourField() {
   }
 
   return (
-    <div className="min-h-screen bg-light py-8 mt-32">
-      <div className="container mx-auto px-20">
+    <div className="min-h-screen bg-light py-4 sm:py-6 lg:py-8 mt-20 sm:mt-24 lg:mt-32">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-20">
         {/* Page Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <button className="w-12 h-12 bg-cream rounded-full flex items-center justify-center hover:bg-cream/80 transition-colors">
-           <img src='/back.svg' alt='arrow-left' className='w-6 h-6' />
-          </button>
-          <h1 className="text-3xl font-semibold text-dark-green font-sans">
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 lg:mb-8">
+          <BackButton size='lg' />
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
             Add Your Field
           </h1>
         </div>
 
         {/* Main Content */}
-        <div className="flex gap-8">
-          {/* Sidebar */}
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+          {/* Sidebar - Keep on left for large screens */}
           <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} fieldData={fieldData} />
 
           {/* Form Content */}
-          <div className="flex-1 bg-white rounded-2xl p-10">
+          <div id="form-content" className="flex-1 bg-white rounded-2xl p-4 sm:p-6 lg:p-10 scroll-mt-4">
             {renderSection()}
 
             {/* Action Buttons - Keep original design */}
-            <div className="flex gap-4 mt-10">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 lg:mt-10">
               <button
                 onClick={handleBack}
-                className="flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50"
+                className="w-full sm:flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 order-2 sm:order-1"
               >
                 Back
               </button>
               <button
                 onClick={handleSaveProgress}
                 disabled={isLoading}
-                className="flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90"
+                className="w-full sm:flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 order-1 sm:order-2"
               >
                 {isLoading ? 
                   'Saving...' 

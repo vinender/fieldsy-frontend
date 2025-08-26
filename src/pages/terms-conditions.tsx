@@ -1,4 +1,5 @@
 import React from 'react';
+import BackButton from '@/components/common/BackButton';
 import { ChevronLeft } from 'lucide-react';
 
 const TermsConditions = () => {
@@ -101,9 +102,7 @@ const TermsConditions = () => {
         
         {/* Back Button and Title */}
         <div className="flex items-center mt-[20px]  gap-4 mb-8 lg:mb-10">
-          <button className="flex items-center justify-center w-12 h-12 bg-[#F8F1D7] rounded-full hover:bg-[#F0EAB9] transition-colors">
-            <img src="/back.svg" alt="Arrow Left" className="w-6 h-6 text-dark-green object-contain" />
-          </button>
+          <BackButton />
           <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
             Terms & Conditions
           </h1>

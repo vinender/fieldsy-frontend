@@ -252,14 +252,14 @@ export default function FieldDetailsPreview({ formData, readOnly = true }: Field
               <span className="text-gray-input font-sans">{formatValue(formData?.streetAddress)}</span>
             </div>
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
               Apartment/Suite
             </label>
             <div className="px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
               <span className="text-gray-input font-sans">{formatValue(formData?.apartment)}</span>
             </div>
-          </div>
+          </div> */}
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
               City
@@ -282,14 +282,6 @@ export default function FieldDetailsPreview({ formData, readOnly = true }: Field
             </label>
             <div className="px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
               <span className="text-gray-input font-sans">{formatValue(formData?.postalCode)}</span>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              Country
-            </label>
-            <div className="px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
-              <span className="text-gray-input font-sans">{formatValue(formData?.country)}</span>
             </div>
           </div>
         </div>

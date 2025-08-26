@@ -1,4 +1,5 @@
 import React from 'react';
+import BackButton from '@/components/common/BackButton';
 
 const PrivacyPolicy = () => {
   const privacyData = [
@@ -104,9 +105,7 @@ const PrivacyPolicy = () => {
         
         {/* Back Button and Title */}
         <div className="flex items-center gap-4 mt-[20px] mb-8 lg:mb-10">
-          <button className="flex items-center justify-center w-12 h-12 bg-[#F8F1D7] rounded-full hover:bg-[#F0EAB9] transition-colors">
-            <img src="/back.svg" alt="Arrow Left" className="w-6 h-6 text-dark-green object-contain" />
-          </button>
+          <BackButton />
           <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
             Privacy Policy
           </h1>

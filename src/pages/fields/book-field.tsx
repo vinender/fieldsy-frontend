@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check } from 'lucide-react';
+import BackButton from '@/components/common/BackButton';
 import { Input } from '@/components/ui/input';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -82,7 +83,7 @@ const BookFieldPage = () => {
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
-  };
+  }
 
   const selectTimeSlot = (time) => {
     setSelectedTimeSlot(time);
@@ -96,11 +97,10 @@ const BookFieldPage = () => {
         
         {/* Back Button and Title */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button 
-            onClick={() => router.push(`/fields/${fieldIdToUse}`)}
-            className="flex items-center hover:border-cream hover:border-2 justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[#F8F1D7] rounded-full hover:bg-light transition-colors">
-            <img src='/cream-back.svg' className="w-10 h-10 sm:w-12 sm:h-12 cursor-pointer text-dark-green" />
-          </button>
+          <BackButton 
+            variant="cream"
+            onClick={() => router.push(`/fields/${fieldIdToUse}`)} 
+          />
           <h1 className="text-xl sm:text-2xl lg:text-[29px] font-semibold text-dark-green">
             Book Field
           </h1>

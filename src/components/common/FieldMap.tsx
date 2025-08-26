@@ -6,7 +6,6 @@ interface FieldMapProps {
   city?: string;
   state?: string;
   zipCode?: string;
-  country?: string;
   fieldName?: string;
   height?: string;
   className?: string;
@@ -44,7 +43,6 @@ export default function FieldMap({
   city, 
   state, 
   zipCode, 
-  country = 'UK',
   fieldName = 'Field Location',
   height = '384px',
   className = ''
@@ -69,13 +67,13 @@ export default function FieldMap({
       setIsLoading(true);
       setError(null);
 
-      // Construct full address
+      // Construct full address (UK only)
       const fullAddress = [
         address,
         city,
         state,
         zipCode,
-        country
+        'UK'
       ].filter(Boolean).join(', ');
 
       if (!fullAddress || fullAddress.trim() === '') {
@@ -104,7 +102,7 @@ export default function FieldMap({
       setError('Error loading map');
       setIsLoading(false);
     }
-  }, [address, city, state, zipCode, country, isLoaded]);
+  }, [address, city, state, zipCode, isLoaded]);
 
   useEffect(() => {
     if (isLoaded) {

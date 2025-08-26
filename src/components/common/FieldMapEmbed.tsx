@@ -5,7 +5,6 @@ interface FieldMapEmbedProps {
   city?: string;
   state?: string;
   zipCode?: string;
-  country?: string;
   fieldName?: string;
   height?: string;
   className?: string;
@@ -18,7 +17,6 @@ export default function FieldMapEmbed({
   city, 
   state, 
   zipCode, 
-  country = 'UK',
   fieldName = 'Field Location',
   height = '384px',
   className = '',
@@ -33,13 +31,13 @@ export default function FieldMapEmbed({
       return `https://www.openstreetmap.org/export/embed.html?bbox=${longitude-0.01},${latitude-0.01},${longitude+0.01},${latitude+0.01}&layer=mapnik&marker=${latitude},${longitude}`;
     }
 
-    // Otherwise, construct address string for search
+    // Otherwise, construct address string for search (UK only)
     const fullAddress = [
       address,
       city,
       state,
       zipCode,
-      country
+      'UK'
     ].filter(Boolean).join(', ');
 
     if (!fullAddress || fullAddress.trim() === '') {
@@ -53,7 +51,7 @@ export default function FieldMapEmbed({
     // Use OpenStreetMap search embed
     // Note: This shows a general area, not exact pin
     return `https://www.openstreetmap.org/export/embed.html?bbox=-0.1478,51.4974,-0.1078,51.5174&layer=mapnik`;
-  }, [address, city, state, zipCode, country, latitude, longitude]);
+  }, [address, city, state, zipCode, latitude, longitude]);
 
   return (
     <div 

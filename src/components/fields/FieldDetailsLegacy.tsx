@@ -42,6 +42,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   }, [isFavorited]);
   
   const handleToggleFavorite = async () => {
+    if (isPreview) return; // Disabled in preview mode
     if (!session) {
       setLoginModalMessage('Please login or sign up to save your favorite fields');
       setShowLoginModal(true);
@@ -108,7 +109,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                     key={index}
                     type="button"
                     className="aspect-square rounded-lg overflow-hidden group"
-                    onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
+                    onClick={() => { if (!isPreview) { setCurrentImageIndex(index); setLightboxOpen(true); } }}
                     aria-label={`Open image ${index + 1}`}
                   >
                     <img
@@ -126,7 +127,6 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   city={field?.city}
                   state={field?.state || field?.county}
                   zipCode={field?.zipCode || field?.postalCode}
-                  country={field?.country}
                   fieldName={field?.name || field?.fieldName || 'Field Location'}
                   latitude={field?.latitude}
                   longitude={field?.longitude}
@@ -151,7 +151,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   </div>
                 </div>
                 <button 
-                  onClick={handleToggleFavorite}
+                  onClick={isPreview ? undefined : handleToggleFavorite}
                   disabled={toggleFavoriteMutation.isPending}
                   className="mt-2 w-10 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200 disabled:opacity-50 flex-shrink-0"
                 >
@@ -207,7 +207,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                     </div>
                   </div>
                   <button 
-                    onClick={async () => {
+                    onClick={isPreview ? undefined : async () => {
                       if (!session) {
                         setLoginModalMessage('Please login or sign up to message field owners');
                         setShowLoginModal(true);
@@ -273,7 +273,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             {!isClaimed && !isPreview && (
               <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
+                  onClick={isPreview ? undefined : () => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
                   className="flex-1 w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
                 >
                   Claim This Field
@@ -341,32 +341,22 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             {/* Other details and actions - Only show for claimed fields */}
             {isClaimed && (
               <div className="space-y-2">
-                {/* Availability Row */}
+                {/* Slot Duration Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 gap-2">
                   <div className="flex items-center gap-2">
-                    <img src="/field-details/availablity.svg" alt="availability" className="w-5 h-5" />
-                    <span className="text-dark-green font-medium">Availability</span>
+                    <img src="/field-details/clock.svg" alt="slot duration" className="w-5 h-5" />
+                    <span className="text-dark-green font-medium">Slot Duration</span>
                   </div>
-                  <button 
-                    className="inline-flex items-center justify-center sm:justify-start text-[#3A6B22] font-medium hover:text-[#2e5519] transition-colors w-full sm:w-auto"
-                    onClick={() => {
-                      if (!session) {
-                        router.push('/login');
-                      } else {
-                        router.push(`/fields/book-field?id=${field?._id || field?.id}`);
-                      }
-                    }}
-                  >
-                    <span className="mr-2 whitespace-nowrap">Find Availability Time</span>
-                    <ChevronRight className="w-4 h-4 flex-shrink-0" />
-                  </button>
+                  <div className="text-[#3A6B22] font-semibold">
+                    {field?.minBookingDuration || field?.bookingDuration || '30 min'}
+                  </div>
                 </div>
 
                 {/* Rules Collapsible */}
                 <div className="bg-white border border-gray-200 rounded-xl">
                   <button
                     className="w-full flex items-center justify-between px-4 py-3"
-                    onClick={() => setRulesOpen(!rulesOpen)}
+                    onClick={isPreview ? undefined : () => setRulesOpen(!rulesOpen)}
                   >
                     <div className="flex items-center gap-2">
                       <img src="/field-details/rules.svg" alt="rules" className="w-5 h-5" />
@@ -482,7 +472,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 <div className="bg-white border border-gray-200 rounded-xl">
                   <button
                     className="w-full flex items-center justify-between px-4 py-3"
-                    onClick={() => setBookingOpen(!bookingOpen)}
+                    onClick={isPreview ? undefined : () => setBookingOpen(!bookingOpen)}
                   >
                     <div className="flex items-center gap-2">
                       <img src="/field-details/policy.svg" alt="policy" className="w-5 h-5" />
@@ -592,7 +582,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             {isClaimed && !isPreview && (
               <div className="space-y-3">
                 <button 
-                  onClick={() => {
+                  onClick={isPreview ? undefined : () => {
                     if (!session) {
                       router.push('/login');
                     } else {
@@ -669,7 +659,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                             <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
                             <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
                             <button 
-                              onClick={() => {
+                              onClick={isPreview ? undefined : () => {
                                 if (!session) {
                                   router.push('/login');
                                 } else {
@@ -721,7 +711,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                           <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
                           <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
                           <button 
-                            onClick={() => {
+                            onClick={isPreview ? undefined : () => {
                               if (!session) {
                                 router.push('/login');
                               } else {

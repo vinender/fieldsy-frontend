@@ -63,7 +63,7 @@ export default function PricingAvailability({ formData, setFormData }: PricingAv
           <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
             Choose your preferred booking slot duration
           </label>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
               onClick={() => setBookingDuration('30min')}

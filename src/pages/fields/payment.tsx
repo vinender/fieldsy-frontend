@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import BackButton from '@/components/common/BackButton';
 import { ChevronLeft, Plus, Minus, Star, MapPin, Check } from 'lucide-react';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
@@ -99,11 +100,7 @@ const PaymentPage = () => {
         
         {/* Back Button and Title */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center hover:border-cream hover:border-2 justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[#F8F1D7] rounded-full hover:bg-light transition-colors">
-            <img src='/cream-back.svg' className="w-10 h-10 sm:w-12 sm:h-12 cursor-pointer text-[#192215]" />
-          </button>
+          <BackButton variant="cream" />
           <h1 className="text-xl sm:text-2xl lg:text-[29px] font-semibold text-[#192215]">
             Payment
           </h1>

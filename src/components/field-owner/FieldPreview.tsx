@@ -21,7 +21,6 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     apartment: formData?.apartment,
     city: formData?.city,
     zipCode: formData?.postalCode,
-    country: formData?.country,
     // Map amenities from object format to array format
     amenities: formData?.amenities 
       ? Object.entries(formData.amenities)

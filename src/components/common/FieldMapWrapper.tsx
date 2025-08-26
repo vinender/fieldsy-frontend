@@ -19,7 +19,6 @@ interface FieldMapWrapperProps {
   city?: string;
   state?: string;
   zipCode?: string;
-  country?: string;
   fieldName?: string;
   height?: string;
   className?: string;

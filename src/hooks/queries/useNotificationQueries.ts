@@ -23,13 +23,14 @@ export interface Notification {
 
 export interface NotificationResponse {
   success: boolean;
-  notifications: Notification[];
+  data: Notification[];
   pagination?: {
     page: number;
     limit: number;
     total: number;
     totalPages: number;
   };
+  unreadCount?: number;
 }
 
 export interface NotificationCountResponse {

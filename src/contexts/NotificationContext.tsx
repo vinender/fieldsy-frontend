@@ -54,17 +54,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Use React Query hooks for notifications
   const { data: notificationData, isLoading, refetch: refetchNotifications } = useNotificationQuery();
   const { data: unreadData } = useUnreadNotificationsCount();
-  
+  console.log('notificationData',notificationData)
   // Mutations
   const markNotificationAsReadMutation = useMarkNotificationAsRead();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteNotificationMutation = useDeleteNotification();
   const clearAllMutation = useClearAllNotifications();
   
-  const notifications = notificationData?.notifications || [];
-  const unreadCount = unreadData?.count || 0;
+  const notifications = notificationData?.data || [];
+  const unreadCount = notificationData?.unreadCount || unreadData?.count || 0;
   const loading = isLoading;
-
+console.log('notifications',notificationData  )
   // Get auth token from either NextAuth or custom auth
   const getAuthToken = useCallback(() => {
     // Try NextAuth first

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldImageUploader } from '@/components/ui/image-grid-uploader';
+import { DocumentUploader, UploadedFile } from '@/components/ui/document-uploader';
 
 interface UploadImagesProps {
   formData: any;
@@ -7,9 +7,24 @@ interface UploadImagesProps {
 }
 
 export default function UploadImages({ formData, setFormData }: UploadImagesProps) {
-  const handleImagesChange = (images: string[] | any[]) => {
-    // Handle both string[] and UploadedImage[] formats
-    const imageUrls = Array.isArray(images) ? images : [];
+  const handleImagesChange = (files: string[] | UploadedFile[]) => {
+    // Handle both string[] and UploadedFile[] formats
+    let imageUrls: string[] = [];
+    
+    if (Array.isArray(files)) {
+      if (files.length > 0) {
+        if (typeof files[0] === 'string') {
+          // Already string URLs
+          imageUrls = files as string[];
+        } else {
+          // Extract URLs from UploadedFile objects
+          imageUrls = (files as UploadedFile[])
+            .filter(f => f.uploaded && f.url)
+            .map(f => f.url as string);
+        }
+      }
+    }
+    
     setFormData((prev: any) => ({
       ...prev,
       images: imageUrls
@@ -27,9 +42,20 @@ export default function UploadImages({ formData, setFormData }: UploadImagesProp
         </p>
       </div>
 
-      <FieldImageUploader
+      <DocumentUploader
         value={formData.images || []}
         onChange={handleImagesChange}
+        multiple={true}
+        maxFiles={10}
+        maxSize={10}
+        returnUrls={true}
+        acceptImages={true}
+        acceptPDFs={false}
+        label=""
+        description=""
+        uploadText="Click to upload field images"
+        dropzoneText="Drag and drop your field images here or"
+        supportedFormatsText="Supported formats: JPG, PNG, WEBP (Max 10MB per file)"
       />
     </div>
   );
