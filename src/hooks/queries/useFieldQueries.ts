@@ -68,11 +68,24 @@ export interface FieldsParams {
   page?: number;
   limit?: number;
   search?: string;
+  zipCode?: string;
+  lat?: number;
+  lng?: number;
   city?: string;
   state?: string;
   minPrice?: number;
   maxPrice?: number;
   amenities?: string[];
+  minRating?: number;
+  maxDistance?: number;
+  date?: Date | string;
+  startTime?: string;
+  endTime?: string;
+  numberOfDogs?: number;
+  size?: string;
+  terrainType?: string;
+  fenceType?: string;
+  instantBooking?: boolean;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }

@@ -151,8 +151,8 @@ export const AddReviewModal = ({
                     <Star 
                       className={`w-10 h-10 transition-colors ${
                         starIndex <= (hoveredRating || rating)
-                          ? 'text-yellow-400 fill-yellow-400'
-                          : 'text-gray-300 fill-none stroke-gray-300'
+                          ? 'text-yellow fill-yellow'
+                          : 'text-gray-300 fill-none '
                       }`}
                     />
                   </button>
@@ -172,7 +172,7 @@ export const AddReviewModal = ({
             </div>
 
             {/* Review Title (Optional) */}
-            <div className="mb-6">
+            {/* <div className="mb-6">
               <label className="block text-[15px] font-medium text-[#192215] mb-2">
                 Review Title (Optional)
               </label>
@@ -184,7 +184,7 @@ export const AddReviewModal = ({
                 className="w-full p-4 bg-white border border-[#e3e3e3] rounded-[20px] text-[15px] text-[#192215] placeholder:text-[#8d8d8d] focus:outline-none focus:border-[#3a6b22] transition-colors"
                 maxLength={100}
               />
-            </div>
+            </div> */}
 
             {/* Review Text Area */}
             <div className="mb-8">

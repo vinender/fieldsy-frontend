@@ -23,7 +23,7 @@ export function useSendMessage(
 
   return useMutation({
     mutationFn: async (data: SendMessageData) => {
-      const response = await axiosClient.post('/messages/send', data);
+      const response = await axiosClient.post('/chat/messages', data);
       return response.data;
     },
     onSuccess: (result, variables) => {
@@ -50,7 +50,7 @@ export function useCreateConversation(
 
   return useMutation({
     mutationFn: async (data: CreateConversationData) => {
-      const response = await axiosClient.post('/messages/conversations', data);
+      const response = await axiosClient.post('/chat/conversations', data);
       return response.data;
     },
     onSuccess: () => {
@@ -73,7 +73,7 @@ export function useMarkMessagesAsRead(
   return useMutation({
     mutationFn: async (conversationId: string) => {
       const response = await axiosClient.patch(
-        `/messages/conversations/${conversationId}/read`
+        `/chat/conversations/${conversationId}/read`
       );
       return response.data;
     },
@@ -97,7 +97,7 @@ export function useDeleteMessage(
 
   return useMutation({
     mutationFn: async (messageId: string) => {
-      const response = await axiosClient.delete(`/messages/${messageId}`);
+      const response = await axiosClient.delete(`/chat/messages/${messageId}`);
       return response.data;
     },
     onSuccess: () => {
@@ -120,7 +120,7 @@ export function useDeleteConversation(
 
   return useMutation({
     mutationFn: async (conversationId: string) => {
-      const response = await axiosClient.delete(`/messages/conversations/${conversationId}`);
+      const response = await axiosClient.delete(`/chat/conversations/${conversationId}`);
       return response.data;
     },
     onSuccess: () => {

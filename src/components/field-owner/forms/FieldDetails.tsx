@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
+import { TimeInput } from '@/components/ui/time-input';
 
 interface FieldDetailsProps {
   formData: any;
@@ -17,6 +18,8 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
       [name]: value
     }));
   };
+
+  console.log('fieldData formData',formData);
 
   const handleAmenityToggle = (amenity: string) => {
     setFormData((prev: any) => ({
@@ -231,43 +234,33 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Start Time
               </label>
-              <div className="relative">
-                <Input
-                  type="time"
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleInputChange}
-                  className="py-3 pr-12 border-gray-border focus:border-green font-sans"
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <img 
-                    src="/add-field/clock.svg" 
-                    alt="Clock" 
-                    className="w-5 h-5 "
-                  />
-                </div>
-              </div>
+              <TimeInput
+                name="startTime"
+                value={formData.startTime}
+                onChange={(value) => {
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    startTime: value
+                  }));
+                }}
+                placeholder="Select start time"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 End Time
               </label>
-              <div className="relative">
-                <Input
-                  type="time"
-                  name="endTime"
-                  value={formData.endTime}
-                  onChange={handleInputChange}
-                  className="py-3 pr-12 border-gray-border focus:border-green font-sans"
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <img 
-                    src="/add-field/clock.svg" 
-                    alt="Clock" 
-                    className="w-5 h-5"
-                  />
-                </div>
-              </div>
+              <TimeInput
+                name="endTime"
+                value={formData.endTime}
+                onChange={(value) => {
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    endTime: value
+                  }));
+                }}
+                placeholder="Select end time"
+              />
             </div>
           </div>
         </div>

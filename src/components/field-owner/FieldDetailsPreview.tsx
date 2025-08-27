@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatTimeDisplay } from '@/components/ui/time-input';
 
 interface FieldDetailsPreviewProps {
   formData: any;
@@ -187,7 +188,7 @@ export default function FieldDetailsPreview({ formData, readOnly = true }: Field
                 Start Time
               </label>
               <div className="px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
-                <span className="text-gray-input font-sans">{formatValue(formData?.startTime)}</span>
+                <span className="text-gray-input font-sans">{formatTimeDisplay(formData?.startTime) || 'Not specified'}</span>
               </div>
             </div>
             <div>
@@ -195,7 +196,7 @@ export default function FieldDetailsPreview({ formData, readOnly = true }: Field
                 End Time
               </label>
               <div className="px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
-                <span className="text-gray-input font-sans">{formatValue(formData?.endTime)}</span>
+                <span className="text-gray-input font-sans">{formatTimeDisplay(formData?.endTime) || 'Not specified'}</span>
               </div>
             </div>
           </div>

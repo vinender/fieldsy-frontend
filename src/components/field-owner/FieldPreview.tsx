@@ -1,6 +1,7 @@
 import React from 'react';
 import FieldDetailsScreen from '@/components/fields/FieldDetailsScreen';
 import { Switch } from '@/components/ui/switch';
+import BackButton from '@/components/common/BackButton';
 
 interface FieldPreviewProps {
   formData: any;
@@ -106,13 +107,11 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
   const headerContent = (
     <div className="flex justify-between items-center">
-      <div>
-        
-        <h1 className="text-3xl font-semibold text-dark-green font-sans">{isSubmitted ? 'My Field' : 'Preview '}</h1>
-        {/* {!isSubmitted && (
-          <p className="text-base text-gray-text font-sans mt-1">Review how your field will appear to potential customers</p>
-        )} */}
-      </div>
+      <BackButton 
+        size='lg' 
+        label={isSubmitted ? 'My Field' : 'Preview'} 
+        showLabel={true}
+      />
       <div className="flex items-center gap-3">
         <button
           onClick={onEdit}

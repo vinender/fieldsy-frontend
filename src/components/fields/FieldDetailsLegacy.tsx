@@ -94,6 +94,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
 
   return (
     <div className="min-h-screen bg-[#FFFCF3] mt-32 w-full">
+      
       <div className="max-w-[1920px] mx-auto">
         {headerContent && (
           <div className="px-4 lg:px-20 pb-2">{headerContent}</div>
@@ -101,7 +102,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
 
         <main className="px-4 lg:px-20 py-8 lg:py-10">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12 lg:items-stretch">
-          <div className="w-full lg:w-[45%] xl:w-[50%] 2xl:w-[55%] lg:flex-shrink-0">
+          <div className="w-full lg:w-[45%] xl:w-[50%] 2xl:w-[45%] lg:flex-shrink-0">
             <div className="h-full flex flex-col space-y-4 lg:sticky lg:top-24">
               <div className="grid grid-cols-2 gap-3 lg:gap-4">
                 {fieldImages?.slice(0, 6).map((img: string, index: number) => (
@@ -171,7 +172,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 </div>
                 <div className="flex w-16 sm:w-auto items-center bg-dark-green text-white px-2 py-1 rounded-md flex-shrink-0">
                   <Star className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
-                  <span className="text-sm font-semibold">{field?.rating || 4.5}</span>
+                  <span className="text-sm font-semibold">{field?.averageRating?.toFixed(1) || '0.0'}</span>
                 </div>
               </div>
             </div>
@@ -329,7 +330,6 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 city={field?.city}
                 state={field?.state || field?.county}
                 zipCode={field?.zipCode || field?.postalCode}
-                country={field?.country}
                 fieldName={field?.name || field?.fieldName || 'Field Location'}
                 latitude={field?.latitude}
                 longitude={field?.longitude}
@@ -356,7 +356,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 <div className="bg-white border border-gray-200 rounded-xl">
                   <button
                     className="w-full flex items-center justify-between px-4 py-3"
-                    onClick={isPreview ? undefined : () => setRulesOpen(!rulesOpen)}
+                    onClick={() => setRulesOpen(!rulesOpen)}
                   >
                     <div className="flex items-center gap-2">
                       <img src="/field-details/rules.svg" alt="rules" className="w-5 h-5" />
@@ -472,7 +472,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 <div className="bg-white border border-gray-200 rounded-xl">
                   <button
                     className="w-full flex items-center justify-between px-4 py-3"
-                    onClick={isPreview ? undefined : () => setBookingOpen(!bookingOpen)}
+                    onClick={() => setBookingOpen(!bookingOpen)}
                   >
                     <div className="flex items-center gap-2">
                       <img src="/field-details/policy.svg" alt="policy" className="w-5 h-5" />
@@ -600,8 +600,8 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
           </div>
           
         </div>
-        {/* keep this section here for now */}
-        {showReviews && !isPreview && (
+        {/* Reviews section - only show for claimed fields */}
+        {showReviews && !isPreview && isClaimed && (
               <div className="mt-12 lg:mt-16">
                 {/* Reviews & Ratings Header */}
                 <div className="mb-6">

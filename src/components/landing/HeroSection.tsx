@@ -1,6 +1,5 @@
 import React from 'react';
-import { MapPin, Code } from 'lucide-react';
-import { PlacesAutocomplete } from '@/components/ui/places-autocomplete';
+import { FieldSearchInput } from '@/components/ui/field-search-input';
 import Image from 'next/image';
 
 export function HeroSection() {
@@ -65,44 +64,11 @@ export function HeroSection() {
         Use your location or enter a postcode to explore secure, private dog walking fields nearby.
       </p>
       {/* Search Form */}
-      <div className="relative">
-        <PlacesAutocomplete
-          placeholder="Enter postcode or location"
-          className="w-full pl-4 pr-4 sm:pr-40 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-fieldsy-green focus:border-transparent"
-          recentSearches={[
-            { title: 'Sunny Paws Reserve', subtitle: 'South London · 4 km away' },
-            { title: 'Whispering Pines', subtitle: 'Northfield · 6 km away' },
-            { title: 'The Bark Yard', subtitle: 'East Kent · 2.5 km away' },
-            { title: 'Green Meadows Field', subtitle: 'Kent TN25 · 3.1 km away' },
-            { title: 'Doggie Dunes', subtitle: 'Coastal Downs · 7 km away' },
-            { title: 'Muddy Tails Trail', subtitle: 'Riverbank · 5.5 km away' },
-          ]}
-        />
-        {/* Buttons container inside input - hidden on mobile, shown on larger screens */}
-        <div className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-2">
-          {/* Use My Location button */}
-          <button className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-600 hover:text-gray-800 transition">
-            <MapPin className="w-4 h-4" />
-            <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">Use My Location</span>
-          </button>
-          {/* Divider */}
-          <div className="h-6 w-px bg-gray-300"></div>
-          {/* Search button */}
-          <button className="px-4 sm:px-6 py-2.5 sm:py-3.5 bg-green text-white rounded-full hover:bg-light-green transition font-semibold text-sm sm:text-base">
-            Search
-          </button>
-        </div>
-      </div>
-      {/* Mobile search button - shown only on mobile */}
-      <div className="flex sm:hidden gap-2 mt-3">
-        <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-gray-600 border border-gray-200 rounded-full hover:bg-gray-50 transition">
-          <MapPin className="w-4 h-4" />
-          <span className="text-sm">Use My Location</span>
-        </button>
-        <button className="flex-1 px-4 py-3 bg-green text-white rounded-full hover:bg-light-green transition font-semibold text-sm">
-          Search
-        </button>
-      </div>
+      <FieldSearchInput
+        placeholder="Search by field name or postcode"
+        className="w-full pl-4 pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-fieldsy-green focus:border-transparent"
+        showRecentSearches={true}
+      />
     </div>
     {/* Right Section - 35% */}
     <div className="flex w-full flex-col justify-center items-center text-center p-6 sm:p-8 border-t xl:border-t-0 xl:border-l">

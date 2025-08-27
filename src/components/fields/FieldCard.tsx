@@ -149,7 +149,7 @@ export function FieldCard({
               </span>
             </div>
             <div className="bg-dark-green rounded-md px-1.5 py-1 flex items-center gap-0.5">
-              <Star className="w-3.5 h-3.5 text-white" fill="white" />
+              <Star className="w-3.5 h-3.5 fill-yellow text-white" fill="white" />
               <span className="text-[12px] font-semibold text-white">{rating}</span>
             </div>
           </div>

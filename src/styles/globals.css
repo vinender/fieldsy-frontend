@@ -21,21 +21,21 @@
 }
 
 .fieldsy-calendar .react-datepicker__header {
-  background-color: #3A6B22 !important;
-  border-bottom: none !important;
+  background-color: white !important;
+  border-bottom: 1px solid #E3E3E3 !important;
   padding: 12px !important;
   border-radius: 12px 12px 0 0 !important;
 }
 
 .fieldsy-calendar .react-datepicker__current-month {
-  color: white !important;
+  color: #3A6B22 !important;
   font-size: 16px !important;
   font-weight: 600 !important;
   margin-bottom: 8px !important;
 }
 
 .fieldsy-calendar .react-datepicker__day-name {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: #6B7280 !important; /* Gray color for weekday labels - now visible */
   font-size: 14px !important;
   font-weight: 500 !important;
   width: 36px !important;
@@ -51,7 +51,7 @@
   font-weight: 500 !important;
 }
 
-.fieldsy-calendar .react-datepicker__day:hover {
+.fieldsy-calendar .react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
   background-color: #F8F1D7 !important;
   color: #3A6B22 !important;
 }
@@ -67,19 +67,29 @@
   color: white !important;
 }
 
-.fieldsy-calendar .react-datepicker__day--today {
+/* Today's date - only show green when not disabled */
+.fieldsy-calendar .react-datepicker__day--today:not(.react-datepicker__day--disabled) {
   background-color: #E7F5E1 !important;
   color: #3A6B22 !important;
   font-weight: 600 !important;
+  border: 1px solid #3A6B22 !important;
+}
+
+/* Today's date when disabled - no special styling */
+.fieldsy-calendar .react-datepicker__day--today.react-datepicker__day--disabled {
+  background-color: transparent !important;
+  color: #D1D5DB !important;
+  border: 1px solid #E5E7EB !important;
 }
 
 .fieldsy-calendar .react-datepicker__day--disabled {
   color: #D1D5DB !important;
   cursor: not-allowed !important;
+  background-color: #F9FAFB !important;
 }
 
 .fieldsy-calendar .react-datepicker__day--disabled:hover {
-  background-color: transparent !important;
+  background-color: #F9FAFB !important;
   color: #D1D5DB !important;
 }
 
@@ -88,15 +98,15 @@
 }
 
 .fieldsy-calendar .react-datepicker__navigation-icon {
-  color: white !important;
+  color: #3A6B22 !important;
 }
 
 .fieldsy-calendar .react-datepicker__navigation-icon::before {
-  border-color: white !important;
+  border-color: #3A6B22 !important;
 }
 
 .fieldsy-calendar .react-datepicker__navigation:hover *::before {
-  border-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: #2D5A1B !important;
 }
 
 .react-datepicker__month {

@@ -57,29 +57,94 @@ const BookFieldPage = () => {
     );
   }
 
-  const timeSlots = {
-    morning: [
-      { time: '6:00AM - 7:00AM', available: false },
-      { time: '7:00AM - 8:00AM', available: true },
-      { time: '8:00AM - 9:00AM', available: true, selected: true },
-      { time: '9:00AM - 10:00AM', available: true },
-      { time: '10:00AM - 11:00AM', available: true },
-      { time: '11:00AM - 12:00PM', available: true }
-    ],
-    afternoon: [
-      { time: '12:00PM - 1:00PM', available: true },
-      { time: '1:00PM - 2:00PM', available: true },
-      { time: '2:00PM - 3:00PM', available: false },
-      { time: '3:00PM - 4:00PM', available: true },
-      { time: '4:00PM - 5:00PM', available: true },
-      { time: '5:00PM - 6:00PM', available: true }
-    ],
-    evening: [
-      { time: '6:00PM - 7:00PM', available: true },
-      { time: '7:00PM - 8:00PM', available: false },
-      { time: '8:00PM - 9:00PM', available: false }
-    ]
+  // Function to generate time slots based on field's operating hours
+  const generateTimeSlots = () => {
+    const slots = {
+      morning: [],
+      afternoon: [],
+      evening: []
+    };
+
+    // Default hours if not specified
+    const openingHour = field?.openingTime ? parseInt(field.openingTime.split(':')[0]) : 6;
+    const closingHour = field?.closingTime ? parseInt(field.closingTime.split(':')[0]) : 21;
+
+    // Generate hourly slots from opening to closing time
+    for (let hour = openingHour; hour < closingHour; hour++) {
+      const startTime = hour === 0 ? '12:00AM' : hour < 12 ? `${hour}:00AM` : hour === 12 ? '12:00PM' : `${hour - 12}:00PM`;
+      const endHour = hour + 1;
+      const endTime = endHour === 0 ? '12:00AM' : endHour < 12 ? `${endHour}:00AM` : endHour === 12 ? '12:00PM' : `${endHour - 12}:00PM`;
+      const slotTime = `${startTime} - ${endTime}`;
+
+      // Check if this date/time is available for the selected date
+      const isAvailable = checkSlotAvailability(selectedDate, hour);
+
+      const slot = {
+        time: slotTime,
+        available: isAvailable,
+        selected: slotTime === selectedTimeSlot
+      };
+
+      // Categorize into morning, afternoon, or evening
+      if (hour < 12) {
+        slots.morning.push(slot);
+      } else if (hour < 18) {
+        slots.afternoon.push(slot);
+      } else {
+        slots.evening.push(slot);
+      }
+    }
+
+    return slots;
   };
+
+  // Check if a specific time slot is available
+  const checkSlotAvailability = (date: Date | null, hour: number) => {
+    if (!date || !field) return true; // Default to available if no date selected
+
+    // Check if the selected date is an operating day
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const operatingDays = field.operatingDays;
+    
+    if (operatingDays && (operatingDays.length > 0 || typeof operatingDays === 'string')) {
+      // Handle special cases for weekend/weekday strings
+      let allowedDays: string[] = [];
+      
+      if (typeof operatingDays === 'string') {
+        const lowerValue = operatingDays.toLowerCase();
+        if (lowerValue === 'weekend' || lowerValue === 'weekends') {
+          allowedDays = ['Saturday', 'Sunday'];
+        } else if (lowerValue === 'weekdays' || lowerValue === 'weekday') {
+          allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        } else {
+          allowedDays = [operatingDays];
+        }
+      } else if (Array.isArray(operatingDays)) {
+        if (operatingDays.length === 1 && typeof operatingDays[0] === 'string') {
+          const firstValue = operatingDays[0].toLowerCase();
+          if (firstValue === 'weekend' || firstValue === 'weekends') {
+            allowedDays = ['Saturday', 'Sunday'];
+          } else if (firstValue === 'weekdays' || firstValue === 'weekday') {
+            allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+          } else {
+            allowedDays = operatingDays;
+          }
+        } else {
+          allowedDays = operatingDays;
+        }
+      }
+      
+      if (!allowedDays.includes(dayName)) {
+        return false;
+      }
+    }
+
+    // In a real application, you would check against existing bookings here
+    // For now, we'll randomly mark some slots as unavailable for demo purposes
+    return Math.random() > 0.2; // 80% availability rate
+  };
+
+  const timeSlots = generateTimeSlots();
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -87,6 +152,129 @@ const BookFieldPage = () => {
 
   const selectTimeSlot = (time) => {
     setSelectedTimeSlot(time);
+  };
+
+  // Function to check if a date should be disabled in the date picker
+  const isDateDisabled = (date: Date) => {
+    if (!field || !field.operatingDays || field.operatingDays.length === 0) {
+      return false; // If no operating days specified, all days are available
+    }
+
+    // Handle special cases for weekend/weekday strings
+    const operatingDays = field.operatingDays;
+    let allowedDays: string[] = [];
+
+    // Check if operatingDays is a string (single value) or array
+    if (typeof operatingDays === 'string') {
+      // Single string value
+      const lowerValue = operatingDays.toLowerCase();
+      if (lowerValue === 'weekend' || lowerValue === 'weekends') {
+        allowedDays = ['Saturday', 'Sunday'];
+      } else if (lowerValue === 'weekdays' || lowerValue === 'weekday') {
+        allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+      } else {
+        // Treat as a single day name
+        allowedDays = [operatingDays];
+      }
+    } else if (Array.isArray(operatingDays)) {
+      // Array of values
+      if (operatingDays.length === 1 && typeof operatingDays[0] === 'string') {
+        const firstValue = operatingDays[0].toLowerCase();
+        if (firstValue === 'weekend' || firstValue === 'weekends') {
+          allowedDays = ['Saturday', 'Sunday'];
+        } else if (firstValue === 'weekdays' || firstValue === 'weekday') {
+          allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        } else {
+          allowedDays = operatingDays;
+        }
+      } else {
+        // Check if array contains weekend/weekday strings
+        const hasWeekend = operatingDays.some(day => 
+          typeof day === 'string' && (day.toLowerCase() === 'weekend' || day.toLowerCase() === 'weekends')
+        );
+        const hasWeekday = operatingDays.some(day => 
+          typeof day === 'string' && (day.toLowerCase() === 'weekday' || day.toLowerCase() === 'weekdays')
+        );
+        
+        if (hasWeekend && !hasWeekday) {
+          allowedDays = ['Saturday', 'Sunday'];
+        } else if (hasWeekday && !hasWeekend) {
+          allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        } else if (hasWeekend && hasWeekday) {
+          // Both weekend and weekday = all days
+          allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        } else {
+          // Use the array as-is (should be day names)
+          allowedDays = operatingDays;
+        }
+      }
+    }
+
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const isDisabled = !allowedDays.includes(dayName);
+    
+    // Debug logging - remove after fixing
+    console.log('Date check:', {
+      date: date.toDateString(),
+      dayName,
+      operatingDays: field.operatingDays,
+      allowedDays,
+      isDisabled
+    });
+    
+    return isDisabled;
+  };
+
+  // Function to get available recurring options based on operating days
+  const getAvailableRecurringOptions = () => {
+    const options = ['None'];
+    const operatingDays = field?.operatingDays;
+    
+    if (!field || !operatingDays || (Array.isArray(operatingDays) && operatingDays.length === 0)) {
+      return ['None', 'Daily', 'Weekly', 'Monthly'];
+    }
+
+    // Determine actual operating days count
+    let daysCount = 0;
+    
+    if (typeof operatingDays === 'string') {
+      const lowerValue = operatingDays.toLowerCase();
+      if (lowerValue === 'weekend' || lowerValue === 'weekends') {
+        daysCount = 2;
+      } else if (lowerValue === 'weekdays' || lowerValue === 'weekday') {
+        daysCount = 5;
+      } else {
+        daysCount = 1; // Single day
+      }
+    } else if (Array.isArray(operatingDays)) {
+      if (operatingDays.length === 1 && typeof operatingDays[0] === 'string') {
+        const firstValue = operatingDays[0].toLowerCase();
+        if (firstValue === 'weekend' || firstValue === 'weekends') {
+          daysCount = 2;
+        } else if (firstValue === 'weekdays' || firstValue === 'weekday') {
+          daysCount = 5;
+        } else {
+          daysCount = 1;
+        }
+      } else {
+        daysCount = operatingDays.length;
+      }
+    }
+
+    // Only show Daily if field operates every day
+    if (daysCount === 7) {
+      options.push('Daily');
+    }
+
+    // Always show Weekly if at least one day is available
+    if (daysCount > 0) {
+      options.push('Weekly');
+    }
+
+    // Always show Monthly
+    options.push('Monthly');
+
+    return options;
   };
 
   return (
@@ -194,17 +382,41 @@ const BookFieldPage = () => {
               <div>
                 <label className="text-[18px] font-semibold text-dark-green block mb-2">
                   Number of Dogs
+                  {field.maxDogs && (
+                    <span className="text-[14px] font-normal text-gray-500 ml-2">
+                      (Maximum: {field.maxDogs})
+                    </span>
+                  )}
                 </label>
                 <div className="relative">
                   <Input
-                    type="text"
+                    type="number"
                     value={numberOfDogs}
-                    onChange={(e) => setNumberOfDogs(e.target.value)}
-                    placeholder="Enter number of dogs"
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      const maxAllowed = field.maxDogs || 10;
+                      
+                      // Validate input
+                      if (value < 0) {
+                        setNumberOfDogs('');
+                      } else if (value > maxAllowed) {
+                        setNumberOfDogs(maxAllowed.toString());
+                      } else {
+                        setNumberOfDogs(e.target.value);
+                      }
+                    }}
+                    min="1"
+                    max={field.maxDogs || 10}
+                    placeholder={`Enter number of dogs (1-${field.maxDogs || 10})`}
                     className="h-14 border-[#E3E3E3] focus:border-[#3A6B22] text-[15px]"
                   />
                   {/* <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" /> */}
                 </div>
+                {numberOfDogs && parseInt(numberOfDogs) > (field.maxDogs || 10) && (
+                  <p className="text-red text-sm mt-1">
+                    This field allows a maximum of {field.maxDogs || 10} dogs
+                  </p>
+                )}
               </div>
 
               {/* Choose Date */}
@@ -218,6 +430,7 @@ const BookFieldPage = () => {
                     onChange={(date: Date | null) => setSelectedDate(date)}
                     minDate={minDate}
                     maxDate={maxDate}
+                    filterDate={(date) => !isDateDisabled(date)}
                     dateFormat="yyyy-MM-dd"
                     placeholderText="Select a date"
                     className="h-14 bg-white w-full border-[#E3E3E3] focus:border-[#3A6B22] text-[15px] font-medium cursor-pointer px-4 py-2 border rounded-[70px] focus:outline-none focus:ring-1 focus:ring-[#3A6B22]/20"
@@ -232,11 +445,31 @@ const BookFieldPage = () => {
               {/* Preferred Time */}
               <div>
                 <label className="text-[18px] font-semibold text-dark-green block mb-4">
-                  Preffered Time
+                  Preferred Time
                 </label>
+                
+                {/* Show field operating hours if available */}
+                {field?.openingTime && field?.closingTime && (
+                  <p className="text-sm text-gray-600 mb-3">
+                    Field hours: {field.openingTime} - {field.closingTime}
+                  </p>
+                )}
+                
+                {/* Show message if no time slots available */}
+                {timeSlots.morning.length === 0 && timeSlots.afternoon.length === 0 && timeSlots.evening.length === 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800">
+                    <p className="text-sm font-medium">No time slots available for the selected date.</p>
+                    <p className="text-sm mt-1">
+                      {field?.operatingDays && field.operatingDays.length > 0 
+                        ? `This field operates on: ${field.operatingDays.join(', ')}`
+                        : 'Please select another date or contact the field owner.'}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="space-y-[11px]">
                   {/* Morning Section */}
+                  {timeSlots.morning.length > 0 && (
                   <div className={`border rounded-[10px] overflow-hidden ${expandedSection === 'morning' ? 'border-dark-green/10 bg-[#FFFCF3]' : 'border-dark-green/10'}`}>
                     <button
                       onClick={() => toggleSection('morning')}
@@ -271,8 +504,10 @@ const BookFieldPage = () => {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* Afternoon Section */}
+                  {timeSlots.afternoon.length > 0 && (
                   <div className="border border-dark-green/10 rounded-[10px] overflow-hidden">
                     <button
                       onClick={() => toggleSection('afternoon')}
@@ -307,8 +542,10 @@ const BookFieldPage = () => {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* Evening Section */}
+                  {timeSlots.evening.length > 0 && (
                   <div className="border border-dark-green/10 rounded-[10px] overflow-hidden">
                     <button
                       onClick={() => toggleSection('evening')}
@@ -343,6 +580,7 @@ const BookFieldPage = () => {
                       </div>
                     )}
                   </div>
+                  )}
                 </div>
               </div>
 
@@ -353,7 +591,7 @@ const BookFieldPage = () => {
                   Need regular access? Set up a weekly or monthly recurring booking.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                  {['None', 'Daily', 'Weekly', 'Monthly'].map((option) => (
+                  {getAvailableRecurringOptions().map((option) => (
                     <button
                       key={option}
                       onClick={() => setRepeatBooking(option)}
@@ -376,6 +614,20 @@ const BookFieldPage = () => {
                     alert('Please enter the number of dogs');
                     return;
                   }
+                  
+                  const numDogs = parseInt(numberOfDogs);
+                  const maxAllowed = field.maxDogs || 10;
+                  
+                  if (numDogs < 1) {
+                    alert('Please enter at least 1 dog');
+                    return;
+                  }
+                  
+                  if (numDogs > maxAllowed) {
+                    alert(`This field allows a maximum of ${maxAllowed} dogs`);
+                    return;
+                  }
+                  
                   router.push({
                     pathname: '/fields/payment',
                     query: {

@@ -171,7 +171,7 @@ export default function AddYourField() {
   useEffect(() => {
     if (fieldData) {
       setFieldId(fieldData.id);
-      
+      console.log('fieldData',fieldData)
       // Pre-populate form data
       setFormData(prev => ({
         ...prev,

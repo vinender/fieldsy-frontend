@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, SortDesc, Calendar, X, Navigation, Filter } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronUp, SortDesc, X, Filter, Calendar } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { FieldCard } from '@/components/fields/FieldCard';
-import { Input } from '@/components/ui/input';
+import FieldsSortFilter from '@/components/fields/FieldsSortFilter';
+import { FieldSearchInput } from '@/components/ui/field-search-input';
 import { UserLayout } from '@/components/layout/UserLayout';
 import mockData from '@/data/mock-data.json';
 import { useRouter } from 'next/router';
@@ -11,16 +14,75 @@ import { useFields, FieldsParams } from '@/hooks/queries/useFieldQueries';
 
 export default function SearchResults() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { } = useSession();
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchValue, setSearchValue] = useState('');
-  const [selectedSize, setSelectedSize] = useState('Large (3+ Acres)');
-  const [selectedAmenities, setSelectedAmenities] = useState(['Secure fencing']);
-  const [selectedRating, setSelectedRating] = useState('4.5+');
-  const [priceRange, setPriceRange] = useState(mockData.filterOptions.priceRange.default);
-  const [distanceRange, setDistanceRange] = useState(mockData.filterOptions.distanceRange.default);
+  const [zipCode, setZipCode] = useState('');
+  const [lat, setLat] = useState<number | undefined>();
+  const [lng, setLng] = useState<number | undefined>();
+  
+  // Parse query parameters on mount and when router.query changes
+  useEffect(() => {
+    const { search, zipCode: zip, lat: latitude, lng: longitude } = router.query;
+    
+    if (search) {
+      setSearchValue(search as string);
+    }
+    if (zip) {
+      setZipCode(zip as string);
+    }
+    if (latitude && longitude) {
+      setLat(parseFloat(latitude as string));
+      setLng(parseFloat(longitude as string));
+    }
+  }, [router.query]);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setSortDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Default filter values - all empty to show all fields
+  const defaultFilters = {
+    size: '',
+    amenities: [] as string[],
+    rating: '',
+    priceRange: [mockData.filterOptions.priceRange.min, mockData.filterOptions.priceRange.max],
+    distanceRange: [mockData.filterOptions.distanceRange.min, mockData.filterOptions.distanceRange.max],
+    date: undefined as Date | undefined
+  };
+
+  // Temporary filter state (for UI)
+  const [tempSize, setTempSize] = useState(defaultFilters.size);
+  const [tempAmenities, setTempAmenities] = useState<string[]>(defaultFilters.amenities);
+  const [tempRating, setTempRating] = useState(defaultFilters.rating);
+  const [tempPriceRange, setTempPriceRange] = useState(defaultFilters.priceRange);
+  const [tempDistanceRange, setTempDistanceRange] = useState(defaultFilters.distanceRange);
+  const [tempDate, setTempDate] = useState<Date | undefined>(defaultFilters.date);
+
+  // Applied filter state (for API)
+  const [appliedSize, setAppliedSize] = useState(defaultFilters.size);
+  const [appliedAmenities, setAppliedAmenities] = useState<string[]>(defaultFilters.amenities);
+  const [appliedRating, setAppliedRating] = useState(defaultFilters.rating);
+  const [appliedPriceRange, setAppliedPriceRange] = useState(defaultFilters.priceRange);
+  const [appliedDistanceRange, setAppliedDistanceRange] = useState(defaultFilters.distanceRange);
+  const [appliedDate, setAppliedDate] = useState<Date | undefined>(defaultFilters.date);
+  
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedFields, setLikedFields] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState('rating');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     fieldSize: true,
     amenities: true,
@@ -31,12 +93,64 @@ export default function SearchResults() {
     availability: true
   });
 
-  // Build query parameters for React Query
+  // Function to apply filters
+  const applyFilters = () => {
+    setAppliedSize(tempSize);
+    setAppliedAmenities(tempAmenities);
+    setAppliedRating(tempRating);
+    setAppliedPriceRange(tempPriceRange);
+    setAppliedDistanceRange(tempDistanceRange);
+    setAppliedDate(tempDate);
+    setCurrentPage(1); // Reset to first page
+    setFiltersOpen(false); // Close mobile filters
+  };
+
+  // Function to reset filters
+  const resetFilters = () => {
+    // Reset temporary states to defaults
+    setTempSize(defaultFilters.size);
+    setTempAmenities(defaultFilters.amenities);
+    setTempRating(defaultFilters.rating);
+    setTempPriceRange(defaultFilters.priceRange);
+    setTempDistanceRange(defaultFilters.distanceRange);
+    setTempDate(defaultFilters.date);
+    
+    // Reset applied states to defaults
+    setAppliedSize(defaultFilters.size);
+    setAppliedAmenities(defaultFilters.amenities);
+    setAppliedRating(defaultFilters.rating);
+    setAppliedPriceRange(defaultFilters.priceRange);
+    setAppliedDistanceRange(defaultFilters.distanceRange);
+    setAppliedDate(defaultFilters.date);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Build query parameters for React Query - use applied filters
   const queryParams: FieldsParams = {
     page: currentPage,
     limit: 12,
     ...(searchValue && { search: searchValue }),
-    // TODO: Add more filter parameters when API supports them
+    ...(zipCode && { zipCode }),
+    ...(lat && lng && { lat, lng }),
+    ...(appliedSize && appliedSize !== 'All' && appliedSize !== '' && { size: appliedSize }),
+    ...(appliedAmenities.length > 0 && { amenities: appliedAmenities }),
+    ...(appliedRating && appliedRating !== '' && { minRating: parseFloat(appliedRating.replace('+', '')) }),
+    // Only apply price filter if it's not the full range
+    ...(appliedPriceRange && 
+        (appliedPriceRange[0] !== mockData.filterOptions.priceRange.min || 
+         appliedPriceRange[1] !== mockData.filterOptions.priceRange.max) && { 
+      minPrice: appliedPriceRange[0], 
+      maxPrice: appliedPriceRange[1] 
+    }),
+    // Only apply distance filter if it's not the full range
+    ...(appliedDistanceRange && 
+        (appliedDistanceRange[0] !== mockData.filterOptions.distanceRange.min || 
+         appliedDistanceRange[1] !== mockData.filterOptions.distanceRange.max) && { 
+      maxDistance: appliedDistanceRange[1] 
+    }),
+    ...(appliedDate && { date: appliedDate.toISOString() }),
+    sortBy,
+    sortOrder
   };
 
   // Use React Query hook to fetch fields
@@ -100,33 +214,15 @@ export default function SearchResults() {
       <div className="min-h-screen bg-[#FFFCF3] w-full">
       {/* Search Bar - Sticky below header */}
       <div className="bg-light-cream my-10 sticky top-[80px] md:top-[120px] z-30 px-4 sm:px-6 lg:px-20 py-4">
-        <div className="bg-white rounded-[30px] md:rounded-[90px] min-h-[50px] md:h-[60px] flex flex-col md:flex-row items-center px-4 md:px-6 py-3 md:py-0 border border-black/10 shadow-[0px_12px_13px_0px_rgba(0,0,0,0.05)] gap-3 md:gap-0">
-          <Input 
-            type="text" 
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Enter location..."
-            className="flex-1 border-0 shadow-none px-0 focus:ring-0 rounded-none text-[14px] md:text-[16px]"
-          />
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            {searchValue && (
-              <X 
-                className="w-[18px] h-[18px] text-dark-green cursor-pointer hover:text-[#3A6B22] transition-colors" 
-                onClick={() => setSearchValue('')}
-              />
-            )}
-            <div className="hidden md:block w-px h-5 bg-[#8d8d8d] mx-3" />
-            <button className="flex items-center gap-1 text-[#3A6B22]">
-              <Navigation className="w-[16px] md:w-[18px] h-[16px] md:h-[18px]" />
-              <span className="text-[14px] md:text-[16px] font-medium underline">Use My Location</span>
-            </button>
-            <button 
-              onClick={handleSearch}
-              className="ml-auto bg-[#3A6B22] text-white px-4 md:px-6 py-2 md:py-3 rounded-[90px] text-[14px] md:text-[16px] font-semibold whitespace-nowrap">
-              Search
-            </button>
-          </div>
-        </div>
+        <FieldSearchInput
+          placeholder="Search by field name, location, or postal code"
+          className="w-full pl-4 pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-fieldsy-green focus:border-transparent"
+          onSearch={(query) => {
+            setSearchValue(query);
+            handleSearch();
+          }}
+          showRecentSearches={true}
+        />
       </div>
 
       {/* Main Content */}
@@ -154,7 +250,7 @@ export default function SearchResults() {
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-[18px] font-semibold text-dark-green">Filters</h2>
               <div className="flex items-center gap-3">
-                <button className="text-[14px] font-semibold text-[#e31c20]">Reset All</button>
+                <button onClick={resetFilters} className="text-[14px] font-semibold text-[#e31c20]">Reset All</button>
                 {filtersOpen && (
                   <button 
                     onClick={() => setFiltersOpen(false)}
@@ -182,9 +278,9 @@ export default function SearchResults() {
                   {mockData.filterOptions.fieldSizes.map((size) => (
                     <button
                       key={size}
-                      onClick={() => setSelectedSize(size)}
+                      onClick={() => setTempSize(size)}
                       className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
-                        selectedSize === size 
+                        tempSize === size 
                           ? 'bg-[#8FB366] text-white' 
                           : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                       }`}
@@ -208,21 +304,21 @@ export default function SearchResults() {
                     <ChevronDown className="w-4 h-4" />
                   }
                 </button>
-              </div>
+              </div>  
               {expandedSections.amenities && (
                 <div className="flex flex-wrap gap-2">
                   {mockData.filterOptions.amenities.slice(0, 6).map((amenity) => (
                     <button
                       key={amenity}
                       onClick={() => {
-                        setSelectedAmenities(prev => 
+                        setTempAmenities((prev: string[]) => 
                           prev.includes(amenity) 
-                            ? prev.filter(a => a !== amenity)
+                            ? prev.filter((a: string) => a !== amenity)
                             : [...prev, amenity]
                         );
                       }}
                       className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium flex items-center gap-2 ${
-                        selectedAmenities.includes(amenity)
+                        tempAmenities.includes(amenity)
                           ? 'bg-[#8FB366] text-white' 
                           : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                       }`}
@@ -241,7 +337,7 @@ export default function SearchResults() {
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-[14px] font-bold text-dark-green">Price</h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-medium text-[#3A6B22]">${priceRange[0]} to ${priceRange[1]}</span>
+                  <span className="text-[14px] font-medium text-[#3A6B22]">${tempPriceRange[0]} to ${tempPriceRange[1]}</span>
                   <button onClick={() => toggleSection('price')}>
                     {expandedSections.price ? 
                       <ChevronUp className="w-4 h-4" /> : 
@@ -250,15 +346,57 @@ export default function SearchResults() {
                   </button>
                 </div>
               </div>
+
               {expandedSections.price && (
                 <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
+                  <style jsx>{`
+                    input[type="range"] {
+                      -webkit-appearance: none;
+                      appearance: none;
+                      background: transparent;
+                      cursor: pointer;
+                      width: 100%;
+                    }
+                    input[type="range"]::-webkit-slider-track {
+                      background: #e0e0e0;
+                      border-radius: 0.5rem;
+                      height: 0.5rem;
+                    }
+                    input[type="range"]::-webkit-slider-thumb {
+                      -webkit-appearance: none;
+                      appearance: none;
+                      background: #8FB366;
+                      border-radius: 50%;
+                      border: 0;
+                      height: 1.5rem;
+                      width: 1.5rem;
+                      margin-top: -0.5rem;
+                    }
+                    input[type="range"]::-moz-range-track {
+                      background: #e0e0e0;
+                      border-radius: 0.5rem;
+                      height: 0.5rem;
+                    }
+                    input[type="range"]::-moz-range-thumb {
+                      background: #8FB366;
+                      border-radius: 50%;
+                      border: 0;
+                      height: 1.5rem;
+                      width: 1.5rem;
+                    }
+                    input[type="range"]::-moz-range-progress {
+                      background: #8FB366;
+                      border-radius: 0.5rem;
+                      height: 0.5rem;
+                    }
+                  `}</style>
                   <input 
                     type="range" 
                     className="w-full" 
                     min={mockData.filterOptions.priceRange.min} 
                     max={mockData.filterOptions.priceRange.max} 
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                    value={tempPriceRange[1]}
+                    onChange={(e) => setTempPriceRange([tempPriceRange[0], parseInt(e.target.value)])}
                   />
                   <div className="flex justify-between text-[12px] text-dark-green mt-2">
                     <span>${mockData.filterOptions.priceRange.min}</span>
@@ -266,7 +404,7 @@ export default function SearchResults() {
                   </div>
                 </div>
               )}
-            </div>
+            </div>  
 
             <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
 
@@ -275,7 +413,7 @@ export default function SearchResults() {
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-[14px] font-bold text-dark-green">Distance away</h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-medium text-[#3A6B22]">{distanceRange[0]} mile to {distanceRange[1]} Miles</span>
+                  <span className="text-[14px] font-medium text-[#3A6B22]">{tempDistanceRange[0]} mile to {tempDistanceRange[1]} Miles</span>
                   <button onClick={() => toggleSection('distance')}>
                     {expandedSections.distance ? 
                       <ChevronUp className="w-4 h-4" /> : 
@@ -286,13 +424,54 @@ export default function SearchResults() {
               </div>
               {expandedSections.distance && (
                 <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
+                  <style jsx>{`
+                    input[type="range"] {
+                      -webkit-appearance: none;
+                      appearance: none;
+                      background: transparent;
+                      cursor: pointer;
+                      width: 100%;
+                    }
+                    input[type="range"]::-webkit-slider-track {
+                      background: #e0e0e0;
+                      border-radius: 0.5rem;
+                      height: 0.5rem;
+                    }
+                    input[type="range"]::-webkit-slider-thumb {
+                      -webkit-appearance: none;
+                      appearance: none;
+                      background: #8FB366;
+                      border-radius: 50%;
+                      border: 0;
+                      height: 1.5rem;
+                      width: 1.5rem;
+                      margin-top: -0.5rem;
+                    }
+                    input[type="range"]::-moz-range-track {
+                      background: #e0e0e0;
+                      border-radius: 0.5rem;
+                      height: 0.5rem;
+                    }
+                    input[type="range"]::-moz-range-thumb {
+                      background: #8FB366;
+                      border-radius: 50%;
+                      border: 0;
+                      height: 1.5rem;
+                      width: 1.5rem;
+                    }
+                    input[type="range"]::-moz-range-progress {
+                      background: #8FB366;
+                      border-radius: 0.5rem;
+                      height: 0.5rem;
+                    }
+                  `}</style>
                   <input 
                     type="range" 
                     className="w-full" 
                     min={mockData.filterOptions.distanceRange.min} 
                     max={mockData.filterOptions.distanceRange.max} 
-                    value={distanceRange[1]}
-                    onChange={(e) => setDistanceRange([distanceRange[0], parseInt(e.target.value)])}
+                    value={tempDistanceRange[1]}
+                    onChange={(e) => setTempDistanceRange([tempDistanceRange[0], parseInt(e.target.value)])}
                   />
                   <div className="flex justify-between text-[12px] text-dark-green mt-2">
                     <span>{mockData.filterOptions.distanceRange.min} mile</span>
@@ -320,9 +499,9 @@ export default function SearchResults() {
                   {mockData.filterOptions.ratings.map((rating) => (
                     <button
                       key={rating}
-                      onClick={() => setSelectedRating(rating)}
+                      onClick={() => setTempRating(rating)}
                       className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
-                        selectedRating === rating
+                        tempRating === rating
                           ? 'bg-[#8FB366] text-white' 
                           : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                       }`}
@@ -349,9 +528,20 @@ export default function SearchResults() {
                   </button>
                 </div>
                 {expandedSections.date && (
-                  <div className="bg-white border border-black/[0.08] rounded-2xl px-5 py-3.5 flex items-center gap-2.5">
-                    <Calendar className="w-6 h-6 text-[#3A6B22]" />
-                    <span className="text-[14px] text-[#8d8d8d]">Choose Date</span>
+                  <div className="relative">
+                    <DatePicker
+                      selected={tempDate}
+                      onChange={(date: Date | null) => setTempDate(date || undefined)}
+                      minDate={new Date()}
+                      maxDate={new Date(new Date().setMonth(new Date().getMonth() + 3))}
+                      dateFormat="yyyy-MM-dd"
+                      placeholderText="Choose Date"
+                      className="bg-white border border-black/[0.08] rounded-2xl px-5 py-3.5 w-full text-[14px] text-dark-green cursor-pointer focus:outline-none focus:border-green"
+                      calendarClassName="fieldsy-calendar"
+                      wrapperClassName="w-full"
+                      showPopperArrow={false}
+                    />
+                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3A6B22] pointer-events-none" />
                   </div>
                 )}
               </div>
@@ -382,11 +572,7 @@ export default function SearchResults() {
             </div>
 
             <button 
-              onClick={() => {
-                setFiltersOpen(false);
-                // Filters will be applied through state changes
-                // React Query will automatically refetch
-              }}
+              onClick={applyFilters}
               className="w-full bg-[#3A6B22] text-white py-4 rounded-[50px] text-[16px] font-semibold"
             >
               Apply Filters
@@ -398,13 +584,40 @@ export default function SearchResults() {
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">{isLoading ? 'Loading...' : `Over ${totalResults} results`}</h1>
-              <button className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4">
-                <div className="flex items-center gap-2">
-                  <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-dark-green" />
-                  <span className="text-[13px] md:text-[14px] font-medium text-dark-green">Sort By</span>
-                </div>
-                <ChevronDown className="w-4 h-4" />
-              </button>
+              <div className="relative" ref={sortDropdownRef}>
+                <button 
+                  onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                  className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-dark-green" />
+                    <span className="text-[13px] md:text-[14px] font-medium text-dark-green">
+                      {sortBy === 'price' && sortOrder === 'asc' ? 'Price: Low to High' : 
+                       sortBy === 'price' && sortOrder === 'desc' ? 'Price: High to Low' :
+                       sortBy === 'rating' && sortOrder === 'asc' ? 'Rating: Low to High' : 
+                       sortBy === 'rating' && sortOrder === 'desc' ? 'Rating: High to Low' : 
+                       'Sort By'}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                
+                {sortDropdownOpen && (
+                  <div className="absolute right-0 mt-2 z-20">
+                    <FieldsSortFilter
+                      sortBy={sortBy}
+                      sortOrder={sortOrder}
+                      onSortChange={(newSortBy, newSortOrder) => {
+                        setSortBy(newSortBy);
+                        setSortOrder(newSortOrder);
+                        setCurrentPage(1); // Reset to first page when sorting changes
+                        setSortDropdownOpen(false);
+                      }}
+                      onClose={() => setSortDropdownOpen(false)}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Fields Grid using the refactored FieldCard component */}
@@ -457,7 +670,7 @@ export default function SearchResults() {
                       location: field.city ? `${field.city}, ${field.state}` : 'Location',
                       fullLocation: field.address,
                       distance: '2.0 miles',
-                      rating: field.rating || 4.5,
+                      rating: field.averageRating || 0,
                       amenities: field.amenities || [],
                       image: field.images?.[0] || '/fields/field1.jpg',
                       owner: field.owner?.name || 'Field Owner',

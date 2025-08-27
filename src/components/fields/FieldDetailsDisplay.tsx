@@ -179,7 +179,7 @@ export default function FieldDetailsDisplay({
                   <span>{field?.city ? `${field.city}, ${field.state || field.county}` : 'Location not specified'} • {field?.distance || '0 miles'}</span>
                 </div>
                 <div className="flex items-center bg-dark-green text-white px-2 py-1 rounded-md">
-                  <Star className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
+                  <Star className="w-4 h-4 fill-yellow text-yellow mr-1" />
                   <span className="text-sm font-semibold">{field?.rating || 4.5}</span>
                 </div>
               </div>
@@ -358,7 +358,7 @@ export default function FieldDetailsDisplay({
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex">
                             {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-4 h-4 ${i < Math.floor(review.rating) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} />
+                              <Star key={i} className={`w-4 h-4 ${i < Math.floor(review.rating) ? 'fill-yellow text-yellow' : 'text-gray-300'}`} />
                             ))}
                           </div>
                           <span className="text-xs text-gray-500">{review.date}</span>
