@@ -7,6 +7,7 @@ import { DocumentUploader } from '@/components/ui/image-grid-uploader';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useSubmitFieldClaim } from '@/hooks/useFieldClaim';
 import { ClaimSuccessModal } from '@/components/modal/ClaimSuccessModal';
+import BackButton from '@/components/common/BackButton';
 
 const ClaimFieldPage = () => {
   const router = useRouter();
@@ -86,69 +87,16 @@ const ClaimFieldPage = () => {
   return (
     <UserLayout>
       <div className="min-h-screen bg-light">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 lg:px-20">
-          <div className="flex items-center justify-between h-[100px]">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-[#3A6B22] rounded-full flex items-center justify-center">
-                <span className="text-white text-xl">🌿</span>
-              </div>
-              <h1 className="text-2xl font-bold text-[#3A6B22]">Fieldsy</h1>
-            </div>
-
-            {/* Navigation */}
-            <nav className="hidden lg:flex items-center gap-10">
-              <a href="#" className="text-[15px] font-bold text-[#3A6B22]">Home</a>
-              <a href="#" className="text-[15px] font-semibold text-dark-green opacity-70">About Us</a>
-              <a href="#" className="text-[15px] font-semibold text-dark-green opacity-70">Search Fields</a>
-              <a href="#" className="text-[15px] font-semibold text-dark-green opacity-70">How it works</a>
-              <a href="#" className="text-[15px] font-semibold text-dark-green opacity-70">FAQ's</a>
-            </nav>
-
-            {/* Right Side Actions */}
-            <div className="flex items-center gap-4">
-              <button className="w-[52px] h-[52px] bg-[#F0F0F0] rounded-full flex items-center justify-center">
-                <span className="text-xl">💬</span>
-              </button>
-              <div className="relative">
-                <button className="w-[52px] h-[52px] bg-[#F0F0F0] rounded-full flex items-center justify-center">
-                  <span className="text-xl">🔔</span>
-                </button>
-                <span className="absolute top-0 right-0 w-[19px] h-[19px] bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-medium">
-                  2
-                </span>
-              </div>
-              <div className="w-[52px] h-[52px] rounded-full overflow-hidden">
-                <img src="https://i.pravatar.cc/52" alt="Profile" className="w-full h-full object-cover" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header> 
+   
 
       {/* Main Content */}
-      <main className="container mx-auto  py-8 lg:py-10">
+      <main className="container mx-auto mt-16 md:mt-[100px]  py-4 lg:py-10">
         {/* Back Button and Title */}
-        <div className="flex items-center gap-4 mb-8">
-          <button 
-            onClick={() => router.push(`/fields/${field_id}`)}
-            className="flex items-center justify-center w-12 h-12 bg-white rounded-full hover:bg-gray-50 transition-colors border border-gray-200"
-          >
-            <ChevronLeft className="w-6 h-6 text-dark-green" />
-          </button>
-          <div>
-            <h2 className="text-2xl lg:text-[29px] font-semibold text-dark-green">
-              Claim This Field
-            </h2>
-            {field && (
-              <p className="text-sm text-gray-600 mt-1">
-                {field.name} • {field.location}
-              </p>
-            )}
-          </div>
-        </div>
+         
+            <BackButton size="lg" showLabel={true}  label="Back to Field" />
+            
+          
+        
 
         {/* Form Container */}
         <div className="grid lg:grid-cols-2">
