@@ -375,12 +375,12 @@ const BookingHistoryPage = () => {
         {booking.status === 'upcoming' ? (
           <>
             <button className="flex-1 sm:w-full py-2 px-2.5 bg-[#fffcf3] border border-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-[#3a6b22] hover:bg-[#f8f1d7] transition-colors">
-              Cancel
+              Cancel booking
             </button>
             <button 
               onClick={() => handleViewDetails(booking)}
               className="flex-1 sm:w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
-              Details
+             View Details
             </button>
           </>
         ) : (

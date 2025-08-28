@@ -1,102 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check } from 'lucide-react';
+import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check, Users } from 'lucide-react';
 import BackButton from '@/components/common/BackButton';
 import { Input } from '@/components/ui/input';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
+import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
+import { format } from 'date-fns';
+
+interface TimeSlot {
+  time: string;
+  available: boolean;
+  selected: boolean;
+  isPast?: boolean;
+  isFullyBooked?: boolean;
+  availableSpots?: number;
+  maxSpots?: number;
+  bookedDogs?: number;
+  cannotAccommodate?: boolean;
+}
+
+interface TimeSlots {
+  morning: TimeSlot[];
+  afternoon: TimeSlot[];
+  evening: TimeSlot[];
+}
 
 const BookFieldPage = () => {
   const router = useRouter();
-  const { id, field_id } = router.query;
+  const { id } = router.query;
   const fieldIdToUse = id ; // Support both query parameters
   console.log('id', router.query?.id)
-  const [numberOfDogs, setNumberOfDogs] = useState('');
+  const [numberOfDogs, setNumberOfDogs] = useState('1');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('8:00AM - 9:00AM');
   const [repeatBooking, setRepeatBooking] = useState('None');
-  const [expandedSection, setExpandedSection] = useState('morning');
+  const [expandedSection, setExpandedSection] = useState<string | null>('morning');
 
   // Fetch field details using the hook
   const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string);
   const field = fieldData?.data || fieldData;
+  
+  // Fetch slot availability for the selected date
+  const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined;
+  const { 
+    data: availabilityData, 
+    refetch: refetchAvailability, 
+    isRefetching: isRefetchingSlots 
+  } = useSlotAvailability(
+    fieldIdToUse as string,
+    dateString
+  );
+  
+  // Refetch availability when date changes
+  useEffect(() => {
+    if (dateString && fieldIdToUse) {
+      refetchAvailability();
+    }
+  }, [dateString, fieldIdToUse, refetchAvailability]);
 
   // Calculate min date (today) and max date (e.g., 3 months from now)
   const minDate = new Date();
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 3);
-  
-  if (isLoading) {
-    return (
-      <UserLayout requireRole="DOG_OWNER">
-        <FieldDetailsSkeleton />
-      </UserLayout>
-    );
-  }
-
-  if (!field || error) {
-    return (
-      <UserLayout requireRole="DOG_OWNER">
-        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-md">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Found</h3>
-              <p className="text-gray-600">The field you are looking for does not exist.</p>
-            </div>
-          </div>
-        </div>
-      </UserLayout>
-    );
-  }
-
-  // Function to generate time slots based on field's operating hours
-  const generateTimeSlots = () => {
-    const slots = {
-      morning: [],
-      afternoon: [],
-      evening: []
-    };
-
-    // Default hours if not specified
-    const openingHour = field?.openingTime ? parseInt(field.openingTime.split(':')[0]) : 6;
-    const closingHour = field?.closingTime ? parseInt(field.closingTime.split(':')[0]) : 21;
-
-    // Generate hourly slots from opening to closing time
-    for (let hour = openingHour; hour < closingHour; hour++) {
-      const startTime = hour === 0 ? '12:00AM' : hour < 12 ? `${hour}:00AM` : hour === 12 ? '12:00PM' : `${hour - 12}:00PM`;
-      const endHour = hour + 1;
-      const endTime = endHour === 0 ? '12:00AM' : endHour < 12 ? `${endHour}:00AM` : endHour === 12 ? '12:00PM' : `${endHour - 12}:00PM`;
-      const slotTime = `${startTime} - ${endTime}`;
-
-      // Check if this date/time is available for the selected date
-      const isAvailable = checkSlotAvailability(selectedDate, hour);
-
-      const slot = {
-        time: slotTime,
-        available: isAvailable,
-        selected: slotTime === selectedTimeSlot
-      };
-
-      // Categorize into morning, afternoon, or evening
-      if (hour < 12) {
-        slots.morning.push(slot);
-      } else if (hour < 18) {
-        slots.afternoon.push(slot);
-      } else {
-        slots.evening.push(slot);
-      }
-    }
-
-    return slots;
-  };
 
   // Check if a specific time slot is available
   const checkSlotAvailability = (date: Date | null, hour: number) => {
@@ -139,18 +108,131 @@ const BookFieldPage = () => {
       }
     }
 
-    // In a real application, you would check against existing bookings here
-    // For now, we'll randomly mark some slots as unavailable for demo purposes
-    return Math.random() > 0.2; // 80% availability rate
+    // Check if slot is in the past for today
+    const now = new Date();
+    if (date && date.toDateString() === now.toDateString()) {
+      const currentHour = now.getHours();
+      if (hour <= currentHour) {
+        return false; // Past time slots are not available
+      }
+    }
+    
+    // If we don't have availability data yet, assume available
+    return true;
   };
 
-  const timeSlots = generateTimeSlots();
+  // Function to generate time slots with availability data
+  const generateTimeSlots = (): TimeSlots => {
+    const slots: TimeSlots = {
+      morning: [],
+      afternoon: [],
+      evening: []
+    };
 
-  const toggleSection = (section) => {
+    // Use availability data if available, otherwise generate basic slots
+    if (availabilityData?.data?.slots) {
+      availabilityData.data.slots.forEach((slotData) => {
+        const numDogs = parseInt(numberOfDogs) || 1;
+        const canAccommodate = slotData.availableSpots >= numDogs;
+        
+        const slot = {
+          time: slotData.time,
+          available: slotData.isAvailable && canAccommodate,
+          selected: slotData.time === selectedTimeSlot,
+          isPast: slotData.isPast,
+          isFullyBooked: slotData.isFullyBooked,
+          availableSpots: slotData.availableSpots,
+          maxSpots: slotData.maxSpots,
+          bookedDogs: slotData.bookedDogs,
+          cannotAccommodate: !canAccommodate && !slotData.isPast && !slotData.isFullyBooked
+        };
+
+        // Categorize into morning, afternoon, or evening
+        const hour = slotData.startHour;
+        if (hour < 12) {
+          slots.morning.push(slot);
+        } else if (hour < 18) {
+          slots.afternoon.push(slot);
+        } else {
+          slots.evening.push(slot);
+        }
+      });
+    } else {
+      // Fallback to basic time slot generation if no availability data
+      const openingHour = field?.openingTime ? parseInt(field.openingTime.split(':')[0]) : 6;
+      const closingHour = field?.closingTime ? parseInt(field.closingTime.split(':')[0]) : 21;
+
+      for (let hour = openingHour; hour < closingHour; hour++) {
+        const startTime = hour === 0 ? '12:00AM' : hour < 12 ? `${hour}:00AM` : hour === 12 ? '12:00PM' : `${hour - 12}:00PM`;
+        const endHour = hour + 1;
+        const endTime = endHour === 0 ? '12:00AM' : endHour < 12 ? `${endHour}:00AM` : endHour === 12 ? '12:00PM' : `${endHour - 12}:00PM`;
+        const slotTime = `${startTime} - ${endTime}`;
+
+        const isAvailable = checkSlotAvailability(selectedDate, hour);
+
+        const slot = {
+          time: slotTime,
+          available: isAvailable,
+          selected: slotTime === selectedTimeSlot
+        };
+
+        if (hour < 12) {
+          slots.morning.push(slot);
+        } else if (hour < 18) {
+          slots.afternoon.push(slot);
+        } else {
+          slots.evening.push(slot);
+        }
+      }
+    }
+
+    return slots;
+  };
+
+  // Memoize time slots to recalculate when dependencies change
+  // This MUST be called before any conditional returns for React hooks rules
+  const timeSlots = useMemo(() => generateTimeSlots(), [
+    availabilityData,
+    numberOfDogs,
+    selectedDate,
+    selectedTimeSlot,
+    field
+  ]);
+
+  // Conditional returns MUST come after all hooks
+  if (isLoading) {
+    return (
+      <UserLayout requireRole="DOG_OWNER">
+        <FieldDetailsSkeleton />
+      </UserLayout>
+    );
+  }
+
+  if (!field || error) {
+    return (
+      <UserLayout requireRole="DOG_OWNER">
+        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 max-w-md">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Found</h3>
+              <p className="text-gray-600">The field you are looking for does not exist.</p>
+            </div>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
+  const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   }
 
-  const selectTimeSlot = (time) => {
+  const selectTimeSlot = (time: string) => {
     setSelectedTimeSlot(time);
   };
 
@@ -287,11 +369,12 @@ const BookFieldPage = () => {
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <BackButton 
             variant="cream"
+            showLabel={true}
+            label="Book Field"
+            size="lg"
             onClick={() => router.push(`/fields/${fieldIdToUse}`)} 
           />
-          <h1 className="text-xl sm:text-2xl lg:text-[29px] font-semibold text-dark-green">
-            Book Field
-          </h1>
+          
         </div>
 
         {/* Two Column Layout */}
@@ -444,9 +527,35 @@ const BookFieldPage = () => {
 
               {/* Preferred Time */}
               <div>
-                <label className="text-[18px] font-semibold text-dark-green block mb-4">
-                  Preferred Time
-                </label>
+                <div className="flex justify-between items-center mb-4">
+                  <label className="text-[18px] font-semibold text-dark-green block">
+                    Preferred Time
+                  </label>
+                  {selectedDate && (
+                    <button
+                      onClick={() => refetchAvailability()}
+                      disabled={isRefetchingSlots}
+                      className="text-[12px] text-[#3A6B22] hover:text-[#2e5519] flex items-center gap-1 transition-colors disabled:opacity-50"
+                    >
+                      {isRefetchingSlots ? (
+                        <>
+                          <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          <span>Refreshing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span>Refresh Availability</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
                 
                 {/* Show field operating hours if available */}
                 {field?.openingTime && field?.closingTime && (
@@ -467,7 +576,20 @@ const BookFieldPage = () => {
                   </div>
                 )}
                 
-                <div className="space-y-[11px]">
+                <div className={`space-y-[11px] relative ${isRefetchingSlots ? 'opacity-60 pointer-events-none' : ''}`}>
+                  {/* Loading overlay */}
+                  {isRefetchingSlots && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <div className="bg-white rounded-lg px-4 py-2 shadow-lg flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-[#3A6B22]" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span className="text-sm text-[#3A6B22]">Updating availability...</span>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Morning Section */}
                   {timeSlots.morning.length > 0 && (
                   <div className={`border rounded-[10px] overflow-hidden ${expandedSection === 'morning' ? 'border-dark-green/10 bg-[#FFFCF3]' : 'border-dark-green/10'}`}>
@@ -486,20 +608,38 @@ const BookFieldPage = () => {
                     {expandedSection === 'morning' && (
                       <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                         {timeSlots.morning.map((slot, index) => (
-                          <button
-                            key={index}
-                            onClick={() => slot.available && selectTimeSlot(slot.time)}
-                            disabled={!slot.available}
-                            className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
-                              !slot.available 
-                                ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
-                                : selectedTimeSlot === slot.time
-                                ? 'bg-[#8FB366] text-white'
-                                : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
+                          <div key={index} className="relative group">
+                            <button
+                              onClick={() => slot.available && selectTimeSlot(slot.time)}
+                              disabled={!slot.available}
+                              className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
+                                slot.isPast
+                                  ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                  : slot.isFullyBooked
+                                  ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
+                                  : slot.cannotAccommodate
+                                  ? 'bg-orange-50 text-orange-600 border border-orange-200 cursor-not-allowed'
+                                  : !slot.available 
+                                  ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
+                                  : selectedTimeSlot === slot.time
+                                  ? 'bg-[#8FB366] text-white'
+                                  : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
+                              }`}
+                            >
+                              {slot.time}
+                            </button>
+                            {/* Availability tooltip */}
+                            {slot.availableSpots !== undefined && !slot.isPast && (
+                              <div className="hidden group-hover:block whitespace-nowrap w-full absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                                {slot.isFullyBooked
+                                  ? 'Fully booked'
+                                  : slot.cannotAccommodate
+                                  ? `Need ${slot.availableSpots} spots, you need ${numberOfDogs}`
+                                  : `${slot.availableSpots}/${slot.maxSpots} spots available`
+                                }
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}
@@ -524,20 +664,38 @@ const BookFieldPage = () => {
                     {expandedSection === 'afternoon' && (
                       <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                         {timeSlots.afternoon.map((slot, index) => (
-                          <button
-                            key={index}
-                            onClick={() => slot.available && selectTimeSlot(slot.time)}
-                            disabled={!slot.available}
-                            className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
-                              !slot.available 
-                                ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
-                                : selectedTimeSlot === slot.time
-                                ? 'bg-[#8FB366] text-white'
-                                : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
+                          <div key={index} className="relative group">
+                            <button
+                              onClick={() => slot.available && selectTimeSlot(slot.time)}
+                              disabled={!slot.available}
+                              className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
+                                slot.isPast
+                                  ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                  : slot.isFullyBooked
+                                  ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
+                                  : slot.cannotAccommodate
+                                  ? 'bg-orange-50 text-orange-600 border border-orange-200 cursor-not-allowed'
+                                  : !slot.available 
+                                  ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
+                                  : selectedTimeSlot === slot.time
+                                  ? 'bg-[#8FB366] text-white'
+                                  : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
+                              }`}
+                            >
+                              {slot.time}
+                            </button>
+                            {/* Availability tooltip */}
+                            {slot.availableSpots !== undefined && !slot.isPast && (
+                              <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                                {slot.isFullyBooked
+                                  ? 'Fully booked'
+                                  : slot.cannotAccommodate
+                                  ? `Need ${slot.availableSpots} spots, you need ${numberOfDogs}`
+                                  : `${slot.availableSpots}/${slot.maxSpots} spots available`
+                                }
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}
@@ -562,20 +720,38 @@ const BookFieldPage = () => {
                     {expandedSection === 'evening' && (
                       <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                         {timeSlots.evening.map((slot, index) => (
-                          <button
-                            key={index}
-                            onClick={() => slot.available && selectTimeSlot(slot.time)}
-                            disabled={!slot.available}
-                            className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
-                              !slot.available 
-                                ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
-                                : selectedTimeSlot === slot.time
-                                ? 'bg-[#8FB366] text-white'
-                                : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
+                          <div key={index} className="relative group">
+                            <button
+                              onClick={() => slot.available && selectTimeSlot(slot.time)}
+                              disabled={!slot.available}
+                              className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
+                                slot.isPast
+                                  ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                  : slot.isFullyBooked
+                                  ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
+                                  : slot.cannotAccommodate
+                                  ? 'bg-orange-50 text-orange-600 border border-orange-200 cursor-not-allowed'
+                                  : !slot.available 
+                                  ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
+                                  : selectedTimeSlot === slot.time
+                                  ? 'bg-[#8FB366] text-white'
+                                  : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
+                              }`}
+                            >
+                              {slot.time}
+                            </button>
+                            {/* Availability tooltip */}
+                            {slot.availableSpots !== undefined && !slot.isPast && (
+                              <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                                {slot.isFullyBooked
+                                  ? 'Fully booked'
+                                  : slot.cannotAccommodate
+                                  ? `Need ${slot.availableSpots} spots, you need ${numberOfDogs}`
+                                  : `${slot.availableSpots}/${slot.maxSpots} spots available`
+                                }
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}
