@@ -669,13 +669,16 @@ export default function SearchResults() {
                       priceUnit: 'hour',
                       location: field.city ? `${field.city}, ${field.state}` : 'Location',
                       fullLocation: field.address,
-                      distance: '2.0 miles',
                       rating: field.averageRating || 0,
                       amenities: field.amenities || [],
                       image: field.images?.[0] || '/fields/field1.jpg',
                       owner: field.owner?.name || 'Field Owner',
                       ownerJoined: 'March 2025',
-                      isClaimed: field.isClaimed !== undefined ? field.isClaimed : true
+                      isClaimed: field.isClaimed !== undefined ? field.isClaimed : true,
+                      // Pass location data for distance calculation
+                      fieldLocation: field.location,
+                      latitude: field.latitude,
+                      longitude: field.longitude
                     } : field)}
                     variant="expanded"
                     isLiked={likedFields.includes(field.id)}

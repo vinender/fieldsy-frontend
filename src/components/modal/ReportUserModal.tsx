@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useCreateReport } from '@/hooks/queries/useUserReportQueries';
+import { toast } from 'sonner';
 
 interface ReportUserModalProps {
   isOpen?: boolean;
   onClose?: () => void;
   userName?: string;
+  userId?: string;
   onReport?: (reason: string, details?: string) => void;
 }
 
@@ -11,20 +14,22 @@ export default function ReportUserModal({
   isOpen = false, 
   onClose, 
   userName = 'this user',
+  userId,
   onReport 
 }: ReportUserModalProps) {
   const [isModalOpen, setIsModalOpen] = useState(isOpen);
   const [selectedReason, setSelectedReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
+  const createReportMutation = useCreateReport();
 
   const reportReasons = [
-    { id: 'inappropriate', label: 'Inappropriate or offensive language' },
+    { id: 'inappropriate_behavior', label: 'Inappropriate or offensive behavior' },
+    { id: 'property_damage', label: 'Property damage or vandalism' },
+    { id: 'no_show', label: 'No show without notice' },
     { id: 'harassment', label: 'Harassment or abusive behavior' },
-    { id: 'spam', label: 'Spam or self-promotion' },
-    { id: 'false-info', label: 'False or misleading information' },
-    { id: 'privacy', label: 'Privacy violation' },
-    { id: 'safety', label: 'Safety concerns' },
+    { id: 'safety_concern', label: 'Safety concerns' },
+    { id: 'payment_issue', label: 'Payment issue or fraud' },
     { id: 'other', label: 'Other (please specify)' }
   ];
 
@@ -79,36 +84,44 @@ export default function ReportUserModal({
     console.log('Modal closed - Cancel clicked or clicked outside');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedReason) {
-      alert('Please select a reason for reporting');
+      toast.error('Please select a reason for reporting');
       return;
     }
     
     if (selectedReason === 'other' && !otherReason.trim()) {
-      alert('Please provide a reason');
+      toast.error('Please provide a reason');
       return;
     }
 
-    const reportData = {
-      reason: selectedReason,
-      details: selectedReason === 'other' ? otherReason : null
-    };
+    if (!userId) {
+      toast.error('User information is missing');
+      return;
+    }
 
-    console.log('Report submitted:', reportData);
-    
-    if (onReport) {
-      onReport(selectedReason, selectedReason === 'other' ? otherReason : undefined);
+    try {
+      await createReportMutation.mutateAsync({
+        reportedUserId: userId,
+        reportOption: selectedReason,
+        reason: selectedReason === 'other' ? otherReason : undefined
+      });
+
+      if (onReport) {
+        onReport(selectedReason, selectedReason === 'other' ? otherReason : undefined);
+      }
+      
+      setIsModalOpen(false);
+      setSelectedReason('');
+      setOtherReason('');
+      
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      // Error is already handled by the mutation hook
+      console.error('Failed to submit report:', error);
     }
-    
-    setIsModalOpen(false);
-    setSelectedReason('');
-    setOtherReason('');
-    
-    if (onClose) {
-      onClose();
-    }
-    // Add your report user API call here
   };
 
   if (!isModalOpen) {
@@ -221,13 +234,14 @@ export default function ReportUserModal({
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 py-4 px-6 bg-green text-white rounded-full font-semibold text-center transition-all hover:opacity-90 font-sans"
+                disabled={createReportMutation.isPending}
+                className="flex-1 py-4 px-6 bg-green text-white rounded-full font-semibold text-center transition-all hover:opacity-90 font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ 
                   borderRadius: '50px',
                   fontSize: '16px'
                 }}
               >
-                Submit
+                {createReportMutation.isPending ? 'Submitting...' : 'Submit'}
               </button>
             </div>
           </div>

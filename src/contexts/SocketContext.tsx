@@ -65,9 +65,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         receiverId
       })
       return result
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error)
-      return null
+      // Re-throw the error so the component can handle it
+      throw error
     }
   }, [sendMessageMutation])
 

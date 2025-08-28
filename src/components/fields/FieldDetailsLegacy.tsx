@@ -324,6 +324,9 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
               </div>
             </div>
 
+            <h3 className="font-bold text-lg text-dark-green ">Other Details</h3>
+
+
             {!isClaimed && (
               <FieldMapWrapper
                 address={field?.address || field?.streetAddress}

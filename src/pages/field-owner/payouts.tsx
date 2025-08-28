@@ -369,7 +369,7 @@ const EarningsHistory: React.FC = () => {
                 </div>
               )}
             </div>
-
+            {/*  */}
             {/* Pagination */}
             {earningsData && earningsData.pagination.totalPages > 1 && (
               <div className="mt-8 flex items-center justify-between">

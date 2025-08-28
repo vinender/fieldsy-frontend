@@ -1,16 +1,18 @@
 import { MapPin, Star } from "lucide-react"
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 import { useToggleFavorite, useFavoriteStatus } from "@/hooks/useFavorites"
 import { LoginPromptModal } from "@/components/modal/LoginPromptModal"
+import { useLocation } from "@/contexts/LocationContext"
+import { calculateDistance, formatDistance, getFieldCoordinates } from "@/utils/location"
 
 export interface FieldCardProps {
   id: string
   name: string
   location: string
-  distance: string
+  distance?: string
   price: number
   priceUnit?: string
   rating: number
@@ -25,13 +27,16 @@ export interface FieldCardProps {
   owner?: string
   variant?: 'compact' | 'expanded'
   showAmenityLimit?: number
+  fieldLocation?: any // Can be JSON object with lat/lng or legacy lat/long fields
+  latitude?: number
+  longitude?: number
 }
 
 export function FieldCard({
   id,
   name,
   location,
-  distance,
+  distance: providedDistance,
   price,
   priceUnit = "dog/hour",
   rating,
@@ -45,13 +50,46 @@ export function FieldCard({
   onClaimField,
   owner = "Owner",
   variant = 'compact',
-  showAmenityLimit = 2
+  showAmenityLimit = 2,
+  fieldLocation,
+  latitude,
+  longitude
 }: FieldCardProps) {
   const isExpanded = variant === 'expanded'
   const router = useRouter()
   const { data: session } = useSession()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [loginModalMessage, setLoginModalMessage] = useState('')
+  
+  // Get user location from context
+  const { currentLocation, isLocationEnabled } = useLocation()
+  
+  // Calculate distance if user location is available
+  const calculatedDistance = useMemo(() => {
+    if (!isLocationEnabled || !currentLocation) return null
+    
+    // Try to get field coordinates from various sources
+    let fieldCoords = getFieldCoordinates(fieldLocation)
+    
+    // Fallback to legacy latitude/longitude fields
+    if (!fieldCoords && latitude && longitude) {
+      fieldCoords = { lat: latitude, lng: longitude }
+    }
+    
+    if (!fieldCoords) return null
+    
+    const distance = calculateDistance(
+      currentLocation.lat,
+      currentLocation.lng,
+      fieldCoords.lat,
+      fieldCoords.lng
+    )
+    
+    return formatDistance(distance)
+  }, [currentLocation, isLocationEnabled, fieldLocation, latitude, longitude])
+  
+  // Use calculated distance if available, otherwise fall back to provided distance
+  const displayDistance = calculatedDistance || providedDistance
   
   // Favorite status and toggle
   const { data: isFavorited } = useFavoriteStatus(id)
@@ -145,11 +183,11 @@ export function FieldCard({
             <div className="flex items-center gap-1 flex-1 pr-2">
               <MapPin className="w-5 h-5 text-[#3A6B22] flex-shrink-0" />
               <span className="text-[12px] text-dark-green leading-[16px]">
-                {location} • {distance}
+                {location}{displayDistance ? ` • ${displayDistance}` : ''}
               </span>
             </div>
             <div className="bg-dark-green rounded-md px-1.5 py-1 flex items-center gap-0.5">
-              <Star className="w-3.5 h-3.5 fill-yellow text-white" fill="white" />
+              <Star className="w-3.5 h-3.5 fill-yellow text-yellow" fill="white" />
               <span className="text-[12px] font-semibold text-white">{rating}</span>
             </div>
           </div>
@@ -176,7 +214,7 @@ export function FieldCard({
               onClick={handleBookNowClick}
               className="flex-1 bg-[#3A6B22] text-white text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#2d5a1b] transition-colors"
             >
-              {isClaimed ? 'Book Now' : 'Claim Field'}
+              Book Now
             </button>
           </div>
         </div>
@@ -236,7 +274,7 @@ export function FieldCard({
       <div className="px-3 pb-3">
         <div className="flex items-center gap-1 text-[10px] text-gray-500 mb-2">
           <MapPin className="w-3 h-3" />
-          <span>{location} • {distance}</span>
+          <span>{location}{displayDistance ? ` • ${displayDistance}` : ''}</span>
         </div>
 
         <div className="flex gap-1 mb-3 flex-wrap">

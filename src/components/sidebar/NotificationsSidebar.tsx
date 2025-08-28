@@ -96,7 +96,7 @@ console.log('notification',notifications)
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 h-full w-[420px] bg-[#fffcf3] z-50 transform transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 h-full max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -106,12 +106,12 @@ console.log('notification',notifications)
             <div className="flex items-center gap-4">
               <button
                 onClick={closeSidebar}
-                className="w-12 h-12 bg-[#f8f1d7] rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors"
+                className="w-12 h-12 bg-cream rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors"
               >
-                <ArrowLeft className="w-6 h-6 text-[#192215]" />
+                <ArrowLeft className="w-6 h-6 text-dark-green" />
               </button>
               <div>
-                <h2 className="text-[29px] font-semibold text-[#192215]">Notifications</h2>
+                <h2 className="text-[29px] font-semibold text-dark-green">Notifications</h2>
                 {unreadCount > 0 && (
                   <p className="text-sm text-gray-600">{unreadCount} unread</p>
                 )}
@@ -129,22 +129,29 @@ console.log('notification',notifications)
                   </button>
                 )}
                 <button
+                onClick={markAllAsRead}
+                className="p-2 text-green text-[16px] font-[600] underline hover:bg-red-50 rounded-lg transition-colors"
+                title="Clear all"
+              >
+               Mark all as read
+              </button>
+                {/* <button
                   onClick={clearAll}
                   className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   title="Clear all"
                 >
                   <Trash2 className="w-5 h-5" />
-                </button>
+                </button> */}
               </div>
             )}
           </div>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+        <div className="h-px bg-gray-200" />
 
         {/* Content */}
-        <div className="px-6 py-6 h-[calc(100%-140px)] overflow-y-auto">
+        <div className="h-[calc(100%-140px)] overflow-y-auto">
           {loading ? (
             <div className="text-center text-gray-600 mt-10">Loading notifications...</div>
           ) : notifications?.length === 0 ? (
@@ -156,30 +163,30 @@ console.log('notification',notifications)
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="  ">
               {notifications?.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`rounded-2xl border p-4 transition-all ${
+                  className={` border-b py-2 transition-all ${
                     !notification.read 
                       ? `${getNotificationColor(notification.type)} border-opacity-50` 
-                      : 'border-gray-200 bg-white'
+                      : 'border-gray-200 bg-light-cream hover:bg-cream'
                   }`}
                   onClick={() => !notification.read && handleMarkAsRead(notification.id)}
-                >
+                > 
                   <div className="flex items-start justify-between">
-                    <div className="flex gap-3 flex-1">
-                      <div className="text-2xl">{getNotificationIcon(notification.type)}</div>
+                    <div className="flex gap-3 flex-1 p-4">
+                      {/* <div className="text-2xl">{getNotificationIcon(notification.type)}</div> */}
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <div className="text-[#192215] font-semibold">
+                          <div className="text-dark-green font-[700] text-[18px]">
                             {notification.title}
                           </div>
                           {!notification.read && (
                             <span className="w-2 h-2 bg-green rounded-full"></span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-700 mt-1">
+                        <div className="text-[14px] text-gray-700 font-[400] mt-1">
                           {notification.message}
                         </div>
                         <div className="text-xs text-gray-500 mt-2">
@@ -200,16 +207,16 @@ console.log('notification',notifications)
                           <Check className="w-4 h-4" />
                         </button>
                       )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDelete(notification.id)
-                        }}
-                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        {/* <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(notification.id)
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button> */}
                     </div>
                   </div>
                 </div>

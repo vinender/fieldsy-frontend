@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Search } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
 
 interface RecentSearch {
@@ -46,6 +47,9 @@ export function FieldSearchInput({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const router = useRouter();
+  
+  // Get location context
+  const { requestLocation, isLoadingLocation } = useLocation();
 
   // Load recent searches from localStorage on mount and when window gets focus
   const loadRecentSearches = useCallback(() => {
@@ -206,26 +210,19 @@ export function FieldSearchInput({
     }
   };
 
-  const handleUseMyLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // Navigate to fields page with location coordinates
-          const searchParams = new URLSearchParams();
-          searchParams.append('lat', latitude.toString());
-          searchParams.append('lng', longitude.toString());
-          
-          router.push(`/fields?${searchParams.toString()}`);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          alert('Unable to get your location. Please enter it manually.');
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser');
+  const handleUseMyLocation = async () => {
+    try {
+      await requestLocation();
+      
+      // The location will be available in the context after request
+      // Navigate to fields page to trigger distance calculations
+      const searchParams = new URLSearchParams();
+      searchParams.append('useLocation', 'true');
+      
+      router.push(`/fields?${searchParams.toString()}`);
+    } catch (error) {
+      console.error('Error getting location:', error);
+      // Error is already handled in the context
     }
   };
 
@@ -267,11 +264,14 @@ export function FieldSearchInput({
       <div className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-2">
         <button 
           type="button"
-          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-600 hover:text-gray-800 transition"
+          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-600 hover:text-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleUseMyLocation}
+          disabled={isLoadingLocation}
         >
           <MapPin className="w-4 h-4" />
-          <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">Use My Location</span>
+          <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">
+            {isLoadingLocation ? 'Getting location...' : 'Use My Location'}
+          </span>
         </button>
         <div className="h-6 w-px bg-gray-300"></div>
         <button 

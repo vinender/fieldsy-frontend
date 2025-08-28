@@ -13,7 +13,7 @@ const config: Config = {
       },
       colors: {
         // Custom Fieldsy Colors
-        green: '#3A6B22',            // Primary green
+        'green': '#3A6B22',            // Primary green
         'light-green': '#8FB366',    // Pastel green
         'dark-green': '#192215',     // Dark green
         cream: '#F8F1D7',    
@@ -23,7 +23,7 @@ const config: Config = {
         yellow: '#FFBD00',           // Dark yellow/gold
         
         // Additional colors found in codebase
-        'gray-text': '#8d8d8d',      // Gray text
+        'gray-text': '#8D8D8D',      // Gray text
         'gray-dark': '#6B737D',      // Dark gray text
         'gray-border': '#e3e3e3',    // Gray border
         'gray-light': '#F8F9FA',     // Light gray background

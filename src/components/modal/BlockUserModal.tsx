@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useBlockUser } from '@/hooks/queries/useUserBlockQueries';
+import { toast } from 'sonner';
 
 interface BlockUserModalProps {
   isOpen?: boolean;
   onClose?: () => void;
   userName?: string;
+  userId?: string;
   onBlock?: () => void;
 }
 
@@ -11,10 +14,13 @@ export default function BlockUserModal({
   isOpen = false, 
   onClose, 
   userName = 'this user',
+  userId,
   onBlock 
 }: BlockUserModalProps) {
   const [isModalOpen, setIsModalOpen] = useState(isOpen);
+  const [reason, setReason] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
+  const blockUserMutation = useBlockUser();
   
   // Update internal state when prop changes
   useEffect(() => {
@@ -59,22 +65,38 @@ export default function BlockUserModal({
 
   const handleCancel = () => {
     setIsModalOpen(false);
+    setReason('');
     if (onClose) {
       onClose();
     }
-    console.log('Modal closed - Cancel clicked or clicked outside');
   };
 
-  const handleBlock = () => {
-    console.log('User blocked');
-    setIsModalOpen(false);
-    if (onBlock) {
-      onBlock();
+  const handleBlock = async () => {
+    if (!userId) {
+      toast.error('User information is missing');
+      return;
     }
-    if (onClose) {
-      onClose();
+
+    try {
+      await blockUserMutation.mutateAsync({
+        blockedUserId: userId,
+        reason: reason || undefined
+      });
+      
+      if (onBlock) {
+        onBlock();
+      }
+      
+      setIsModalOpen(false);
+      setReason('');
+      
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      // Error is already handled by the mutation hook
+      console.error('Failed to block user:', error);
     }
-    // Add your block user logic here
   };
 
   if (!isModalOpen) {
@@ -144,7 +166,8 @@ export default function BlockUserModal({
               </button>
               <button
                 onClick={handleBlock}
-                className="flex-1 py-4 px-6 text-white rounded-full font-bold text-center transition-all hover:opacity-90"
+                disabled={blockUserMutation.isPending}
+                className="flex-1 py-4 px-6 text-white rounded-full font-bold text-center transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ 
                   backgroundColor: '#3A6B22',
                   borderRadius: '70px',
@@ -153,7 +176,7 @@ export default function BlockUserModal({
                   fontFamily: "'DM Sans', sans-serif"
                 }}
               >
-                Yes, I'm Sure
+                {blockUserMutation.isPending ? 'Blocking...' : "Yes, I'm Sure"}
               </button>
             </div>
           </div>

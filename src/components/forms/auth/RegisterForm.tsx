@@ -167,27 +167,25 @@ export default function RegisterForm() {
   return (
     <div className="h-[100svh] overflow-hidden flex" style={{ background: 'linear-gradient(179deg, #FFFCF3 0.83%, #F9F0D7 61.62%)' }}>
       {/* Left - Image Grid like Login */}
-      <div className="hidden lg:block w-1/2 h-full">
-        <div className="relative w-full h-full">
-          <div className="grid grid-cols-3 gap-2 p-4 w-full h-full">
-            {dogImages.map((src, idx) => (
-              <div key={idx} className="relative overflow-hidden rounded-lg">
-                <img src={src} alt={`Dog ${idx + 1}`} className="w-full h-full object-cover" />
-              </div>
-            ))}
-          </div>
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/0" />
-            <div className="absolute bottom-0 left-0 right-0 h-[700px] bg-gradient-to-t from-white/100 to-transparent" />
-          </div>
-          <div className="absolute bottom-8 left-8 right-8 z-10">
-            <h2 className="font-[800] text-[32px] leading-[58px] mb-3 text-green">Fieldsy Makes Dog Walking Easy</h2>
-            <p className="text-dark-green/40 font-[400] text-[16px] leading-[24px]">
-              Find secure fields nearby, book in seconds, and give your dog the off-lead freedom they deserve—all with peace of mind.
-            </p>
-          </div>
+      <div className="hidden lg:block relative w-[50%] h-screen">
+      <img 
+        src="/login/loginbg.jpg" 
+        alt="Login Background" 
+        className="w-full h-full object-cover" 
+      />
+      
+      <div className="absolute bottom-0 pb-20 left-0 text-left w-full flex items-  p-6 ">
+        <div className="w-full max-w-full text-left text-left ">
+          <h1 className="text-3xl md:text-4xl font-bold text-green">
+            Fieldsy Makes Dog Walking Easy
+          </h1>
+          <p className="text-gray-text text-[16px] leading-[24px] font-[400]  mt-2">
+            Find secure fields nearby, book in seconds, and give your dog the 
+            off-lead freedom they deserve—all with peace of mind.
+          </p>
         </div>
       </div>
+    </div>
 
       {/* Right - Register Form */}
       <div className="w-full lg:w-1/2 h-full">
@@ -245,9 +243,9 @@ export default function RegisterForm() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-0 lg:space-y-3">
             {/* Role */}
-            <div>
+            <div className="my-6">
               <label className="block text-sm font-medium text-gray-900 mb-1">Select Role</label>
               <div className="flex gap-2">
                 <button

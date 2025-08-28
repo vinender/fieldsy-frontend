@@ -11,10 +11,12 @@ import {
 import { Input } from '@/components/ui/input';
 import BlockUserModal from '@/components/modal/BlockUserModal';
 import ReportUserModal from '@/components/modal/ReportUserModal';
+import DeleteChatModal from '@/components/modal/DeleteChatModal';
 import { useSession } from 'next-auth/react';
 import { useSocket } from '@/contexts/SocketContext';
 import { useRouter } from 'next/router';
 import styles from '@/styles/messages.module.css';
+import { toast } from 'sonner';
 
 interface User {
   id: string;
@@ -64,11 +66,16 @@ const MessagesPage = () => {
   const [showOptions, setShowOptions] = useState(false);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [userToBlock, setUserToBlock] = useState<string>('');
-  const [userToReport, setUserToReport] = useState<string>('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToBlock, setUserToBlock] = useState<{ name: string; id: string } | null>(null);
+  const [userToReport, setUserToReport] = useState<{ name: string; id: string } | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockMessage, setBlockMessage] = useState('');
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -291,9 +298,46 @@ const MessagesPage = () => {
     }
   };
 
-  const handleSelectConversation = (conversation: Conversation) => {
+  const checkBlockStatus = async (otherUserId: string) => {
+    const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
+    if (!token) return;
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/user-blocks/status/${otherUserId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsBlocked(!data.data.canChat);
+        if (!data.data.canChat) {
+          if (data.data.isBlocked) {
+            setBlockMessage('You have blocked this user. Unblock them to send messages.');
+          } else if (data.data.isBlockedBy) {
+            setBlockMessage('This user has blocked you. You cannot send messages.');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking block status:', error);
+    }
+  };
+
+  const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
     loadMessages(conversation.id);
+    
+    // Reset block status
+    setIsBlocked(false);
+    setBlockMessage('');
+    
+    // Check block status
+    const otherUser = getOtherUser(conversation);
+    if (otherUser) {
+      await checkBlockStatus(otherUser.id);
+    }
     
     // Join conversation room for real-time updates
     if (socket) {
@@ -337,8 +381,49 @@ const MessagesPage = () => {
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!selectedConversation) return;
+    
+    setIsDeleting(true);
+    try {
+      const token = session?.accessToken || localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:5001/api/chat/conversations/${selectedConversation.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        // Remove conversation from list
+        setConversations(prev => prev.filter(conv => conv.id !== selectedConversation.id));
+        
+        // Clear selected conversation
+        setSelectedConversation(null);
+        setMessages([]);
+        
+        // Close modal
+        setShowDeleteModal(false);
+      } else {
+        const error = await response.json();
+        console.error('Failed to delete conversation:', error);
+        alert('Failed to delete conversation. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      alert('An error occurred while deleting the conversation.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return;
+
+    // Check if blocked first
+    if (isBlocked) {
+      return;
+    }
 
     const otherUser = getOtherUser(selectedConversation);
     if (!otherUser) return;
@@ -351,31 +436,45 @@ const MessagesPage = () => {
       emitTyping(selectedConversation.id, false);
     }
 
-    // Send message and get the created message back
-    const newMessage = await sendMessage(selectedConversation.id, content, otherUser.id);
-    
-    // Add the message to the UI immediately with animation
-    if (newMessage) {
-      setMessages(prev => [...prev, newMessage]);
+    try {
+      // Send message and get the created message back
+      const newMessage = await sendMessage(selectedConversation.id, content, otherUser.id);
       
-      // Track this as a new message for animation
-      setNewMessageIds(prev => new Set(prev).add(newMessage.id));
-      
-      // Remove from new messages after animation completes
-      setTimeout(() => {
-        setNewMessageIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(newMessage.id);
-          return newSet;
-        });
-      }, 500);
-      
-      // Update the conversation's last message
-      setConversations(prev => prev.map(conv => 
-        conv.id === selectedConversation.id 
-          ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
-          : conv
-      ));
+      // Add the message to the UI immediately with animation
+      if (newMessage) {
+        setMessages(prev => [...prev, newMessage]);
+        
+        // Track this as a new message for animation
+        setNewMessageIds(prev => new Set(prev).add(newMessage.id));
+        
+        // Remove from new messages after animation completes
+        setTimeout(() => {
+          setNewMessageIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(newMessage.id);
+            return newSet;
+          });
+        }, 500);
+        
+        // Update the conversation's last message
+        setConversations(prev => prev.map(conv => 
+          conv.id === selectedConversation.id 
+            ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
+            : conv
+        ));
+      }
+    } catch (error: any) {
+      // Check if it's a block error
+      if (error?.response?.data?.blocked) {
+        setIsBlocked(true);
+        setBlockMessage(error.response.data.error || 'Cannot send messages. One or both users have blocked each other.');
+        // Check the actual block status to get more specific message
+        await checkBlockStatus(otherUser.id);
+      } else {
+        console.error('Failed to send message:', error);
+        // Put the message back in the input
+        setMessageInput(content);
+      }
     }
   };
 
@@ -619,8 +718,10 @@ const MessagesPage = () => {
                         <button 
                           onClick={() => {
                             const otherUser = getOtherUser(selectedConversation);
-                            setUserToBlock(otherUser?.name || 'this user');
-                            setShowBlockModal(true);
+                            if (otherUser) {
+                              setUserToBlock({ name: otherUser.name || 'this user', id: otherUser.id });
+                              setShowBlockModal(true);
+                            }
                             setShowOptions(false);
                           }}
                           className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
@@ -630,8 +731,10 @@ const MessagesPage = () => {
                         <button 
                           onClick={() => {
                             const otherUser = getOtherUser(selectedConversation);
-                            setUserToReport(otherUser?.name || 'this user');
-                            setShowReportModal(true);
+                            if (otherUser) {
+                              setUserToReport({ name: otherUser.name || 'this user', id: otherUser.id });
+                              setShowReportModal(true);
+                            }
                             setShowOptions(false);
                           }}
                           className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
@@ -641,7 +744,9 @@ const MessagesPage = () => {
                         <div className="my-1 border-t border-gray-200"></div>
                         <button 
                           onClick={() => {
-                            console.log('Delete chat');
+                            const otherUser = getOtherUser(selectedConversation);
+                            setUserToDelete(otherUser?.name || 'this user');
+                            setShowDeleteModal(true);
                             setShowOptions(false);
                           }}
                           className="block w-full text-left text-[14px] text-red-600 py-3 px-4 hover:bg-red-50 transition-colors"
@@ -713,35 +818,78 @@ const MessagesPage = () => {
 
               {/* Message Input */}
               <div className="px-4 lg:px-6 py-3 lg:py-4 bg-white border-t border-gray-border flex-shrink-0">
-                <div className="flex items-center gap-4">
-                  <Input
-                    type="text"
-                    placeholder="Type your message here…"
-                    value={messageInput}
-                    onChange={(e) => {
-                      setMessageInput(e.target.value);
-                      handleTyping();
-                    }}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    className="flex-1 h-12 text-[16px] border-0 shadow-none px-0 focus:ring-0 rounded-none"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                      messageInput.trim() 
-                        ? 'bg-green hover:bg-green-hover' 
-                        : 'bg-gray-text'
-                    }`}
-                    disabled={!messageInput.trim()}
-                  >
-                    <Send className="w-6 h-6 text-white" />
-                  </button>
-                </div>
+                {isBlocked ? (
+                  <div className="py-2 px-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-600 text-[14px] font-medium text-center mb-2">
+                      {blockMessage}
+                    </p>
+                    {blockMessage.includes('You have blocked') && (
+                      <div className="text-center">
+                        <button 
+                          onClick={async () => {
+                            const otherUser = getOtherUser(selectedConversation);
+                            if (otherUser) {
+                              try {
+                                const token = (session as any)?.accessToken || localStorage.getItem('authToken');
+                                const response = await fetch(`http://localhost:5001/api/user-blocks/unblock`, {
+                                  method: 'POST',
+                                  headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify({ blockedUserId: otherUser.id })
+                                });
+                                
+                                if (response.ok) {
+                                  setIsBlocked(false);
+                                  setBlockMessage('');
+                                  await checkBlockStatus(otherUser.id);
+                                  toast.success('User unblocked successfully');
+                                }
+                              } catch (error) {
+                                console.error('Failed to unblock user:', error);
+                                toast.error('Failed to unblock user');
+                              }
+                            }
+                          }}
+                          className="text-[14px] text-blue-600 hover:text-blue-700 underline"
+                        >
+                          Unblock User
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <Input
+                      type="text"
+                      placeholder="Type your message here…"
+                      value={messageInput}
+                      onChange={(e) => {
+                        setMessageInput(e.target.value);
+                        handleTyping();
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      className="flex-1 h-12 text-[16px] border-0 shadow-none px-0 focus:ring-0 rounded-none"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                        messageInput.trim() 
+                          ? 'bg-green hover:bg-green-hover' 
+                          : 'bg-gray-text'
+                      }`}
+                      disabled={!messageInput.trim()}
+                    >
+                      <Send className="w-6 h-6 text-white" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -759,24 +907,48 @@ const MessagesPage = () => {
       {/* Block User Modal */}
       <BlockUserModal 
         isOpen={showBlockModal}
-        onClose={() => setShowBlockModal(false)}
-        userName={userToBlock}
-        onBlock={() => {
-          console.log(`Blocked user: ${userToBlock}`);
-          // Add your block user logic here
+        onClose={() => {
+          setShowBlockModal(false);
+          setUserToBlock(null);
+        }}
+        userName={userToBlock?.name}
+        userId={userToBlock?.id}
+        onBlock={async () => {
+          console.log(`Blocked user: ${userToBlock?.name}`);
+          // Update block status immediately
+          setIsBlocked(true);
+          setBlockMessage('You have blocked this user. Unblock them to send messages.');
+          // Refresh conversations after blocking
+          loadConversations();
+          // Check block status again to ensure UI is updated
+          if (userToBlock?.id) {
+            await checkBlockStatus(userToBlock.id);
+          }
         }}
       />
       
       {/* Report User Modal */}
       <ReportUserModal 
         isOpen={showReportModal}
-        onClose={() => setShowReportModal(false)}
-        userName={userToReport}
-        onReport={(reason, details) => {
-          console.log(`Reported user: ${userToReport}`, { reason, details });
-          // Add your report user logic here
-          alert(`Thank you for reporting ${userToReport}. We will review this report and take appropriate action.`);
+        onClose={() => {
+          setShowReportModal(false);
+          setUserToReport(null);
         }}
+        userName={userToReport?.name}
+        userId={userToReport?.id}
+        onReport={(reason, details) => {
+          console.log(`Reported user: ${userToReport?.name}`, { reason, details });
+          // The API call is handled inside the ReportUserModal
+        }}
+      />
+      
+      {/* Delete Chat Modal */}
+      <DeleteChatModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        userName={userToDelete}
+        isLoading={isDeleting}
+        onConfirm={handleDeleteConversation}
       />
     </div>
   );

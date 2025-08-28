@@ -95,7 +95,7 @@ export default function SavedFieldsPage() {
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 Start exploring and save your favorite dog walking fields for quick access later.
               </p>
-              <Link href="/fields/search">
+              <Link href="/fields">
                 <button className="px-6 py-3 bg-[#3A6B22] text-white rounded-full font-medium hover:bg-[#2e5519] transition-colors">
                   Browse Fields
                 </button>
@@ -115,7 +115,6 @@ export default function SavedFieldsPage() {
                     price={field.pricePerHour || 0}
                     priceUnit="hour"
                     location={field.city ? `${field.city}, ${field.state || ''}` : 'Location'}
-                    distance={field.distance || '2.0 miles'}
                     rating={field.averageRating || 4.5}
                     amenities={field.amenities || []}
                     image={field.images?.[0] || 'https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=400&h=300&fit=crop'}
@@ -125,6 +124,10 @@ export default function SavedFieldsPage() {
                     onLike={handleLike}
                     onViewDetails={handleViewDetails}
                     onBookNow={handleBookNow}
+                    // Pass location data for distance calculation
+                    fieldLocation={field.location}
+                    latitude={field.latitude}
+                    longitude={field.longitude}
                   />
                 ))}
               </div>

@@ -5,7 +5,7 @@ export  function HowItWorksSection() {
   
   const steps = [
     {
-      icon: "/how-it-works/icon1.png",
+      icon: "/how-it-works/field.svg",
       title: "Find Fields Near You",
       description: "Easily find trusted, private dog walking fields near you using GPS or postcode search. No more crowded parks—just peaceful, secure spaces tailored for your dog's freedom.",
       image: "/how-it-works/dog.png"
@@ -57,12 +57,12 @@ export  function HowItWorksSection() {
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all duration-300 ${
+                    <div className={`w-12 h-12 group rounded-xl flex items-center justify-center text-2xl transition-all duration-300 ${
                       activeStep === index
-                        ? 'bg-[#4A7C59] text-white shadow-md'
+                        ? 'bg-[#4A7C59] text-white '
                         : 'bg-cream'
                     }`}>
-                      <img src={step.icon} className='w-full h-full object-contain'/>
+                      <img src={step.icon} className={`w-full h-full ${index === 0 ? 'p-2 bg-cream' : ' bg-cream'} rounded-xl group-hover:bg-cream object-contain`}/>
                        
                     </div>
                     <div className="flex-1">

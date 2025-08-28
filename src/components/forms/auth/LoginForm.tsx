@@ -149,11 +149,30 @@ export function LoginForm() {
   return (
     <div className="min-h-screen flex" style={{ background: 'linear-gradient(179deg, #FFFCF3 0.83%, #F9F0D7 61.62%)' }}>
       {/* Left Section - Image Grid */}
-      <ImageGrid
+      {/* <ImageGrid
         images={images}
         title="Fieldsy Makes Dog Walking Easy"
         description="Find secure fields nearby, book in seconds, and give your dog the off-lead freedom they deserve—all with peace of mind."
+      /> */}
+     <div className="hidden lg:block relative w-[50%] h-screen">
+      <img 
+        src="/login/loginbg.jpg" 
+        alt="Login Background" 
+        className="w-full h-full object-cover" 
       />
+      
+      <div className="absolute bottom-0 pb-20 left-0 text-left w-full flex items-  p-6 ">
+        <div className="w-full max-w-full text-left text-left ">
+          <h1 className="text-3xl md:text-4xl font-bold text-green">
+            Fieldsy Makes Dog Walking Easy
+          </h1>
+          <p className="text-gray-text text-[16px] leading-[24px] font-[400]  mt-2">
+            Find secure fields nearby, book in seconds, and give your dog the 
+            off-lead freedom they deserve—all with peace of mind.
+          </p>
+        </div>
+      </div>
+    </div>
 
       {/* Right Section - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-8 lg:px-16">
