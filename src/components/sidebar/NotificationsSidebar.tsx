@@ -163,7 +163,7 @@ console.log('notification',notifications)
               </p>
             </div>
           ) : (
-            <div className="  ">
+            <div className="">
               {notifications?.map((notification) => (
                 <div
                   key={notification.id}
