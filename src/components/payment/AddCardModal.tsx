@@ -103,7 +103,7 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
           id="cardholderName"
           value={cardholderName}
           onChange={(e) => setCardholderName(e.target.value)}
-          className="w-full px-3 py-3 border border-gray-300 bg-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green"
+          className="w-full px-3 py-3 border border-gray-300 bg-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-green/20 focus:border-green"
           placeholder="John Doe"
           required
         />

@@ -248,7 +248,7 @@ export default function OTPVerificationForm() {
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={index === 0 ? handlePaste : undefined}
-                    className="w-[56px] h-[56px] px-[8px] py-[16px] text-center text-xl font-semibold bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green/20 transition-all"
+                    className="w-[56px] h-[56px] px-[8px] py-[16px] text-center text-xl font-semibold bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-green/20 transition-all"
                     disabled={verifyOtpMutation.isLoading || verifyPasswordResetMutation.isLoading}
                   />
                 ))}

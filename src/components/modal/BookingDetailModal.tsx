@@ -18,9 +18,10 @@ interface BookingDetailsModalProps {
   onClose: () => void;
   booking: any;
   onReview?: () => void;
+  onReviewAdded?: () => void;
 }
 
-export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen, onClose, booking, onReview }) => {
+export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen, onClose, booking, onReview, onReviewAdded }) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   // Default images if not provided
@@ -33,14 +34,14 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
     'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop'
   ];
 
-  // Merge booking data with defaults
+  // Merge booking data with defaults - use field's averageRating
   const bookingData = {
     name: booking?.name || 'Green Meadows Field',
     duration: booking?.duration || '30min',
     price: booking?.price || '$18',
     location: booking?.location || 'Kent TN25, UK • 3km away',
     date: booking?.date || '10 Jul, 2025',
-    rating: booking?.rating || 4.5,
+    rating: booking?.field?.averageRating || booking?.averageRating || 0,
     images: booking?.images || (booking?.image ? [booking.image, ...defaultImages.slice(1)] : defaultImages),
     amenities: booking?.amenities || [
       { icon: Shield, label: 'Secure fencing' },
@@ -93,7 +94,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-[32px] max-w-[800px] w-full max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in duration-300">
+        <div className="bg-white rounded-[32px] max-w-[800px] w-full max-h-[90vh] overflow-y-auto overflow-x-hidden relative animate-in fade-in zoom-in duration-300">
           {/* Close Button and Status Badge */}
           <div className="absolute right-8 top-8 z-10 flex items-center gap-3">
             {bookingData.status !== 'upcoming' && (
@@ -129,10 +130,17 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-1 bg-[#192215] px-1.5 py-1 rounded">
-                  <Star className="w-[18px] h-[18px] text-yellow-400 fill-yellow-400" />
-                  <span className="text-[14px] font-semibold text-white">{bookingData?.rating}</span>
-                </div>
+                {bookingData?.rating > 0 ? (
+                  <div className="flex items-center gap-1 bg-[#192215] px-1.5 py-1 rounded">
+                    <Star className="w-[18px] h-[18px] text-yellow fill-yellow" />
+                    <span className="text-[14px] font-semibold text-white">{bookingData?.rating.toFixed(1)}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 bg-gray-200 px-1.5 py-1 rounded">
+                    <Star className="w-[18px] h-[18px] text-gray-400" />
+                    <span className="text-[14px] font-semibold text-gray-600">No ratings</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -171,7 +179,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
                 </div>
                 
                 <button className="flex items-center gap-1.5 px-3 py-2.5 bg-white border border-[#8fb36666] rounded-[10px] hover:bg-gray-50 transition-colors">
-                  <MessageCircle className="w-5 h-5 text-[#192215]" />
+                  <img src='/msg.svg' className="w-5 h-5 text-[#192215]" />
                   <span className="text-[12px] font-semibold text-[#192215]">Send a Message</span>
                 </button>
               </div>
@@ -235,7 +243,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
               >
                 Cancel Booking
               </button>
-            ) : (
+            ) : bookingData.status === 'completed' ? (
               <button 
                 onClick={() => {
                   // Handle write review
@@ -249,6 +257,20 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
               >
                 Write a Review
               </button>
+            ) : bookingData.status === 'cancelled' ? (
+              <button 
+                disabled
+                className="w-full h-14 bg-gray-300 rounded-full text-gray-500 text-[16px] font-semibold cursor-not-allowed opacity-60"
+              >
+                Booking Cancelled - Review Not Available
+              </button>
+            ) : (
+              <button 
+                disabled
+                className="w-full h-14 bg-gray-300 rounded-full text-gray-500 text-[16px] font-semibold cursor-not-allowed opacity-60"
+              >
+                Review Available After Completion
+              </button>
             )}
           </div>
         </div>
@@ -258,7 +280,16 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
       <AddReviewModal 
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
+        fieldId={booking?.fieldId || ''}
         fieldName={bookingData.name}
+        bookingId={booking?._id || booking?.id}
+        onReviewAdded={() => {
+          // Refresh data if needed
+          if (onReviewAdded) {
+            onReviewAdded();
+          }
+          // You can also show a success message here if needed
+        }}
       />
     </>
   );

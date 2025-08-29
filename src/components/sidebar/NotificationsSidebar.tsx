@@ -29,12 +29,43 @@ console.log('notification',notifications)
   // Prevent body scroll when sidebar is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+      
+      // Store original styles
+      const originalBodyStyle = {
+        overflow: document.body.style.overflow,
+        position: document.body.style.position,
+        top: document.body.style.top,
+        width: document.body.style.width,
+      };
+      
+      const originalHtmlStyle = {
+        overflow: document.documentElement.style.overflow,
+      };
+      
+      // Lock body scroll
+      document.body.classList.add('sidebar-open');
+      document.body.style.top = `-${scrollY}px`;
+      document.documentElement.style.overflow = 'hidden';
+      
+      return () => {
+        // Restore original styles
+        document.body.classList.remove('sidebar-open');
+        document.body.style.overflow = originalBodyStyle.overflow;
+        document.body.style.position = originalBodyStyle.position;
+        document.body.style.top = originalBodyStyle.top;
+        document.body.style.width = originalBodyStyle.width;
+        document.documentElement.style.overflow = originalHtmlStyle.overflow;
+        
+        // Restore scroll position
+        window.scrollTo(scrollX, scrollY);
+      };
     } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
+      // Cleanup when closing
+      document.body.classList.remove('sidebar-open');
+      document.documentElement.style.overflow = '';
     }
   }, [isOpen])
 
@@ -92,11 +123,12 @@ console.log('notification',notifications)
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={closeSidebar}
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       />
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 h-full max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 h-full w-full max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out overflow-hidden ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -151,7 +183,12 @@ console.log('notification',notifications)
         <div className="h-px bg-gray-200" />
 
         {/* Content */}
-        <div className="h-[calc(100%-140px)] overflow-y-auto">
+        <div 
+          className="h-[calc(100%-140px)] overflow-y-auto overflow-x-hidden notification-scrollbar"
+          onWheel={(e) => {
+            // Prevent scroll from propagating to the body
+            e.stopPropagation();
+          }}>
           {loading ? (
             <div className="text-center text-gray-600 mt-10">Loading notifications...</div>
           ) : notifications?.length === 0 ? (

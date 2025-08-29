@@ -9,6 +9,7 @@ interface AddReviewModalProps {
   onClose: () => void;
   fieldId: string;
   fieldName?: string;
+  bookingId?: string;
   onReviewAdded?: () => void;
 }
 
@@ -17,6 +18,7 @@ export const AddReviewModal = ({
   onClose, 
   fieldId,
   fieldName = "Field",
+  bookingId,
   onReviewAdded 
 }: AddReviewModalProps) => {
   const { data: session } = useSession();
@@ -27,7 +29,7 @@ export const AddReviewModal = ({
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   
-  const createReviewMutation = useCreateReview(fieldId);
+  const createReviewMutation = useCreateReview(fieldId, bookingId);
 
   // User data from session
   const userData = {
@@ -52,6 +54,7 @@ export const AddReviewModal = ({
         title: reviewTitle.trim() || undefined,
         comment: reviewText.trim(),
         images,
+        bookingId,
       });
       
       // Only reset and close on success

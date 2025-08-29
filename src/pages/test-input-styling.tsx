@@ -93,7 +93,7 @@ export default function TestInputStyling() {
               rows={4}
               onFocus={() => setFocusedField('textarea')}
               onBlur={() => setFocusedField(null)}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green focus:outline-none focus:ring-2 focus:ring-green/20"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
               style={{
                 color: 'rgb(31, 41, 55)',
                 WebkitTextFillColor: 'rgb(31, 41, 55)'

@@ -105,7 +105,7 @@ function CreditCard({ cardNumber, isDefault, onToggleDefault, onDelete }) {
             type="checkbox"
             checked={isDefault}
             onChange={onToggleDefault}
-            className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-2 focus:ring-green/20"
+            className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
           />
           <span 
             className="text-sm font-medium text-dark-green font-sans"
@@ -336,7 +336,7 @@ export default function SavedCards() {
                   name="makeDefault"
                   checked={formData.makeDefault}
                   onChange={handleInputChange}
-                  className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-2 focus:ring-green/20"
+                  className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
                 />
                 <span 
                   className="text-sm font-medium"

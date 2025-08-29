@@ -28,16 +28,18 @@ export function useFieldReviews(
 }
 
 // Hook to create a review
-export function useCreateReview(fieldId: string) {
+export function useCreateReview(fieldId: string, bookingId?: string) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (reviewData: CreateReviewData) => {
+    mutationFn: async (reviewData: CreateReviewData & { bookingId?: string }) => {
       if (!session?.accessToken) {
         throw new Error('Not authenticated');
       }
-      return reviewsAPI.createReview(fieldId, reviewData, session.accessToken);
+      // Include bookingId if provided
+      const dataToSend = bookingId ? { ...reviewData, bookingId } : reviewData;
+      return reviewsAPI.createReview(fieldId, dataToSend, session.accessToken);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reviewKeys.field(fieldId) });

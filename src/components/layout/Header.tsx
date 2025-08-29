@@ -203,7 +203,7 @@ export function Header() {
                   <button 
                     data-profile-button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="flex items-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                     aria-label="User menu"
                   >
                     <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white">

@@ -58,7 +58,7 @@ export default function BackButton({
           rounded-full flex items-center justify-center 
           transition-all duration-200 
           hover:scale-105 active:scale-95
-          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green
+          focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green
         `}
         aria-label={label}
       >

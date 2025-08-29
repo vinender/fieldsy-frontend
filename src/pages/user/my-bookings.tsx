@@ -11,9 +11,12 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { BookingDetailsModal } from '@/components/modal/BookingDetailModal';
+import { CancelBookingModal } from '@/components/modal/CancelBookingModal';
+import BookingFilter from '@/components/bookings/booking-filter';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { useCancelBooking } from '@/hooks/useBookingApi';
 
 // MongoDB Document Structure for Bookings
 interface Booking {
@@ -30,27 +33,35 @@ interface Booking {
   distance: string;
   time: string;
   date: string;
+  rawDate?: string; // Raw ISO date for calculations
+  startTime?: string; // Raw start time
   dogs: number;
   recurring: string | null;
-  status: 'upcoming' | 'completed' | 'cancelled' | 'refunded';
+  status: 'upcoming' | 'completed' | 'cancelled' | 'refunded' | 'expired';
   paymentStatus: 'paid' | 'pending' | 'refunded';
   createdAt: string;
   updatedAt: string;
+  field?: any; // Full field data
+  averageRating?: number; // Field's average rating
 }
 
 const BookingHistoryPage = () => {
   const { data: session } = useSession();
   const router = useRouter();
+  const cancelBookingMutation = useCancelBooking();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showFilter, setShowFilter] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
+  const [appliedFilters, setAppliedFilters] = useState<any>(null);
 
   useEffect(() => {
     // Reset page when tab changes
@@ -69,7 +80,7 @@ const BookingHistoryPage = () => {
     
     try {
       // Get token from session or localStorage
-      let token = session?.accessToken;
+      let token = (session as any)?.accessToken;
       
       if (!token) {
         const storedUser = localStorage.getItem('currentUser');
@@ -85,14 +96,18 @@ const BookingHistoryPage = () => {
         return;
       }
 
-      // Prepare query params
+      // Prepare query params - include CANCELLED in both tabs
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', '10');
       if (activeTab === 'previous') {
-        params.append('status', 'COMPLETED');
+        // Include both COMPLETED and CANCELLED bookings with past dates
+        params.append('status', 'COMPLETED,CANCELLED');
+        params.append('includeExpired', 'true');
       } else if (activeTab === 'upcoming') {
-        params.append('status', 'CONFIRMED');
+        // Include both CONFIRMED and CANCELLED bookings with future dates
+        params.append('status', 'CONFIRMED,CANCELLED');
+        params.append('includeFuture', 'true');
       } else {
         params.append('status', 'PENDING');
       }
@@ -130,12 +145,17 @@ const BookingHistoryPage = () => {
             month: 'short', 
             year: 'numeric' 
           }),
+          rawDate: booking.date, // Keep raw date for calculations
+          startTime: booking.startTime, // Keep raw start time
           dogs: booking.numberOfDogs || 1,
           recurring: booking.repeatBooking && booking.repeatBooking !== 'none' ? `Recurring ${booking.repeatBooking}` : null,
           status: booking.status.toLowerCase() === 'confirmed' ? 'upcoming' : booking.status.toLowerCase() as any,
           paymentStatus: booking.paymentStatus?.toLowerCase() || 'paid',
           createdAt: booking.createdAt,
-          updatedAt: booking.updatedAt
+          updatedAt: booking.updatedAt,
+          // Include field data for modal
+          field: booking.field,
+          averageRating: booking.field?.averageRating || 0
         }));
         
         setBookings(transformedBookings);
@@ -159,143 +179,7 @@ const BookingHistoryPage = () => {
     }
   };
 
-  // Mock data removed - now using real API data
-  const mockUpcomingBookings: Booking[] = []
-  const mockPreviousBookings: Booking[] = []
-  /* Previous mock data removed - now fetching from API
-  const mockUpcomingBookings_OLD: Booking[] = [
-    {
-      _id: '507f1f77bcf86cd799439011',
-      fieldId: '507f1f77bcf86cd799439001',
-      userId: '507f1f77bcf86cd799439021',
-      name: 'Green Meadows Field',
-      duration: '30min',
-      price: 18,
-      currency: '$',
-      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop',
-      features: '6 ft steel mesh, fully enclosed • 1.5 acres • Soft grass + walking path • Flat with gentle slopes',
-      location: 'Hampshire SO21, UK',
-      distance: '4.8 km away',
-      time: 'Wed, 5:00 PM – 6:00 PM',
-      date: '10 Jul, 2025',
-      dogs: 1,
-      recurring: 'Recurring monthly on 10 Aug, 2025',
-      status: 'upcoming',
-      paymentStatus: 'paid',
-      createdAt: '2025-07-01T10:00:00Z',
-      updatedAt: '2025-07-01T10:00:00Z'
-    },
-    {
-      _id: '507f1f77bcf86cd799439012',
-      fieldId: '507f1f77bcf86cd799439002',
-      userId: '507f1f77bcf86cd799439021',
-      name: 'Bark & Run Park',
-      duration: '30min',
-      price: 65,
-      currency: '$',
-      image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop',
-      features: '6 ft steel mesh, fully enclosed • 2.5 acres • Soft grass + walking path • Flat with gentle slopes',
-      location: 'Bristol BS3, UK',
-      distance: '6.0 km away',
-      time: 'Mon, 7:00 AM – 8:00 AM',
-      date: '9 Jul, 2025',
-      dogs: 4,
-      recurring: 'Recurring weekly on every Monday',
-      status: 'upcoming',
-      paymentStatus: 'paid',
-      createdAt: '2025-07-02T10:00:00Z',
-      updatedAt: '2025-07-02T10:00:00Z'
-    },
-    {
-      _id: '507f1f77bcf86cd799439013',
-      fieldId: '507f1f77bcf86cd799439003',
-      userId: '507f1f77bcf86cd799439021',
-      name: 'The Woof Woods',
-      duration: '1hr',
-      price: 60,
-      currency: '$',
-      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop',
-      features: '6 ft steel mesh, fully enclosed • 1.2 acres • Soft grass + walking path • Flat with gentle slopes',
-      location: 'Surrey GU1, UK',
-      distance: '2.4 km away',
-      time: 'Fri, 9:30 AM – 10:30 AM',
-      date: '12 Jul, 2025',
-      dogs: 2,
-      recurring: 'Recurring Daily',
-      status: 'upcoming',
-      paymentStatus: 'paid',
-      createdAt: '2025-07-03T10:00:00Z',
-      updatedAt: '2025-07-03T10:00:00Z'
-    }
-  ];
-
-  const mockPreviousBookings_OLD: Booking[] = [
-    {
-      _id: '507f1f77bcf86cd799439014',
-      fieldId: '507f1f77bcf86cd799439004',
-      userId: '507f1f77bcf86cd799439021',
-      name: 'Paw Paradise Paddock',
-      duration: '30min',
-      price: 48,
-      currency: '$',
-      image: 'https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=400&h=300&fit=crop',
-      features: '6 ft steel mesh, fully enclosed • 3.1 acres • Soft grass + walking path • Flat with gentle slopes',
-      location: 'Essex CM2, UK',
-      distance: '5.7 km away',
-      time: 'Sun, 4:00 PM – 5:00 PM',
-      date: '6 Jun, 2025',
-      dogs: 3,
-      recurring: null,
-      status: 'completed',
-      paymentStatus: 'paid',
-      createdAt: '2025-06-01T10:00:00Z',
-      updatedAt: '2025-06-06T17:00:00Z'
-    },
-    {
-      _id: '507f1f77bcf86cd799439015',
-      fieldId: '507f1f77bcf86cd799439005',
-      userId: '507f1f77bcf86cd799439021',
-      name: 'Fetch & Field Farm',
-      duration: '1hr',
-      price: 32,
-      currency: '$',
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
-      features: '6 ft steel mesh, fully enclosed • 2.8 acres • Soft grass + walking path • Flat with gentle slopes',
-      location: 'Kent TN25, UK',
-      distance: '3.1 km away',
-      time: 'Tue, 6:00 AM – 7:00 AM',
-      date: '14 May, 2025',
-      dogs: 2,
-      recurring: null,
-      status: 'cancelled',
-      paymentStatus: 'refunded',
-      createdAt: '2025-05-10T10:00:00Z',
-      updatedAt: '2025-05-12T10:00:00Z'
-    },
-    {
-      _id: '507f1f77bcf86cd799439016',
-      fieldId: '507f1f77bcf86cd799439006',
-      userId: '507f1f77bcf86cd799439021',
-      name: 'Happy Tails Field',
-      duration: '2hr',
-      price: 85,
-      currency: '$',
-      image: 'https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=400&h=300&fit=crop',
-      features: '8 ft chain link, secure • 4 acres • Mixed terrain • Hills and flat areas',
-      location: 'London SW1, UK',
-      distance: '1.2 km away',
-      time: 'Sat, 2:00 PM – 4:00 PM',
-      date: '20 Apr, 2025',
-      dogs: 1,
-      recurring: null,
-      status: 'refunded',
-      paymentStatus: 'refunded',
-      createdAt: '2025-04-15T10:00:00Z',
-      updatedAt: '2025-04-18T10:00:00Z'
-    }
-  ];
-  */
-
+ 
   // Use actual bookings from API only
   const displayBookings = bookings;
 
@@ -304,12 +188,65 @@ const BookingHistoryPage = () => {
     setIsModalOpen(true);
   };
 
+  const handleCancelClick = (booking: Booking) => {
+    setBookingToCancel(booking);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleApplyFilter = (filters: any) => {
+    setAppliedFilters(filters);
+    // You can implement the actual filtering logic here
+    // For now, just close the modal and log the filters
+    console.log('Applied filters:', filters);
+    setShowFilter(false);
+    // Refetch bookings with filters
+    fetchBookings();
+  };
+
+  const handleCancelBooking = async (bookingId: string, reason: string) => {
+    cancelBookingMutation.mutate(
+      { bookingId, reason },
+      {
+        onSuccess: (data) => {
+          // Show success message with refund status
+          const message = data.data.isRefundEligible 
+            ? 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
+            : 'Booking cancelled successfully. This booking was not eligible for a refund.';
+          
+          alert(message); // You can replace this with a toast notification
+          
+          // Update the booking status locally immediately
+          setBookings(prevBookings => 
+            prevBookings.map(booking => 
+              booking._id === bookingId 
+                ? { ...booking, status: 'cancelled' as const }
+                : booking
+            )
+          );
+          
+          setIsCancelModalOpen(false);
+          setBookingToCancel(null);
+          
+          // Also refresh from server to ensure consistency
+          setTimeout(() => {
+            fetchBookings();
+          }, 500);
+        },
+        onError: (error: any) => {
+          const errorMessage = error.response?.data?.message || 'Failed to cancel booking';
+          alert(errorMessage);
+        }
+      }
+    );
+  };
+
   const getStatusBadge = (status: string) => {
     const statusStyles: Record<string, string> = {
       completed: 'bg-green-100 text-green-700  border-green-200',
       cancelled: 'bg-red-100 text-red-700 border-red-200',
       refunded: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      upcoming: 'bg-blue-100 text-blue-700 border-blue-200'
+      upcoming: 'bg-blue-100 text-blue-700 border-blue-200',
+      expired: 'bg-gray-100 text-gray-700 border-gray-200'
     };
     
     return (
@@ -374,7 +311,9 @@ const BookingHistoryPage = () => {
       <div className="flex flex-row sm:flex-col gap-2 sm:gap-2.5 w-full sm:w-[151px] flex-shrink-0">
         {booking.status === 'upcoming' ? (
           <>
-            <button className="flex-1 sm:w-full py-2 px-2.5 bg-[#fffcf3] border border-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-[#3a6b22] hover:bg-[#f8f1d7] transition-colors">
+            <button 
+              onClick={() => handleCancelClick(booking)}
+              className="flex-1  sm:w-full py-2 px-2.5 bg-[#fffcf3] border border-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-[#3a6b22] hover:bg-[#f8f1d7] transition-colors">
               Cancel booking
             </button>
             <button 
@@ -385,7 +324,7 @@ const BookingHistoryPage = () => {
           </>
         ) : (
           <>
-            <div className="w-full  text-center">
+            <div className="w-full text-center h-full text-[12px]">
               {getStatusBadge(booking.status)}
             </div>
             <button 
@@ -565,6 +504,26 @@ const BookingHistoryPage = () => {
           setSelectedBooking(null);
         }}
         booking={selectedBooking}
+      />
+      
+      {/* Cancel Booking Modal */}
+      {bookingToCancel && (
+        <CancelBookingModal
+          isOpen={isCancelModalOpen}
+          onClose={() => {
+            setIsCancelModalOpen(false);
+            setBookingToCancel(null);
+          }}
+          booking={bookingToCancel}
+          onConfirm={handleCancelBooking}
+        />
+      )}
+
+      {/* Booking Filter Modal */}
+      <BookingFilter
+        isOpen={showFilter}
+        onClose={() => setShowFilter(false)}
+        onApplyFilter={handleApplyFilter}
       />
     </div>
     </UserLayout>

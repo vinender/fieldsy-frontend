@@ -83,7 +83,7 @@ function Input({ className, type, style, placeholder, ...props }: React.Componen
         "shadow-sm",
         
         // Focus states
-        "focus:border-green focus:outline-none focus:ring-2 focus:ring-green/20",
+        "focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20",
         
         // Hover
         "hover:border-gray-400",

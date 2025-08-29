@@ -2,6 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Scrollbar Styles for Notification Sidebar */
+.notification-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.notification-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Prevent body scroll when sidebar is open */
+body.sidebar-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Hide all scrollbars when sidebar is open */
+body.sidebar-open::-webkit-scrollbar {
+  display: none !important;
+}
+
+body.sidebar-open {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Ensure html element also doesn't show scrollbar */
+html:has(body.sidebar-open) {
+  overflow: hidden !important;
+}
+
 /* React Datepicker Custom Styles - Fieldsy Theme */
 /* Keep input field style unchanged */
 .react-datepicker-wrapper {

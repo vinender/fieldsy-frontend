@@ -17,27 +17,44 @@ axiosClient.interceptors.request.use(
     // Get session for auth token
     const session = await getSession();
     
+    // Try multiple possible token locations
+    let token = null;
+    
+    // 1. Check session.accessToken
     if (session?.accessToken) {
-      config.headers.Authorization = `Bearer ${session.accessToken}`;
-    } else {
-      // Fallback to localStorage token if available
+      token = session.accessToken;
+    } 
+    // 2. Check session.user.token
+    else if ((session?.user as any)?.token) {
+      token = (session.user as any).token;
+    }
+    // 3. Check session.token
+    else if ((session as any)?.token) {
+      token = (session as any).token;
+    }
+    // 4. Fallback to localStorage authToken
+    else {
       const authToken = localStorage.getItem('authToken');
       if (authToken) {
-        config.headers.Authorization = `Bearer ${authToken}`;
+        token = authToken;
       } else {
-        // Also check for token in currentUser (legacy)
+        // 5. Check currentUser in localStorage (legacy)
         const storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
           try {
             const user = JSON.parse(storedUser);
             if (user.token) {
-              config.headers.Authorization = `Bearer ${user.token}`;
+              token = user.token;
             }
           } catch (e) {
             console.error('Failed to parse stored user:', e);
           }
         }
       }
+    }
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     
     return config;

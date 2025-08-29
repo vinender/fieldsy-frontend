@@ -154,7 +154,7 @@ export function OTPInput({
           disabled={disabled}
           className={cn(
             'w-12 h-12 text-center text-lg font-semibold rounded-lg border-2 transition-all',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'focus:outline-none focus:ring-1 focus:ring-offset-2',
             error
               ? 'border-red-500 focus:ring-red-500 bg-red-50'
               : 'border-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35] bg-white',
