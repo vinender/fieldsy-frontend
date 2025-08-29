@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import AddCardModal from '@/components/payment/AddCardModal';
 import { usePaymentMethods, useSetDefaultPaymentMethod, useDeletePaymentMethod } from '@/hooks/queries/usePaymentMethodQueries';
 import { toast } from 'sonner';
+import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 
 // Dynamically import Stripe component to avoid SSR issues
 const StripeCheckout = dynamic(
@@ -28,17 +29,35 @@ const PaymentPage = () => {
   const { data: fieldData, isLoading, error } = useFieldDetails(field_id as string);
   const field = fieldData?.data || fieldData;
   
+  // Fetch slot availability
+  const { data: availabilityData } = useSlotAvailability(
+    field_id as string,
+    date as string
+  );
+  
+  // Get the specific slot details
+  const selectedSlot = availabilityData?.slots?.find(
+    (slot: any) => slot.slotTime === timeSlot
+  );
+  
+  // Calculate maximum dogs allowed
+  const maxDogsAllowed = Math.min(
+    selectedSlot?.availableSpots || 10,
+    field?.maxDogs || 10
+  );
+  
   // Fetch payment methods
   const { data: paymentMethods, isLoading: isLoadingCards, refetch: refetchCards } = usePaymentMethods();
   const setDefaultMutation = useSetDefaultPaymentMethod();
   const deleteMutation = useDeletePaymentMethod();
   
-  // Set number of dogs from query params
+  // Set number of dogs from query params and ensure it doesn't exceed max
   useEffect(() => {
     if (dogsFromQuery) {
-      setNumberOfDogs(parseInt(dogsFromQuery as string));
+      const requested = parseInt(dogsFromQuery as string);
+      setNumberOfDogs(Math.min(requested, maxDogsAllowed));
     }
-  }, [dogsFromQuery]);
+  }, [dogsFromQuery, maxDogsAllowed]);
   
   // Auto-select default card when payment methods load
   useEffect(() => {
@@ -81,7 +100,11 @@ const PaymentPage = () => {
   }
 
   const handleIncrement = () => {
-    setNumberOfDogs(prev => Math.min(prev + 1, 10));
+    if (numberOfDogs >= maxDogsAllowed) {
+      toast.error(`Maximum ${maxDogsAllowed} dogs allowed for this slot`);
+      return;
+    }
+    setNumberOfDogs(prev => Math.min(prev + 1, maxDogsAllowed));
   };
 
   const handleDecrement = () => {
@@ -342,11 +365,19 @@ const PaymentPage = () => {
                   {/* Number of Dogs and Time */}
                   <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                      <span className="text-base sm:text-[18px] font-bold text-[#192215]">Number of dogs</span>
+                      <div className="flex flex-col">
+                        <span className="text-base sm:text-[18px] font-bold text-[#192215]">Number of dogs</span>
+                        {selectedSlot && (
+                          <span className="text-xs sm:text-sm text-[#3A6B22]">
+                            {selectedSlot.availableSpots} spots available (max {maxDogsAllowed})
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1.5 bg-white border border-[#8FB366]/40 rounded-[10px] p-2 sm:p-2.5 w-fit">
                         <button 
                           onClick={handleDecrement}
-                          className="w-4 h-4 sm:w-5 sm:h-5 text-[#3A6B22] hover:opacity-70 transition-opacity"
+                          disabled={numberOfDogs <= 1}
+                          className={`w-4 h-4 sm:w-5 sm:h-5 ${numberOfDogs <= 1 ? 'opacity-30 cursor-not-allowed' : 'text-[#3A6B22] hover:opacity-70'} transition-opacity`}
                         >
                           <img src='/payment/minus.svg' className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
@@ -355,7 +386,8 @@ const PaymentPage = () => {
                         </span>
                         <button 
                           onClick={handleIncrement}
-                          className="w-4 h-4 sm:w-5 sm:h-5 text-[#3A6B22] hover:opacity-70 transition-opacity"
+                          disabled={numberOfDogs >= maxDogsAllowed}
+                          className={`w-4 h-4 sm:w-5 sm:h-5 ${numberOfDogs >= maxDogsAllowed ? 'opacity-30 cursor-not-allowed' : 'text-[#3A6B22] hover:opacity-70'} transition-opacity`}
                         >
                           <img src='/payment/plus.svg' className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>

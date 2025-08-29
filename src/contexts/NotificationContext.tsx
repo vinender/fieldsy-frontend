@@ -168,8 +168,9 @@ console.log('notifications',notificationData  )
       });
 
       // Handle new notification
-      socketInstance.on('notification', (notification: Notification) => {
+      socketInstance.on('notification', (notification: any) => {
         console.log('=== New Notification Received ===');
+        console.log('Full notification object:', notification);
         console.log('Notification ID:', notification.id);
         console.log('For User ID:', notification.userId);
         console.log('Type:', notification.type);
@@ -179,8 +180,8 @@ console.log('notifications',notificationData  )
         refetchNotifications();
         
         // Show toast notification
-        toast.success(notification.title, {
-          description: notification.message,
+        toast.success(notification.title || 'New Notification', {
+          description: notification.message || 'You have a new notification',
           duration: 5000,
         });
       });
