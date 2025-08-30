@@ -240,21 +240,6 @@ const BookingHistoryPage = () => {
     );
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusStyles: Record<string, string> = {
-      completed: 'bg-green-100 text-green-700  border-green-200',
-      cancelled: 'bg-red-100 text-red-700 border-red-200',
-      refunded: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      upcoming: 'bg-blue-100 text-blue-700 border-blue-200',
-      expired: 'bg-gray-100 text-gray-700 border-gray-200'
-    };
-    
-    return (
-      <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${statusStyles[status] || ''}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
-  };
 
   const BookingCard = ({ booking }: { booking: Booking }) => (
     <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-start sm:items-center bg-light py-4 sm:py-6 border-b border-gray-200 last:border-0">
@@ -313,7 +298,7 @@ const BookingHistoryPage = () => {
           <>
             <button 
               onClick={() => handleCancelClick(booking)}
-              className="flex-1  sm:w-full py-2 px-2.5 bg-[#fffcf3] border border-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-[#3a6b22] hover:bg-[#f8f1d7] transition-colors">
+              className="flex-1 sm:w-full py-2 px-2.5 bg-[#fffcf3] border border-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-[#3a6b22] hover:bg-[#f8f1d7] transition-colors">
               Cancel booking
             </button>
             <button 
@@ -322,10 +307,23 @@ const BookingHistoryPage = () => {
              View Details
             </button>
           </>
+        ) : booking.status === 'cancelled' ? (
+          <>
+            <div className="flex-1 sm:w-full py-2 px-2.5 bg-white border  border-red-600 rounded-full text-[12px] sm:text-[14px] font-bold outline-red text-red flex items-center justify-center cursor-not-allowed">
+              Cancelled
+            </div>
+            <button 
+              onClick={() => handleViewDetails(booking)}
+              className="flex-1 sm:w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
+              View Details
+            </button>
+          </>
         ) : (
           <>
-            <div className="w-full text-center h-full text-[12px]">
-              {getStatusBadge(booking.status)}
+            <div className="flex-1 sm:w-full py-2 px-2.5 bg-gray-100 rounded-full text-[12px] sm:text-[14px] font-bold text-gray-600 flex items-center justify-center">
+              {booking.status === 'completed' ? 'Completed' : 
+               booking.status === 'expired' ? 'Expired' : 
+               booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
             </div>
             <button 
               onClick={() => handleViewDetails(booking)}

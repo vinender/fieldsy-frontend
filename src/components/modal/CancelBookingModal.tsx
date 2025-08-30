@@ -265,14 +265,14 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 py-3 px-4 bg-gray-100 text-[#192215] rounded-full font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
+            className="flex-1 py-3 px-4 bg-[#3a6b22] text-white rounded-full font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50"
           >
             Keep Booking
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading || checkingEligibility}
-            className="flex-1 py-3 px-4 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 py-3 px-4 bg-white border-2 border-red-600 text-red-600 rounded-full font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Cancelling...' : 'Cancel Booking'}
           </button>
