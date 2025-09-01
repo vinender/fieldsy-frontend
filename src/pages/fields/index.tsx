@@ -59,7 +59,8 @@ export default function SearchResults() {
     rating: '',
     priceRange: [mockData.filterOptions.priceRange.min, mockData.filterOptions.priceRange.max],
     distanceRange: [mockData.filterOptions.distanceRange.min, mockData.filterOptions.distanceRange.max],
-    date: undefined as Date | undefined
+    date: undefined as Date | undefined,
+    availability: [] as string[]
   };
 
   // Temporary filter state (for UI)
@@ -69,6 +70,7 @@ export default function SearchResults() {
   const [tempPriceRange, setTempPriceRange] = useState(defaultFilters.priceRange);
   const [tempDistanceRange, setTempDistanceRange] = useState(defaultFilters.distanceRange);
   const [tempDate, setTempDate] = useState<Date | undefined>(defaultFilters.date);
+  const [tempAvailability, setTempAvailability] = useState<string[]>(defaultFilters.availability);
 
   // Applied filter state (for API)
   const [appliedSize, setAppliedSize] = useState(defaultFilters.size);
@@ -77,6 +79,7 @@ export default function SearchResults() {
   const [appliedPriceRange, setAppliedPriceRange] = useState(defaultFilters.priceRange);
   const [appliedDistanceRange, setAppliedDistanceRange] = useState(defaultFilters.distanceRange);
   const [appliedDate, setAppliedDate] = useState<Date | undefined>(defaultFilters.date);
+  const [appliedAvailability, setAppliedAvailability] = useState<string[]>(defaultFilters.availability);
   
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedFields, setLikedFields] = useState<string[]>([]);
@@ -93,6 +96,21 @@ export default function SearchResults() {
     availability: true
   });
 
+  // Check if any filter has been selected or changed from default
+  const hasActiveFilters = () => {
+    return (
+      tempSize !== defaultFilters.size ||
+      tempAmenities.length > 0 ||
+      tempRating !== defaultFilters.rating ||
+      tempPriceRange[0] !== defaultFilters.priceRange[0] ||
+      tempPriceRange[1] !== defaultFilters.priceRange[1] ||
+      tempDistanceRange[0] !== defaultFilters.distanceRange[0] ||
+      tempDistanceRange[1] !== defaultFilters.distanceRange[1] ||
+      tempDate !== undefined ||
+      tempAvailability.length > 0
+    );
+  };
+
   // Function to apply filters
   const applyFilters = () => {
     setAppliedSize(tempSize);
@@ -101,6 +119,7 @@ export default function SearchResults() {
     setAppliedPriceRange(tempPriceRange);
     setAppliedDistanceRange(tempDistanceRange);
     setAppliedDate(tempDate);
+    setAppliedAvailability(tempAvailability);
     setCurrentPage(1); // Reset to first page
     setFiltersOpen(false); // Close mobile filters
   };
@@ -114,6 +133,7 @@ export default function SearchResults() {
     setTempPriceRange(defaultFilters.priceRange);
     setTempDistanceRange(defaultFilters.distanceRange);
     setTempDate(defaultFilters.date);
+    setTempAvailability(defaultFilters.availability);
     
     // Reset applied states to defaults
     setAppliedSize(defaultFilters.size);
@@ -122,6 +142,7 @@ export default function SearchResults() {
     setAppliedPriceRange(defaultFilters.priceRange);
     setAppliedDistanceRange(defaultFilters.distanceRange);
     setAppliedDate(defaultFilters.date);
+    setAppliedAvailability(defaultFilters.availability);
     setCurrentPage(1); // Reset to first page
   };
 
@@ -149,6 +170,7 @@ export default function SearchResults() {
       maxDistance: appliedDistanceRange[1] 
     }),
     ...(appliedDate && { date: appliedDate.toISOString() }),
+    ...(appliedAvailability.length > 0 && { availability: appliedAvailability }),
     sortBy,
     sortOrder
   };
@@ -390,17 +412,43 @@ export default function SearchResults() {
                       height: 0.5rem;
                     }
                   `}</style>
-                  <input 
-                    type="range" 
-                    className="w-full" 
-                    min={mockData.filterOptions.priceRange.min} 
-                    max={mockData.filterOptions.priceRange.max} 
-                    value={tempPriceRange[1]}
-                    onChange={(e) => setTempPriceRange([tempPriceRange[0], parseInt(e.target.value)])}
-                  />
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-600 mb-1 block">Min Price</label>
+                      <input 
+                        type="range" 
+                        className="w-full" 
+                        min={mockData.filterOptions.priceRange.min} 
+                        max={mockData.filterOptions.priceRange.max} 
+                        value={tempPriceRange[0]}
+                        onChange={(e) => {
+                          const newMin = parseInt(e.target.value);
+                          if (newMin <= tempPriceRange[1]) {
+                            setTempPriceRange([newMin, tempPriceRange[1]]);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 mb-1 block">Max Price</label>
+                      <input 
+                        type="range" 
+                        className="w-full" 
+                        min={mockData.filterOptions.priceRange.min} 
+                        max={mockData.filterOptions.priceRange.max} 
+                        value={tempPriceRange[1]}
+                        onChange={(e) => {
+                          const newMax = parseInt(e.target.value);
+                          if (newMax >= tempPriceRange[0]) {
+                            setTempPriceRange([tempPriceRange[0], newMax]);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                   <div className="flex justify-between text-[12px] text-dark-green mt-2">
-                    <span>${mockData.filterOptions.priceRange.min}</span>
-                    <span>${mockData.filterOptions.priceRange.max}</span>
+                    <span>${tempPriceRange[0]}</span>
+                    <span>${tempPriceRange[1]}</span>
                   </div>
                 </div>
               )}
@@ -465,17 +513,43 @@ export default function SearchResults() {
                       height: 0.5rem;
                     }
                   `}</style>
-                  <input 
-                    type="range" 
-                    className="w-full" 
-                    min={mockData.filterOptions.distanceRange.min} 
-                    max={mockData.filterOptions.distanceRange.max} 
-                    value={tempDistanceRange[1]}
-                    onChange={(e) => setTempDistanceRange([tempDistanceRange[0], parseInt(e.target.value)])}
-                  />
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-600 mb-1 block">Min Distance</label>
+                      <input 
+                        type="range" 
+                        className="w-full" 
+                        min={mockData.filterOptions.distanceRange.min} 
+                        max={mockData.filterOptions.distanceRange.max} 
+                        value={tempDistanceRange[0]}
+                        onChange={(e) => {
+                          const newMin = parseInt(e.target.value);
+                          if (newMin <= tempDistanceRange[1]) {
+                            setTempDistanceRange([newMin, tempDistanceRange[1]]);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 mb-1 block">Max Distance</label>
+                      <input 
+                        type="range" 
+                        className="w-full" 
+                        min={mockData.filterOptions.distanceRange.min} 
+                        max={mockData.filterOptions.distanceRange.max} 
+                        value={tempDistanceRange[1]}
+                        onChange={(e) => {
+                          const newMax = parseInt(e.target.value);
+                          if (newMax >= tempDistanceRange[0]) {
+                            setTempDistanceRange([tempDistanceRange[0], newMax]);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                   <div className="flex justify-between text-[12px] text-dark-green mt-2">
-                    <span>{mockData.filterOptions.distanceRange.min} mile</span>
-                    <span>{mockData.filterOptions.distanceRange.max} miles</span>
+                    <span>{tempDistanceRange[0]} mile{tempDistanceRange[0] !== 1 ? 's' : ''}</span>
+                    <span>{tempDistanceRange[1]} mile{tempDistanceRange[1] !== 1 ? 's' : ''}</span>
                   </div>
                 </div>
               )}
@@ -561,7 +635,18 @@ export default function SearchResults() {
                     {mockData.filterOptions.availability.map((time) => (
                       <button
                         key={time}
-                        className="px-3.5 py-2 rounded-[14px] text-[14px] font-medium bg-white border border-black/[0.06] text-[#8d8d8d]"
+                        onClick={() => {
+                          setTempAvailability((prev: string[]) => 
+                            prev.includes(time) 
+                              ? prev.filter((t: string) => t !== time)
+                              : [...prev, time]
+                          );
+                        }}
+                        className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
+                          tempAvailability.includes(time)
+                            ? 'bg-[#8FB366] text-white' 
+                            : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
+                        }`}
                       >
                         {time}
                       </button>
@@ -571,12 +656,14 @@ export default function SearchResults() {
               </div>
             </div>
 
-            <button 
-              onClick={applyFilters}
-              className="w-full bg-[#3A6B22] text-white py-4 rounded-[50px] text-[16px] font-semibold"
-            >
-              Apply Filters
-            </button>
+            {hasActiveFilters() && (
+              <button 
+                onClick={applyFilters}
+                className="w-full bg-[#3A6B22] text-white py-4 rounded-[50px] text-[16px] font-semibold hover:bg-[#2d5319] transition-colors"
+              >
+                Apply Filters
+              </button>
+            )}
           </div>
         </div>
 

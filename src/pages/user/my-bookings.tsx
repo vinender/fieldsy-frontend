@@ -435,7 +435,7 @@ const BookingHistoryPage = () => {
               <BookingCard key={booking._id} booking={booking} />
             ))
           )}
-        </div>
+        </div>  
 
         {/* Pagination */}
         {!loading && !error && displayBookings.length > 0 && (
@@ -489,6 +489,7 @@ const BookingHistoryPage = () => {
               >
                 <ChevronRight className="w-5 h-5 text-[#192215]" />
               </button>
+              
             </div>
           </div>
         )}
