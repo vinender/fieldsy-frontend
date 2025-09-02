@@ -106,9 +106,10 @@ export default function SavedFieldsPage() {
           {/* Saved Fields Grid */}
           {!isLoading && !error && savedFields.length > 0 && (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                {savedFields.map((field) => (
-                  <FieldCard 
+              <div className="w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(280px,400px))] gap-4 md:gap-6 justify-center">
+                  {savedFields.map((field) => (
+                    <FieldCard 
                     key={field.id}
                     id={field.id}
                     name={field.name || 'Unnamed Field'}
@@ -129,7 +130,8 @@ export default function SavedFieldsPage() {
                     latitude={field.latitude}
                     longitude={field.longitude}
                   />
-                ))}
+                  ))}
+                </div>
               </div>
 
               {/* Load More */}

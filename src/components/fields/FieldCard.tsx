@@ -135,8 +135,8 @@ export function FieldCard({
   }
   
   const containerClasses = isExpanded 
-    ? "bg-white rounded-[20px] border border-black/[0.08] w-full overflow-hidden"
-    : "bg-white rounded-[16px] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] hover:shadow-[0px_8px_20px_0px_rgba(0,0,0,0.12)] transition-all"
+    ? "bg-white rounded-[20px] border border-black/[0.08] w-full min-w-[280px] overflow-hidden"
+    : "bg-white rounded-[16px] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] hover:shadow-[0px_8px_20px_0px_rgba(0,0,0,0.12)] transition-all min-w-[280px]"
   
   const imageHeight = isExpanded ? "h-[320px]" : "h-[200px]"
   const imageRoundness = isExpanded ? "rounded-[32px]" : "rounded-[12px]"
@@ -158,7 +158,7 @@ export function FieldCard({
             </div>
           </div>
 
-          <div className="relative mb-4">
+          <div className="relative mb-4 ">
             <div className={imageHeight + " w-full"}>
               <img 
                 src={image} 
@@ -181,7 +181,7 @@ export function FieldCard({
 
           <div className="flex justify-between items-center mb-2 px-0">
             <div className="flex items-center gap-1 flex-1 pr-2">
-              <MapPin className="w-5 h-5 text-[#3A6B22] flex-shrink-0" />
+              <img src="/location.svg" alt="Location" className="w-5 h-5 text-[#3A6B22] flex-shrink-0" />
               <span className="text-[12px] text-dark-green leading-[16px]">
                 {location}{displayDistance ? ` • ${displayDistance}` : ''}
               </span>
