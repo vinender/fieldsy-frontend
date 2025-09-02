@@ -361,7 +361,7 @@ const BookingHistoryPage = () => {
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
               }`}
             >
-              Upcoming
+              Upcoming Bookings
             </button>
             <button
               onClick={() => setActiveTab('previous')}
@@ -371,7 +371,7 @@ const BookingHistoryPage = () => {
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
               }`}
             >
-              Previous
+              Previous Bookings
             </button>
           </div>
 
