@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import axiosClient from '@/lib/api/axios-client';
 
 interface UserProfile {
   id: string;
@@ -35,27 +36,12 @@ export function useProfile() {
   return useQuery({
     queryKey: ['profile', session?.user?.id],
     queryFn: async () => {
-      const token = (session as any)?.accessToken;
-      if (!token || !session?.user?.id) {
+      if (!session?.user?.id) {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/users/${session.user.id}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch profile');
-      }
-
-      const data = await response.json();
-      return data.data as UserProfile;
+      const response = await axiosClient.get(`/users/${session.user.id}`);
+      return response.data.data as UserProfile;
     },
     enabled: !!session?.user?.id,
   });
@@ -68,37 +54,30 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (updateData: UpdateProfileData) => {
-      const token = (session as any)?.accessToken;
-      if (!token || !session?.user?.id) {
+      if (!session?.user?.id) {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/users/${session.user.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updateData),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update profile');
-      }
-
-      const data = await response.json();
-      return data.data;
+      const response = await axiosClient.patch(`/users/${session.user.id}`, updateData);
+      return response.data.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // Also update auth context if needed
+      const currentUser = localStorage.getItem('currentUser');
+      if (currentUser) {
+        try {
+          const user = JSON.parse(currentUser);
+          localStorage.setItem('currentUser', JSON.stringify({ ...user, ...data }));
+        } catch (e) {
+          console.error('Failed to update stored user:', e);
+        }
+      }
       toast.success('Profile updated successfully');
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update profile');
+    onError: (error: any) => {
+      const message = error.response?.data?.message || error.message || 'Failed to update profile';
+      toast.error(message);
     },
   });
 }
@@ -109,35 +88,15 @@ export function useChangePassword() {
 
   return useMutation({
     mutationFn: async (passwordData: ChangePasswordData) => {
-      const token = (session as any)?.accessToken;
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/users/change-password`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(passwordData),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to change password');
-      }
-
-      return await response.json();
+      const response = await axiosClient.post('/users/change-password', passwordData);
+      return response.data;
     },
     onSuccess: () => {
       toast.success('Password changed successfully');
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to change password');
+    onError: (error: any) => {
+      const message = error.response?.data?.message || error.message || 'Failed to change password';
+      toast.error(message);
     },
   });
 }
@@ -149,37 +108,35 @@ export function useDeleteProfileImage() {
 
   return useMutation({
     mutationFn: async () => {
-      const token = (session as any)?.accessToken;
-      if (!token || !session?.user?.id) {
+      if (!session?.user?.id) {
         throw new Error('Not authenticated');
       }
 
-      // Update profile to remove image URL
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/users/${session.user.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ image: null }),
+      // Update profile to remove image URL using axios
+      const response = await axiosClient.patch(`/users/${session.user.id}`, { image: null });
+      
+      // Update local storage as well
+      const currentUser = localStorage.getItem('currentUser');
+      if (currentUser) {
+        try {
+          const user = JSON.parse(currentUser);
+          delete user.image;
+          localStorage.setItem('currentUser', JSON.stringify(user));
+        } catch (e) {
+          console.error('Failed to update stored user:', e);
         }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to delete profile image');
       }
 
-      return true;
+      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Profile image deleted successfully');
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to delete image');
+    onError: (error: any) => {
+      const message = error.response?.data?.message || error.message || 'Failed to delete image';
+      toast.error(message);
     },
   });
 }
@@ -191,8 +148,7 @@ export function useUploadProfileImage() {
 
   return useMutation({
     mutationFn: async (file: File) => {
-      const token = (session as any)?.accessToken;
-      if (!token) {
+      if (!session?.user?.id) {
         throw new Error('Not authenticated');
       }
 
@@ -212,32 +168,31 @@ export function useUploadProfileImage() {
 
       const { fileUrl } = await uploadResponse.json();
 
-      // Update profile with new image URL
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/users/${session?.user?.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ image: fileUrl }),
+      // Update profile with new image URL using axios
+      const response = await axiosClient.patch(`/users/${session.user.id}`, { image: fileUrl });
+      
+      // Update local storage as well
+      const currentUser = localStorage.getItem('currentUser');
+      if (currentUser) {
+        try {
+          const user = JSON.parse(currentUser);
+          localStorage.setItem('currentUser', JSON.stringify({ ...user, image: fileUrl }));
+        } catch (e) {
+          console.error('Failed to update stored user image:', e);
         }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update profile image');
       }
 
-      return fileUrl;
+      return response.data.data;
     },
-    onSuccess: (imageUrl) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // Invalidate any other queries that might use user data
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Profile image updated successfully');
     },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to upload image');
+    onError: (error: any) => {
+      const message = error.response?.data?.message || error.message || 'Failed to upload image';
+      toast.error(message);
     },
   });
 }

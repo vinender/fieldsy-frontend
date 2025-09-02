@@ -7,6 +7,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import Image from "next/image"
+import { getUserImage, getUserInitials } from "@/utils/getUserImage"
 
 type ProfileDropdownProps = {
   user?: { name?: string | null; email?: string | null; image?: string | null; role?: string | null }
@@ -57,7 +58,7 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
         { icon: '/profile/saved-cards.svg', label: "Saved Cards", href: "/user/saved-cards" },
       ]
 
-  const displayInitial = (user?.name || user?.email || "U").charAt(0).toUpperCase()
+  const displayInitial = getUserInitials(user)
 
   if (!isOpen) return null
 
@@ -73,12 +74,15 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
       <div className="p-6 pb-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-xl font-semibold">
-            {user?.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.image} alt={user.name || "Profile"} className="w-full h-full object-cover" />
-            ) : (
-              <span>{displayInitial}</span>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={getUserImage(user)} 
+              alt={user?.name || "Profile"} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${displayInitial}&background=3A6B22&color=fff&size=200`;
+              }}
+            />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-xl font-semibold text-[#192215] truncate">{user?.name || "User"}</h3>

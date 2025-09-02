@@ -12,6 +12,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { AddReviewModal } from './AddReviewModal';
+import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -163,9 +164,12 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
               <div className="bg-[#f8f1d7] rounded-lg p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img 
-                    src={bookingData?.owner?.avatar} 
-                    alt={bookingData?.owner?.name}
+                    src={getUserImage(bookingData?.owner)} 
+                    alt={bookingData?.owner?.name || 'Owner'}
                     className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(bookingData?.owner)}&background=3A6B22&color=fff&size=200`;
+                    }}
                   />
                   <div>
                     <div className="flex items-center gap-1">

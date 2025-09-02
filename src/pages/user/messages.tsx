@@ -14,9 +14,11 @@ import ReportUserModal from '@/components/modal/ReportUserModal';
 import DeleteChatModal from '@/components/modal/DeleteChatModal';
 import { useSession } from 'next-auth/react';
 import { useSocket } from '@/contexts/SocketContext';
+import { useChat } from '@/contexts/ChatContext';
 import { useRouter } from 'next/router';
 import styles from '@/styles/messages.module.css';
 import { toast } from 'sonner';
+import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 
 interface User {
   id: string;
@@ -56,6 +58,7 @@ const MessagesPage = () => {
   const router = useRouter();
   const { conversationId: queryConversationId, userId: queryUserId } = router.query;
   const { socket, sendMessage, markAsRead, emitTyping } = useSocket();
+  const { decrementUnreadCount } = useChat();
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -198,6 +201,8 @@ const MessagesPage = () => {
           // Mark as read if we're the receiver
           if (message.receiverId === currentUserId) {
             markAsRead([message.id]);
+            // Update the unread count in chat context
+            decrementUnreadCount(1);
           }
         }
       }
@@ -291,6 +296,8 @@ const MessagesPage = () => {
         
         if (unreadMessageIds.length > 0) {
           markAsRead(unreadMessageIds);
+          // Update the unread count in chat context
+          decrementUnreadCount(unreadMessageIds.length);
         }
       }
     } catch (error) {
@@ -627,19 +634,14 @@ const MessagesPage = () => {
 
                         {/* Avatar */}
                         <div className="relative">
-                          {otherUser.image ? (
-                            <img
-                              src={otherUser.image}
-                              alt={otherUser.name}
-                              className="w-12 h-12 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-gray-600 font-semibold">
-                                {otherUser.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
+                          <img
+                            src={getUserImage(otherUser)}
+                            alt={otherUser.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(otherUser)}&background=3A6B22&color=fff&size=200`;
+                            }}
+                          />
                         </div>
 
                         {/* Content */}
@@ -679,19 +681,14 @@ const MessagesPage = () => {
                       const otherUser = getOtherUser(selectedConversation);
                       return otherUser ? (
                         <>
-                          {otherUser.image ? (
-                            <img
-                              src={otherUser.image}
-                              alt={otherUser.name}
-                              className="w-14 h-14 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-gray-600 font-semibold text-xl">
-                                {otherUser.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
+                          <img
+                            src={getUserImage(otherUser)}
+                            alt={otherUser.name}
+                            className="w-14 h-14 rounded-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(otherUser)}&background=3A6B22&color=fff&size=200`;
+                            }}
+                          />
                           <div>
                             <h2 className="text-[18px] font-semibold text-dark-green">
                               {otherUser.name}

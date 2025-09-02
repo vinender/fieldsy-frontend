@@ -12,6 +12,7 @@ import { AuthProvider } from "@/contexts/AuthContext"
 import { NotificationProvider } from "@/contexts/NotificationContext"
 import { SocketProvider } from "@/contexts/SocketContext"
 import { LocationProvider } from "@/contexts/LocationContext"
+import { ChatProvider } from "@/contexts/ChatContext"
 import "@/styles/globals.css"
 import "@/lib/utils/suppress-dev-errors"
 
@@ -71,27 +72,29 @@ export default function App({
           <LocationProvider>
             <NotificationProvider>
               <SocketProvider>
-                <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
-                  <div className="min-h-screen flex flex-col overflow-x-hidden">
-                    {!hideLayout && <Header />}
-                    <main className="flex-grow overflow-x-hidden">
-                      <Component {...pageProps} />
-                    </main>
-                    {!hideLayout && <Footer />}
+                <ChatProvider>
+                  <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
+                    <div className="min-h-screen flex flex-col overflow-x-hidden">
+                      {!hideLayout && <Header />}
+                      <main className="flex-grow overflow-x-hidden">
+                        <Component {...pageProps} />
+                      </main>
+                      {!hideLayout && <Footer />}
+                    </div>
+                    <Toaster 
+                      toastOptions={{
+                        style: {
+                          background: '#2D3748', // Dark gray background
+                          color: '#FFFFFF', // White text
+                          border: '1px solid #4A5568', // Slightly lighter border
+                        },
+                        className: 'sonner-toast',
+                        descriptionClassName: 'sonner-description',
+                      }}
+                      richColors
+                    />
                   </div>
-                  <Toaster 
-                    toastOptions={{
-                      style: {
-                        background: '#2D3748', // Dark gray background
-                        color: '#FFFFFF', // White text
-                        border: '1px solid #4A5568', // Slightly lighter border
-                      },
-                      className: 'sonner-toast',
-                      descriptionClassName: 'sonner-description',
-                    }}
-                    richColors
-                  />
-                </div>
+                </ChatProvider>
               </SocketProvider>
             </NotificationProvider>
           </LocationProvider>

@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 
 interface FieldReviewsProps {
   fieldId: string;
@@ -205,17 +206,14 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
           <div key={review.id} className="border-b pb-4">
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-3">
-                {review.user?.image ? (
-                  <img
-                    src={review.user.image}
-                    alt={review.user.name}
-                    className="w-10 h-10 rounded-full"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    {review.user?.name?.[0] || 'U'}
-                  </div>
-                )}
+                <img
+                  src={getUserImage(review.user)}
+                  alt={review.user?.name || 'User'}
+                  className="w-10 h-10 rounded-full"
+                  onError={(e) => {
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(review.user)}&background=3A6B22&color=fff&size=200`;
+                  }}
+                />
                 <div>
                   <div className="font-semibold">
                     {review.user?.name || 'Anonymous'}

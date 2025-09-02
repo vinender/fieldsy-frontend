@@ -11,12 +11,15 @@ import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotifications } from "@/contexts/NotificationContext"
+import { useChat } from "@/contexts/ChatContext"
+import { getUserImage, getUserInitials } from "@/utils/getUserImage"
 import router from "next/router"
 
 export function Header() {
   const pathname = usePathname()
   const { user, isLoading } = useAuth()
   const { unreadCount } = useNotifications()
+  const { unreadMessagesCount } = useChat()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
@@ -164,7 +167,7 @@ export function Header() {
           <div className="hidden xl:flex xl:items-center xl:space-x-4">
             {isAuthenticated ? (
               <>
-                {/* Message Icon */}
+                {/* Message Icon with Badge */}
                 <button onClick={() => router.push('/user/messages')}
                   className={cn(
                     "p-2 rounded-full bg-cream transition-colors relative",
@@ -175,6 +178,13 @@ export function Header() {
                   aria-label="Messages"
                 >
                   <img src='/header/msg.svg' className={cn("h-6 w-6", textColor)} />
+                  {unreadMessagesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blue-500 rounded-full shadow-md">
+                      <span className="text-[11px] text-white font-bold">
+                        {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                      </span>
+                    </span>
+                  )}
                 </button>
                 
                 {/* Notification Icon with Badge */}
@@ -207,19 +217,14 @@ export function Header() {
                     aria-label="User menu"
                   >
                     <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white">
-                      {currentUser?.image ? (
-                        <img 
-                          src={currentUser.image} 
-                          alt={currentUser.name || "Profile"} 
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-400 to-green-600">
-                          <span className="text-white font-semibold text-lg">
-                            {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
-                          </span>
-                        </div>
-                      )}
+                      <img 
+                        src={getUserImage(currentUser)} 
+                        alt={currentUser?.name || "Profile"} 
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
+                        }}
+                      />
                     </div>
                   </button>
                   
@@ -398,19 +403,14 @@ export function Header() {
                   {/* User profile section */}
                   <div className="flex items-center p-4">
                     <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden">
-                      {currentUser?.image ? (
-                        <img 
-                          src={currentUser.image} 
-                          alt="Profile" 
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-400 to-green-600">
-                          <span className="text-white font-semibold">
-                            {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
-                          </span>
-                        </div>
-                      )}
+                      <img 
+                        src={getUserImage(currentUser)} 
+                        alt="Profile" 
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
+                        }}
+                      />
                     </div>
                     <div className="ml-3">
                       <div className="text-base font-medium text-gray-800">
@@ -429,8 +429,21 @@ export function Header() {
                   
                   {/* Mobile Icons */}
                   <div className="flex items-center justify-around px-4 py-2 border-t border-gray-200">
-                    <button className="p-2 rounded-full hover:bg-gray-100">
+                    <button 
+                      className="p-2 rounded-full hover:bg-gray-100 relative"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        router.push('/user/messages');
+                      }}
+                    >
                       <MessageCircle className="h-5 w-5 text-gray-600" />
+                      {unreadMessagesCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blue-500 rounded-full shadow-md">
+                          <span className="text-[11px] text-white font-bold">
+                            {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                          </span>
+                        </span>
+                      )}
                     </button>
                     <button 
                       className="p-2 rounded-full hover:bg-gray-100 relative"

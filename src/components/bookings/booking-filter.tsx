@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { X, Calendar, Check } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface BookingFilterProps {
   isOpen: boolean;
@@ -9,60 +11,50 @@ interface BookingFilterProps {
 
 interface FilterOptions {
   dateRange: string;
-  status?: string[];
-  sortBy?: string;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyFilter }) => {
-  const [selectedDateRange, setSelectedDateRange] = useState('all');
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedSort, setSelectedSort] = useState('newest');
+  const [selectedDateRange, setSelectedDateRange] = useState('thisWeek');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   const dateRangeOptions = [
-    { id: 'all', label: 'All Time' },
-    { id: 'today', label: 'Today' },
     { id: 'thisWeek', label: 'This Week' },
     { id: 'thisMonth', label: 'This Month' },
-    { id: 'lastMonth', label: 'Last Month' },
     { id: 'thisYear', label: 'This Year' },
     { id: 'customDate', label: 'Custom Date Range' }
   ];
 
-  const statusOptions = [
-    { id: 'upcoming', label: 'Upcoming', color: 'bg-blue-100 text-blue-700' },
-    { id: 'completed', label: 'Completed', color: 'bg-green-100 text-green-700' },
-    { id: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-700' },
-    { id: 'expired', label: 'Expired', color: 'bg-gray-100 text-gray-700' }
-  ];
-
-  const sortOptions = [
-    { id: 'newest', label: 'Newest First' },
-    { id: 'oldest', label: 'Oldest First' },
-    { id: 'price-high', label: 'Price: High to Low' },
-    { id: 'price-low', label: 'Price: Low to High' }
-  ];
-
-  const handleStatusToggle = (statusId: string) => {
-    setSelectedStatuses(prev =>
-      prev.includes(statusId)
-        ? prev.filter(id => id !== statusId)
-        : [...prev, statusId]
-    );
+  const handleDateRangeChange = (value: string) => {
+    setSelectedDateRange(value);
+    // Reset custom dates when switching away from custom
+    if (value !== 'customDate') {
+      setStartDate(null);
+      setEndDate(null);
+    }
   };
 
   const handleApply = () => {
-    onApplyFilter({
-      dateRange: selectedDateRange,
-      status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
-      sortBy: selectedSort
-    });
+    const filter: FilterOptions = {
+      dateRange: selectedDateRange
+    };
+
+    // Add dates if custom range is selected
+    if (selectedDateRange === 'customDate' && startDate && endDate) {
+      filter.startDate = startDate;
+      filter.endDate = endDate;
+    }
+
+    onApplyFilter(filter);
     onClose();
   };
 
   const handleReset = () => {
-    setSelectedDateRange('all');
-    setSelectedStatuses([]);
-    setSelectedSort('newest');
+    setSelectedDateRange('thisWeek');
+    setStartDate(null);
+    setEndDate(null);
   };
 
   if (!isOpen) return null;
@@ -81,7 +73,7 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyF
           {/* Header */}
           <div className="sticky top-0 bg-white p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <h2 className="text-[24px] font-semibold text-[#192215]">Filter Bookings</h2>
+              <h2 className="text-[24px] font-semibold text-[#192215]">Filter by Date</h2>
               <button
                 onClick={onClose}
                 className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
@@ -92,106 +84,96 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyF
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">
+          <div className="p-6">
             {/* Date Range */}
             <div>
-              <h3 className="text-[16px] font-semibold text-[#192215] mb-3">Date Range</h3>
+              <h3 className="text-[16px] font-semibold text-[#192215] mb-3">Select Date Range</h3>
               <div className="space-y-2">
                 {dateRangeOptions.map((option) => (
-                  <label
-                    key={option.id}
-                    className="flex items-center justify-between cursor-pointer p-3 rounded-lg hover:bg-[#f8f1d7] transition-colors"
-                  >
-                    <span className="text-[14px] text-[#192215]">{option.label}</span>
-                    
-                    <div className="relative">
-                      <input
-                        type="radio"
-                        name="dateFilter"
-                        value={option.id}
-                        checked={selectedDateRange === option.id}
-                        onChange={(e) => setSelectedDateRange(e.target.value)}
-                        className="sr-only"
-                      />
-                      <div className={`
-                        w-5 h-5 rounded-full border-2 transition-all duration-200
-                        ${selectedDateRange === option.id 
-                          ? 'border-[#3a6b22] bg-[#3a6b22]' 
-                          : 'border-gray-300 bg-white'
-                        }
-                      `}>
-                        {selectedDateRange === option.id && (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          </div>
-                        )}
+                  <div key={option.id}>
+                    <label
+                      className="flex items-center justify-between cursor-pointer p-3 rounded-lg hover:bg-[#f8f1d7] transition-colors"
+                    >
+                      <span className="text-[14px] text-[#192215]">{option.label}</span>
+                      
+                      <div className="relative">
+                        <input
+                          type="radio"
+                          name="dateFilter"
+                          value={option.id}
+                          checked={selectedDateRange === option.id}
+                          onChange={(e) => handleDateRangeChange(e.target.value)}
+                          className="sr-only"
+                        />
+                        <div className={`
+                          w-5 h-5 rounded-full border-2 transition-all duration-200
+                          ${selectedDateRange === option.id 
+                            ? 'border-[#3a6b22] bg-[#3a6b22]' 
+                            : 'border-gray-300 bg-white'
+                          }
+                        `}>
+                          {selectedDateRange === option.id && (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
+                    </label>
 
-            {/* Status Filter */}
-            <div>
-              <h3 className="text-[16px] font-semibold text-[#192215] mb-3">Booking Status</h3>
-              <div className="flex flex-wrap gap-2">
-                {statusOptions.map((status) => (
-                  <button
-                    key={status.id}
-                    onClick={() => handleStatusToggle(status.id)}
-                    className={`
-                      px-4 py-2 rounded-full text-[13px] font-medium border transition-all
-                      ${selectedStatuses.includes(status.id)
-                        ? `${status.color} border-current`
-                        : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
-                      }
-                    `}
-                  >
-                    {selectedStatuses.includes(status.id) && (
-                      <Check className="w-3 h-3 inline mr-1" />
+                    {/* Show calendar for custom date range */}
+                    {option.id === 'customDate' && selectedDateRange === 'customDate' && (
+                      <div className="mt-3 p-4 bg-[#f8f1d7] rounded-lg">
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-[13px] font-medium text-[#192215] mb-2">
+                              Start Date
+                            </label>
+                            <div className="relative">
+                              <DatePicker
+                                selected={startDate}
+                                onChange={(date: Date | null) => setStartDate(date)}
+                                selectsStart
+                                startDate={startDate}
+                                endDate={endDate}
+                                maxDate={endDate || undefined}
+                                dateFormat="dd MMM yyyy"
+                                placeholderText="Select start date"
+                                className="h-12 bg-white w-full border-[#E3E3E3] focus:border-[#3A6B22] text-[14px] font-medium cursor-pointer px-4 py-2 border rounded-[70px] focus:outline-none focus:ring-1 focus:ring-[#3A6B22]/20"
+                                calendarClassName="fieldsy-calendar"
+                                wrapperClassName="w-full"
+                                showPopperArrow={false}
+                              />
+                              <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3A6B22] pointer-events-none" />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[13px] font-medium text-[#192215] mb-2">
+                              End Date
+                            </label>
+                            <div className="relative">
+                              <DatePicker
+                                selected={endDate}
+                                onChange={(date: Date | null) => setEndDate(date)}
+                                selectsEnd
+                                startDate={startDate}
+                                endDate={endDate}
+                                minDate={startDate || undefined}
+                                dateFormat="dd MMM yyyy"
+                                placeholderText="Select end date"
+                                className="h-12 bg-white w-full border-[#E3E3E3] focus:border-[#3A6B22] text-[14px] font-medium cursor-pointer px-4 py-2 border rounded-[70px] focus:outline-none focus:ring-1 focus:ring-[#3A6B22]/20"
+                                calendarClassName="fieldsy-calendar"
+                                wrapperClassName="w-full"
+                                showPopperArrow={false}
+                              />
+                              <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3A6B22] pointer-events-none" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     )}
-                    {status.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Sort By */}
-            <div>
-              <h3 className="text-[16px] font-semibold text-[#192215] mb-3">Sort By</h3>
-              <div className="space-y-2">
-                {sortOptions.map((option) => (
-                  <label
-                    key={option.id}
-                    className="flex items-center justify-between cursor-pointer p-3 rounded-lg hover:bg-[#f8f1d7] transition-colors"
-                  >
-                    <span className="text-[14px] text-[#192215]">{option.label}</span>
-                    
-                    <div className="relative">
-                      <input
-                        type="radio"
-                        name="sortFilter"
-                        value={option.id}
-                        checked={selectedSort === option.id}
-                        onChange={(e) => setSelectedSort(e.target.value)}
-                        className="sr-only"
-                      />
-                      <div className={`
-                        w-5 h-5 rounded-full border-2 transition-all duration-200
-                        ${selectedSort === option.id 
-                          ? 'border-[#3a6b22] bg-[#3a6b22]' 
-                          : 'border-gray-300 bg-white'
-                        }
-                      `}>
-                        {selectedSort === option.id && (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -204,11 +186,12 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyF
                 onClick={handleReset}
                 className="flex-1 py-3 px-4 bg-gray-100 text-[#192215] rounded-full text-[14px] font-semibold hover:bg-gray-200 transition-colors"
               >
-                Reset All
+                Reset
               </button>
               <button
                 onClick={handleApply}
-                className="flex-1 py-3 px-4 bg-[#3a6b22] text-white rounded-full text-[14px] font-semibold hover:bg-[#2d5319] transition-colors"
+                disabled={selectedDateRange === 'customDate' && (!startDate || !endDate)}
+                className="flex-1 py-3 px-4 bg-[#3a6b22] text-white rounded-full text-[14px] font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Apply Filter
               </button>

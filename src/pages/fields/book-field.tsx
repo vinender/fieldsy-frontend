@@ -10,6 +10,7 @@ import { useFieldDetails } from '@/hooks';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
 import { format } from 'date-fns';
+import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 
 interface TimeSlot {
   time: string;
@@ -35,7 +36,7 @@ const BookFieldPage = () => {
   const fieldIdToUse = id ; // Support both query parameters
   console.log('id', router.query?.id)
   const [numberOfDogs, setNumberOfDogs] = useState('1');
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Start with null
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('8:00AM - 9:00AM');
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
@@ -62,6 +63,77 @@ const BookFieldPage = () => {
     }
   }, [dateString, fieldIdToUse, refetchAvailability]);
 
+  // Function to find the next available date
+  const findNextAvailableDate = (startDate: Date, maxDays: number = 90): Date | null => {
+    if (!field || !field.operatingDays) {
+      return startDate; // If no operating days specified, return the start date
+    }
+
+    // Parse operating days to get allowed days
+    let allowedDays: string[] = [];
+    const operatingDays = field.operatingDays;
+    
+    if (typeof operatingDays === 'string') {
+      const lowerValue = operatingDays.toLowerCase();
+      if (lowerValue === 'everyday') {
+        // If everyday, all days are allowed
+        return startDate;
+      } else if (lowerValue === 'weekend' || lowerValue === 'weekends') {
+        allowedDays = ['Saturday', 'Sunday'];
+      } else if (lowerValue === 'weekdays' || lowerValue === 'weekday') {
+        allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+      } else {
+        allowedDays = [operatingDays];
+      }
+    } else if (Array.isArray(operatingDays)) {
+      if (operatingDays.length === 1 && typeof operatingDays[0] === 'string') {
+        const firstValue = operatingDays[0].toLowerCase();
+        if (firstValue === 'everyday') {
+          return startDate;
+        } else if (firstValue === 'weekend' || firstValue === 'weekends') {
+          allowedDays = ['Saturday', 'Sunday'];
+        } else if (firstValue === 'weekdays' || firstValue === 'weekday') {
+          allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        } else {
+          allowedDays = operatingDays;
+        }
+      } else {
+        allowedDays = operatingDays;
+      }
+    }
+
+    // Check up to maxDays in the future
+    let currentDate = new Date(startDate);
+    for (let i = 0; i < maxDays; i++) {
+      const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+      
+      if (allowedDays.includes(dayName)) {
+        return currentDate;
+      }
+      
+      // Move to next day
+      currentDate = new Date(currentDate);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return null; // No available date found
+  };
+
+  // Set initial selected date when field data is loaded
+  useEffect(() => {
+    if (field && !selectedDate) {
+      const today = new Date();
+      const nextAvailable = findNextAvailableDate(today);
+      
+      if (nextAvailable) {
+        setSelectedDate(nextAvailable);
+      } else {
+        // If no available date found, still set today as fallback
+        setSelectedDate(today);
+      }
+    }
+  }, [field]); // Only run when field data changes
+
   // Calculate min date (today) and max date (e.g., 3 months from now)
   const minDate = new Date();
   const maxDate = new Date();
@@ -81,7 +153,10 @@ const BookFieldPage = () => {
       
       if (typeof operatingDays === 'string') {
         const lowerValue = operatingDays.toLowerCase();
-        if (lowerValue === 'weekend' || lowerValue === 'weekends') {
+        if (lowerValue === 'everyday') {
+          // All days are allowed, skip the check
+          allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        } else if (lowerValue === 'weekend' || lowerValue === 'weekends') {
           allowedDays = ['Saturday', 'Sunday'];
         } else if (lowerValue === 'weekdays' || lowerValue === 'weekday') {
           allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -91,7 +166,9 @@ const BookFieldPage = () => {
       } else if (Array.isArray(operatingDays)) {
         if (operatingDays.length === 1 && typeof operatingDays[0] === 'string') {
           const firstValue = operatingDays[0].toLowerCase();
-          if (firstValue === 'weekend' || firstValue === 'weekends') {
+          if (firstValue === 'everyday') {
+            allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+          } else if (firstValue === 'weekend' || firstValue === 'weekends') {
             allowedDays = ['Saturday', 'Sunday'];
           } else if (firstValue === 'weekdays' || firstValue === 'weekday') {
             allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -250,7 +327,9 @@ const BookFieldPage = () => {
     if (typeof operatingDays === 'string') {
       // Single string value
       const lowerValue = operatingDays.toLowerCase();
-      if (lowerValue === 'weekend' || lowerValue === 'weekends') {
+      if (lowerValue === 'everyday') {
+        return false; // All days are enabled
+      } else if (lowerValue === 'weekend' || lowerValue === 'weekends') {
         allowedDays = ['Saturday', 'Sunday'];
       } else if (lowerValue === 'weekdays' || lowerValue === 'weekday') {
         allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -262,7 +341,9 @@ const BookFieldPage = () => {
       // Array of values
       if (operatingDays.length === 1 && typeof operatingDays[0] === 'string') {
         const firstValue = operatingDays[0].toLowerCase();
-        if (firstValue === 'weekend' || firstValue === 'weekends') {
+        if (firstValue === 'everyday') {
+          return false; // All days are enabled
+        } else if (firstValue === 'weekend' || firstValue === 'weekends') {
           allowedDays = ['Saturday', 'Sunday'];
         } else if (firstValue === 'weekdays' || firstValue === 'weekday') {
           allowedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -294,15 +375,6 @@ const BookFieldPage = () => {
 
     const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
     const isDisabled = !allowedDays.includes(dayName);
-    
-    // Debug logging - remove after fixing
-    console.log('Date check:', {
-      date: date.toDateString(),
-      dayName,
-      operatingDays: field.operatingDays,
-      allowedDays,
-      isDisabled
-    });
     
     return isDisabled;
   };
@@ -428,9 +500,12 @@ const BookFieldPage = () => {
                   <div className="bg-[#F8F1D7] rounded-lg p-2.5 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <img 
-                        src={field.owner.profileImage || "https://i.pravatar.cc/40?img=8"} 
+                        src={getUserImage(field.owner)} 
                         alt={field.owner.name || 'Field Owner'} 
                         className="w-10 h-10 rounded-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(field.owner)}&background=3A6B22&color=fff&size=200`;
+                        }}
                       />
                       <div>
                         <div className="flex items-center gap-1">
