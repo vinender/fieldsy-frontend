@@ -79,6 +79,7 @@ const MessagesPage = () => {
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockMessage, setBlockMessage] = useState('');
+  const [showMobileChat, setShowMobileChat] = useState(false);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -336,6 +337,9 @@ const MessagesPage = () => {
     setSelectedConversation(conversation);
     loadMessages(conversation.id);
     
+    // Show mobile chat view
+    setShowMobileChat(true);
+    
     // Reset block status
     setIsBlocked(false);
     setBlockMessage('');
@@ -353,6 +357,12 @@ const MessagesPage = () => {
     
     // Scroll to bottom after loading messages
     setTimeout(scrollToBottom, 200);
+  };
+
+  const handleBackToList = () => {
+    setShowMobileChat(false);
+    // Optionally clear selected conversation on mobile
+    // setSelectedConversation(null);
   };
 
   const createConversationWithUser = async (userId: string) => {
@@ -408,6 +418,9 @@ const MessagesPage = () => {
         // Clear selected conversation
         setSelectedConversation(null);
         setMessages([]);
+        
+        // Go back to list on mobile
+        setShowMobileChat(false);
         
         // Close modal
         setShowDeleteModal(false);
@@ -567,8 +580,8 @@ const MessagesPage = () => {
   return (
     <div className="h-screen flex flex-col bg-light pt-16 xl:pt-24">
       <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-10 xl:px-20 py-4 lg:py-6 xl:py-8 overflow-hidden">
-        {/* Page Title */}
-        <div className="flex items-center gap-4 mb-4 lg:mb-6">
+        {/* Page Title - Only show on desktop or when chat list is visible on mobile */}
+        <div className={`flex items-center gap-4 mb-4 lg:mb-6 ${showMobileChat ? 'hidden sm:flex' : 'flex'}`}>
           <button 
             onClick={() => router.back()}
             className="w-10 h-10 lg:w-12 lg:h-12 bg-cream rounded-full flex items-center justify-center hover:bg-cream-hover transition-colors"
@@ -580,8 +593,8 @@ const MessagesPage = () => {
 
         {/* Messages Container */}
         <div className="flex-1 flex gap-0 bg-white rounded-[22px] border border-gray-border overflow-hidden min-h-0">
-          {/* Conversations List */}
-          <div className="hidden sm:flex sm:w-[280px] md:w-[320px] lg:w-[350px] xl:w-[432px] border-r border-gray-border flex-col">
+          {/* Conversations List - Hidden on mobile when chat is open */}
+          <div className={`${showMobileChat ? 'hidden' : 'flex'} sm:flex sm:w-[280px] md:w-[320px] lg:w-[350px] xl:w-[432px] border-r border-gray-border flex-col w-full`}>
             {/* Search Bar */}
             <div className="p-4 lg:p-6 border-b border-gray-border flex-shrink-0">
               <div className="relative">
@@ -670,234 +683,244 @@ const MessagesPage = () => {
             </div>
           </div>
 
-          {/* Chat Area */}
-          {selectedConversation ? (
-            <div className="flex-1 flex flex-col min-w-0">
-              {/* Chat Header */}
-              <div className="px-4 lg:px-6 py-4 lg:py-6 border-b border-gray-border bg-white flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    {(() => {
-                      const otherUser = getOtherUser(selectedConversation);
-                      return otherUser ? (
-                        <>
-                          <img
-                            src={getUserImage(otherUser)}
-                            alt={otherUser.name}
-                            className="w-14 h-14 rounded-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(otherUser)}&background=3A6B22&color=fff&size=200`;
+          {/* Chat Area - Full width on mobile when open */}
+          <div className={`${showMobileChat ? 'flex' : 'hidden'} sm:flex flex-1 flex-col min-w-0`}>
+            {selectedConversation ? (
+              <>
+                {/* Chat Header with Back Button on Mobile */}
+                <div className="px-4 lg:px-6 py-4 lg:py-6 border-b border-gray-border bg-white flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      {/* Mobile Back Button */}
+                      <button
+                        onClick={handleBackToList}
+                        className="sm:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <ArrowLeft className="w-5 h-5 text-dark-green" />
+                      </button>
+                      
+                      {(() => {
+                        const otherUser = getOtherUser(selectedConversation);
+                        return otherUser ? (
+                          <>
+                            <img
+                              src={getUserImage(otherUser)}
+                              alt={otherUser.name}
+                              className="w-10 sm:w-14 h-10 sm:h-14 rounded-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(otherUser)}&background=3A6B22&color=fff&size=200`;
+                              }}
+                            />
+                            <div>
+                              <h2 className="text-[16px] sm:text-[18px] font-semibold text-dark-green">
+                                {otherUser.name}
+                              </h2>
+                              {otherUserTyping && (
+                                <p className="text-[14px] sm:text-[16px] text-green">Typing...</p>
+                              )}
+                            </div>
+                          </>
+                        ) : null;
+                      })()}
+                    </div>
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        onClick={() => setShowOptions(!showOptions)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <MoreVertical className="w-6 h-6 text-dark-green" />
+                      </button>
+                      
+                      {/* Options Dropdown */}
+                      {showOptions && (
+                        <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 min-w-[180px] z-50">
+                          <button 
+                            onClick={() => {
+                              const otherUser = getOtherUser(selectedConversation);
+                              if (otherUser) {
+                                setUserToBlock({ name: otherUser.name || 'this user', id: otherUser.id });
+                                setShowBlockModal(true);
+                              }
+                              setShowOptions(false);
                             }}
-                          />
-                          <div>
-                            <h2 className="text-[18px] font-semibold text-dark-green">
-                              {otherUser.name}
-                            </h2>
-                            {otherUserTyping && (
-                              <p className="text-[16px] text-green">Typing...</p>
-                            )}
-                          </div>
-                        </>
-                      ) : null;
-                    })()}
+                            className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
+                          >
+                            Block User
+                          </button>
+                          <button 
+                            onClick={() => {
+                              const otherUser = getOtherUser(selectedConversation);
+                              if (otherUser) {
+                                setUserToReport({ name: otherUser.name || 'this user', id: otherUser.id });
+                                setShowReportModal(true);
+                              }
+                              setShowOptions(false);
+                            }}
+                            className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
+                          >
+                            Report User
+                          </button>
+                          <div className="my-1 border-t border-gray-200"></div>
+                          <button 
+                            onClick={() => {
+                              const otherUser = getOtherUser(selectedConversation);
+                              setUserToDelete(otherUser?.name || 'this user');
+                              setShowDeleteModal(true);
+                              setShowOptions(false);
+                            }}
+                            className="block w-full text-left text-[14px] text-red-600 py-3 px-4 hover:bg-red-50 transition-colors"
+                          >
+                            Delete Chat
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      onClick={() => setShowOptions(!showOptions)}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                      <MoreVertical className="w-6 h-6 text-dark-green" />
-                    </button>
-                    
-                    {/* Options Dropdown */}
-                    {showOptions && (
-                      <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 min-w-[180px] z-50">
-                        <button 
-                          onClick={() => {
-                            const otherUser = getOtherUser(selectedConversation);
-                            if (otherUser) {
-                              setUserToBlock({ name: otherUser.name || 'this user', id: otherUser.id });
-                              setShowBlockModal(true);
-                            }
-                            setShowOptions(false);
-                          }}
-                          className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
-                        >
-                          Block User
-                        </button>
-                        <button 
-                          onClick={() => {
-                            const otherUser = getOtherUser(selectedConversation);
-                            if (otherUser) {
-                              setUserToReport({ name: otherUser.name || 'this user', id: otherUser.id });
-                              setShowReportModal(true);
-                            }
-                            setShowOptions(false);
-                          }}
-                          className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
-                        >
-                          Report User
-                        </button>
-                        <div className="my-1 border-t border-gray-200"></div>
-                        <button 
-                          onClick={() => {
-                            const otherUser = getOtherUser(selectedConversation);
-                            setUserToDelete(otherUser?.name || 'this user');
-                            setShowDeleteModal(true);
-                            setShowOptions(false);
-                          }}
-                          className="block w-full text-left text-[14px] text-red-600 py-3 px-4 hover:bg-red-50 transition-colors"
-                        >
-                          Delete Chat
-                        </button>
+                </div>
+
+                {/* Messages */}
+                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto bg-gray-lighter p-4 lg:p-6 no-scrollbar">
+                  {/* Today Divider */}
+                  <div className="flex justify-center mb-6">
+                    <span className="bg-cream px-3 py-1 rounded-full text-[13px] font-semibold text-dark-green">
+                      Today
+                    </span>
+                  </div>
+
+                  {/* Message List */}
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'} ${
+                          newMessageIds.has(message.id) ? styles.newMessage : ''
+                        }`}
+                      >
+                        <div className={`max-w-[70%] sm:max-w-[528px] ${message.senderId === currentUserId ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
+                          <div
+                            className={`px-4 sm:px-6 py-3 sm:py-4 break-words ${styles.messageBubble} ${
+                              message.senderId === currentUserId
+                                ? 'bg-light-green text-white rounded-tl-[30px] sm:rounded-tl-[60px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-tr-[15px] sm:rounded-tr-[30px] rounded-br-none'
+                                : 'bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none'
+                            } ${
+                              newMessageIds.has(message.id) ? 'transition-all duration-300' : ''
+                            }`}
+                          >
+                            <p className="text-[14px] sm:text-[15px] leading-[20px] sm:leading-[22px] break-words whitespace-pre-wrap">{message.content}</p>
+                          </div>
+                          <span className={`text-[12px] sm:text-[14px] text-gray-text ${
+                            message.senderId === currentUserId ? 'text-right' : 'text-left'
+                          } ${newMessageIds.has(message.id) ? 'opacity-0 animate-fadeIn' : ''}`}
+                            style={newMessageIds.has(message.id) ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}
+                          >
+                            {formatMessageTime(message.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {otherUserTyping && (
+                      <div className="flex justify-start">
+                        <div className="bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none px-4 sm:px-6 py-3 sm:py-4">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto bg-gray-lighter p-4 lg:p-6 no-scrollbar">
-                {/* Today Divider */}
-                <div className="flex justify-center mb-6">
-                  <span className="bg-cream px-3 py-1 rounded-full text-[13px] font-semibold text-dark-green">
-                    Today
-                  </span>
+                  
+                  <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message List */}
-                <div className="space-y-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'} ${
-                        newMessageIds.has(message.id) ? styles.newMessage : ''
-                      }`}
-                    >
-                      <div className={`max-w-[528px] ${message.senderId === currentUserId ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
-                        <div
-                          className={`px-6 py-4 ${styles.messageBubble} ${
-                            message.senderId === currentUserId
-                              ? 'bg-light-green text-white rounded-tl-[60px] rounded-bl-[60px] rounded-tr-[30px]'
-                              : 'bg-cream text-dark-green rounded-tr-[60px] rounded-br-[60px] rounded-tl-[30px]'
-                          } ${
-                            newMessageIds.has(message.id) ? 'transition-all duration-300' : ''
-                          }`}
-                        >
-                          <p className="text-[15px] leading-[22px]">{message.content}</p>
+                {/* Message Input */}
+                <div className="px-4 lg:px-6 py-3 lg:py-4 bg-white border-t border-gray-border flex-shrink-0">
+                  {isBlocked ? (
+                    <div className="py-2 px-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-red-600 text-[14px] font-medium text-center mb-2">
+                        {blockMessage}
+                      </p>
+                      {blockMessage.includes('You have blocked') && (
+                        <div className="text-center">
+                          <button 
+                            onClick={async () => {
+                              const otherUser = getOtherUser(selectedConversation);
+                              if (otherUser) {
+                                try {
+                                  const token = (session as any)?.accessToken || localStorage.getItem('authToken');
+                                  const response = await fetch(`http://localhost:5001/api/user-blocks/unblock`, {
+                                    method: 'POST',
+                                    headers: {
+                                      'Authorization': `Bearer ${token}`,
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ blockedUserId: otherUser.id })
+                                  });
+                                  
+                                  if (response.ok) {
+                                    setIsBlocked(false);
+                                    setBlockMessage('');
+                                    await checkBlockStatus(otherUser.id);
+                                    toast.success('User unblocked successfully');
+                                  }
+                                } catch (error) {
+                                  console.error('Failed to unblock user:', error);
+                                  toast.error('Failed to unblock user');
+                                }
+                              }
+                            }}
+                            className="text-[14px] text-blue-600 hover:text-blue-700 underline"
+                          >
+                            Unblock User
+                          </button>
                         </div>
-                        <span className={`text-[14px] text-gray-text ${
-                          message.senderId === currentUserId ? 'text-right' : 'text-left'
-                        } ${newMessageIds.has(message.id) ? 'opacity-0 animate-fadeIn' : ''}`}
-                          style={newMessageIds.has(message.id) ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}
-                        >
-                          {formatMessageTime(message.createdAt)}
-                        </span>
-                      </div>
+                      )}
                     </div>
-                  ))}
-
-                  {otherUserTyping && (
-                    <div className="flex justify-start">
-                      <div className="bg-cream text-dark-green rounded-tr-[60px] rounded-br-[60px] rounded-tl-[30px] px-6 py-4">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                      </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <Input
+                        type="text"
+                        placeholder="Type your message here…"
+                        value={messageInput}
+                        onChange={(e) => {
+                          setMessageInput(e.target.value);
+                          handleTyping();
+                        }}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        className="flex-1 h-12 text-[16px] border-0 shadow-none px-0 focus:border-none focus:outline-none focus:ring-0 rounded-none"
+                      />
+                      <button
+                        onClick={handleSendMessage}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                          messageInput.trim() 
+                            ? 'bg-green hover:bg-green-hover' 
+                            : 'bg-gray-text'
+                        }`}
+                        disabled={!messageInput.trim()}
+                      >
+                        <Send className="w-6 h-6 text-white" />
+                      </button>
                     </div>
                   )}
                 </div>
-                
-                <div ref={messagesEndRef} />
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a conversation</h3>
+                  <p className="text-gray-600">Choose a conversation from the list to start messaging</p>
+                </div>
               </div>
-
-              {/* Message Input */}
-              <div className="px-4 lg:px-6 py-3 lg:py-4 bg-white border-t border-gray-border flex-shrink-0">
-                {isBlocked ? (
-                  <div className="py-2 px-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 text-[14px] font-medium text-center mb-2">
-                      {blockMessage}
-                    </p>
-                    {blockMessage.includes('You have blocked') && (
-                      <div className="text-center">
-                        <button 
-                          onClick={async () => {
-                            const otherUser = getOtherUser(selectedConversation);
-                            if (otherUser) {
-                              try {
-                                const token = (session as any)?.accessToken || localStorage.getItem('authToken');
-                                const response = await fetch(`http://localhost:5001/api/user-blocks/unblock`, {
-                                  method: 'POST',
-                                  headers: {
-                                    'Authorization': `Bearer ${token}`,
-                                    'Content-Type': 'application/json'
-                                  },
-                                  body: JSON.stringify({ blockedUserId: otherUser.id })
-                                });
-                                
-                                if (response.ok) {
-                                  setIsBlocked(false);
-                                  setBlockMessage('');
-                                  await checkBlockStatus(otherUser.id);
-                                  toast.success('User unblocked successfully');
-                                }
-                              } catch (error) {
-                                console.error('Failed to unblock user:', error);
-                                toast.error('Failed to unblock user');
-                              }
-                            }
-                          }}
-                          className="text-[14px] text-blue-600 hover:text-blue-700 underline"
-                        >
-                          Unblock User
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-4">
-                    <Input
-                      type="text"
-                      placeholder="Type your message here…"
-                      value={messageInput}
-                      onChange={(e) => {
-                        setMessageInput(e.target.value);
-                        handleTyping();
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                      className="flex-1 h-12 text-[16px] border-0 shadow-none px-0 focus:ring-0 rounded-none"
-                    />
-                    <button
-                      onClick={handleSendMessage}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                        messageInput.trim() 
-                          ? 'bg-green hover:bg-green-hover' 
-                          : 'bg-gray-text'
-                      }`}
-                      disabled={!messageInput.trim()}
-                    >
-                      <Send className="w-6 h-6 text-white" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a conversation</h3>
-                <p className="text-gray-600">Choose a conversation from the list to start messaging</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
       

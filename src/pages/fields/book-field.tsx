@@ -485,10 +485,11 @@ const BookFieldPage = () => {
                     </span>
                   </div>
                   {field.averageRating && (
-                    <div className="bg-dark-green px-1.5 py-1 rounded-md flex items-center gap-0.5">
+                    <div className="bg-dark-green w-16 px-1.5 py-1 rounded-md flex items-center gap-0.5">
                       <Star className="w-[18px] h-[18px] text-yellow-400 fill-yellow" />
                       <span className="text-white text-[14px] font-semibold">{field.averageRating.toFixed(1)}</span>
                     </div>
+                    
                   )}
                 </div>
               </div>
