@@ -1,37 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface BookingRulesProps {
   formData: any;
   setFormData: (updater: any) => void;
+  validationErrors?: Record<string, string>;
 }
 
-export default function BookingRules({ formData, setFormData }: BookingRulesProps) {
-  const [rules, setRules] = useState(formData.rules || '');
-  const [policies, setPolicies] = useState(formData.policies || '');
-  const [errors, setErrors] = useState({ rules: '', policies: '' });
-
-  // Update formData when local state changes
-  useEffect(() => {
+export default function BookingRules({ formData, setFormData, validationErrors = {} }: BookingRulesProps) {
+  const handleRulesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData((prev: any) => ({
       ...prev,
-      rules,
-      policies
+      rules: e.target.value
     }));
-  }, [rules, policies, setFormData]);
+  };
 
-  const validateForm = () => {
-    const newErrors = { rules: '', policies: '' };
-    
-    if (!rules.trim()) {
-      newErrors.rules = 'Please write your rules before proceeding.';
-    }
-    
-    if (!policies.trim()) {
-      newErrors.policies = 'Please write your booking policies before proceeding.';
-    }
-    
-    setErrors(newErrors);
-    return !newErrors.rules && !newErrors.policies;
+  const handlePoliciesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      policies: e.target.value
+    }));
   };
 
   return (
@@ -58,27 +45,22 @@ export default function BookingRules({ formData, setFormData }: BookingRulesProp
               htmlFor="rules" 
               className="block text-sm font-medium text-dark-green font-sans"
             >
-              Write about your rules
+              Write about your rules <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <textarea
                 id="rules"
-                value={rules}
-                onChange={(e) => {
-                  setRules(e.target.value);
-                  if (errors.rules) {
-                    setErrors({ ...errors, rules: '' });
-                  }
-                }}
+                value={formData.rules || ''}
+                onChange={handleRulesChange}
                 placeholder="Write your rules here..."
                 className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${
-                  errors.rules ? 'border-red' : 'border-gray-border'
+                  validationErrors.rules ? 'border-red-500' : 'border-gray-border'
                 }`}
                 rows={5}
               />
-              {errors.rules && (
-                <p className="mt-1 text-sm text-red font-sans">
-                  {errors.rules}
+              {validationErrors.rules && (
+                <p className="mt-1 text-sm text-red-500 font-sans">
+                  {validationErrors.rules}
                 </p>
               )}
             </div>
@@ -98,27 +80,22 @@ export default function BookingRules({ formData, setFormData }: BookingRulesProp
               htmlFor="policies" 
               className="block text-sm font-medium text-dark-green font-sans"
             >
-              Write about your policies
+              Write about your policies <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <textarea
                 id="policies"
-                value={policies}
-                onChange={(e) => {
-                  setPolicies(e.target.value);
-                  if (errors.policies) {
-                    setErrors({ ...errors, policies: '' });
-                  }
-                }}
+                value={formData.policies || ''}
+                onChange={handlePoliciesChange}
                 placeholder="Write your policies here..."
                 className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${
-                  errors.policies ? 'border-red' : 'border-gray-border'
+                  validationErrors.policies ? 'border-red-500' : 'border-gray-border'
                 }`}
                 rows={5}
               />
-              {errors.policies && (
-                <p className="mt-1 text-sm text-red font-sans">
-                  {errors.policies}
+              {validationErrors.policies && (
+                <p className="mt-1 text-sm text-red-500 font-sans">
+                  {validationErrors.policies}
                 </p>
               )}
             </div>
@@ -129,21 +106,21 @@ export default function BookingRules({ formData, setFormData }: BookingRulesProp
         </div>
 
         {/* Preview Section */}
-        {(rules || policies) && (
+        {(formData.rules || formData.policies) && (
           <div className="bg-green-lighter rounded-2xl p-6">
             <h3 className="text-base font-semibold text-dark-green mb-3 font-sans">
               Preview
             </h3>
-            {rules && (
+            {formData.rules && (
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-dark-green mb-1 font-sans">Rules:</h4>
-                <p className="text-sm text-gray-input font-sans whitespace-pre-wrap">{rules}</p>
+                <p className="text-sm text-gray-input font-sans whitespace-pre-wrap">{formData.rules}</p>
               </div>
             )}
-            {policies && (
+            {formData.policies && (
               <div>
                 <h4 className="text-sm font-medium text-dark-green mb-1 font-sans">Policies:</h4>
-                <p className="text-sm text-gray-input font-sans whitespace-pre-wrap">{policies}</p>
+                <p className="text-sm text-gray-input font-sans whitespace-pre-wrap">{formData.policies}</p>
               </div>
             )}
           </div>

@@ -4,9 +4,10 @@ import { DocumentUploader, UploadedFile } from '@/components/ui/document-uploade
 interface UploadImagesProps {
   formData: any;
   setFormData: (updater: any) => void;
+  validationErrors?: Record<string, string>;
 }
 
-export default function UploadImages({ formData, setFormData }: UploadImagesProps) {
+export default function UploadImages({ formData, setFormData, validationErrors = {} }: UploadImagesProps) {
   const handleImagesChange = (files: string[] | UploadedFile[]) => {
     // Handle both string[] and UploadedFile[] formats
     let imageUrls: string[] = [];
@@ -35,11 +36,14 @@ export default function UploadImages({ formData, setFormData }: UploadImagesProp
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold text-dark-green font-sans">
-          Upload Images
+          Upload Images <span className="text-red-500">*</span>
         </h1>
         <p className="text-base text-gray-text font-sans">
           Upload photos of your field to showcase its features to potential customers. High-quality images help attract more bookings.
         </p>
+        {validationErrors.images && (
+          <p className="text-red-500 text-sm mt-2">{validationErrors.images}</p>
+        )}
       </div>
 
       <DocumentUploader

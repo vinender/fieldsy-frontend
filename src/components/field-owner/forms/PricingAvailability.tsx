@@ -4,20 +4,23 @@ import { Input } from '@/components/ui/input';
 interface PricingAvailabilityProps {
   formData: any;
   setFormData: (updater: any) => void;
+  validationErrors?: Record<string, string>;
 }
 
-export default function PricingAvailability({ formData, setFormData }: PricingAvailabilityProps) {
-  const [pricePerHour, setPricePerHour] = useState(formData.pricePerHour || '');
-  const [bookingDuration, setBookingDuration] = useState(formData.bookingDuration || '30min');
-
-  // Update formData when local state changes
-  useEffect(() => {
+export default function PricingAvailability({ formData, setFormData, validationErrors = {} }: PricingAvailabilityProps) {
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev: any) => ({
       ...prev,
-      pricePerHour,
-      bookingDuration
+      pricePerHour: e.target.value
     }));
-  }, [pricePerHour, bookingDuration, setFormData]);
+  };
+
+  const handleDurationChange = (duration: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      bookingDuration: duration
+    }));
+  };
 
   return (
     <div className="space-y-8">
@@ -29,6 +32,13 @@ export default function PricingAvailability({ formData, setFormData }: PricingAv
         <p className="text-base text-gray-text font-sans">
           We require essential information to help you set competitive pricing for your field
         </p>
+        {Object.keys(validationErrors).length > 0 && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm font-medium">
+              Please fill in all required fields marked with *
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Pricing Section */}
@@ -36,7 +46,7 @@ export default function PricingAvailability({ formData, setFormData }: PricingAv
         {/* Price Input */}
         <div>
           <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-            How much do you want to charge per dog, per hour?
+            How much do you want to charge per dog, per hour? <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
@@ -44,10 +54,10 @@ export default function PricingAvailability({ formData, setFormData }: PricingAv
             </span>
             <Input
               type="number"
-              value={pricePerHour}
-              onChange={(e) => setPricePerHour(e.target.value)}
+              value={formData.pricePerHour || ''}
+              onChange={handlePriceChange}
               placeholder="0.00"
-              className="pl-8 pr-32 py-3 border-gray-border focus:border-green font-sans"
+              className={`pl-8 pr-32 py-3 font-sans ${validationErrors.pricePerHour ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <div className="h-6 w-px bg-gray-text" />
@@ -56,19 +66,22 @@ export default function PricingAvailability({ formData, setFormData }: PricingAv
               </span>
             </div>
           </div>
+          {validationErrors.pricePerHour && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.pricePerHour}</p>
+          )}
         </div>
 
         {/* Booking Duration */}
         <div>
           <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-            Choose your preferred booking slot duration
+            Choose your preferred booking slot duration <span className="text-red-500">*</span>
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
-              onClick={() => setBookingDuration('30min')}
+              onClick={() => handleDurationChange('30min')}
               className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all ${
-                bookingDuration === '30min'
+                formData.bookingDuration === '30min'
                   ? 'bg-light-green text-white'
                   : 'bg-white border border-gray-border text-gray-text hover:border-light-green'
               }`}
@@ -77,9 +90,9 @@ export default function PricingAvailability({ formData, setFormData }: PricingAv
             </button>
             <button
               type="button"
-              onClick={() => setBookingDuration('1hour')}
+              onClick={() => handleDurationChange('1hour')}
               className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all ${
-                bookingDuration === '1hour'
+                formData.bookingDuration === '1hour'
                   ? 'bg-light-green text-white'
                   : 'bg-white border border-gray-border text-gray-text hover:border-light-green'
               }`}
@@ -87,6 +100,9 @@ export default function PricingAvailability({ formData, setFormData }: PricingAv
               1 Hour
             </button>
           </div>
+          {validationErrors.bookingDuration && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.bookingDuration}</p>
+          )}
         </div>
 
         {/* Additional Pricing Options */}

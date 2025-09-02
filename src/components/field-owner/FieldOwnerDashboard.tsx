@@ -12,10 +12,11 @@ import PricingAvailability from './forms/PricingAvailability';
 import BookingRules from './forms/BookingRules';
 
 // Sidebar Navigation Component - Use API data for completion status
-function Sidebar({ activeSection, onSectionChange, fieldData }: { 
+function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: { 
   activeSection: string; 
   onSectionChange: (sectionId: string) => void;
   fieldData?: any;
+  canNavigateTo: (sectionId: string) => boolean;
 }) {
   const sections = [
     { id: 'field-details', label: 'Field Details', completed: fieldData?.fieldDetailsCompleted || false },
@@ -25,6 +26,11 @@ function Sidebar({ activeSection, onSectionChange, fieldData }: {
   ];
 
   const handleSectionClick = (sectionId: string) => {
+    // Only allow navigation if the section can be accessed
+    if (!canNavigateTo(sectionId)) {
+      return;
+    }
+    
     onSectionChange(sectionId);
     
     // On small screens, scroll to form section
@@ -49,13 +55,18 @@ function Sidebar({ activeSection, onSectionChange, fieldData }: {
           <div key={section.id}>
             <button
               onClick={() => handleSectionClick(section.id)}
+              disabled={!canNavigateTo(section.id)}
               className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                activeSection === section.id ? 'bg-gray-50' : 'hover:bg-gray-50'
+                activeSection === section.id ? 'bg-gray-50' : canNavigateTo(section.id) ? 'hover:bg-gray-50 cursor-pointer' : 'opacity-50 cursor-not-allowed'
               }`}
             >
               <span 
                 className={`font-medium font-sans ${
-                  activeSection === section.id ? 'text-dark-green' : 'text-gray-text'
+                  activeSection === section.id 
+                    ? 'text-dark-green' 
+                    : canNavigateTo(section.id) 
+                      ? 'text-gray-text' 
+                      : 'text-gray-400'
                 }`}
               >
                 {section.label}
@@ -65,7 +76,14 @@ function Sidebar({ activeSection, onSectionChange, fieldData }: {
                   <circle cx="12" cy="12" r="10" fill="currentColor" className="fill-green"/>
                   <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              ) :  <img src='/add-field/arrow.svg' className='w-8 h-8 text-white' />}
+              ) : !canNavigateTo(section.id) && section.id !== 'field-details' ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-gray-400">
+                  <path d="M19 11H5V21H19V11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <img src='/add-field/arrow.svg' className='w-8 h-8 text-white' />
+              )}
             </button>
             {index < sections.length - 1 && <div className="h-px bg-gray-200 mt-2" />}
           </div>
@@ -86,6 +104,7 @@ export default function AddYourField() {
   const [activeSection, setActiveSection] = useState('field-details');
   const [fieldId, setFieldId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<{
     fieldName: string;
     fieldSize: string;
@@ -210,6 +229,103 @@ export default function AddYourField() {
 
   // Remove auto-save - only save on button click
 
+  // Validation function for each section
+  const validateSection = (section: string): boolean => {
+    const errors: Record<string, string> = {};
+    
+    switch (section) {
+      case 'field-details':
+        if (!formData.fieldName?.trim()) errors.fieldName = 'Please enter a field name';
+        if (!formData.fieldSize) errors.fieldSize = 'Please select a field size';
+        if (!formData.terrainType) errors.terrainType = 'Please select a terrain type';
+        if (!formData.fenceType) errors.fenceType = 'Please select a fence type';
+        if (!formData.fenceSize) errors.fenceSize = 'Please select a fence size';
+        if (!formData.surfaceType) errors.surfaceType = 'Please select a surface type';
+        if (!formData.maxDogs) errors.maxDogs = 'Please enter the maximum number of dogs allowed';
+        if (!formData.description?.trim()) errors.description = 'Please provide a description of your field';
+        if (!formData.openingDays) errors.openingDays = 'Please select your opening days';
+        if (!formData.startTime) errors.startTime = 'Please select a start time';
+        if (!formData.endTime) errors.endTime = 'Please select an end time';
+        if (!formData.streetAddress?.trim()) errors.streetAddress = 'Please enter a street address';
+        if (!formData.city?.trim()) errors.city = 'Please enter a city';
+        if (!formData.county?.trim()) errors.county = 'Please enter a county or state';
+        if (!formData.postalCode?.trim()) errors.postalCode = 'Please enter a postal code';
+        break;
+        
+      case 'upload-images':
+        if (!formData.images || formData.images.length === 0) {
+          errors.images = 'Please upload at least one image of your field';
+        }
+        break;
+        
+      case 'pricing-availability':
+        if (!formData.pricePerHour || parseFloat(formData.pricePerHour) <= 0) {
+          errors.pricePerHour = 'Please enter a valid price per hour (must be greater than 0)';
+        }
+        if (!formData.bookingDuration) errors.bookingDuration = 'Please select a booking duration';
+        break;
+        
+      case 'booking-rules':
+        if (!formData.rules?.trim()) errors.rules = 'Please specify your booking rules';
+        if (!formData.policies?.trim()) errors.policies = 'Please specify your cancellation policy';
+        break;
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Check if user can navigate to a specific section
+  const canNavigateTo = (sectionId: string): boolean => {
+    // If all sections are completed (field is submitted), allow free navigation
+    if (fieldData && 
+        fieldData.fieldDetailsCompleted && 
+        fieldData.uploadImagesCompleted && 
+        fieldData.pricingAvailabilityCompleted && 
+        fieldData.bookingRulesCompleted) {
+      return true; // Allow editing any tab when field is fully submitted
+    }
+    
+    const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+    const targetIndex = sections.indexOf(sectionId);
+    const currentIndex = sections.indexOf(activeSection);
+    
+    // Always allow first tab
+    if (sectionId === 'field-details') {
+      return true;
+    }
+    
+    // Can go back to a previously completed section
+    if (targetIndex < currentIndex) {
+      // Check if the target section was completed
+      const completedKeyMap: Record<string, string> = {
+        'field-details': 'fieldDetailsCompleted',
+        'upload-images': 'uploadImagesCompleted',
+        'pricing-availability': 'pricingAvailabilityCompleted',
+        'booking-rules': 'bookingRulesCompleted'
+      };
+      const targetCompletedKey = completedKeyMap[sectionId];
+      return fieldData && fieldData[targetCompletedKey] === true;
+    }
+    
+    // Can only go forward if ALL previous sections are completed
+    for (let i = 0; i < targetIndex; i++) {
+      const sectionKey = sections[i];
+      const completedKeyMap: Record<string, string> = {
+        'field-details': 'fieldDetailsCompleted',
+        'upload-images': 'uploadImagesCompleted',
+        'pricing-availability': 'pricingAvailabilityCompleted',
+        'booking-rules': 'bookingRulesCompleted'
+      };
+      const completedKey = completedKeyMap[sectionKey];
+      if (!fieldData || !fieldData[completedKey]) {
+        return false;
+      }
+    }
+    
+    return false; // Default to disabled for forward navigation
+  };
+
   // Use custom save progress mutation hook
   const saveProgressMutation = useSaveFieldProgress({
     onSuccess: (result) => {
@@ -218,11 +334,30 @@ export default function AddYourField() {
       }
       // Refetch field data after saving
       refetch();
+      // Clear validation errors on successful save
+      setValidationErrors({});
       handleNext();
+    },
+    onError: (error) => {
+      console.error('Failed to save progress:', error);
+      alert('Failed to save progress. Please check all required fields.');
     }
   });
 
   const handleSaveProgress = async () => {
+    // Validate current section before saving
+    if (!validateSection(activeSection)) {
+      // Validation errors are already set and displayed
+      // Scroll to the form content area to show errors
+      setTimeout(() => {
+        const formElement = document.getElementById('form-content');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return;
+    }
+    
     setIsLoading(true);
     try {
       await saveProgressMutation.mutateAsync({
@@ -230,8 +365,27 @@ export default function AddYourField() {
         data: formData,
         fieldId
       });
+    } catch (error) {
+      console.error('Save failed:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Validate on form data change for better UX
+  const handleFormDataChange = (updater: any) => {
+    setFormData(updater);
+    // Clear specific field error when user starts typing
+    if (typeof updater === 'function') {
+      const newData = updater(formData);
+      // Clear errors for fields that now have values
+      const newErrors = { ...validationErrors };
+      Object.keys(newErrors).forEach(key => {
+        if (newData[key] && newData[key] !== '') {
+          delete newErrors[key];
+        }
+      });
+      setValidationErrors(newErrors);
     }
   };
 
@@ -257,15 +411,15 @@ export default function AddYourField() {
   const renderSection = () => {
     switch (activeSection) {
       case 'field-details':
-        return <FieldDetails formData={formData} setFormData={setFormData} />;
+        return <FieldDetails formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
       case 'upload-images':
-        return <UploadImages formData={formData} setFormData={setFormData} />;
+        return <UploadImages formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
       case 'pricing-availability':
-        return <PricingAvailability formData={formData} setFormData={setFormData} />;
+        return <PricingAvailability formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
       case 'booking-rules':
-        return <BookingRules formData={formData} setFormData={setFormData} />;
+        return <BookingRules formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
       default:
-        return <FieldDetails formData={formData} setFormData={setFormData} />;
+        return <FieldDetails formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
     }
   };
 
@@ -296,7 +450,12 @@ export default function AddYourField() {
         {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar - Keep on left for large screens */}
-          <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} fieldData={fieldData} />
+          <Sidebar 
+            activeSection={activeSection} 
+            onSectionChange={setActiveSection} 
+            fieldData={fieldData} 
+            canNavigateTo={canNavigateTo}
+          />
 
           {/* Form Content */}
           <div id="form-content" className="flex-1 bg-white rounded-2xl p-4 sm:p-6 lg:p-10 scroll-mt-4">

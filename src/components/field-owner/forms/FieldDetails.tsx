@@ -8,9 +8,10 @@ import { TimeInput } from '@/components/ui/time-input';
 interface FieldDetailsProps {
   formData: any;
   setFormData: (updater: any) => void;
+  validationErrors?: Record<string, string>;
 }
 
-export default function FieldDetails({ formData, setFormData }: FieldDetailsProps) {
+export default function FieldDetails({ formData, setFormData, validationErrors = {} }: FieldDetailsProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({
@@ -40,6 +41,13 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
         <p className="text-base text-gray-text font-sans">
           Share key details like size, fencing, amenities, and what makes your space perfect for safe, off-lead adventures.
         </p>
+        {Object.keys(validationErrors).length > 0 && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm font-medium">
+              Please fill in all required fields marked with *
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Basic Info Section */}
@@ -51,7 +59,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              Field Name
+              Field Name <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
@@ -59,14 +67,17 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               value={formData.fieldName}
               onChange={handleInputChange}
               placeholder="Enter field name"
-              className="py-3 border-gray-border focus:border-green font-sans"
+              className={`py-3 font-sans ${validationErrors.fieldName ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />
+            {validationErrors.fieldName && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.fieldName}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Field Size
+                Field Size <span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 name="fieldSize"
@@ -79,11 +90,14 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                   { value: 'large', label: 'Large (3+ acres)' }
                 ]}
               />
+              {validationErrors.fieldSize && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.fieldSize}</p>
+              )}
             </div>
 
             <div className=''>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Terrain Type
+                Terrain Type <span className="text-red-500">*</span>
               </label>
 
               <CustomSelect
@@ -99,11 +113,14 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                   { value: 'mixed-terrain', label: 'Mixed Terrain' },
                 ]}
               />
+              {validationErrors.terrainType && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.terrainType}</p>
+              )}
             </div>
 
             <div className='w-full'>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Fence Type
+                Fence Type <span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 name="fenceType"
@@ -120,11 +137,14 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                   
                 ]}
               />
+              {validationErrors.fenceType && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.fenceType}</p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Fence Size
+                Fence Size <span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 name="fenceSize"
@@ -144,11 +164,14 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                     {value:'9-10-metres',label: '9-10 metres (27-30 ft)'},
                 ]}
               />
+              {validationErrors.fenceSize && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.fenceSize}</p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Surface Type
+                Surface Type <span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 name="surfaceType"
@@ -167,11 +190,14 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                 
                 ]}
               />
+              {validationErrors.surfaceType && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.surfaceType}</p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Max Number of Dogs Allowed
+                Max Number of Dogs Allowed <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
@@ -179,8 +205,11 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                 value={formData.maxDogs}
                 onChange={handleInputChange}
                 placeholder="Enter max number of dogs allowed"
-                className="py-3 appearance-none border-gray-border focus:border-green font-sans"
+                className={`py-3 appearance-none font-sans ${validationErrors.maxDogs ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
               />
+              {validationErrors.maxDogs && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.maxDogs}</p>
+              )}
             </div>
             
           </div>
@@ -193,7 +222,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
           Description
         </h2>
         <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-          Write a description of your field
+          Write a description of your field <span className="text-red-500">*</span>
         </label>
         <textarea
           name="description"
@@ -201,8 +230,11 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
           onChange={handleInputChange}
           placeholder="Write a description here..."
           rows={5}
-          className="w-full px-4 py-3 bg-white rounded-2xl border border-gray-border focus:outline-none focus:border-green resize-none font-sans text-gray-input placeholder:text-gray-400"
+          className={`w-full px-4 py-3 bg-white rounded-2xl border ${validationErrors.description ? 'border-red-500' : 'border-gray-border'} focus:outline-none focus:border-green resize-none font-sans text-gray-input placeholder:text-gray-400`}
         />
+        {validationErrors.description && (
+          <p className="text-red-500 text-sm mt-1">{validationErrors.description}</p>
+        )}
       </div>
 
       {/* Opening Days & Hours */}
@@ -214,7 +246,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              Opening Days
+              Opening Days <span className="text-red-500">*</span>
             </label>
             <CustomSelect
               name="openingDays"
@@ -227,12 +259,15 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                 { value: 'weekends', label: 'Weekends only' }
               ]}
             />
+            {validationErrors.openingDays && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.openingDays}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Start Time
+                Start Time <span className="text-red-500">*</span>
               </label>
               <TimeInput
                 name="startTime"
@@ -245,10 +280,13 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                 }}
                 placeholder="Select start time"
               />
+              {validationErrors.startTime && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.startTime}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                End Time
+                End Time <span className="text-red-500">*</span>
               </label>
               <TimeInput
                 name="endTime"
@@ -261,6 +299,9 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                 }}
                 placeholder="Select end time"
               />
+              {validationErrors.endTime && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.endTime}</p>
+              )}
             </div>
           </div>
         </div>
@@ -333,14 +374,14 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              Street Address
+              Street Address <span className="text-red-500">*</span>
             </label>
             <AddressAutocomplete
               name="streetAddress"
               value={formData.streetAddress}
               onChange={handleInputChange}
               placeholder="42 Meadowcroft Lane"
-              className="w-full px-4 py-3 bg-white rounded-2xl border border-gray-border focus:outline-none focus:border-green font-sans text-gray-input placeholder:text-gray-400"
+              className={`w-full px-4 py-3 bg-white rounded-2xl border ${validationErrors.streetAddress ? 'border-red-500' : 'border-gray-border'} focus:outline-none focus:border-green font-sans text-gray-input placeholder:text-gray-400`}
               onAddressSelect={(components) => {
                 setFormData((prev: any) => ({
                   ...prev,
@@ -361,6 +402,9 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
                 }));
               }}
             />
+            {validationErrors.streetAddress && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.streetAddress}</p>
+            )}
           </div>
           {/* <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
@@ -377,7 +421,7 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
           </div> */}
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              City
+              City <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
@@ -385,12 +429,15 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               value={formData.city}
               onChange={handleInputChange}
               placeholder="Guildford"
-              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
+              className={`py-3 text-gray-input font-sans ${validationErrors.city ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />
+            {validationErrors.city && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.city}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              County/State
+              County/State <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
@@ -398,12 +445,15 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               value={formData.county}
               onChange={handleInputChange}
               placeholder="Surrey"
-              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
+              className={`py-3 text-gray-input font-sans ${validationErrors.county ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />
+            {validationErrors.county && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.county}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              Postal Code
+              Postal Code <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
@@ -411,8 +461,11 @@ export default function FieldDetails({ formData, setFormData }: FieldDetailsProp
               value={formData.postalCode}
               onChange={handleInputChange}
               placeholder="GU1 1AA"
-              className="py-3 border-gray-border text-gray-input focus:border-green font-sans"
+              className={`py-3 text-gray-input font-sans ${validationErrors.postalCode ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />
+            {validationErrors.postalCode && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.postalCode}</p>
+            )}
           </div>
         </div>
       </div>
