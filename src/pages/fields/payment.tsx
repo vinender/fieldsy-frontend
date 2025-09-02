@@ -459,7 +459,27 @@ const PaymentPage = () => {
                       }}
                       onError={(error) => {
                         console.error('Payment error:', error);
-                        alert(`Payment failed: ${error}`);
+                        
+                        // Handle specific error codes
+                        if (error === 'PAYMENT_METHOD_EXPIRED' || error === 'PAYMENT_METHOD_NOT_FOUND') {
+                          // Reset selection and refresh payment methods
+                          setSelectedCard(null);
+                          refetchCards();
+                          setShowStripeCheckout(false);
+                          
+                          // Show add card modal if no other cards available
+                          if (!paymentMethods || paymentMethods.length <= 1) {
+                            setShowAddCardModal(true);
+                          }
+                        } else if (error === 'Authentication required') {
+                          // Handle authentication error
+                          setShowStripeCheckout(false);
+                          toast.error('Please log in to continue with payment');
+                        } else {
+                          // Generic error handling
+                          setShowStripeCheckout(false);
+                          toast.error('Payment failed. Please try again or use a different payment method.');
+                        }
                       }}
                     />
                   </div>

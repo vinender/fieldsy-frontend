@@ -74,6 +74,21 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
 
         if (!response.ok) {
           const errorData = await response.json();
+          
+          // Handle specific error codes from backend
+          if (errorData.code === 'PAYMENT_METHOD_EXPIRED') {
+            toast.error('This payment method is no longer valid. Please select a different payment method.');
+            // Trigger parent component to refresh payment methods
+            onError?.('PAYMENT_METHOD_EXPIRED');
+          } else if (errorData.code === 'PAYMENT_METHOD_NOT_FOUND') {
+            toast.error('Payment method not found. Please select a different payment method.');
+            onError?.('PAYMENT_METHOD_NOT_FOUND');
+          } else if (errorData.code === 'PAYMENT_METHOD_ERROR') {
+            toast.error(errorData.error || 'Unable to process payment method. Please try again.');
+          } else {
+            toast.error(errorData.error || 'Failed to create payment. Please try again.');
+          }
+          
           throw new Error(errorData.error || 'Failed to create payment intent');
         }
 
@@ -218,6 +233,14 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
 
         if (!response.ok) {
           const errorData = await response.json();
+          
+          // Handle specific error codes from backend
+          if (errorData.code === 'PAYMENT_PROCESSING_ERROR') {
+            toast.error('Unable to process payment. Please try again.');
+          } else {
+            toast.error(errorData.error || 'Failed to create payment. Please try again.');
+          }
+          
           throw new Error(errorData.error || 'Failed to create payment intent');
         }
 
