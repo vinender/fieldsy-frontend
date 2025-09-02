@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
+import { getAmenityLabel } from '@/utils/formatters'
 
 interface FilterSectionProps {
   onFiltersChange?: (filters: any) => void
@@ -103,7 +104,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
         
         {expandedSections.amenities && (
           <div className="mt-3 space-y-2">
-            {['Secure fencing', 'Water Access', 'Toilet', 'Parking', 'Shelter', 'Waste Disposal'].map(amenity => (
+            {['secureFencing', 'waterSupply', 'restrooms', 'parkingAvailable', 'shelterOrShade', 'wasteDisposal'].map(amenity => (
               <label key={amenity} className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -111,7 +112,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
                   onChange={() => handleAmenityToggle(amenity)}
                   className="w-3.5 h-3.5 bg-white accent-green appearance-none border border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
                 />
-                <span className="text-[12px] text-gray-700">{amenity}</span>
+                <span className="text-[12px] text-gray-700">{getAmenityLabel(amenity)}</span>
               </label>
             ))}
           </div>

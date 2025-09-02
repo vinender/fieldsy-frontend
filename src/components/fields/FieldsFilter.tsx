@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, X, Calendar } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import mockData from '@/data/mock-data.json';
+import { getAmenityLabel } from '@/utils/formatters';
 
 export interface FilterState {
   size: string;
@@ -174,7 +175,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                       : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                   }`}
                 >
-                  {amenity}
+                  {getAmenityLabel(amenity)}
                 </button>
               ))}
             </div>

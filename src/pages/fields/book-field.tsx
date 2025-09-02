@@ -489,10 +489,9 @@ const BookFieldPage = () => {
                       <Star className="w-[18px] h-[18px] text-yellow-400 fill-yellow" />
                       <span className="text-white text-[14px] font-semibold">{field.averageRating.toFixed(1)}</span>
                     </div>
-                    
                   )}
                 </div>
-              </div>
+              </div>  
 
               {/* Owner Information */}
               {field.owner && (

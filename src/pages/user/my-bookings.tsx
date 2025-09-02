@@ -17,6 +17,7 @@ import { UserLayout } from '@/components/layout/UserLayout';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useCancelBooking } from '@/hooks/useBookingApi';
+import { formatAmenities } from '@/utils/formatters';
 
 // MongoDB Document Structure for Bookings
 interface Booking {
@@ -136,7 +137,7 @@ const BookingHistoryPage = () => {
           price: booking.totalPrice,
           currency: '$',
           image: booking.field?.images?.[0] || '/fields/field-placeholder.jpg',
-          features: booking.field?.amenities?.join(' • ') || booking.field?.description || 'Field description',
+          features: booking.field?.amenities ? formatAmenities(booking.field.amenities).join(' • ') : booking.field?.description || 'Field description',
           location: booking.field?.address ? `${booking.field.address}, ${booking.field.city}, ${booking.field.state}` : 'Location',
           distance: '2.0 km away',
           time: booking.timeSlot || `${booking.startTime} – ${booking.endTime}`,
@@ -251,7 +252,7 @@ const BookingHistoryPage = () => {
       />
       
       {/* Content */}
-      <div className="flex-1 w-full">
+      <div className="flex-1 border-b pb-10 w-full">
         {/* Title and Price */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2.5">
           <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#192215]">{booking.name}</h3>
@@ -267,19 +268,19 @@ const BookingHistoryPage = () => {
         {/* Details */}
         <div className="flex flex-wrap gap-3 sm:gap-6 text-[12px] sm:text-[14px] text-[#8d8d8d] mb-3">
           <div className="flex items-center gap-1">
-            <MapPin className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
+            <MapPin className="w-[16px] sm:w-[18px] fill-black text-black h-[16px] sm:h-[18px]" />
             <span className="line-clamp-1">{booking.location} • {booking.distance}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Clock className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
+            <img src="/bookings/clock.svg" className="w-[16px] sm:w-[18px] fill text-black h-[16px] sm:h-[18px]" />
             <span>{booking.time}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Calendar className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
+            <img src="/bookings/availability.svg" className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
             <span>{booking.date}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Dog className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
+            <img src="/bookings/pet.svg" className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
             <span>{booking.dogs} Dog{booking.dogs > 1 ? 's' : ''}</span>
           </div>
         </div>

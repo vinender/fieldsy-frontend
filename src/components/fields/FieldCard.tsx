@@ -7,6 +7,7 @@ import { useToggleFavorite, useFavoriteStatus } from "@/hooks/useFavorites"
 import { LoginPromptModal } from "@/components/modal/LoginPromptModal"
 import { useLocation } from "@/contexts/LocationContext"
 import { calculateDistance, formatDistance, getFieldCoordinates } from "@/utils/location"
+import { getAmenityLabel } from "@/utils/formatters"
 
 export interface FieldCardProps {
   id: string
@@ -198,7 +199,7 @@ export function FieldCard({
                 key={idx} 
                 className="bg-neutral-100 text-[11px] text-dark-green px-2 py-1 rounded-md leading-[16px]"
               >
-                {amenity}
+                {getAmenityLabel(amenity)}
               </span>
             ))}
           </div>
@@ -283,7 +284,7 @@ export function FieldCard({
               key={index}
               className="text-[9px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full"
             >
-              {amenity}
+              {getAmenityLabel(amenity)}
             </span>
           ))}
           {amenities.length > showAmenityLimit && (
