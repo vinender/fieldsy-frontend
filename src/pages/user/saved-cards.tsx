@@ -1,178 +1,220 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
+import axiosClient from '@/lib/api/axios-client';
+import { useRouter } from 'next/router';
+import { UserLayout } from '@/components/layout/UserLayout';
+import AddCardModal from '@/components/payment/AddCardModal';
+import { Trash2 } from 'lucide-react';
 
-// Image imports (these would be your actual image paths)
-const imgChip = '/tmp/f1b998b054ed1c8d78c778006f40226242b6fdcc.svg';
-const imgTickSquare = '/tmp/ba4c1d99e53b28a69b0b484362a52fcbfeafe4d3.svg';
-const imgTickCircle = '/tmp/30ad3d297ffb465eac6411b93ad6769845bd7bdd.svg';
-const imgVuesaxBoldTrash = '/tmp/6f2cb1407e19975d4c20b873c5b68c84053e7063.svg';
 
-// Trash Icon Component
-function TrashIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M21 5.98C17.67 5.65 14.32 5.48 10.98 5.48C9 5.48 7.02 5.58 5.04 5.78L3 5.98" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-red"/>
-      <path d="M8.5 4.97L8.72 3.66C8.88 2.71 9 2 10.69 2H13.31C15 2 15.13 2.75 15.28 3.67L15.5 4.97" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-red"/>
-      <path d="M18.85 9.14L18.2 19.21C18.09 20.78 18 22 15.21 22H8.79C6 22 5.91 20.78 5.8 19.21L5.15 9.14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-red"/>
-    </svg>
-  );
-}
+// Helper function to get card brand icon
+const getCardBrandIcon = (brand: string | null) => {
+  switch (brand?.toLowerCase()) {
+    case 'visa':
+      return (
+        <svg className="w-10 h-6" viewBox="0 0 48 32" fill="none">
+          <rect width="48" height="32" rx="4" fill="#1A1F71"/>
+          <path d="M20.5 21L17.5 11H14.5L18.5 21H20.5Z" fill="white"/>
+          <path d="M30 11L27.5 17L25 11H22L25.5 21H29.5L33 11H30Z" fill="white"/>
+        </svg>
+      );
+    case 'mastercard':
+      return (
+        <div className="flex">
+          <div className="w-6 h-6 bg-red-500 rounded-full"></div>
+          <div className="w-6 h-6 bg-yellow-500 rounded-full -ml-3 opacity-80"></div>
+        </div>
+      );
+    case 'amex':
+    case 'american express':
+      return (
+        <svg className="w-10 h-6" viewBox="0 0 48 32" fill="none">
+          <rect width="48" height="32" rx="4" fill="#016FD0"/>
+          <path d="M14 16H34" stroke="white" strokeWidth="2"/>
+        </svg>
+      );
+    default:
+      return (
+        <div className="flex">
+          <div className="w-6 h-6 bg-gray-400 rounded-full"></div>
+          <div className="w-6 h-6 bg-gray-500 rounded-full -ml-3 opacity-80"></div>
+        </div>
+      );
+  }
+};
 
 // Credit Card Component
-function CreditCard({ cardNumber, isDefault, onToggleDefault, onDelete }) {
+function CreditCard({ card, onToggleDefault, onDelete }) {
+  const { brand, last4, expiryMonth, expiryYear, isDefault, cardholderName } = card;
   return (
-    <div className="relative bg-light ">
-      {/* Card Shadow */}
-      <div className="absolute bg h-[120px] ml-4 mt-14 rounded-xl shadow-lg w-[296px]" />
-      
-      {/* Card */}
-      <div className="relative h-44 w-[328px] overflow-hidden rounded-xl bg-green-light">
-        {/* Card Background Pattern */}
-        <div className="absolute inset-0 opacity-15">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-        </div>
+    <div className="space-y-6">
+      {/* Card Visual */}
+      <div className="relative">
+        {/* Shadow Card Behind */}
+        <div className="absolute top-10 sm:top-14 left-3 right-3 sm:left-4 sm:right-4 h-[100px] sm:h-[120px] bg-[#D8D8D8] rounded-xl shadow-[0px_4px_24px_0px_rgba(0,0,0,0.2)]" />
         
-        {/* Chip */}
-        <div className="absolute top-4 left-4 w-12 h-10">
-          <div className="w-full h-full bg-yellow-400 rounded" />
-        </div>
-        
-        {/* Card Logo */}
-        <div className="absolute top-4 right-4 w-10 h-6">
-          <div className="flex gap-1">
-            <div className="w-5 h-5 bg-red-500 rounded-full opacity-80" />
-            <div className="w-5 h-5 bg-yellow-500 rounded-full opacity-80 -ml-2" />
+        {/* Main Card */}
+        <div className={`relative h-36 sm:h-44 rounded-xl p-3 sm:p-4 bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden`}>
+          {/* Card Background Pattern */}
+          <div className="absolute inset-0 opacity-15">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'grid\' width=\'10\' height=\'10\' patternUnits=\'userSpaceOnUse\'%3E%3Cpath d=\'M 10 0 L 0 0 0 10\' fill=\'none\' stroke=\'white\' stroke-width=\'0.5\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100\' height=\'100\' fill=\'url(%23grid)\' /%3E%3C/svg%3E')] bg-repeat" />
+          </div>
+          
+          {/* Chip */}
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 w-8 h-6 sm:w-10 sm:h-8 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-md">
+            <div className="w-full h-full border border-yellow-600/30 rounded-md"></div>
+          </div>
+          
+          {/* Card Logo */}
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+            {getCardBrandIcon(brand)}
+          </div>
+          
+          {/* Delete Button */}
+          <button
+            onClick={onDelete}
+            className="absolute top-3 right-14 sm:top-4 sm:right-16 text-white/80 hover:text-white transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+          
+          {/* Card Number */}
+          <div className="absolute top-1/2 -translate-y-2 sm:-translate-y-4 left-3 right-3 sm:left-4 sm:right-4">
+            <p className="text-white text-[14px] sm:text-[18px] font-bold tracking-[1px] sm:tracking-[2px] drop-shadow-[0px_1px_2px_rgba(0,0,0,0.24)]">
+              XXXX  XXXX  XXXX  {last4}
+            </p>
+          </div>
+          
+          {/* Card Holder */}
+          <div className="absolute bottom-10 sm:bottom-12 left-3 sm:left-4">
+            <p className="text-white text-[11px] sm:text-[14px] font-semibold uppercase drop-shadow-[0px_0px_1px_rgba(0,0,0,0.4)]">
+              {cardholderName || 'CARD HOLDER'}
+            </p>
+          </div>
+          
+          {/* Valid Thru */}
+          <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4">
+            <p className="text-white text-[10px] sm:text-[13px] font-medium drop-shadow-[0px_0px_1px_rgba(0,0,0,0.4)]">
+              Valid thru: {expiryMonth?.toString().padStart(2, '0')}/{expiryYear}
+            </p>
+          </div>
+          
+          {/* CVV */}
+          <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4">
+            <p className="text-white text-[12px] sm:text-[15px] font-bold drop-shadow-[0px_0px_1px_rgba(0,0,0,0.4)]">
+              CVV
+            </p>
           </div>
         </div>
-        
-        {/* Card Number */}
-        <div 
-          className="absolute left-4 text-white text-lg font-bold tracking-wider"
-          style={{ 
-            top: '50%',
-            transform: 'translateY(-20px)',
-            textShadow: '0px 1px 2px rgba(0,0,0,0.24)',
-            fontFamily: "'DM Sans', sans-serif"
-          }}
-        >
-          XXXX  XXXX  XXXX  {cardNumber}
-        </div>
-        
-        {/* Card Holder Name */}
-        <div 
-          className="absolute left-4 text-white text-sm font-semibold uppercase"
-          style={{ 
-            top: '50%',
-            transform: 'translateY(20px)',
-            textShadow: '0px 0px 1px rgba(0,0,0,0.4)',
-            fontFamily: "'DM Sans', sans-serif"
-          }}
-        >
-          DAVID WOOD
-        </div>
-        
-        {/* Valid Thru */}
-        <div 
-          className="absolute left-4 text-white text-xs font-medium"
-          style={{ 
-            top: '50%',
-            transform: 'translateY(60px)',
-            textShadow: '0px 0px 1px rgba(0,0,0,0.4)',
-            fontFamily: "'DM Sans', sans-serif"
-          }}
-        >
-          Valid thru: MM/YYYY
-        </div>
-        
-        {/* CVV */}
-        <div 
-          className="absolute right-4 text-white text-sm font-bold"
-          style={{ 
-            top: '50%',
-            transform: 'translateY(60px)',
-            textShadow: '0px 0px 1px rgba(0,0,0,0.4)',
-            fontFamily: "'DM Sans', sans-serif"
-          }}
-        >
-          CVV
-        </div>
       </div>
-      
-      {/* Card Controls */}
-      <div className="flex items-center justify-between mt-4 px-2">
-        <label className="flex items-center gap-2 cursor-pointer">
+
+      {/* Default Card Checkbox */}
+      <div className="flex items-center justify-between px-2">
+        <label className="flex items-center gap-2 sm:gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={isDefault}
             onChange={onToggleDefault}
-            className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
+            className="w-5 h-5 sm:w-6 sm:h-6 accent-green"
           />
-          <span 
-            className="text-sm font-medium text-dark-green font-sans"
-          >
+          <span className="text-[12px] sm:text-[14px] font-medium text-[#192215]">
             {isDefault ? 'Default card' : 'Make default'}
           </span>
         </label>
-        <button onClick={onDelete} className="p-1 hover:bg-gray-100 rounded">
-          <TrashIcon />
-        </button>
       </div>
     </div>
   );
 }
 
 export default function SavedCards() {
-  const [cards, setCards] = useState([
-    { id: 1, number: '8456', isDefault: true },
-    { id: 2, number: '2546', isDefault: false }
-  ]);
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [savingCard, setSavingCard] = useState(false);
+  const [showAddCardModal, setShowAddCardModal] = useState(false);
 
-  const [formData, setFormData] = useState({
-    cardNumber: '',
-    nameOnCard: '',
-    validThru: '',
-    cvv: '',
-    makeDefault: false
-  });
+  // Remove the form state as we'll use the modal instead
 
-  const handleToggleDefault = (cardId) => {
-    setCards(cards.map(card => ({
-      ...card,
-      isDefault: card.id === cardId
-    })));
+  // Fetch saved payment methods on mount
+  useEffect(() => {
+    fetchPaymentMethods();
+  }, []);
+
+  const fetchPaymentMethods = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosClient.get('/payment-methods');
+      if (response.data.success) {
+        setCards(response.data.paymentMethods || response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      toast.error('Failed to load saved cards');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteCard = (cardId) => {
-    setCards(cards.filter(card => card.id !== cardId));
+  const handleToggleDefault = async (stripePaymentMethodId) => {
+    try {
+      // Find the card by stripePaymentMethodId to get the database ID
+      const card = cards.find(c => c.stripePaymentMethodId === stripePaymentMethodId);
+      if (!card) {
+        toast.error('Card not found');
+        return;
+      }
+      
+      const response = await axiosClient.put(`/payment-methods/${card.id}/set-default`);
+      if (response.data.success) {
+        toast.success('Default card updated');
+        fetchPaymentMethods();
+      }
+    } catch (error) {
+      console.error('Error setting default card:', error);
+      toast.error('Failed to update default card');
+    }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  const handleDeleteCard = async (stripePaymentMethodId) => {
+    if (!confirm('Are you sure you want to delete this card?')) return;
+    
+    try {
+      // Find the card by stripePaymentMethodId to get the database ID
+      const card = cards.find(c => c.stripePaymentMethodId === stripePaymentMethodId);
+      if (!card) {
+        toast.error('Card not found');
+        return;
+      }
+      
+      const response = await axiosClient.delete(`/payment-methods/${card.id}`);
+      if (response.data.success) {
+        toast.success('Card deleted successfully');
+        fetchPaymentMethods();
+      }
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      toast.error('Failed to delete card');
+    }
   };
 
-  const handleSaveCard = () => {
-    // Add validation and save logic here
-    console.log('Saving card:', formData);
-    // Reset form after save
-    setFormData({
-      cardNumber: '',
-      nameOnCard: '',
-      validThru: '',
-      cvv: '',
-      makeDefault: false
-    });
+  const handleAddCardSuccess = () => {
+    setShowAddCardModal(false);
+    fetchPaymentMethods(); // Refresh the list of cards
+    toast.success('Card added successfully!');
   };
 
   return (
-    <div className="min-h-screen bg-light xl:mt-32 mt-16 pb-16">
-      <div className="container mx-auto px-20">
+    <UserLayout requireRole="DOG_OWNER">
+      <div className="min-h-screen bg-light xl:mt-32 mt-16 pb-16">
+        <div className="container mx-auto px-20">
         {/* Page Title */}
         <div className="flex items-center gap-4 mb-8">
-          <button className="w-12 h-12 bg-cream rounded-full flex items-center justify-center">
+          <button 
+            onClick={() => router.back()}
+            className="w-12 h-12 bg-cream rounded-full flex items-center justify-center hover:bg-[#e8ddb5] transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-dark-green"/>
             </svg>
@@ -199,15 +241,26 @@ export default function SavedCards() {
               </h2>
               
               <div className="space-y-8">
-                {cards.map(card => (
-                  <CreditCard
-                    key={card.id}
-                    cardNumber={card.number}
-                    isDefault={card.isDefault}
-                    onToggleDefault={() => handleToggleDefault(card.id)}
-                    onDelete={() => handleDeleteCard(card.id)}
-                  />
-                ))}
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
+                    <p className="mt-2 text-gray-600">Loading saved cards...</p>
+                  </div>
+                ) : cards.length === 0 ? (
+                  <div className="text-center py-8 text-gray-600">
+                    <p>No saved cards yet</p>
+                    <p className="text-sm mt-2">Add a card to make checkout faster</p>
+                  </div>
+                ) : (
+                  cards.map(card => (
+                    <CreditCard
+                      key={card.id}
+                      card={card}
+                      onToggleDefault={() => handleToggleDefault(card.stripePaymentMethodId)}
+                      onDelete={() => handleDeleteCard(card.stripePaymentMethodId)}
+                    />
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -224,148 +277,32 @@ export default function SavedCards() {
               Add New Card
             </h2>
 
-            <div className="space-y-6">
-              {/* Card Number and Name Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label 
-                    className="block text-sm font-medium mb-2"
-                    style={{ 
-                      color: '#192215',
-                      fontFamily: "'DM Sans', sans-serif"
-                    }}
-                  >
-                    Card Number
-                  </label>
-                  <Input
-                    type="text"
-                    name="cardNumber"
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    placeholder="Enter card number"
-                    className="py-3 border-[#e3e3e3] focus:border-green font-sans"
-                  />
-                </div>
-                <div>
-                  <label 
-                    className="block text-sm font-medium mb-2"
-                    style={{ 
-                      color: '#192215',
-                      fontFamily: "'DM Sans', sans-serif"
-                    }}
-                  >
-                    Name on Card
-                  </label>
-                  <Input
-                    type="text"
-                    name="nameOnCard"
-                    value={formData.nameOnCard}
-                    onChange={handleInputChange}
-                    placeholder="Enter name on card"
-                    className="py-3 border-[#e3e3e3] focus:border-green font-sans"
-                  />
-                </div>
-              </div>
-
-              {/* Valid Thru and CVV Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label 
-                    className="block text-sm font-medium mb-2"
-                    style={{ 
-                      color: '#192215',
-                      fontFamily: "'DM Sans', sans-serif"
-                    }}
-                  >
-                    Valid Thru
-                  </label>
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      name="validThru"
-                      value={formData.validThru}
-                      onChange={handleInputChange}
-                      placeholder="Valid thru: MM/YYYY"
-                      className="py-3 pr-12 border-[#e3e3e3] focus:border-green font-sans"
-                    />
-                    {formData.validThru && (
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="12" r="9" fill="#3A6B22"/>
-                          <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label 
-                    className="block text-sm font-medium mb-2"
-                    style={{ 
-                      color: '#192215',
-                      fontFamily: "'DM Sans', sans-serif"
-                    }}
-                  >
-                    CVV
-                  </label>
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      name="cvv"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      placeholder="Enter CVV"
-                      className="py-3 pr-12 border-[#e3e3e3] focus:border-green font-sans"
-                    />
-                    {formData.cvv && (
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="12" r="9" fill="#3A6B22"/>
-                          <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Make Default Checkbox */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="makeDefault"
-                  checked={formData.makeDefault}
-                  onChange={handleInputChange}
-                  className="w-5 h-5 bg-white accent-green appearance-none border-2 border-gray-300 rounded checked:bg-green checked:border-green focus:outline-none focus:ring-1 focus:ring-green/20"
-                />
-                <span 
-                  className="text-sm font-medium"
-                  style={{ 
-                    color: '#192215',
-                    fontFamily: "'DM Sans', sans-serif"
-                  }}
-                >
-                  Make default
-                </span>
-              </label>
-
-              {/* Save Button */}
-              <div className="flex justify-end mt-8">
-                <button
-                  onClick={handleSaveCard}
-                  className="px-12 py-3 text-white font-semibold rounded-full hover:opacity-90 transition-opacity"
-                  style={{ 
-                    backgroundColor: '#3A6B22',
-                    fontFamily: "'DM Sans', sans-serif"
-                  }}
-                >
-                  Save Card
-                </button>
-              </div>
+            <div className="bg-white rounded-2xl p-8 border border-gray-200">
+              <p className="text-gray-600 mb-6">
+                Add a new payment method to your account for faster checkout.
+              </p>
+              <button
+                onClick={() => setShowAddCardModal(true)}
+                className="px-12 py-3 text-white font-semibold rounded-full hover:opacity-90 transition-opacity"
+                style={{ 
+                  backgroundColor: '#3A6B22',
+                  fontFamily: "'DM Sans', sans-serif"
+                }}
+              >
+                Add New Card
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+    
+    {/* Add Card Modal */}
+    <AddCardModal
+      isOpen={showAddCardModal}
+      onClose={() => setShowAddCardModal(false)}
+      onSuccess={handleAddCardSuccess}
+    />
+    </UserLayout>
   );
 }
