@@ -127,7 +127,6 @@ export default function AddYourField() {
     images: string[];
     pricePerHour: string;
     bookingDuration: string;
-    weekendPrice: string;
     instantBooking: boolean;
     requireDeposit: boolean;
     rules: string;
@@ -155,7 +154,6 @@ export default function AddYourField() {
     // Pricing fields
     pricePerHour: '',
     bookingDuration: '30min',
-    weekendPrice: '',
     instantBooking: false,
     requireDeposit: false,
     // Booking rules and policies
@@ -218,7 +216,6 @@ export default function AddYourField() {
         images: fieldData.images || [],
         pricePerHour: fieldData.pricePerHour?.toString() || '',
         bookingDuration: fieldData.bookingDuration || '30min',
-        weekendPrice: fieldData.pricePerDay?.toString() || '',
         instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
         rules: fieldData.rules?.[0] || '',

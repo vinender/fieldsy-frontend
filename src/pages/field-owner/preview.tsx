@@ -80,7 +80,6 @@ export default function PreviewPage() {
     images: fieldData.images || [],
     pricePerHour: fieldData.pricePerHour?.toString() || '',
     bookingDuration: fieldData.bookingDuration || '30min',
-    weekendPrice: fieldData.pricePerDay?.toString() || '',
     instantBooking: fieldData.instantBooking || false,
     rules: fieldData.rules?.[0] || '',
     policies: fieldData.cancellationPolicy || ''

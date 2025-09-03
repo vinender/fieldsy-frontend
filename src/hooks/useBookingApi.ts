@@ -35,6 +35,24 @@ const cancelBooking = async ({ bookingId, reason }: { bookingId: string; reason?
   return response.data;
 };
 
+const rescheduleBooking = async ({ 
+  bookingId, 
+  date, 
+  startTime, 
+  endTime
+}: { 
+  bookingId: string; 
+  date: string; 
+  startTime: string; 
+  endTime: string;
+}) => {
+  const response = await axiosClient.patch(
+    `/bookings/${bookingId}`,
+    { date, startTime, endTime }
+  );
+  return response.data;
+};
+
 // React Query Hooks
 
 // Hook to check refund eligibility
@@ -71,6 +89,27 @@ export const useCancelBooking = () => {
       const errorMessage = error.response?.data?.message || 'Failed to cancel booking';
       console.error('Error cancelling booking:', errorMessage);
       // You can dispatch a toast notification here if you have a toast system
+    },
+  });
+};
+
+// Hook to reschedule booking
+export const useRescheduleBooking = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: rescheduleBooking,
+    onSuccess: (data) => {
+      // Invalidate bookings queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
+      
+      // Show success message
+      console.log('Success:', 'Booking rescheduled successfully');
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || 'Failed to reschedule booking';
+      console.error('Error rescheduling booking:', errorMessage);
     },
   });
 };

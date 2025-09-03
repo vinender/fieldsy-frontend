@@ -11,17 +11,15 @@ import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
 import { format } from 'date-fns';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
+import { useRescheduleBooking } from '@/hooks/useBookingApi';
+import { toast } from 'sonner';
 
 interface TimeSlot {
   time: string;
   available: boolean;
   selected: boolean;
   isPast?: boolean;
-  isFullyBooked?: boolean;
-  availableSpots?: number;
-  maxSpots?: number;
-  bookedDogs?: number;
-  cannotAccommodate?: boolean;
+  isBooked?: boolean;
 }
 
 interface TimeSlots {
@@ -32,18 +30,35 @@ interface TimeSlots {
 
 const BookFieldPage = () => {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, mode, bookingId } = router.query;
   const fieldIdToUse = id ; // Support both query parameters
-  console.log('id', router.query?.id)
+  const isRescheduleMode = mode === 'reschedule';
+  
   const [numberOfDogs, setNumberOfDogs] = useState('1');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Start with null
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('8:00AM - 9:00AM');
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
+  const [rescheduleData, setRescheduleData] = useState<any>(null);
+  
+  // Hook for rescheduling
+  const rescheduleBookingMutation = useRescheduleBooking();
 
   // Fetch field details using the hook
   const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string);
   const field = fieldData?.data || fieldData;
+  
+  // Load reschedule data from localStorage if in reschedule mode
+  useEffect(() => {
+    if (isRescheduleMode) {
+      const storedData = localStorage.getItem('rescheduleBooking');
+      if (storedData) {
+        const data = JSON.parse(storedData);
+        setRescheduleData(data);
+        setNumberOfDogs(data.numberOfDogs?.toString() || '1');
+      }
+    }
+  }, [isRescheduleMode]);
   
   // Fetch slot availability for the selected date
   const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined;
@@ -209,19 +224,12 @@ const BookFieldPage = () => {
     // Use availability data if available, otherwise generate basic slots
     if (availabilityData?.data?.slots) {
       availabilityData.data.slots.forEach((slotData) => {
-        const numDogs = parseInt(numberOfDogs) || 1;
-        const canAccommodate = slotData.availableSpots >= numDogs;
-        
         const slot = {
           time: slotData.time,
-          available: slotData.isAvailable && canAccommodate,
+          available: slotData.isAvailable,
           selected: slotData.time === selectedTimeSlot,
           isPast: slotData.isPast,
-          isFullyBooked: slotData.isFullyBooked,
-          availableSpots: slotData.availableSpots,
-          maxSpots: slotData.maxSpots,
-          bookedDogs: slotData.bookedDogs,
-          cannotAccommodate: !canAccommodate && !slotData.isPast && !slotData.isFullyBooked
+          isBooked: slotData.isBooked
         };
 
         // Categorize into morning, afternoon, or evening
@@ -442,12 +450,29 @@ const BookFieldPage = () => {
           <BackButton 
             variant="cream"
             showLabel={true}
-            label="Book Field"
+            label={isRescheduleMode ? "Reschedule Booking" : "Book Field"}
             size="lg"
-            onClick={() => router.push(`/fields/${fieldIdToUse}`)} 
+            onClick={() => isRescheduleMode ? router.push('/user/my-bookings') : router.push(`/fields/${fieldIdToUse}`)} 
           />
-          
         </div>
+        
+        {/* Reschedule Mode Banner */}
+        {isRescheduleMode && rescheduleData && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 mb-1">Rescheduling Your Booking</h3>
+                <p className="text-sm text-blue-700">
+                  Original booking: {rescheduleData.originalTime}
+                </p>
+                <p className="text-sm text-blue-700 mt-1">
+                  Select a new date and time slot below, then click "Confirm Reschedule" to update your booking.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
@@ -536,7 +561,8 @@ const BookFieldPage = () => {
             </h2>
 
             <div className="space-y-8">
-              {/* Number of Dogs */}
+              {/* Number of Dogs - Only show for new bookings, not reschedule */}
+              {!isRescheduleMode && (
               <div>
                 <label className="text-[18px] font-semibold text-dark-green block mb-2">
                   Number of Dogs
@@ -576,6 +602,7 @@ const BookFieldPage = () => {
                   </p>
                 )}
               </div>
+              )}
 
               {/* Choose Date */}
               <div>
@@ -690,10 +717,8 @@ const BookFieldPage = () => {
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                                  : slot.isFullyBooked
+                                  : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
-                                  : slot.cannotAccommodate
-                                  ? 'bg-orange-50 text-orange-600 border border-orange-200 cursor-not-allowed'
                                   : !slot.available 
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
                                   : selectedTimeSlot === slot.time
@@ -703,17 +728,6 @@ const BookFieldPage = () => {
                             >
                               {slot.time}
                             </button>
-                            {/* Availability tooltip */}
-                            {slot.availableSpots !== undefined && !slot.isPast && (
-                              <div className="hidden group-hover:block whitespace-nowrap w-full absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
-                                {slot.isFullyBooked
-                                  ? 'Fully booked'
-                                  : slot.cannotAccommodate
-                                  ? `Need ${slot.availableSpots} spots, you need ${numberOfDogs}`
-                                  : `${slot.availableSpots}/${slot.maxSpots} spots available`
-                                }
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -746,10 +760,8 @@ const BookFieldPage = () => {
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                                  : slot.isFullyBooked
+                                  : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
-                                  : slot.cannotAccommodate
-                                  ? 'bg-orange-50 text-orange-600 border border-orange-200 cursor-not-allowed'
                                   : !slot.available 
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
                                   : selectedTimeSlot === slot.time
@@ -759,17 +771,6 @@ const BookFieldPage = () => {
                             >
                               {slot.time}
                             </button>
-                            {/* Availability tooltip */}
-                            {slot.availableSpots !== undefined && !slot.isPast && (
-                              <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
-                                {slot.isFullyBooked
-                                  ? 'Fully booked'
-                                  : slot.cannotAccommodate
-                                  ? `Need ${slot.availableSpots} spots, you need ${numberOfDogs}`
-                                  : `${slot.availableSpots}/${slot.maxSpots} spots available`
-                                }
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -802,10 +803,8 @@ const BookFieldPage = () => {
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                                  : slot.isFullyBooked
+                                  : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
-                                  : slot.cannotAccommodate
-                                  ? 'bg-orange-50 text-orange-600 border border-orange-200 cursor-not-allowed'
                                   : !slot.available 
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
                                   : selectedTimeSlot === slot.time
@@ -815,17 +814,6 @@ const BookFieldPage = () => {
                             >
                               {slot.time}
                             </button>
-                            {/* Availability tooltip */}
-                            {slot.availableSpots !== undefined && !slot.isPast && (
-                              <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
-                                {slot.isFullyBooked
-                                  ? 'Fully booked'
-                                  : slot.cannotAccommodate
-                                  ? `Need ${slot.availableSpots} spots, you need ${numberOfDogs}`
-                                  : `${slot.availableSpots}/${slot.maxSpots} spots available`
-                                }
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -835,7 +823,8 @@ const BookFieldPage = () => {
                 </div>
               </div>
 
-              {/* Repeat Booking */}
+              {/* Repeat Booking - Hidden in reschedule mode */}
+              {!isRescheduleMode && (
               <div>
                 <h3 className="text-base sm:text-[18px] font-bold text-dark-green mb-2.5">Repeat This Booking?</h3>
                 <p className="text-sm sm:text-[16px] text-[#8D8D8D] mb-3 sm:mb-4">
@@ -857,42 +846,81 @@ const BookFieldPage = () => {
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Continue Button */}
               <button 
                 onClick={() => {
-                  if (!numberOfDogs) {
-                    alert('Please enter the number of dogs');
-                    return;
-                  }
-                  
-                  const numDogs = parseInt(numberOfDogs);
-                  const maxAllowed = field.maxDogs || 10;
-                  
-                  if (numDogs < 1) {
-                    alert('Please enter at least 1 dog');
-                    return;
-                  }
-                  
-                  if (numDogs > maxAllowed) {
-                    alert(`This field allows a maximum of ${maxAllowed} dogs`);
-                    return;
-                  }
-                  
-                  router.push({
-                    pathname: '/fields/payment',
-                    query: {
-                      field_id: fieldIdToUse,
-                      numberOfDogs: numberOfDogs,
-                      date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
-                      timeSlot: selectedTimeSlot,
-                      repeatBooking: repeatBooking,
-                      price: field.pricePerHour || field.price || 0
+                  // Only validate dog count if not in reschedule mode
+                  if (!isRescheduleMode) {
+                    if (!numberOfDogs) {
+                      alert('Please enter the number of dogs');
+                      return;
                     }
-                  });
+                    
+                    const numDogs = parseInt(numberOfDogs);
+                    const maxAllowed = field.maxDogs || 10;
+                    
+                    if (numDogs < 1) {
+                      alert('Please enter at least 1 dog');
+                      return;
+                    }
+                    
+                    if (numDogs > maxAllowed) {
+                      alert(`This field allows a maximum of ${maxAllowed} dogs`);
+                      return;
+                    }
+                  }
+                  
+                  if (isRescheduleMode && rescheduleData) {
+                    // Handle reschedule confirmation
+                    if (!selectedDate || !selectedTimeSlot) {
+                      alert('Please select a date and time slot');
+                      return;
+                    }
+                    
+                    const [startTime, endTime] = selectedTimeSlot.split(' - ');
+                    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+                    
+                    rescheduleBookingMutation.mutate(
+                      {
+                        bookingId: rescheduleData.bookingId,
+                        date: formattedDate,
+                        startTime,
+                        endTime
+                      },
+                      {
+                        onSuccess: () => {
+                          toast.success('Booking rescheduled successfully!');
+                          
+                          // Clear reschedule data
+                          localStorage.removeItem('rescheduleBooking');
+                          
+                          // Redirect to bookings page
+                          router.push('/user/my-bookings');
+                        },
+                        onError: (error: any) => {
+                          toast.error(error.response?.data?.message || 'Failed to reschedule booking');
+                        }
+                      }
+                    );
+                  } else {
+                    // Normal booking flow - continue to payment
+                    router.push({
+                      pathname: '/fields/payment',
+                      query: {
+                        field_id: fieldIdToUse,
+                        numberOfDogs: numberOfDogs,
+                        date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+                        timeSlot: selectedTimeSlot,
+                        repeatBooking: repeatBooking,
+                        price: field.pricePerHour || field.price || 0
+                      }
+                    });
+                  }
                 }}
                 className="w-full h-14 bg-[#3A6B22] text-white rounded-full font-bold text-[16px] hover:bg-[#2D5A1B] transition-colors">
-                Continue
+                {isRescheduleMode ? 'Confirm Reschedule' : 'Continue'}
               </button>
             </div>
           </div>

@@ -48,7 +48,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
     if (isOpen && booking && eligibilityError) {
       console.error('API error, using fallback calculation:', eligibilityError);
       // Calculate eligibility client-side as fallback
-      const bookingCreatedAt = new Date(booking.createdAt);
+      const now = new Date();
       
       // Use rawDate if available, otherwise parse the display date
       let bookingDateTime: Date;
@@ -136,28 +136,25 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         date: booking.date,
         rawDate: booking.rawDate,
         time: booking.time,
-        startTime: booking.startTime,
-        createdAt: booking.createdAt
+        startTime: booking.startTime
       });
-      console.log('Created at:', bookingCreatedAt);
-      console.log('Created at ISO:', bookingCreatedAt.toISOString());
+      console.log('Current time:', now);
+      console.log('Current time ISO:', now.toISOString());
       console.log('Booking date/time:', bookingDateTime);
       console.log('Booking date/time ISO:', bookingDateTime.toISOString());
-      console.log('Created timestamp:', bookingCreatedAt.getTime());
-      console.log('Booking timestamp:', bookingDateTime.getTime());
       
-      const hoursGap = (bookingDateTime.getTime() - bookingCreatedAt.getTime()) / (1000 * 60 * 60);
-      const eligible = hoursGap >= 24;
+      const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      const eligible = hoursUntilBooking >= 24;
       
-      console.log('Hours gap:', hoursGap);
+      console.log('Hours until booking:', hoursUntilBooking);
       console.log('Is eligible:', eligible);
       console.log('=========================');
       
       setFallbackEligible(eligible);
       setFallbackMessage(
         eligible
-          ? `This booking is eligible for a full refund. The booking was made ${Math.floor(hoursGap)} hours in advance.`
-          : `This booking is not eligible for a refund. Bookings must be made at least 24 hours in advance. This booking was made only ${Math.floor(Math.abs(hoursGap))} hours before the scheduled time.`
+          ? `This booking can be cancelled with a full refund. There are ${Math.floor(hoursUntilBooking)} hours until the booking time.`
+          : `This booking cannot be cancelled with a refund. Cancellations must be made at least 24 hours before the booking time. Only ${Math.floor(hoursUntilBooking)} hours remain.`
       );
     }
   }, [isOpen, booking, eligibilityError]);

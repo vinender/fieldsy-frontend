@@ -40,11 +40,8 @@ const PaymentPage = () => {
     (slot: any) => slot.slotTime === timeSlot
   );
   
-  // Calculate maximum dogs allowed
-  const maxDogsAllowed = Math.min(
-    selectedSlot?.availableSpots || 10,
-    field?.maxDogs || 10
-  );
+  // Maximum dogs allowed per booking (from field data or default)
+  const maxDogsAllowed = field?.maxDogs || 10;
   
   // Fetch payment methods
   const { data: paymentMethods, isLoading: isLoadingCards, refetch: refetchCards } = usePaymentMethods();
@@ -341,7 +338,7 @@ const PaymentPage = () => {
                       </h3>
                       <div className="flex items-baseline gap-1 sm:block sm:text-right">
                         <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">${pricePerDog}</span>
-                        <span className="text-sm sm:text-[16px] text-[#192215] opacity-70">/dog/hour</span>
+                        <span className="text-sm sm:text-[16px] text-[#192215] opacity-70">/dog/{field?.bookingDuration === '30min' ? '30min' : 'hour'}</span>
                       </div>
                     </div>
                     
@@ -367,11 +364,9 @@ const PaymentPage = () => {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                       <div className="flex flex-col">
                         <span className="text-base sm:text-[18px] font-bold text-[#192215]">Number of dogs</span>
-                        {selectedSlot && (
-                          <span className="text-xs sm:text-sm text-[#3A6B22]">
-                            {selectedSlot.availableSpots} spots available (max {maxDogsAllowed})
-                          </span>
-                        )}
+                        <span className="text-xs sm:text-sm text-[#3A6B22]">
+                          Maximum {maxDogsAllowed} dogs per booking
+                        </span>
                       </div>
                       <div className="flex items-center gap-1.5 bg-white border border-[#8FB366]/40 rounded-[10px] p-2 sm:p-2.5 w-fit">
                         <button 

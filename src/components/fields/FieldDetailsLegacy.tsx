@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { Star, Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
@@ -21,6 +21,7 @@ interface FieldDetailsLegacyProps {
 export default function FieldDetailsLegacy({ field, isPreview = false, headerContent, showReviews = true }: FieldDetailsLegacyProps) {
   const router = useRouter();
   const { data: session } = useSession();
+  const reviewsRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -40,6 +41,16 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   useEffect(() => {
     setIsLiked(isFavorited || false);
   }, [isFavorited]);
+
+  // Auto-scroll to reviews section if hash is #reviews
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#reviews' && reviewsRef.current) {
+      // Small delay to ensure the page is fully loaded
+      setTimeout(() => {
+        reviewsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [field?.id]); // Run when field data is loaded
   
   const handleToggleFavorite = async () => {
     if (isPreview) return; // Disabled in preview mode
@@ -605,7 +616,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
         </div>
         {/* Reviews section - only show for claimed fields */}
         {showReviews && !isPreview && isClaimed && (
-              <div className="mt-12 lg:mt-16">
+              <div id="reviews" ref={reviewsRef} className="mt-12 lg:mt-16 scroll-mt-32">
                 {/* Reviews & Ratings Header */}
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-dark-green">Reviews & Ratings</h2>
