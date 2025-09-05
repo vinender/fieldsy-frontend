@@ -143,4 +143,6 @@ const BookingSuccessPage = () => {
   );
 };
 
+
+
 export default BookingSuccessPage;

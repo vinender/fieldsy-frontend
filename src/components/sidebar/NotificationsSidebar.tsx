@@ -29,8 +29,8 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
 console.log('notification',notifications);
   
   // Get user role from session
-  const userRole = (session as any)?.user?.role || 'user'
-  const isFieldOwner = userRole === 'field_owner'
+  const userRole = (session as any)?.user?.role || 'USER'
+  const isFieldOwner = userRole === 'FIELD_OWNER'
 
 
   useEffect(() => {
@@ -131,9 +131,9 @@ console.log('notification',notifications);
       case 'booking_confirmed':
       case 'BOOKING_CONFIRMATION':
         // Dog owner: go to their bookings
-        // Field owner: go to dashboard bookings
+        // Field owner: go to preview page where bookings are shown
         if (isFieldOwner) {
-          router.push('/field-owner/bookings')
+          router.push('/field-owner/preview')
         } else {
           router.push('/user/my-bookings')
         }
@@ -203,9 +203,9 @@ console.log('notification',notifications);
       case 'new_booking':
       case 'NEW_BOOKING':
       case 'new_booking_received':
-        // For field owners - redirect to bookings/dashboard
+        // For field owners - redirect to their preview page where bookings are shown
         if (isFieldOwner) {
-          router.push('/field-owner/bookings')
+          router.push('/field-owner/preview')
         } else {
           // Dog owners might get this if they have a booking update
           router.push('/user/my-bookings')
@@ -216,7 +216,7 @@ console.log('notification',notifications);
       case 'BOOKING_CANCELLED':
         // Both roles go to their respective bookings with cancelled filter
         if (isFieldOwner) {
-          router.push('/field-owner/bookings?status=cancelled')
+          router.push('/field-owner/preview')
         } else {
           router.push('/user/my-bookings?status=cancelled')
         }
@@ -237,13 +237,13 @@ console.log('notification',notifications);
         // Field owner specific - go to their field or dashboard
         if (data?.fieldId) {
           if (isFieldOwner) {
-            router.push('/field-owner/dashboard')
+            router.push('/')
           } else {
             router.push(`/fields/${data.fieldId}`)
           }
         } else {
           if (isFieldOwner) {
-            router.push('/field-owner/dashboard')
+            router.push('/')
           } else {
             router.push('/fields')
           }
@@ -253,26 +253,28 @@ console.log('notification',notifications);
       case 'new_message':
       case 'NEW_MESSAGE':
       case 'message_received':
-        // Both roles can receive messages
+        // Both roles can receive messages - messages is a shared page
         if (data?.chatId) {
-          if (isFieldOwner) {
-            router.push(`/field-owner/messages?chat=${data.chatId}`)
-          } else {
-            router.push(`/user/messages?chat=${data.chatId}`)
-          }
+          router.push(`/user/messages?chat=${data.chatId}`)
         } else {
-          if (isFieldOwner) {
-            router.push('/field-owner/messages')
-          } else {
-            router.push('/user/messages')
-          }
+          router.push('/user/messages')
         }
         break
 
       case 'payout_processed':
       case 'PAYOUT_PROCESSED':
-        // Field owner specific
-        router.push('/field-owner/payouts')
+      case 'earnings_update':
+      case 'EARNINGS_UPDATE':
+      case 'payout_completed':
+      case 'PAYOUT_COMPLETED':
+      case 'payment_completed':
+      case 'PAYMENT_COMPLETED':
+        // Field owner specific - earnings and payouts
+        if (isFieldOwner) {
+          router.push('/field-owner/payouts')
+        } else {
+          router.push('/user/my-bookings')
+        }
         break
 
       case 'field_update':
@@ -281,14 +283,14 @@ console.log('notification',notifications);
         if (data?.fieldId) {
           router.push(`/field-owner/edit-field/${data.fieldId}`)
         } else {
-          router.push('/field-owner/dashboard')
+          router.push('/')
         }
         break
 
       default:
         // Default to appropriate dashboard based on role
         if (isFieldOwner) {
-          router.push('/field-owner/dashboard')
+          router.push('/')
         } else {
           router.push('/user/my-bookings')
         }

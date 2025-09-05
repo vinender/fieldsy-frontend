@@ -1,4 +1,32 @@
 /**
+ * Format currency values
+ */
+export function formatCurrency(amount: number, currency: string = 'GBP'): string {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
+
+/**
+ * Format date values
+ */
+export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOptions): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    ...options
+  };
+  
+  return dateObj.toLocaleDateString('en-GB', defaultOptions);
+}
+
+/**
  * Format amenity string from camelCase to readable text
  * e.g., "secureFencing" -> "Secure Fencing"
  * e.g., "wasteDisposal" -> "Waste Disposal"

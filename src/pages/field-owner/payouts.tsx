@@ -164,7 +164,7 @@ const EarningsHistory: React.FC = () => {
                 <p className="text-base sm:text-lg text-gray-500 max-w-2xl">
                   Link your bank account securely to receive payouts directly. Fast, safe, and hassle-free transfers every time you get paid.
                 </p>
-                {!isLoadingSummary && summaryData && (
+                {/* {!isLoadingSummary && summaryData && (
                   <div className="flex gap-6 mt-3">
                     {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && stripeBalance ? (
                       <>
@@ -198,7 +198,7 @@ const EarningsHistory: React.FC = () => {
                       </>
                     )}
                   </div>
-                )}
+                )} */}
               </div>
               {/* Show different UI based on account connection status */}
               {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled ? (
@@ -263,7 +263,7 @@ const EarningsHistory: React.FC = () => {
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Completed ({earningsData?.stats.completed || 0})
+            Completed ({earningsData?.stats?.completed || 0})
           </button>
           <button
             onClick={() => handleStatusFilter('REFUNDED')}
@@ -273,7 +273,7 @@ const EarningsHistory: React.FC = () => {
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Refunded ({earningsData?.stats.refunded || 0})
+            Refunded ({earningsData?.stats?.refunded || 0})
           </button>
           <button
             onClick={() => handleStatusFilter('FAILED')}
@@ -283,7 +283,7 @@ const EarningsHistory: React.FC = () => {
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Failed ({earningsData?.stats.failed || 0})
+            Failed ({earningsData?.stats?.failed || 0})
           </button>
         </div>
 
@@ -371,12 +371,12 @@ const EarningsHistory: React.FC = () => {
             </div>
             {/*  */}
             {/* Pagination */}
-            {earningsData && earningsData.pagination.totalPages > 1 && (
+            {earningsData && earningsData.pagination?.totalPages > 1 && (
               <div className="mt-8 flex items-center justify-between">
                 <div className="text-sm text-gray-700">
                   Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
-                  {Math.min(currentPage * itemsPerPage, earningsData.pagination.total)} of{' '}
-                  {earningsData.pagination.total} transactions
+                  {Math.min(currentPage * itemsPerPage, earningsData.pagination?.total || 0)} of{' '}
+                  {earningsData.pagination?.total || 0} transactions
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -393,9 +393,9 @@ const EarningsHistory: React.FC = () => {
                   
                   {/* Page numbers */}
                   <div className="flex gap-1">
-                    {[...Array(Math.min(5, earningsData.pagination.totalPages))].map((_, i) => {
+                    {[...Array(Math.min(5, earningsData.pagination?.totalPages || 1))].map((_, i) => {
                       const pageNum = i + 1;
-                      if (earningsData.pagination.totalPages <= 5) {
+                      if ((earningsData.pagination?.totalPages || 1) <= 5) {
                         return (
                           <button
                             key={pageNum}
@@ -438,14 +438,14 @@ const EarningsHistory: React.FC = () => {
                       return null;
                     })}
                     
-                    {earningsData.pagination.totalPages > 5 && currentPage > 3 && (
+                    {(earningsData.pagination?.totalPages || 1) > 5 && currentPage > 3 && (
                       <>
                         <span className="px-2 py-2">...</span>
                         <button
-                          onClick={() => handlePageChange(earningsData.pagination.totalPages)}
+                          onClick={() => handlePageChange(earningsData.pagination?.totalPages || 1)}
                           className="px-3 py-2 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                         >
-                          {earningsData.pagination.totalPages}
+                          {earningsData.pagination?.totalPages || 1}
                         </button>
                       </>
                     )}
@@ -453,9 +453,9 @@ const EarningsHistory: React.FC = () => {
                   
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === earningsData.pagination.totalPages}
+                    disabled={currentPage === earningsData.pagination?.totalPages}
                     className={`p-2 rounded-lg ${
-                      currentPage === earningsData.pagination.totalPages
+                      currentPage === earningsData.pagination?.totalPages
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                     }`}

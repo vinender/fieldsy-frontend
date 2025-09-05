@@ -3,11 +3,14 @@ import { useRouter } from 'next/router';
 import { useFieldOwnerBookings, type Booking } from '@/hooks/queries/useFieldOwnerBookings';
 import { BookingHistorySkeleton } from '@/components/skeletons/BookingHistorySkeleton';
 import FieldOwnerBookingDetailsModal from '@/components/modal/FieldOwnerBookingDetailsModal';
+import EarningsDashboard from './EarningsDashboard';
+import { Check } from 'lucide-react';
 
 // Types are imported from useFieldOwnerBookings hook
 
 export default function BookingHistory() {
   const router = useRouter();
+  const [activeView, setActiveView] = useState<'bookings' | 'earnings'>('bookings');
   const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'previous'>('today');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -74,6 +77,37 @@ export default function BookingHistory() {
     <div className="min-h-screen max-w-[1920px] mt-20 mx-auto bg-light pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-10 sm:pb-16 md:pb-20">
       <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20">
 
+        {/* View Toggle */}
+        <div className="mb-6 flex justify-between items-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-dark-green">Field Owner Dashboard</h1>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveView('bookings')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                activeView === 'bookings'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Bookings
+            </button>
+            <button
+              onClick={() => setActiveView('earnings')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                activeView === 'earnings'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Earnings & Payouts
+            </button>
+          </div>
+        </div>
+
+        {activeView === 'earnings' ? (
+          <EarningsDashboard />
+        ) : (
+          <>
         {/* Quick Stats Section */}
         <div className="mb-6 sm:mb-8">
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-dark-green mb-4 sm:mb-6 font-sans">Quick Stats</h2>
@@ -285,27 +319,35 @@ export default function BookingHistory() {
                   <div className="flex gap-2">
                     {activeTab === 'previous' ? (
                       <>
-                        <div className={`flex-1 py-2 px-3 border rounded-full text-center text-xs font-medium font-sans ${
+                        <div className={`flex-1 py-2 px-3 border rounded-full text-xs font-medium font-sans flex items-center justify-center gap-1.5 ${
                           booking.status === 'completed' ? 'bg-green/10 text-green' :
                           booking.status === 'cancelled' ? 'bg-red/10 text-red' :
                           booking.status === 'refunded' ? 'bg-orange/10 text-orange' :
-                          booking.status === 'confirmed' ? 'bg-blue/10 text-blue' :
+                          booking.status === 'confirmed' ? 'bg-white text-green border-green' :
                           'bg-gray-100 text-gray-600'
                         }`}>
-                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          {booking.status === 'completed' && (
+                            <div className="w-4 h-4 rounded-full bg-green flex items-center justify-center flex-shrink-0">
+                              <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                            </div>
+                          )}
+                          <span className={booking.status === 'completed' ? 'font-bold' : ''}>
+                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          </span>
                         </div>
                         <button
-                          onClick={() => handleSendMessage(booking.id)}
+                          onClick={() => handleViewDetails(booking)}
                           className="flex-1 py-2 px-3 rounded-full bg-green text-xs text-white font-medium hover:bg-green/90 transition-colors font-sans"
                         >
-                          Send Message
+                          View Details
                         </button>
                       </>
                     ) : (
+                      // Today and Upcoming bookings - show both View Details and Send Message
                       <>
                         <button
                           onClick={() => handleViewDetails(booking)}
-                          className="flex-1 py-2 px-3 rounded-full border border-gray-300 text-xs text-dark-green font-medium hover:bg-gray-50 transition-colors font-sans"
+                          className="flex-1 py-2 px-3 rounded-full bg-white text-green border border-green text-xs font-medium hover:bg-green/10 transition-colors font-sans"
                         >
                           View Details
                         </button>
@@ -373,17 +415,19 @@ export default function BookingHistory() {
             </button>
           </div>
         )}
+        
+        {/* Booking Details Modal */}
+        <FieldOwnerBookingDetailsModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedBooking(null);
+          }}
+          booking={selectedBooking}
+        />
+          </>
+        )}
       </div>
-      
-      {/* Booking Details Modal */}
-      <FieldOwnerBookingDetailsModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedBooking(null);
-        }}
-        booking={selectedBooking}
-      />
     </div>
   );
 }

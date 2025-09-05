@@ -76,7 +76,7 @@ export const useEarningsHistory = (params?: {
       if (params?.endDate) queryParams.append('endDate', params.endDate);
 
       const response = await fetch(
-        `${API_URL}/payouts/earnings/history?${queryParams.toString()}`,
+        `${API_URL}/earnings/payout-history?${queryParams.toString()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -110,7 +110,7 @@ export const useEarningsSummary = (period: 'all' | 'week' | 'month' | 'year' = '
       }
 
       const response = await fetch(
-        `${API_URL}/payouts/earnings/summary?period=${period}`,
+        `${API_URL}/earnings/dashboard`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,

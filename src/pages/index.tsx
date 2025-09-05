@@ -7,7 +7,7 @@ import { HomePageSkeleton } from "@/components/skeletons/HomePageSkeleton"
 import { LazySection } from "@/components/common/LazySection"
 import { useAuth } from "@/contexts/AuthContext"
 import { useSession } from "next-auth/react"
-import { useEffect, Suspense } from "react"
+import { useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PerformanceMonitor } from "@/utils/performance"
 
@@ -124,7 +124,7 @@ export default function HomePage() {
     return <HomePageSkeleton />
   }
 
-  // Only show field owner dashboard if authenticated AND user is a field owner
+  // Show field owner dashboard on index route if authenticated as field owner
   if (status === 'authenticated' && user && user.role === 'FIELD_OWNER') {
     return <FieldOwnerHome />
   }

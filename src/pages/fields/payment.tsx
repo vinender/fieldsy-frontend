@@ -168,9 +168,7 @@ const PaymentPage = () => {
   };
 
   const pricePerDog = priceFromQuery ? parseFloat(priceFromQuery as string) : (field?.pricePerHour || field?.price || 0);
-  const subtotal = pricePerDog * numberOfDogs;
-  const fieldsyFee = 2.50;
-  const total = subtotal + fieldsyFee;
+  const total = pricePerDog * numberOfDogs;
 
   return (
     <UserLayout requireRole="DOG_OWNER">
@@ -401,16 +399,16 @@ const PaymentPage = () => {
               <h3 className="text-base sm:text-[18px] font-bold text-[#192215] mb-2 sm:mb-2.5">Payment Summary</h3>
               <div className="bg-white rounded-[12px] sm:rounded-[14px] p-3 sm:p-4 border border-black/6">
                 <div className="space-y-2 sm:space-y-3">
-                  {/* Subtotal */}
+                  {/* Price per dog */}
                   <div className="flex justify-between text-sm sm:text-[16px]">
-                    <span className="text-[#192215] opacity-70">Subtotal</span>
-                    <span className="font-medium text-[#192215]">${subtotal.toFixed(0)}</span>
+                    <span className="text-[#192215] opacity-70">Price per dog</span>
+                    <span className="font-medium text-[#192215]">${pricePerDog.toFixed(2)}</span>
                   </div>
                   
-                  {/* Fieldsy Fee */}
+                  {/* Number of dogs */}
                   <div className="flex justify-between text-sm sm:text-[16px]">
-                    <span className="text-[#192215] opacity-70">Fieldsy Fee</span>
-                    <span className="font-medium text-[#192215]">${fieldsyFee.toFixed(2)}</span>
+                    <span className="text-[#192215] opacity-70">Number of dogs</span>
+                    <span className="font-medium text-[#192215]">{numberOfDogs}</span>
                   </div>
                   
                   {/* Divider */}

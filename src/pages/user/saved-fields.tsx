@@ -8,6 +8,8 @@ import { FieldCard } from '@/components/fields/FieldCard';
 import { useSavedFields } from '@/hooks/useFavorites';
 import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
 
+
+
 export default function SavedFieldsPage() {
   const { data: session } = useSession();
   const router = useRouter();

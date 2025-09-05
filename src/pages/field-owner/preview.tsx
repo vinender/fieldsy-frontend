@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import ThankYouModal from '@/components/modal/ThankYouModal';
 import axiosClient from '@/lib/api/axios-client';
 
+
+
 export default function PreviewPage() {
   const { user } = useAuth();
   const router = useRouter();

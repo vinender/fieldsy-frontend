@@ -22,6 +22,7 @@ import { formatAmenities } from '@/utils/formatters';
 import { calculateDistance, formatDistance } from '@/utils/location';
 import { toast } from 'sonner';
 
+
 // MongoDB Document Structure for Bookings
 interface Booking {
   _id: string;
@@ -42,13 +43,14 @@ interface Booking {
   endTime?: string; // Raw end time
   dogs: number;
   recurring: string | null;
-  status: 'upcoming' | 'completed' | 'cancelled' | 'refunded' | 'expired';
+  status: 'upcoming' | 'completed' | 'cancelled' | 'refunded';
   paymentStatus: 'paid' | 'pending' | 'refunded';
   createdAt: string;
   updatedAt: string;
   field?: any; // Full field data
   averageRating?: number; // Field's average rating
 }
+
 
 const BookingHistoryPage = () => {
   const { data: session } = useSession();
@@ -72,6 +74,7 @@ const BookingHistoryPage = () => {
   const [appliedFilters, setAppliedFilters] = useState<any>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
+  
   // Helper function to convert time string to minutes
   const timeToMinutes = (time: string): number => {
     // Handle different time formats
@@ -79,7 +82,7 @@ const BookingHistoryPage = () => {
       // Format like "14:00" or "2:00PM"
       let [hourStr, rest] = time.split(':');
       let hour = parseInt(hourStr);
-      let minutes = 0;
+      let minutes = 0;  
       
       if (rest) {
         // Extract minutes and check for AM/PM
@@ -316,18 +319,26 @@ const BookingHistoryPage = () => {
     fetchBookings();
   };
 
+
   const handleCancelBooking = async (bookingId: string, reason: string) => {
     cancelBookingMutation.mutate(
       { bookingId, reason },
       {
         onSuccess: (data) => {
           // Show success message with refund status
-          const message = data.data.isRefundEligible 
-            ? 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
-            : 'Booking cancelled successfully. This booking was not eligible for a refund.';
+          const refundResult = data.data.refundResult;
+          let message = 'Booking cancelled successfully.';
+          
+          if (refundResult && refundResult.success) {
+            message = `Booking cancelled successfully. Refund of $${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
+          } else if (data.data.isRefundEligible) {
+            message = 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
+          } else {
+            message = 'Booking cancelled successfully. This booking was not eligible for a refund as it was cancelled less than 24 hours before the scheduled time.';
+          }
           
           toast.success(message, {
-            duration: 5000,
+            duration: 7000,
             position: 'top-center',
           });
           
@@ -537,7 +548,6 @@ const BookingHistoryPage = () => {
           <>
             <div className="flex-1 sm:w-full py-2 px-2.5 bg-gray-100 rounded-full text-[12px] sm:text-[14px] font-bold text-gray-600 flex items-center justify-center">
               {booking.status === 'completed' ? 'Completed' : 
-               booking.status === 'expired' ? 'Expired' : 
                booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
             </div>
             <button 
