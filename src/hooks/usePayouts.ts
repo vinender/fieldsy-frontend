@@ -89,7 +89,42 @@ export const useEarningsHistory = (params?: {
         throw new Error('Failed to fetch earnings history');
       }
 
-      return response.json();
+      const data = await response.json();
+      
+      // Transform the backend response to match the expected format
+      if (data.success && data.data) {
+        const payouts = data.data.payouts || [];
+        return {
+          transactions: payouts.map((payout: any) => ({
+            id: payout.id,
+            orderId: payout.stripePayoutId || payout.id,
+            paymentId: payout.stripePayoutId || payout.id,
+            date: payout.createdAt,
+            amount: payout.amount,
+            status: payout.status === 'paid' ? 'completed' : payout.status,
+            type: 'payout',
+            description: payout.description,
+            fieldName: payout.bookings?.[0]?.fieldName || 'Field',
+            customerName: payout.bookings?.map((b: any) => b.customerName).join(', ') || 'Multiple bookings',
+            bookingCount: payout.bookingCount || payout.bookings?.length || 1,
+            arrivalDate: payout.arrivalDate
+          })),
+          totalEarnings: payouts.reduce((sum: number, p: any) => sum + p.amount, 0),
+          stats: {
+            completed: payouts.filter((p: any) => p.status === 'paid').length,
+            refunded: payouts.filter((p: any) => p.status === 'refunded').length,
+            failed: payouts.filter((p: any) => p.status === 'failed').length,
+          },
+          pagination: {
+            page: data.data.page || 1,
+            limit: data.data.limit || 10,
+            total: data.data.total || 0,
+            totalPages: data.data.totalPages || 0
+          }
+        };
+      }
+      
+      return data;
     },
     enabled: !!session || !!(typeof window !== 'undefined' && localStorage.getItem('authToken')),
   });

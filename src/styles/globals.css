@@ -65,37 +65,63 @@ html:has(body.sidebar-open) {
   border: 1px solid #E3E3E3 !important;
   border-radius: 12px !important;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  width: auto !important;
+  min-width: 260px !important;
+  max-width: 320px !important;
+  overflow: hidden !important;
 }
 
 .fieldsy-calendar .react-datepicker__header {
   background-color: white !important;
   border-bottom: 1px solid #E3E3E3 !important;
-  padding: 12px !important;
+  padding: 8px !important;
   border-radius: 12px 12px 0 0 !important;
 }
 
 .fieldsy-calendar .react-datepicker__current-month {
   color: #3A6B22 !important;
-  font-size: 16px !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
-  margin-bottom: 8px !important;
+  margin-bottom: 6px !important;
+}
+
+.fieldsy-calendar .react-datepicker__day-names,
+.fieldsy-calendar .react-datepicker__week {
+  display: flex !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  white-space: nowrap !important;
 }
 
 .fieldsy-calendar .react-datepicker__day-name {
   color: #6B7280 !important; /* Gray color for weekday labels - now visible */
-  font-size: 14px !important;
+  font-size: 12px !important;
   font-weight: 500 !important;
-  width: 36px !important;
-  line-height: 36px !important;
+  width: calc(100% / 7) !important;
+  min-width: 28px !important;
+  max-width: 36px !important;
+  line-height: 28px !important;
+  text-align: center !important;
+  margin: 1px !important;
+  flex: 1 !important;
 }
 
 .fieldsy-calendar .react-datepicker__day {
-  width: 36px !important;
-  line-height: 36px !important;
-  margin: 2px !important;
-  border-radius: 8px !important;
+  width: calc(100% / 7) !important;
+  min-width: 28px !important;
+  max-width: 36px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  margin: 1px !important;
+  border-radius: 6px !important;
   color: #192215 !important;
   font-weight: 500 !important;
+  font-size: 13px !important;
+  text-align: center !important;
+  flex: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .fieldsy-calendar .react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
@@ -156,8 +182,14 @@ html:has(body.sidebar-open) {
   border-color: #2D5A1B !important;
 }
 
-.react-datepicker__month {
-  margin: 12px !important;
+.fieldsy-calendar .react-datepicker__month {
+  margin: 8px !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+.fieldsy-calendar .react-datepicker__month-container {
+  width: 100% !important;
 }
 
 .react-datepicker-popper {

@@ -12,6 +12,7 @@ export const fieldOwnerBookingKeys = {
 // Types
 export interface Booking {
   id: string;
+  userId: string;
   userName: string;
   userAvatar?: string;
   userEmail?: string;

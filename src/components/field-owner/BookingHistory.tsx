@@ -59,6 +59,7 @@ export default function BookingHistory() {
   const handleSendMessage = (bookingId: string) => {
     // Find the booking to get user details
     const booking = bookings.find(b => b.id === bookingId);
+    
     if (booking) {
       // Navigate to messages page with the user ID to open conversation
       router.push(`/user/messages?userId=${booking.userId}`);

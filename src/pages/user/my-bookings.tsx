@@ -8,7 +8,8 @@ import {
   Filter,
   ChevronDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Check
 } from 'lucide-react';
 import { BookingDetailsModal } from '@/components/modal/BookingDetailModal';
 import { CancelBookingModal } from '@/components/modal/CancelBookingModal';
@@ -546,7 +547,12 @@ const BookingHistoryPage = () => {
           </>
         ) : (
           <>
-            <div className="flex-1 sm:w-full py-2 px-2.5 bg-gray-100 rounded-full text-[12px] sm:text-[14px] font-bold text-gray-600 flex items-center justify-center">
+            <div className={`flex-1 sm:w-full py-2 px-2.5 rounded-full text-[12px] sm:text-[14px] font-bold flex items-center justify-center ${
+              booking.status === 'completed' 
+                ? 'bg-white border border-green text-green' 
+                : 'bg-gray-100 text-gray-600'
+            }`}>
+              <Check className="w-[18px] h-[18px] mr-2 bg-green text-white rounded-sm p-0.5" />
               {booking.status === 'completed' ? 'Completed' : 
                booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
             </div>

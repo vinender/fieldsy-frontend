@@ -148,7 +148,8 @@ const MessagesPage = () => {
 
   // Auto-open or create conversation with specific user
   useEffect(() => {
-    if (queryUserId && conversations.length > 0) {
+    // Only process if not loading and we have the userId
+    if (queryUserId && !isLoading) {
       // Find conversation with this user
       const targetConversation = conversations.find(conv => 
         conv.participants.some(p => p.id === queryUserId)
@@ -158,14 +159,13 @@ const MessagesPage = () => {
         handleSelectConversation(targetConversation);
       } else {
         // If no existing conversation, create or initiate one
-        // This would require an API endpoint to create a conversation
         createConversationWithUser(queryUserId as string);
       }
       
       // Clear the query parameter after processing
       router.replace('/user/messages', undefined, { shallow: true });
     }
-  }, [queryUserId, conversations]);
+  }, [queryUserId, conversations, isLoading]);
 
   // Socket event listeners
   useEffect(() => {
@@ -375,22 +375,32 @@ const MessagesPage = () => {
 
     try {
       // Create or get existing conversation with this user
-      const response = await fetch('/api/chat/conversations/create', {
+      // The backend expects receiverId for creating a conversation
+      const response = await fetch('/api/chat/conversations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ receiverId: userId })
       });
 
       if (response.ok) {
         const data = await response.json();
-        // Reload conversations to include the new one
-        await loadConversations();
-        // Select the newly created conversation
-        if (data.conversation) {
-          handleSelectConversation(data.conversation);
+        // The conversation is returned directly with participants info
+        if (data) {
+          // Add to conversations list if not already there
+          setConversations(prev => {
+            const exists = prev.some(c => c.id === data.id);
+            if (!exists) {
+              return [data, ...prev];
+            }
+            return prev;
+          });
+          // Select the conversation
+          handleSelectConversation(data);
+          // Show mobile chat view
+          setShowMobileChat(true);
         }
       }
     } catch (error) {
