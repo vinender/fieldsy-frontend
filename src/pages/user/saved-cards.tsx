@@ -172,10 +172,26 @@ export default function SavedCards() {
         return;
       }
       
-      const response = await axiosClient.put(`/payment-methods/${card.id}/set-default`);
-      if (response.data.success) {
-        toast.success('Default card updated');
-        fetchPaymentMethods();
+      // Optimistic update - immediately update the UI
+      const previousCards = [...cards];
+      const updatedCards = cards.map(c => ({
+        ...c,
+        isDefault: c.stripePaymentMethodId === stripePaymentMethodId
+      }));
+      setCards(updatedCards);
+      
+      try {
+        const response = await axiosClient.put(`/payment-methods/${card.id}/set-default`);
+        if (response.data.success) {
+          toast.success('Default card updated');
+          // Optionally fetch to ensure sync with server
+          // fetchPaymentMethods();
+        }
+      } catch (error) {
+        // Revert on error
+        console.error('Error setting default card:', error);
+        toast.error('Failed to update default card');
+        setCards(previousCards);
       }
     } catch (error) {
       console.error('Error setting default card:', error);
@@ -198,17 +214,27 @@ export default function SavedCards() {
   const confirmDeleteCard = async () => {
     if (!cardToDelete) return;
     
+    // Close modal immediately for better UX
+    setShowDeleteModal(false);
+    
+    // Optimistic update - immediately remove from UI
+    const previousCards = [...cards];
+    const updatedCards = cards.filter(c => c.id !== cardToDelete.id);
+    setCards(updatedCards);
+    
     try {
       const response = await axiosClient.delete(`/payment-methods/${cardToDelete.id}`);
       if (response.data.success) {
         toast.success('Card deleted successfully');
-        fetchPaymentMethods();
-        setShowDeleteModal(false);
         setCardToDelete(null);
+        // Optionally fetch to ensure sync with server
+        // fetchPaymentMethods();
       }
     } catch (error) {
       console.error('Error deleting card:', error);
       toast.error('Failed to delete card');
+      // Revert on error
+      setCards(previousCards);
     }
   };
 
