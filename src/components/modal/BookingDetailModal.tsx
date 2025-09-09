@@ -8,7 +8,6 @@ import {
   Droplets,
   Home,
   Trash2,
-  MessageCircle,
   CheckCircle
 } from 'lucide-react';
 import { AddReviewModal } from './AddReviewModal';
@@ -20,10 +19,60 @@ interface BookingDetailsModalProps {
   booking: any;
   onReview?: () => void;
   onReviewAdded?: () => void;
+  onCancel?: (booking: any) => void;
+  onReschedule?: (booking: any) => void;
 }
 
-export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen, onClose, booking, onReview, onReviewAdded }) => {
+export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen, onClose, booking, onReview, onReviewAdded, onCancel, onReschedule }) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  
+  // Calculate if booking can be cancelled (24 hours before booking time)
+  const canCancelBooking = () => {
+    if (!booking || booking.status !== 'upcoming') return false;
+    
+    const now = new Date();
+    const bookingDateTime = new Date(booking.rawDate || booking.date);
+    
+    // Parse the start time and add it to the booking date
+    if (booking.startTime) {
+      const [time, period] = booking.startTime.split(/(?=[AP]M)/);
+      const [hours, minutes] = time.split(':').map(Number);
+      let hour = hours;
+      
+      if (period === 'PM' && hour !== 12) hour += 12;
+      if (period === 'AM' && hour === 12) hour = 0;
+      
+      bookingDateTime.setHours(hour, minutes || 0, 0, 0);
+    }
+    
+    // Calculate hours until booking
+    const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    
+    return hoursUntilBooking >= 24;
+  };
+  
+  const getTimeUntilBooking = () => {
+    if (!booking) return 0;
+    
+    const now = new Date();
+    const bookingDateTime = new Date(booking.rawDate || booking.date);
+    
+    if (booking.startTime) {
+      const [time, period] = booking.startTime.split(/(?=[AP]M)/);
+      const [hours, minutes] = time.split(':').map(Number);
+      let hour = hours;
+      
+      if (period === 'PM' && hour !== 12) hour += 12;
+      if (period === 'AM' && hour === 12) hour = 0;
+      
+      bookingDateTime.setHours(hour, minutes || 0, 0, 0);
+    }
+    
+    const hoursUntilBooking = Math.floor((bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60));
+    return hoursUntilBooking;
+  };
+  
+  const isCancellable = canCancelBooking();
 
   // Default images if not provided
   const defaultImages = [
@@ -71,7 +120,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
   const getStatusBadge = (status: string) => {
     const statusStyles: Record<string, string> = {
       completed: 'bg-green-100 text-green-700 border-green-200',
-      cancelled: 'bg-red-100 text-red-700 border-red-200',
+      cancelled: 'bg-blood-red-100 text-blood-red border-blood-red',
       refunded: 'bg-yellow-100 text-yellow-700 border-yellow-200',
       upcoming: 'bg-blue-100 text-blue-700 border-blue-200'
     };
@@ -235,18 +284,58 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ isOpen
               </div>
             </div>
 
-            {/* Action Button based on booking status */}
+            {/* Action Buttons based on booking status */}
             {bookingData.status === 'upcoming' ? (
-              <button 
-                onClick={() => {
-                  // Handle cancel booking
-                  console.log('Cancel booking');
-                  alert('Booking cancellation initiated');
-                }}
-                className="w-full h-14 bg-[#3a6b22] rounded-full text-white text-[16px] font-semibold hover:bg-[#2d5319] transition-colors"
-              >
-                Cancel Booking
-              </button>
+              <div className="space-y-3">
+                {/* Reschedule and Cancel buttons */}
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => {
+                      if (isCancellable && onReschedule) {
+                        onClose(); // Close the details modal first
+                        onReschedule(booking); // Then open the reschedule modal
+                      }
+                    }}
+                    disabled={!isCancellable}
+                    className={`flex-1 h-14 rounded-full text-[16px] font-semibold transition-colors ${
+                      isCancellable
+                        ? 'bg-[#e8f5ff] border-2 border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
+                        : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                    }`}
+                    title={!isCancellable ? `Cannot reschedule within 24 hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}
+                  >
+                    Reschedule Booking
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (isCancellable && onCancel) {
+                        onClose(); // Close the details modal first
+                        onCancel(booking); // Then open the cancel modal
+                      }
+                    }}
+                    disabled={!isCancellable}
+                    className={`flex-1 h-14 rounded-full text-[16px] font-semibold transition-colors ${
+                      isCancellable
+                        ? 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
+                        : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                    }`}
+                    title={!isCancellable ? `Cannot cancel within 24 hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}
+                  >
+                    Cancel Booking
+                  </button>
+                </div>
+                
+                {/* Warning message if within cancellation window */}
+                {!isCancellable && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm text-yellow-800 text-center">
+                      ⚠️ Cancellation and rescheduling are not available within 24 hours of your booking.
+                      <br />
+                      <span className="font-semibold">{getTimeUntilBooking()} hours remaining until booking.</span>
+                    </p>
+                  </div>
+                )}
+              </div>
             ) : bookingData.status === 'completed' ? (
               <button 
                 onClick={() => {

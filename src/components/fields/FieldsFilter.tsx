@@ -101,7 +101,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-[18px] font-semibold text-dark-green">Filters</h2>
           <div className="flex items-center gap-3">
-            <button onClick={handleReset} className="text-[14px] font-semibold text-[#e31c20]">Reset All</button>
+            <button onClick={handleReset} className="text-[14px] font-semibold text-blood-red">Reset All</button>
             {isOpen && (
               <button 
                 onClick={onClose}

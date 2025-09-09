@@ -134,7 +134,7 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
               className="w-5 h-5"
             />
           </div>
-          <span className="flex-1 text-left text-base font-medium text-[#e31c20]">Logout</span>
+          <span className="flex-1 text-left text-base font-medium text-blood-red">Logout</span>
         </button>
       </div>
     </div>

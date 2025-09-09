@@ -211,7 +211,7 @@ export default function AboutUs() {
               </button>
               <button className="relative w-10 h-10 sm:w-[52px] sm:h-[52px] rounded-full bg-[#F8F1D7] flex items-center justify-center">
                 <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-dark-green" />
-                <span className="absolute top-1 right-1 sm:top-2 sm:right-2 w-3 h-3 sm:w-4 sm:h-4 bg-[#e31c20] rounded-full text-white text-[8px] sm:text-[10px] flex items-center justify-center">
+                <span className="absolute top-1 right-1 sm:top-2 sm:right-2 w-3 h-3 sm:w-4 sm:h-4 bg-blood-red rounded-full text-white text-[8px] sm:text-[10px] flex items-center justify-center">
                   2
                 </span>
               </button>

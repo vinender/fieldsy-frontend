@@ -519,9 +519,9 @@ const BookingHistoryPage = () => {
               <button 
                 onClick={() => isCancellable ? handleCancelClick(booking) : null}
                 disabled={!isCancellable}
-                className={`flex-1 py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${
+                className={`flex-1 py-2 px-2 border-2 rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${
                   isCancellable
-                    ? 'bg-[#fffcf3] border-[#3a6b22] text-[#3a6b22] hover:bg-[#f8f1d7] cursor-pointer'
+                    ? 'bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer'
                     : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
                 }`}
                 title={!isCancellable ? `Cannot cancel within 24 hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}>
@@ -735,6 +735,8 @@ const BookingHistoryPage = () => {
           setSelectedBooking(null);
         }}
         booking={selectedBooking}
+        onCancel={handleCancelClick}
+        onReschedule={handleRescheduleClick}
       />
       
       {/* Cancel Booking Modal */}

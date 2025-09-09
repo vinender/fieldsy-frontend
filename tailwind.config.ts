@@ -36,7 +36,7 @@ const config: Config = {
         'green-light': '#8ad04d',    // Light green (card)
         'green-lighter': '#E8F5E1',  // Very light green
         'blue-dark': '#0A2533',      // Dark blue text
-        'red': '#e31c20',            // Red for errors/delete
+        'blood-red': '#e31c20',            // Red for errors/delete
           
         // Pastel backgrounds
         'bg-faq': '#FAF7F2',         // FAQ section background
