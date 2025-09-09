@@ -138,7 +138,7 @@ export function Header() {
                 alt='logo' 
                 width={500} 
                 height={500} 
-                src={`${!isLandingPage || scrolled || isFieldOwnerHomepage ? '/logo/logo-green.png' : '/logo/logo.png'}`} 
+                src={`${!isLandingPage || scrolled || isFieldOwnerHomepage ? '/logo/logo.svg' : '/logo/logo.svg'}`} 
                 className='object-contain w-[120px] sm:w-[140px] xl:w-[163px] h-[48px] sm:h-[56px] xl:h-[64px]' 
               />
             </Link>
@@ -337,7 +337,7 @@ export function Header() {
                 alt='logo' 
                 width={120} 
                 height={48} 
-                src='/logo/logo-green.png'
+                src='/logo/logo.svg'
                 className='object-contain' 
               />
               <button

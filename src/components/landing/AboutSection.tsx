@@ -5,7 +5,7 @@ export function AboutSection() {
       <div className="mx-auto w-full  ">
         {/* Headline */}
         <div className="text-center mb-8 sm:mb-12 xl:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-[48px] text-center xl:text-left max-w-[1075px] font-[700] text-dark-green leading-tight">
+          <h2 className="text-2xl sm:text-[32px] md:text-[42px] xl:text-[48px] text-center xl:text-left max-w-[1075px] font-[700] text-dark-green leading-[56px]">
             At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.
           </h2>
         </div>
@@ -24,7 +24,7 @@ export function AboutSection() {
             <p className="text-dark-green font-[600] text-sm sm:text-base xl:text-[18px] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 xl:mb-6">
               Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK—quickly and effortlessly.
             </p>
-            <p className="text-dark-green text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
+            <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
               Whether your pup is reactive, in training, or just loves wide-open spaces, we&apos;re here to make your walks safer, calmer, and more joyful.
             </p>
             
@@ -55,7 +55,7 @@ export function AboutSection() {
                 <h3 className="text-lg sm:text-xl xl:text-[24px] text-center leading-[26px] sm:leading-[28px] xl:leading-[30px] font-[600] text-dark-green mb-2 sm:mb-3">
                   Trusted by thousands of dog lovers
                 </h3>
-                <p className="text-sm sm:text-[18px] text-center leading-[30px] text-dark-green/80">
+                <p className="text-sm sm:text-[18px] text-center leading-[30px] text-dark-green/70">
                   Backed by real reviews, easy bookings, and growing across hundreds of secure fields.
                 </p>
               </div>

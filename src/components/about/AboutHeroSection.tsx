@@ -14,7 +14,7 @@ export function AboutHeroSection() {
               Walking Fields Near You
             </h1>
             
-            <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-8 sm:mb-10 leading-relaxed sm:leading-relaxed lg:leading-[30px] font-[400]">
+            <p className="text-sm sm:text-base lg:text-[18px] leading-[56px] text-dark-green/80 mb-8 sm:mb-10 leading-relaxed sm:leading-relaxed lg:leading-[30px] font-[400]">
               At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely. 
               Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you 
               find and book private dog walking fields across the UK—quickly and effortlessly.

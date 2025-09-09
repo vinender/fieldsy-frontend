@@ -37,7 +37,7 @@ export function LoginPromptModal({
             <div className="flex justify-center mb-4">
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
                 <Image 
-                  src="/logo/logo-green.png" 
+                  src="/logo/logo.svg" 
                   alt="Fieldsy" 
                   width={60} 
                   height={60} 

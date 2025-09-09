@@ -10,6 +10,7 @@ import { LoginPromptModal } from '@/components/modal/LoginPromptModal';
 import { useSession } from 'next-auth/react';
 import FieldMapWrapper from '@/components/common/FieldMapWrapper';
 import { useToggleFavorite, useFavoriteStatus } from '@/hooks/useFavorites';
+import BackButton from '@/components/common/BackButton';
 
 interface FieldDetailsLegacyProps {
   field: any;
@@ -109,6 +110,18 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
       <div className="max-w-[1920px] mx-auto">
         {headerContent && (
           <div className="px-4 lg:px-20 pb-2">{headerContent}</div>
+        )}
+
+        {/* Back Button with Claim Field label for unclaimed fields */}
+        {!isClaimed && !isPreview && (
+          <div className="px-4 lg:px-20 pb-4">
+            <BackButton 
+              label="Claim Field" 
+              showLabel={true}
+              variant="cream"
+              size="md"
+            />
+          </div>
         )}
 
         <main className="px-4 lg:px-20 py-8 lg:py-10">

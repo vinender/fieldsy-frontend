@@ -51,7 +51,7 @@ export function FieldCard({
   onClaimField,
   owner = "Owner",
   variant = 'compact',
-  showAmenityLimit = 2,
+  showAmenityLimit = 4,
   fieldLocation,
   latitude,
   longitude
@@ -194,7 +194,7 @@ export function FieldCard({
           </div>
 
           <div className="flex flex-wrap gap-1.5 mb-4">
-            {amenities.map((amenity, idx) => (
+            {amenities.slice(0, showAmenityLimit).map((amenity, idx) => (
               <span 
                 key={idx} 
                 className="bg-neutral-100 text-[11px] text-dark-green px-2 py-1 rounded-md leading-[16px]"
@@ -287,11 +287,6 @@ export function FieldCard({
               {getAmenityLabel(amenity)}
             </span>
           ))}
-          {amenities.length > showAmenityLimit && (
-            <span className="text-[9px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
-              +{amenities.length - showAmenityLimit} more
-            </span>
-          )}
         </div>
 
         <div className="flex gap-2">
