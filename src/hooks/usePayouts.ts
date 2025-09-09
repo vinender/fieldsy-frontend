@@ -55,11 +55,11 @@ export const useEarningsHistory = (params?: {
   status?: string;
   startDate?: string;
   endDate?: string;
-}) => {
+}, options?: any) => {
   const { data: session } = useSession();
   
   return useQuery<EarningsHistory>({
-    queryKey: ['earnings-history', params],
+    queryKey: options?.queryKey || ['earnings-history', params],
     queryFn: async () => {
       const token = (session as any)?.accessToken || 
                    (typeof window !== 'undefined' && localStorage.getItem('authToken'));
@@ -127,6 +127,7 @@ export const useEarningsHistory = (params?: {
       return data;
     },
     enabled: !!session || !!(typeof window !== 'undefined' && localStorage.getItem('authToken')),
+    ...options
   });
 };
 

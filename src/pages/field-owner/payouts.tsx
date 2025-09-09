@@ -35,6 +35,22 @@ const EarningsHistory: React.FC = () => {
     status: statusFilter || undefined
   });
 
+  // Get overall stats without filters for the count badges
+  const { 
+    data: overallStats
+  } = useEarningsHistory({
+    page: 1,
+    limit: 1000, // Get all to calculate stats
+    status: undefined
+  }, {
+    queryKey: ['earnings-history-stats'], // Different cache key
+    select: (data) => ({
+      completed: data?.transactions?.filter((t: any) => t.status === 'completed' || t.status === 'paid').length || 0,
+      canceled: data?.transactions?.filter((t: any) => t.status === 'canceled').length || 0,
+      failed: data?.transactions?.filter((t: any) => t.status === 'failed').length || 0,
+    })
+  });
+
   const { 
     data: summaryData, 
     isLoading: isLoadingSummary 
@@ -83,9 +99,9 @@ const EarningsHistory: React.FC = () => {
     switch (status) {
       case 'completed':
         return {
-          bg: 'bg-green-100',
-          border: 'border-green-200',
-          text: 'text-green-700',
+          bg: 'bg-light-green/10',
+          border: '',
+          text: 'text-green',
           label: 'Completed'
         };
       case 'refunded':
@@ -152,129 +168,92 @@ const EarningsHistory: React.FC = () => {
           
           {/* Total Earnings Card */}
           <div className="bg-[#f8f1d7] rounded-2xl p-5 sm:p-6 border border-black/5">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {/* Icon based on account status */}
-                <div className="flex-shrink-0">
-                  <img 
-                    src={
-                      accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled 
-                        ? '/connected.svg'
-                        : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
-                        ? '/wallet.svg'
-                        : '/bank.svg'
-                    }
-                    alt="Account status"
-                    className="w-12 h-12 sm:w-14 sm:h-14"
-                  />
-                </div>
-                <div className="space-y-2">
-                  {isLoadingSummary ? (
-                    <div className="h-10 bg-gray-200 rounded animate-pulse w-48"></div>
+               <div className="flex  lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    {/* Icon based on account status */}
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={
+                          accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled 
+                            ? '/connected.svg'
+                            : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
+                            ? '/wallet.svg'
+                            : '/bank.svg'
+                        }
+                        alt="Account status"
+                        className=" w-full h-full"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      {isLoadingSummary ? (
+                        <div className="h-10 bg-gray-200 rounded animate-pulse w-48"></div>
+                      ) : (
+                        <h2 className="text-2xl sm:text-3xl font-bold text-[#192215]">
+                          {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled 
+                            ? `Total Earnings ${formatCurrency(summaryData?.totalEarnings || 0)}`
+                            : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
+                            ? 'Account Unable to Receive Payments'
+                            : 'Connect your bank for payouts'}
+                        </h2>
+                      )}
+                      <p className="text-base sm:text-lg text-gray-500 max-w-2xl">
+                        {accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
+                          ? 'Your linked account is currently unable to accept customer payments.'
+                          : 'Link your bank account securely to receive payouts directly. Fast, safe, and hassle-free transfers every time you get paid.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Show different UI based on account connection status */}
+                  {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled ? (
+                    <div className="flex flex-col gap-2 items-start lg:items-end lg:self-center">
+                      <button 
+                        onClick={handleConnectBank}
+                        disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                        className="bg-green hover:bg-gray-700 transition-colors text-white font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Change Bank Account
+                      </button>
+                    </div>
+                  ) : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled ? (
+                    <div className="flex flex-col sm:flex-row gap-2 items-start lg:items-center lg:self-center">
+                      <button 
+                        onClick={handleConnectBank}
+                        disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                        className="bg-white hover:bg-green-50 transition-colors text-[#3a6b22] border border-[#3a6b22] font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Edit Account'}
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          try {
+                            setIsConnecting(true);
+                            // Create new Stripe Connect account
+                            await createAccount.mutateAsync();
+                            // Get onboarding link and redirect
+                            getOnboardingLink.mutate({});
+                          } catch (error) {
+                            console.error('Failed to create new account:', error);
+                            setIsConnecting(false);
+                          }
+                        }}
+                        disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                        className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Link New Account'}
+                      </button>
+                    </div>
                   ) : (
-                    <h2 className="text-2xl sm:text-3xl font-bold text-[#192215]">
-                      {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled 
-                        ? `Total Earnings ${formatCurrency(summaryData?.totalEarnings || 0)}`
-                        : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
-                        ? 'Account Unable to Receive Payments'
-                        : 'Connect your bank for payouts'}
-                    </h2>
+                    <button 
+                      onClick={handleConnectBank}
+                      disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                      className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-6 py-3.5 rounded-full whitespace-nowrap self-start lg:self-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Connecting...' : 'Connect Bank'}
+                    </button>
                   )}
-                  <p className="text-base sm:text-lg text-gray-500 max-w-2xl">
-                    {accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
-                      ? 'Your linked account is currently unable to accept customer payments.'
-                      : 'Link your bank account securely to receive payouts directly. Fast, safe, and hassle-free transfers every time you get paid.'}
-                  </p>
+            
                 </div>
-              </div>
-                {/* {!isLoadingSummary && summaryData && (
-                  <div className="flex gap-6 mt-3">
-                    {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && stripeBalance ? (
-                      <>
-                        <div>
-                          <p className="text-sm text-gray-600">Available Balance</p>
-                          <p className="text-lg font-semibold text-[#192215]">
-                            {formatCurrency(stripeBalance.data?.availableBalance || 0)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Pending Balance</p>
-                          <p className="text-lg font-semibold text-[#192215]">
-                            {formatCurrency(stripeBalance.data?.pendingBalance || 0)}
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div>
-                          <p className="text-sm text-gray-600">Pending Payouts</p>
-                          <p className="text-lg font-semibold text-[#192215]">
-                            {formatCurrency(summaryData.pendingPayouts)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Current Balance</p>
-                          <p className="text-lg font-semibold text-[#192215]">
-                            {formatCurrency(summaryData.currentBalance)}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )} */}
-              </div>
-              {/* Show different UI based on account connection status */}
-              {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled ? (
-                <div className="flex flex-col gap-2 items-start lg:items-end lg:self-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-green-700">Bank Connected</span>
-                  </div>
-                  <button 
-                    onClick={handleConnectBank}
-                    disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
-                    className="bg-gray-600 hover:bg-gray-700 transition-colors text-white font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Manage Account
-                  </button>
-                </div>
-              ) : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled ? (
-                <div className="flex flex-col sm:flex-row gap-2 items-start lg:items-center lg:self-center">
-                  <button 
-                    onClick={handleConnectBank}
-                    disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
-                    className="bg-white hover:bg-green-50 transition-colors text-[#3a6b22] border border-[#3a6b22] font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Edit Account'}
-                  </button>
-                  <button 
-                    onClick={async () => {
-                      try {
-                        setIsConnecting(true);
-                        // Create new Stripe Connect account
-                        await createAccount.mutateAsync();
-                        // Get onboarding link and redirect
-                        getOnboardingLink.mutate({});
-                      } catch (error) {
-                        console.error('Failed to create new account:', error);
-                        setIsConnecting(false);
-                      }
-                    }}
-                    disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
-                    className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Link New Account'}
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={handleConnectBank}
-                  disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
-                  className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-6 py-3.5 rounded-full whitespace-nowrap self-start lg:self-center disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Connecting...' : 'Connect Bank'}
-                </button>
-              )}
             </div>
           </div>
 
@@ -294,34 +273,34 @@ const EarningsHistory: React.FC = () => {
               All
             </button>
             <button
-              onClick={() => handleStatusFilter('COMPLETED')}
+              onClick={() => handleStatusFilter('paid')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                statusFilter === 'COMPLETED' 
+                statusFilter === 'paid' 
                   ? 'bg-cream text-green' 
                   : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
-              Completed ({earningsData?.stats?.completed || 0})
+              Completed ({overallStats?.completed || 0})
             </button>
             <button
-              onClick={() => handleStatusFilter('REFUNDED')}
+              onClick={() => handleStatusFilter('canceled')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                statusFilter === 'REFUNDED' 
+                statusFilter === 'canceled' 
                   ? 'bg-orange-600 text-white' 
                   : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
-              Refunded ({earningsData?.stats?.refunded || 0})
+              Canceled ({overallStats?.canceled || 0})
             </button>
             <button
-              onClick={() => handleStatusFilter('FAILED')}
+              onClick={() => handleStatusFilter('failed')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                statusFilter === 'FAILED' 
+                statusFilter === 'failed' 
                   ? 'bg-red-600 text-white' 
                   : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
-              Failed ({earningsData?.stats?.failed || 0})
+              Failed ({overallStats?.failed || 0})
             </button>
           </div>
         )}
@@ -354,7 +333,7 @@ const EarningsHistory: React.FC = () => {
                         <div className="space-y-2.5">
                           <div className="space-y-0.5">
                             <h3 className="text-lg font-bold text-[#192215]">
-                              Order ID - {transaction.orderId}
+                              Order ID - {transaction.id}
                             </h3>
                             <p className="text-sm sm:text-base font-medium text-[#192215]">
                               Payment ID - {transaction.paymentId.slice(0, 12)}...

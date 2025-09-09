@@ -13,6 +13,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext"
 import { SocketProvider } from "@/contexts/SocketContext"
 import { LocationProvider } from "@/contexts/LocationContext"
 import { ChatProvider } from "@/contexts/ChatContext"
+import { SessionMonitor } from "@/components/auth/SessionMonitor"
 import "@/styles/globals.css"
 import "@/lib/utils/suppress-dev-errors"
 
@@ -73,6 +74,7 @@ export default function App({
             <NotificationProvider>
               <SocketProvider>
                 <ChatProvider>
+                  <SessionMonitor />
                   <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
                     <div className="min-h-screen flex flex-col overflow-x-hidden">
                       {!hideLayout && <Header />}

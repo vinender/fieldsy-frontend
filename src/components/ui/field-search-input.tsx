@@ -5,6 +5,7 @@ import { MapPin, Search } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
+import { detectPostcodeInQuery, getPostcodeDisplay } from '@/utils/postcode';
 
 interface RecentSearch {
   id: string;
@@ -148,10 +149,11 @@ export function FieldSearchInput({
   const saveSearchToHistory = (query: string) => {
     if (!query.trim()) return;
 
+    const postcodeInfo = detectPostcodeInQuery(query);
     const newSearch: RecentSearch = {
       id: Date.now().toString(),
-      query: query.trim(),
-      type: /^\d{4,5}$/.test(query.trim()) ? 'postcode' : 'field',
+      query: postcodeInfo.formatted || query.trim(),
+      type: postcodeInfo.isPostcode ? 'postcode' : 'field',
       timestamp: Date.now()
     };
 
@@ -190,15 +192,18 @@ export function FieldSearchInput({
     const searchTerm = query || searchQuery;
     if (!searchTerm.trim()) return;
 
+    const postcodeInfo = detectPostcodeInQuery(searchTerm);
+    
     saveSearchToHistory(searchTerm);
     setShowDropdown(false);
     
     // Navigate to fields page with search parameters
     const searchParams = new URLSearchParams();
     
-    // Check if it's a postcode (4-5 digits)
-    if (/^\d{4,5}$/.test(searchTerm.trim())) {
-      searchParams.append('zipCode', searchTerm.trim());
+    // Check if it's a UK postcode
+    if (postcodeInfo.isPostcode) {
+      // Use formatted postcode for search
+      searchParams.append('zipCode', postcodeInfo.formatted || searchTerm.trim());
     } else {
       searchParams.append('search', searchTerm.trim());
     }
@@ -206,7 +211,7 @@ export function FieldSearchInput({
     router.push(`/fields?${searchParams.toString()}`);
     
     if (onSearch) {
-      onSearch(searchTerm);
+      onSearch(postcodeInfo.formatted || searchTerm);
     }
   };
 
@@ -330,7 +335,26 @@ export function FieldSearchInput({
           {!isLoadingSuggestions && searchQuery.trim().length >= 2 && suggestions.length === 0 && (
             <div className="px-5 py-8 text-center">
               <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-              <p className="text-[16px] text-dark-green/70">No fields found matching "{searchQuery}"</p>
+              {(() => {
+                const postcodeInfo = detectPostcodeInQuery(searchQuery);
+                if (postcodeInfo.isPostcode) {
+                  return (
+                    <>
+                      <p className="text-[16px] text-dark-green/70">
+                        No fields found in postcode "{getPostcodeDisplay(searchQuery)}"
+                      </p>
+                      {postcodeInfo.isPartial && (
+                        <p className="text-[14px] text-gray-500 mt-2">
+                          Try entering a full postcode (e.g., SW1A 1AA)
+                        </p>
+                      )}
+                    </>
+                  );
+                }
+                return (
+                  <p className="text-[16px] text-dark-green/70">No fields found matching "{searchQuery}"</p>
+                );
+              })()}
               <button
                 onClick={handleUseMyLocation}
                 className="mt-3 text-[14px] text-green hover:text-light-green font-semibold transition"
@@ -361,9 +385,11 @@ export function FieldSearchInput({
                         <img src="/location.svg" className="w-6 h-6 text-green" />
                       </div>
                       <div>
-                        <div className="text-[18px] font-semibold text-dark-green">{search.query}</div>
+                        <div className="text-[18px] font-semibold text-dark-green">
+                          {search.type === 'postcode' ? getPostcodeDisplay(search.query) : search.query}
+                        </div>
                         <div className="text-sm text-dark-green/70">
-                          {search.type === 'postcode' ? 'Postcode' : 'Field'} · Recent
+                          {search.type === 'postcode' ? 'UK Postcode' : 'Field Search'} · Recent
                         </div>
                       </div>
                     </div>
