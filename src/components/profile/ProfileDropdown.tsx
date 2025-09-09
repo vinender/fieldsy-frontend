@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   ChevronRight,
 } from "lucide-react"
 import Image from "next/image"
 import { getUserImage, getUserInitials } from "@/utils/getUserImage"
+import { LogoutConfirmationModal } from "@/components/modal/LogoutConfirmationModal"
 
 type ProfileDropdownProps = {
   user?: { name?: string | null; email?: string | null; image?: string | null; role?: string | null }
@@ -19,6 +20,7 @@ type ProfileDropdownProps = {
 
 export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: ProfileDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   // Handle click outside
   useEffect(() => {
@@ -120,8 +122,7 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
         {/* Logout Button */}
         <button
           onClick={() => {
-            onLogout?.()
-            onClose()
+            setShowLogoutModal(true)
           }}
           className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-red-50 transition-colors group"
         >
@@ -137,6 +138,17 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
           <span className="flex-1 text-left text-base font-medium text-blood-red">Logout</span>
         </button>
       </div>
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => {
+          setShowLogoutModal(false)
+          onClose()
+          onLogout?.()
+        }}
+      />
     </div>
   )
 }

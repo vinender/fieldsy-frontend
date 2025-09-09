@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, X } from "lucide-react"
 import NotificationsSidebar from "@/components/sidebar/NotificationsSidebar"
 import { ProfileDropdown } from "@/components/profile/ProfileDropdown"
+import { LogoutConfirmationModal } from "@/components/modal/LogoutConfirmationModal"
 import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
@@ -24,6 +25,7 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   
   // Check if we're on the landing page
   const isLandingPage = pathname === "/"
@@ -468,14 +470,7 @@ export function Header() {
                     <button
                       className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                       onClick={() => {
-                        setMobileMenuOpen(false)
-                        // Clear localStorage items
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('currentUser');
-                        localStorage.removeItem('pendingUserRole');
-                        sessionStorage.clear();
-                        // Sign out
-                        signOut({ callbackUrl: "/" })
+                        setShowLogoutModal(true)
                       }}
                     >
                       Sign Out
@@ -507,6 +502,23 @@ export function Header() {
           </div>
       </div>
       <NotificationsSidebar isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => {
+          setShowLogoutModal(false)
+          setMobileMenuOpen(false)
+          // Clear localStorage items
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('pendingUserRole');
+          sessionStorage.clear();
+          // Sign out
+          signOut({ callbackUrl: "/" })
+        }}
+      />
     </header>
   )
 }

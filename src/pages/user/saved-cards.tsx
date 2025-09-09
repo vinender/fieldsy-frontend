@@ -6,6 +6,7 @@ import axiosClient from '@/lib/api/axios-client';
 import { useRouter } from 'next/router';
 import { UserLayout } from '@/components/layout/UserLayout';
 import AddCardModal from '@/components/payment/AddCardModal';
+import { DeleteCardConfirmationModal } from '@/components/modal/DeleteCardConfirmationModal';
 import { Trash2 } from 'lucide-react';
 
 
@@ -137,6 +138,8 @@ export default function SavedCards() {
   const [loading, setLoading] = useState(true);
   const [savingCard, setSavingCard] = useState(false);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<any>(null);
 
   // Remove the form state as we'll use the modal instead
 
@@ -181,20 +184,27 @@ export default function SavedCards() {
   };
 
   const handleDeleteCard = async (stripePaymentMethodId) => {
-    if (!confirm('Are you sure you want to delete this card?')) return;
+    const card = cards.find(c => c.stripePaymentMethodId === stripePaymentMethodId);
+    if (!card) {
+      toast.error('Card not found');
+      return;
+    }
+    
+    // Show the delete confirmation modal
+    setCardToDelete(card);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteCard = async () => {
+    if (!cardToDelete) return;
     
     try {
-      // Find the card by stripePaymentMethodId to get the database ID
-      const card = cards.find(c => c.stripePaymentMethodId === stripePaymentMethodId);
-      if (!card) {
-        toast.error('Card not found');
-        return;
-      }
-      
-      const response = await axiosClient.delete(`/payment-methods/${card.id}`);
+      const response = await axiosClient.delete(`/payment-methods/${cardToDelete.id}`);
       if (response.data.success) {
         toast.success('Card deleted successfully');
         fetchPaymentMethods();
+        setShowDeleteModal(false);
+        setCardToDelete(null);
       }
     } catch (error) {
       console.error('Error deleting card:', error);
@@ -304,6 +314,18 @@ export default function SavedCards() {
       isOpen={showAddCardModal}
       onClose={() => setShowAddCardModal(false)}
       onSuccess={handleAddCardSuccess}
+    />
+    
+    {/* Delete Card Confirmation Modal */}
+    <DeleteCardConfirmationModal
+      isOpen={showDeleteModal}
+      onClose={() => {
+        setShowDeleteModal(false);
+        setCardToDelete(null);
+      }}
+      onConfirm={confirmDeleteCard}
+      cardLast4={cardToDelete?.last4}
+      cardBrand={cardToDelete?.brand}
     />
     </UserLayout>
   );
