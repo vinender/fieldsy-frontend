@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import axios from '@/lib/api/axios-client';
 import { formatCurrency, formatDate } from '@/utils/formatters';
+import { useEarningsSummary } from '@/hooks/usePayouts';
 
 interface EarningsData {
   totalEarnings: number;
@@ -37,6 +38,9 @@ export default function EarningsDashboard() {
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month' | 'year'>('month');
   const [showPayoutHistory, setShowPayoutHistory] = useState(false);
+  
+  // Use the same hook as payouts page for total earnings
+  const { data: summaryData } = useEarningsSummary('all');
 
   useEffect(() => {
     fetchEarningsData();
@@ -148,14 +152,16 @@ export default function EarningsDashboard() {
 
       {/* Main Earnings Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Earnings Card */}
+        {/* Total Earnings Card - Using same data as payouts page */}
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <DollarSign className="w-8 h-8 text-green-500" />
             <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Lifetime</span>
           </div>
-          <p className="text-2xl font-bold mb-1 text-gray-900">{formatCurrency(earnings.totalEarnings)}</p>
-          <p className="text-sm text-gray-600">Total Earnings</p>
+          <p className="text-2xl font-bold mb-1 text-gray-900">
+            {formatCurrency(summaryData?.totalEarnings || earnings?.totalEarnings || 0)}
+          </p>
+          <p className="text-sm text-gray-600">Total Earnings (Successful Payouts)</p>
         </div>
 
         {/* Completed Payouts Card */}

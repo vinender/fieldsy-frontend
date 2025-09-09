@@ -200,7 +200,7 @@ export function Header() {
                 >
                   <img src='/header/bell.svg' className={cn("h-6 w-6", textColor)} />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red rounded-full shadow-md">
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blood-red rounded-full shadow-md">
                       <span className="text-[11px] text-white font-bold">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>

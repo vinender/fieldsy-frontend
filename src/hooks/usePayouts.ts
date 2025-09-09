@@ -159,7 +159,20 @@ export const useEarningsSummary = (period: 'all' | 'week' | 'month' | 'year' = '
         throw new Error('Failed to fetch earnings summary');
       }
 
-      return response.json();
+      const data = await response.json();
+      
+      // Transform the backend response to match the expected format
+      if (data.success && data.data) {
+        return {
+          totalEarnings: data.data.totalEarnings || 0,
+          currentBalance: data.data.pendingPayouts || 0,
+          pendingPayouts: data.data.pendingPayouts || 0,
+          lastPayout: data.data.recentPayouts?.[0]?.createdAt || null,
+          monthlyEarnings: [] // You can implement this if needed
+        };
+      }
+      
+      return data;
     },
     enabled: !!session || !!(typeof window !== 'undefined' && localStorage.getItem('authToken')),
   });
