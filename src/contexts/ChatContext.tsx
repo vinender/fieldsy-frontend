@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
 import { useRouter } from 'next/router';
-import { toast } from 'sonner';
 
 interface ChatContextType {
   unreadMessagesCount: number;
@@ -94,26 +93,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         
         // Play notification sound
         playMessageSound();
-        
-        // Show toast notification
-        const senderName = message.sender?.name || 'Someone';
-        toast.success(
-          <div 
-            className="cursor-pointer"
-            onClick={() => {
-              // Navigate to messages page with conversation
-              router.push(`/user/messages?conversationId=${message.conversationId}`);
-            }}
-          >
-            <div className="font-semibold">{senderName}</div>
-            <div className="text-sm text-gray-600 line-clamp-2">{message.content}</div>
-          </div>,
-          {
-            duration: 5000,
-            position: 'top-right',
-            className: 'message-notification',
-          }
-        );
       }
     };
 

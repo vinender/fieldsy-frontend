@@ -5,7 +5,6 @@ import {
   Send, 
   MoreVertical,
   Circle,
-  Check,
   MessageCircle
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -30,6 +29,7 @@ interface User {
 
 interface Message {
   id: string;
+  conversationId: string;
   content: string;
   senderId: string;
   receiverId: string;
@@ -56,10 +56,13 @@ interface Conversation {
 const MessagesPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { conversationId: queryConversationId, userId: queryUserId } = router.query;
   const { socket, sendMessage, markAsRead, emitTyping } = useSocket();
   const { decrementUnreadCount } = useChat();
   
+  // Extract query params, accounting for router not being ready
+  // These are optional - only used when navigating with specific conversation/user
+  const queryConversationId = router.isReady ? router.query.conversationId as string : undefined;
+  const queryUserId = router.isReady ? router.query.userId as string : undefined;
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -84,7 +87,7 @@ const MessagesPage = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Get current user ID from session or localStorage
   const getCurrentUserId = () => {
@@ -104,6 +107,8 @@ const MessagesPage = () => {
   };
   
   const currentUserId = getCurrentUserId();
+  console.log('conversationId', queryConversationId);
+  console.log('userId', queryUserId);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -133,9 +138,9 @@ const MessagesPage = () => {
 
   // Auto-select conversation from query parameter
   useEffect(() => {
-    if (queryConversationId && conversations.length > 0) {
+    if (router.isReady && queryConversationId && conversations.length > 0) {
       const targetConversation = conversations.find(
-        conv => conv.id === queryConversationId || conv.id === queryConversationId
+        conv => conv.id === queryConversationId
       );
       
       if (targetConversation) {
@@ -144,12 +149,12 @@ const MessagesPage = () => {
         router.replace('/user/messages', undefined, { shallow: true });
       }
     }
-  }, [queryConversationId, conversations]);
+  }, [router.isReady, queryConversationId, conversations]);
 
   // Auto-open or create conversation with specific user
   useEffect(() => {
-    // Only process if not loading and we have the userId
-    if (queryUserId && !isLoading) {
+    // Only process if router is ready, not loading and we have the userId
+    if (router.isReady && queryUserId && !isLoading) {
       // Find conversation with this user
       const targetConversation = conversations.find(conv => 
         conv.participants.some(p => p.id === queryUserId)
@@ -159,73 +164,117 @@ const MessagesPage = () => {
         handleSelectConversation(targetConversation);
       } else {
         // If no existing conversation, create or initiate one
-        createConversationWithUser(queryUserId as string);
+        createConversationWithUser(queryUserId);
       }
       
       // Clear the query parameter after processing
       router.replace('/user/messages', undefined, { shallow: true });
     }
-  }, [queryUserId, conversations, isLoading]);
+  }, [router.isReady, queryUserId, conversations, isLoading]);
 
-  // Socket event listeners
+  // Socket event listeners - using useRef to maintain stable references
+  const selectedConversationRef = useRef(selectedConversation);
+  const messagesRef = useRef(messages);
+  const markAsReadRef = useRef(markAsRead);
+  const decrementUnreadCountRef = useRef(decrementUnreadCount);
+  
   useEffect(() => {
-    if (!socket || !selectedConversation) return;
+    selectedConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
+  
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+  
+  useEffect(() => {
+    markAsReadRef.current = markAsRead;
+  }, [markAsRead]);
+  
+  useEffect(() => {
+    decrementUnreadCountRef.current = decrementUnreadCount;
+  }, [decrementUnreadCount]);
+
+  useEffect(() => {
+    if (!socket) return;
 
     const handleNewMessage = (message: Message) => {
-      console.log('Received new message:', message);
-      console.log('Current conversation:', selectedConversation?.id);
-      console.log('Message conversation:', message.conversationId);
+      console.log('🔵 Received new message:', message);
+      console.log('🔵 Current user ID:', currentUserId);
+      console.log('🔵 Message sender ID:', message.senderId);
+      console.log('🔵 Message receiver ID:', message.receiverId);
+      console.log('🔵 Current conversation:', selectedConversationRef.current?.id);
+      console.log('🔵 Message conversation:', message.conversationId);
       
-      // Add message to current conversation if it belongs to it
-      if (selectedConversation && message.conversationId === selectedConversation.id) {
-        // Only add if it's not from us (to avoid duplicates)
-        if (message.senderId !== currentUserId) {
-          setMessages(prev => {
-            // Check if message already exists to avoid duplicates
-            const exists = prev.some(m => m.id === message.id);
-            if (exists) return prev;
-            return [...prev, message];
-          });
-          
-          // Track as new message for animation
-          setNewMessageIds(prev => new Set(prev).add(message.id));
-          
-          // Remove from new messages after animation
-          setTimeout(() => {
-            setNewMessageIds(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(message.id);
-              return newSet;
-            });
-          }, 500);
-          
-          // Mark as read if we're the receiver
-          if (message.receiverId === currentUserId) {
-            markAsRead([message.id]);
-            // Update the unread count in chat context
-            decrementUnreadCount(1);
-          }
-        }
+      // Skip if this is our own message (we already added it when sending)
+      if (message.senderId === currentUserId) {
+        console.log('🔵 Skipping own message to avoid duplication');
+        return;
       }
       
-      // Update conversation list to show latest message
-      loadConversations();
+      // Add message to current conversation if it belongs to it
+      if (selectedConversationRef.current && message.conversationId === selectedConversationRef.current.id) {
+        setMessages(prev => {
+          // Check if message already exists to avoid duplicates
+          const exists = prev.some(m => m.id === message.id);
+          if (exists) {
+            console.log('🔵 Message already exists, skipping');
+            return prev;
+          }
+          console.log('🔵 Adding new message to conversation');
+          return [...prev, message];
+        });
+        
+        // Track as new message for animation
+        setNewMessageIds(prev => new Set(prev).add(message.id));
+        
+        // Remove from new messages after animation
+        setTimeout(() => {
+          setNewMessageIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(message.id);
+            return newSet;
+          });
+        }, 500);
+        
+        // Mark as read if we're the receiver
+        if (message.receiverId === currentUserId) {
+          markAsReadRef.current([message.id]);
+          // Update the unread count in chat context
+          decrementUnreadCountRef.current(1);
+        }
+      } else {
+        // Message is for a different conversation, just update the conversation list
+        console.log('🔵 Message is for different conversation, updating list');
+        // Update conversation list to show latest message
+        loadConversations();
+      }
     };
 
     const handleUserTyping = ({ userId, isTyping: typing }: { userId: string; isTyping: boolean }) => {
-      if (userId === getOtherUser(selectedConversation)?.id) {
+      if (selectedConversationRef.current && userId === getOtherUser(selectedConversationRef.current)?.id) {
         setOtherUserTyping(typing);
       }
     };
 
+    console.log('🟢 Setting up socket listeners');
+    
+    // Listen for both new-message and new-message-notification events
     socket.on('new-message', handleNewMessage);
+    socket.on('new-message-notification', (data: any) => {
+      console.log('🔵 Received new-message-notification:', data);
+      if (data.message) {
+        handleNewMessage(data.message);
+      }
+    });
     socket.on('user-typing', handleUserTyping);
 
     return () => {
+      console.log('🔴 Cleaning up socket listeners');
       socket.off('new-message', handleNewMessage);
+      socket.off('new-message-notification');
       socket.off('user-typing', handleUserTyping);
     };
-  }, [socket, selectedConversation, session]);
+  }, [socket, currentUserId]); // Removed markAsRead and decrementUnreadCount from deps
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -413,7 +462,7 @@ const MessagesPage = () => {
     
     setIsDeleting(true);
     try {
-      const token = session?.accessToken || localStorage.getItem('authToken');
+      const token = (session as any)?.accessToken || localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:5001/api/chat/conversations/${selectedConversation.id}`, {
         method: 'DELETE',
         headers: {
@@ -472,7 +521,15 @@ const MessagesPage = () => {
       
       // Add the message to the UI immediately with animation
       if (newMessage) {
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => {
+          // Check if message already exists to avoid duplicates
+          const exists = prev.some(m => m.id === newMessage.id);
+          if (exists) {
+            console.log('⚠️ Message already exists, skipping duplicate');
+            return prev;
+          }
+          return [...prev, newMessage];
+        });
         
         // Track this as a new message for animation
         setNewMessageIds(prev => new Set(prev).add(newMessage.id));
@@ -492,6 +549,8 @@ const MessagesPage = () => {
             ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
             : conv
         ));
+        
+        // Don't call loadConversations here - it will be updated via socket
       }
     } catch (error: any) {
       // Check if it's a block error
@@ -898,7 +957,7 @@ const MessagesPage = () => {
                           setMessageInput(e.target.value);
                           handleTyping();
                         }}
-                        onKeyPress={(e) => {
+                        onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
                             handleSendMessage();

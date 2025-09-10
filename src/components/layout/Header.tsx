@@ -301,8 +301,8 @@ export function Header() {
               type="button"
               className={cn(
                 "inline-flex items-center justify-center rounded-md p-2 transition-colors",
-                !isLandingPage || scrolled 
-                  ? "text-gray-400 hover:bg-gray-100 hover:text-gray-500" 
+                !isLandingPage || scrolled || isFieldOwnerHomepage
+                  ? "text-gray-900 hover:bg-gray-100 hover:text-gray-700" 
                   : "text-white hover:bg-white/10"
               )}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
