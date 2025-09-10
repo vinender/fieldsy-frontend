@@ -51,9 +51,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   
+  // Only fetch notifications if user is authenticated
+  const isAuthenticated = !!session || !!authUser;
+  
   // Use React Query hooks for notifications
-  const { data: notificationData, isLoading, refetch: refetchNotifications } = useNotificationQuery();
-  const { data: unreadData } = useUnreadNotificationsCount();
+  const { data: notificationData, isLoading, refetch: refetchNotifications } = useNotificationQuery(1, 10, {
+    enabled: isAuthenticated,
+  });
+  const { data: unreadData } = useUnreadNotificationsCount({
+    enabled: isAuthenticated,
+  });
   console.log('notificationData',notificationData)
   // Mutations
   const markNotificationAsReadMutation = useMarkNotificationAsRead();
