@@ -67,6 +67,7 @@ export function useBookingDetails(
     queryKey: bookingQueryKeys.bookingDetails(bookingId),
     queryFn: async () => {
       const response = await axiosClient.get(`/bookings/${bookingId}`);
+      console.log(' fullBooking response', response.data);
       return response.data;
     },
     enabled: !!bookingId,
@@ -75,7 +76,7 @@ export function useBookingDetails(
   });
 
   return {
-    data: query.data?.booking,
+    data: query.data,
     loading: query.isLoading,
     isLoading: query.isLoading,
     error: query.error,

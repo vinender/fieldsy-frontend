@@ -42,10 +42,18 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   const [succeeded, setSucceeded] = useState(false);
   const [bookingId, setBookingId] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
 
   useEffect(() => {
+    // Prevent duplicate payment attempts
+    if (paymentInitiated) {
+      return;
+    }
+    
     // Create PaymentIntent with saved card
     const createPaymentIntent = async () => {
+      // Mark payment as initiated to prevent duplicate calls
+      setPaymentInitiated(true);
       try {
         const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {

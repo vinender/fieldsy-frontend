@@ -211,35 +211,35 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                 }
                 input[type="range"]::-webkit-slider-track {
                   background: #e0e0e0;
-                  border-radius: 0.5rem;
-                  height: 0.5rem;
+                  border-radius: 0.25rem;
+                  height: 0.25rem;
                 }
                 input[type="range"]::-webkit-slider-thumb {
                   -webkit-appearance: none;
                   appearance: none;
-                  background: #8FB366;
+                  background: #3A6B22;
                   border-radius: 50%;
                   border: 0;
-                  height: 1.5rem;
-                  width: 1.5rem;
-                  margin-top: -0.5rem;
+                  height: 1rem;
+                  width: 1rem;
+                  margin-top: -0.375rem;
                 }
                 input[type="range"]::-moz-range-track {
                   background: #e0e0e0;
-                  border-radius: 0.5rem;
-                  height: 0.5rem;
+                  border-radius: 0.25rem;
+                  height: 0.25rem;
                 }
                 input[type="range"]::-moz-range-thumb {
-                  background: #8FB366;
+                  background: #3A6B22;
                   border-radius: 50%;
                   border: 0;
-                  height: 1.5rem;
-                  width: 1.5rem;
+                  height: 1rem;
+                  width: 1rem;
                 }
                 input[type="range"]::-moz-range-progress {
-                  background: #8FB366;
-                  border-radius: 0.5rem;
-                  height: 0.5rem;
+                  background: #3A6B22;
+                  border-radius: 0.25rem;
+                  height: 0.25rem;
                 }
               `}</style>
               <div className="space-y-3">
@@ -318,35 +318,35 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                 }
                 input[type="range"]::-webkit-slider-track {
                   background: #e0e0e0;
-                  border-radius: 0.5rem;
-                  height: 0.5rem;
+                  border-radius: 0.25rem;
+                  height: 0.25rem;
                 }
                 input[type="range"]::-webkit-slider-thumb {
                   -webkit-appearance: none;
                   appearance: none;
-                  background: #8FB366;
+                  background: #3A6B22;
                   border-radius: 50%;
                   border: 0;
-                  height: 1.5rem;
-                  width: 1.5rem;
-                  margin-top: -0.5rem;
+                  height: 1rem;
+                  width: 1rem;
+                  margin-top: -0.375rem;
                 }
                 input[type="range"]::-moz-range-track {
                   background: #e0e0e0;
-                  border-radius: 0.5rem;
-                  height: 0.5rem;
+                  border-radius: 0.25rem;
+                  height: 0.25rem;
                 }
                 input[type="range"]::-moz-range-thumb {
-                  background: #8FB366;
+                  background: #3A6B22;
                   border-radius: 50%;
                   border: 0;
-                  height: 1.5rem;
-                  width: 1.5rem;
+                  height: 1rem;
+                  width: 1rem;
                 }
                 input[type="range"]::-moz-range-progress {
-                  background: #8FB366;
-                  border-radius: 0.5rem;
-                  height: 0.5rem;
+                  background: #3A6B22;
+                  border-radius: 0.25rem;
+                  height: 0.25rem;
                 }
               `}</style>
               <div className="space-y-3">

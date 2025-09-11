@@ -130,3 +130,21 @@ export const amenityLabels: Record<string, string> = {
 export function getAmenityLabel(amenity: string): string {
   return amenityLabels[amenity] || formatAmenity(amenity);
 }
+
+/**
+ * Deslugify a string - convert from slug format to readable text
+ * e.g., "soft-sand" -> "Soft Sand"
+ * e.g., "artificial-grass" -> "Artificial Grass"
+ * e.g., "wooden-mesh" -> "Wooden Mesh"
+ */
+export function deslugify(text: string): string {
+  if (!text) return '';
+  
+  return text
+    // Replace hyphens and underscores with spaces
+    .replace(/[-_]/g, ' ')
+    // Capitalize first letter of each word
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    // Trim any extra spaces
+    .trim();
+}

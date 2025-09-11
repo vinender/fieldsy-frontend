@@ -135,10 +135,12 @@ export default function HomePage() {
       {/* Hero Section - Always loaded immediately as it's above the fold */}
       <HeroSection />
 
-      {/* About Section - Lazy loaded */}
+      {/* About Section - Lazy loaded with fade animation */}
       <LazySection 
         minHeight="500px"
-        rootMargin="200px"
+        rootMargin="50px"
+        animation="slideUp"
+        delay={0}
         fallback={
           <div className="py-20 bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-20">
@@ -155,10 +157,12 @@ export default function HomePage() {
         <AboutSection />
       </LazySection>
 
-      {/* How It Works Section - Lazy loaded */}
+      {/* How It Works Section - Lazy loaded with scale animation */}
       <LazySection 
         minHeight="400px"
-        rootMargin="200px"
+        rootMargin="50px"
+        animation="scaleIn"
+        delay={100}
         fallback={
           <div className="py-20 bg-light-cream">
             <div className="container mx-auto px-4 sm:px-6 lg:px-20">
@@ -175,10 +179,12 @@ export default function HomePage() {
         <HowItWorksSection />
       </LazySection>
 
-      {/* Features Section - Lazy loaded */}
+      {/* Features Section - Lazy loaded with slide animation */}
       <LazySection 
         minHeight="500px"
-        rootMargin="200px"
+        rootMargin="50px"
+        animation="slideUp"
+        delay={100}
         fallback={
           <div className="py-20 bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-20">
@@ -196,10 +202,12 @@ export default function HomePage() {
         <FeaturesSection />
       </LazySection>
 
-      {/* Platform Section - Lazy loaded */}
+      {/* Platform Section - Lazy loaded with fade animation */}
       <LazySection 
         minHeight="500px"
-        rootMargin="200px"
+        rootMargin="50px"
+        animation="fade"
+        delay={100}
         fallback={
           <div className="py-20 bg-light-cream">
             <div className="container mx-auto px-4 sm:px-6 lg:px-20">
@@ -215,11 +223,13 @@ export default function HomePage() {
         <PlatformSection />
       </LazySection>
 
-      {/* Testimonials Section - Lazy loaded */}
+      {/* Testimonials Section - Lazy loaded with scale animation */}
       <div id="testimonials">
         <LazySection 
           minHeight="400px"
-          rootMargin="200px"
+          rootMargin="50px"
+          animation="scaleIn"
+          delay={100}
           fallback={
             <div className="py-20 bg-white">
               <div className="container mx-auto px-4 sm:px-6 lg:px-20">
@@ -237,10 +247,12 @@ export default function HomePage() {
         </LazySection>
       </div>
 
-      {/* FAQ Section - Lazy loaded */}
+      {/* FAQ Section - Lazy loaded with slide up animation */}
       <LazySection 
         minHeight="500px"
-        rootMargin="200px"
+        rootMargin="50px"
+        animation="slideUp"
+        delay={100}
         fallback={
           <div className="py-20 bg-light-cream">
             <div className="container mx-auto px-4 sm:px-6 lg:px-20">

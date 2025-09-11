@@ -172,32 +172,32 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
         >
-          <X className="w-5 h-5 text-gray-500" />
+          <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
         </button>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold text-[#192215] mb-4">Cancel Booking</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-[#192215] mb-3 sm:mb-4 pr-8">Cancel Booking</h2>
 
         {/* Booking Details */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <h3 className="font-semibold text-[#192215] mb-2">{booking.name}</h3>
-          <div className="space-y-1 text-sm text-gray-600">
+        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+          <h3 className="font-semibold text-sm sm:text-base text-[#192215] mb-2">{booking.name}</h3>
+          <div className="space-y-1 text-xs sm:text-sm text-gray-600">
             <p>Date: {booking.date}</p>
             <p>Time: {booking.time}</p>
             <p>Amount: {booking.currency}{booking.price}</p>
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <h3 className="font-semibold text-[#192215] mb-2">Booked On</h3>
-          <div className="space-y-1 text-sm text-gray-600">
+        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+          <h3 className="font-semibold text-sm sm:text-base text-[#192215] mb-2">Booked On</h3>
+          <div className="space-y-1 text-xs sm:text-sm text-gray-600">
             <p>Date: {booking.createdAt.split('T')[0]}</p>
           
           </div>
@@ -205,28 +205,28 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
 
         {/* Refund Eligibility Status */}
         {checkingEligibility ? (
-          <div className="flex items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3a6b22]"></div>
+          <div className="flex items-center justify-center py-3 sm:py-4">
+            <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-[#3a6b22]"></div>
           </div>
         ) : (
-          <div className={`rounded-xl p-4 mb-4 ${
+          <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${
             isRefundEligible 
               ? 'bg-green-50 border border-green-200' 
               : 'bg-yellow-50 border border-yellow-200'
           }`}>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-2 sm:gap-3">
               {isRefundEligible ? (
-                <CheckCircle className="w-5 h-5 text-green mt-0.5" />
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green mt-0.5 flex-shrink-0" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
               )}
-              <div className="flex-1">
-                <h4 className={`font-semibold mb-1 ${
+              <div className="flex-1 min-w-0">
+                <h4 className={`font-semibold text-sm sm:text-base mb-1 ${
                   isRefundEligible ? 'text-green' : 'text-yellow-900'
                 }`}>
                   {isRefundEligible ? 'Eligible for Refund' : 'Not Eligible for Refund'}
                 </h4>
-                <p className={`text-sm ${
+                <p className={`text-xs sm:text-sm ${
                   isRefundEligible ? 'text-green' : 'text-yellow-700'
                 }`}>
                   {refundMessage}
@@ -237,47 +237,47 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         )}
 
         {/* Cancellation Reason */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-[#192215] mb-2">
+        <div className="mb-4 sm:mb-6">
+          <label className="block text-xs sm:text-sm font-medium text-[#192215] mb-1.5 sm:mb-2">
             Reason for cancellation (optional)
           </label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Tell us why you're cancelling..."
-            className="w-full px-4 py-3 bg-white text-[#192215] border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[#3a6b22] focus:border-transparent"
+            className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-white text-sm sm:text-base text-[#192215] border border-gray-200 rounded-lg sm:rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[#3a6b22] focus:border-transparent"
             rows={3}
           />
         </div>
 
         {/* Warning Message */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-6">
-          <p className="text-sm text-red-700">
+        <div className="bg-red-50 border border-red-200 rounded-lg sm:rounded-xl p-2.5 sm:p-3 mb-4 sm:mb-6">
+          <p className="text-xs sm:text-sm text-red-700">
             <strong>Warning:</strong> This action cannot be undone. Once cancelled, you'll need to make a new booking if you change your mind.
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 py-3 px-4 bg-[#3a6b22] text-white rounded-full font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50"
+            className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 bg-[#3a6b22] text-white text-sm sm:text-base rounded-full font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50"
           >
             Keep Booking
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading || checkingEligibility}
-            className="flex-1 py-3 px-4 bg-white border-2 border-red-600 text-red-600 rounded-full font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 bg-white border-2 border-red-600 text-red-600 text-sm sm:text-base rounded-full font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Cancelling...' : 'Cancel Booking'}
           </button>
         </div>
 
         {/* 24-Hour Policy Note */}
-        <div className="mt-4 flex items-start gap-2 text-xs text-gray-500">
-          <Clock className="w-4 h-4 mt-0.5" />
+        <div className="mt-3 sm:mt-4 flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-gray-500">
+          <Clock className="w-3 h-3 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
           <p>
             Our 24-hour advance booking policy: Only bookings made at least 24 hours in advance are eligible for refunds upon cancellation. 
             If you book less than 24 hours before your scheduled time, the booking is non-refundable.

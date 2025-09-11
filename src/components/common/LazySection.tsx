@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -9,6 +9,8 @@ interface LazySectionProps {
   threshold?: number;
   className?: string;
   minHeight?: string;
+  animation?: 'fade' | 'slide' | 'scale' | 'slideUp' | 'slideDown';
+  delay?: number;
 }
 
 export function LazySection({
@@ -18,6 +20,8 @@ export function LazySection({
   threshold = 0,
   className = '',
   minHeight = '400px',
+  animation = 'fade',
+  delay = 0,
 }: LazySectionProps) {
   const [ref, entry] = useIntersectionObserver({
     threshold,
@@ -25,10 +29,41 @@ export function LazySection({
     freezeOnceVisible: true,
   });
 
+  const [hasAnimated, setHasAnimated] = useState(false);
   const isVisible = entry?.isIntersecting;
 
+  useEffect(() => {
+    if (isVisible && !hasAnimated) {
+      const timer = setTimeout(() => {
+        setHasAnimated(true);
+      }, delay);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, hasAnimated, delay]);
+
+  // Animation classes based on the animation prop
+  const getAnimationClass = () => {
+    if (!isVisible) return 'opacity-0';
+    if (!hasAnimated) return 'opacity-0';
+    
+    switch (animation) {
+      case 'fade':
+        return 'animate-fadeIn';
+      case 'slide':
+        return 'animate-slideIn';
+      case 'scale':
+        return 'animate-scaleIn';
+      case 'slideUp':
+        return 'animate-slideUp';
+      case 'slideDown':
+        return 'animate-slideDown';
+      default:
+        return 'animate-fadeIn';
+    }
+  };
+
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={`${className} transition-all duration-700 ease-out ${isVisible ? getAnimationClass() : ''}`}>
       {isVisible ? (
         children
       ) : (
