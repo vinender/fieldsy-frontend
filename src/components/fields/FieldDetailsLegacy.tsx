@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import FieldMapWrapper from '@/components/common/FieldMapWrapper';
 import { useToggleFavorite, useFavoriteStatus } from '@/hooks/useFavorites';
 import BackButton from '@/components/common/BackButton';
+import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 
 interface FieldDetailsLegacyProps {
   field: any;
@@ -87,12 +88,6 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
     'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop'
   ];
 
-  const amenityIconPaths: Record<string, string> = {
-    'Secure fencing': '/field-details/fence.svg',
-    'Water Access': '/field-details/drop.svg',
-    'Shelter': '/field-details/home.svg',
-    'Waste Disposal': '/field-details/bin.svg',
-  };
 
   const communityRules = [
     'Dogs must be leashed when entering and exiting the park',
@@ -203,15 +198,25 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
 
             <div className="flex flex-wrap gap-2 overflow-x-auto no-scrollbar pb-2">
               {(field?.amenities || []).map((amenity: string, index: number) => {
-                const iconPath = amenityIconPaths[amenity];
+                // Convert amenity to slug format for lookup
+                const amenitySlug = amenity.toLowerCase().replace(/\s+/g, '-');
+                const iconPath = getAmenityIcon(amenitySlug);
+                const label = getAmenityLabel(amenitySlug);
+                
                 return (
                   <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
-                    {iconPath ? (
-                      <img src={iconPath} alt={amenity} className="w-4 h-4 mr-2" />
-                    ) : (
-                      <Shield className="w-4 h-4 text-[#3A6B22] mr-2" />
-                    )}
-                    <span className="text-sm text-dark-green">{amenity}</span>
+                    <img 
+                      src={iconPath} 
+                      alt={label} 
+                      className="w-4 h-4 mr-2"
+                      onError={(e) => {
+                        // Fallback to Shield icon if image fails to load
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    <Shield className="w-4 h-4 text-[#3A6B22] mr-2 hidden" />
+                    <span className="text-sm text-dark-green">{label}</span>
                   </div>
                 );
               })}

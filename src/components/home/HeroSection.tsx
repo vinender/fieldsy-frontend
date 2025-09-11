@@ -5,6 +5,8 @@ import { Search, MapPin, Calendar, Star, Shield } from "lucide-react"
 import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
 
 export function HeroSection() {
+
+  return'hero section';
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Image/Pattern */}

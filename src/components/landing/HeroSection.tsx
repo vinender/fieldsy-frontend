@@ -1,15 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FieldSearchInput } from '@/components/ui/field-search-input';
 import Image from 'next/image';
 
 export function HeroSection() {
+  const [highResLoaded, setHighResLoaded] = useState(false);
+
+  useEffect(() => {
+    // Preload the high-resolution image
+    const img = new window.Image();
+    img.src = '/green-field-high-res.png';
+    img.onload = () => {
+      // Add a small delay to ensure smooth transition
+      setTimeout(() => {
+        setHighResLoaded(true);
+      }, 100);
+    };
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-gray-100">
-      {/* Background Image */}
+      {/* Low-res Background Image (loads immediately) */}
       <div 
-        className="absolute inset-0 z-0"
+        className={`absolute inset-0 z-0 transition-opacity duration-500 ${highResLoaded ? 'opacity-0' : 'opacity-100'}`}
         style={{
           backgroundImage: `url('/green-field.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Overlay for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
+      </div>
+
+      {/* High-res Background Image (fades in when loaded) */}
+      <div 
+        className={`absolute inset-0 z-0 transition-opacity duration-700 ${highResLoaded ? 'opacity-100' : 'opacity-0'}`}
+        style={{
+          backgroundImage: `url('/green-field-high-res.png')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'

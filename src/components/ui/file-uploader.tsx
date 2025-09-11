@@ -49,8 +49,58 @@ export interface FileUploaderProps {
   onRemove?: (file: UploadedFile) => void;
 }
 
-const DEFAULT_ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+const DEFAULT_ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
 const DEFAULT_MAX_SIZE = 10; // MB
+
+// Convert image file to WebP format
+const convertToWebP = async (file: File): Promise<File> => {
+  // Only convert image files, not PDFs or other documents
+  if (!file.type.startsWith('image/')) {
+    return file;
+  }
+  
+  // Skip if already WebP
+  if (file.type === 'image/webp') {
+    return file;
+  }
+  
+  return new Promise((resolve, reject) => {
+    const img = new window.Image()
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx?.drawImage(img, 0, 0)
+      
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            // Create new file with .webp extension
+            const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp')
+            const webpFile = new File([blob], webpFileName, { type: 'image/webp' })
+            resolve(webpFile)
+          } else {
+            reject(new Error('Failed to convert image to WebP'))
+          }
+        },
+        'image/webp',
+        0.85 // Quality: 85%
+      )
+    }
+    
+    img.onerror = () => reject(new Error('Failed to load image'))
+    
+    // Read the file as data URL
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      img.src = e.target?.result as string
+    }
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+}
 
 export function FileUploader({
   value,
@@ -146,25 +196,28 @@ export function FileUploader({
   };
 
   const uploadFile = async (file: File) => {
-    const tempFile: UploadedFile = {
-      id: `${Date.now()}-${Math.random()}`,
-      name: file.name,
-      size: formatFileSize(file.size),
-      uploaded: false,
-      progress: 0,
-      file,
-    };
-
-    // Add file to list with initial state
-    setUploadedFiles(prev => [...prev, tempFile]);
-    const fileIndex = uploadedFiles.length;
-
     try {
+      // Convert image files to WebP format
+      const fileToUpload = await convertToWebP(file);
+      
+      const tempFile: UploadedFile = {
+        id: `${Date.now()}-${Math.random()}`,
+        name: fileToUpload.name,
+        size: formatFileSize(fileToUpload.size),
+        uploaded: false,
+        progress: 0,
+        file: fileToUpload,
+      };
+
+      // Add file to list with initial state
+      setUploadedFiles(prev => [...prev, tempFile]);
+      const fileIndex = uploadedFiles.length;
+
       setIsUploading(true);
-      onUploadStart?.(file);
+      onUploadStart?.(fileToUpload);
       
       const fileUrl = await s3Uploader.uploadFile({
-        file,
+        file: fileToUpload,
         onProgress: (progress: UploadProgress) => {
           setUploadedFiles(prev => 
             prev.map((f, i) => 
@@ -197,17 +250,23 @@ export function FileUploader({
         }
       }
       
-      onUploadComplete?.(fileUrl, file);
+      onUploadComplete?.(fileUrl, fileToUpload);
     } catch (error) {
       // Update file with error status
       const errorMessage = error instanceof Error ? error.message : 'Upload failed';
-      setUploadedFiles(prev => 
-        prev.map((f, i) => 
-          i === fileIndex 
-            ? { ...f, error: errorMessage, uploaded: false }
-            : f
-        )
-      );
+      
+      // Only update if file was added to list
+      if (uploadedFiles.length > 0) {
+        const fileIndex = uploadedFiles.length - 1;
+        setUploadedFiles(prev => 
+          prev.map((f, i) => 
+            i === fileIndex 
+              ? { ...f, error: errorMessage, uploaded: false }
+              : f
+          )
+        );
+      }
+      
       onUploadError?.(errorMessage, file);
       console.error('Upload error:', error);
     } finally {

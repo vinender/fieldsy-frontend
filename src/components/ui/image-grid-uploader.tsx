@@ -9,10 +9,10 @@ export function DocumentUploader(props: Partial<FileUploaderProps>) {
       multiple={true}
       maxFiles={5}
       maxSize={10}
-      acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+      acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']}
       uploadText="Upload Documents"
       dropzoneText="Drag and drop here or"
-      supportedFormatsText="Supported format: png, jpg, pdf (Max 10MB)"
+      supportedFormatsText="Supported format: png, jpg, pdf (Max 10MB) - Images will be converted to WebP"
       returnUrls={true}
       showFileList={true}
       {...props}

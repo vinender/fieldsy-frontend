@@ -55,6 +55,46 @@ export interface ImageUploaderProps {
 const DEFAULT_ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
 const DEFAULT_MAX_SIZE = 10 // MB
 
+// Convert image file to WebP format
+const convertToWebP = async (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image()
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx?.drawImage(img, 0, 0)
+      
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            // Create new file with .webp extension
+            const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp')
+            const webpFile = new File([blob], webpFileName, { type: 'image/webp' })
+            resolve(webpFile)
+          } else {
+            reject(new Error('Failed to convert image to WebP'))
+          }
+        },
+        'image/webp',
+        0.85 // Quality: 85%
+      )
+    }
+    
+    img.onerror = () => reject(new Error('Failed to load image'))
+    
+    // Read the file as data URL
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      img.src = e.target?.result as string
+    }
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export function ImageUploader({
   value,
   onChange,
@@ -199,37 +239,58 @@ export function ImageUploader({
         continue
       }
 
-      const reader = new FileReader()
-      const imageId = `${Date.now()}-${Math.random()}`
-      
-      reader.onload = (e) => {
-        const newImage: UploadedImage = {
-          id: imageId,
-          name: file.name,
-          size: `${(file.size / (1024 * 1024)).toFixed(2)}MB`,
-          preview: e.target?.result as string,
-          file: file,
-          uploaded: false,
-          progress: undefined, // Start with undefined to ensure it shows 0 initially
+      try {
+        // Convert to WebP format
+        const webpFile = await convertToWebP(file)
+        
+        const reader = new FileReader()
+        const imageId = `${Date.now()}-${Math.random()}`
+        
+        reader.onload = (e) => {
+          const newImage: UploadedImage = {
+            id: imageId,
+            name: webpFile.name,
+            size: `${(webpFile.size / (1024 * 1024)).toFixed(2)}MB`,
+            preview: e.target?.result as string,
+            file: webpFile,
+            uploaded: false,
+            progress: undefined, // Start with undefined to ensure it shows 0 initially
+          }
+          
+          newImages.push(newImage)
+          processedCount++
+          
+          if (processedCount === files.slice(0, availableSlots).length) {
+            const updatedImages = multiple ? [...images, ...newImages] : newImages
+            setImages(updatedImages)
+            
+            if (autoUpload) {
+              // Stagger uploads for better UX with slight delay
+              newImages.forEach((img, index) => {
+                setTimeout(() => uploadImage(img, updatedImages), index * 150 + 50)
+              })
+            }
+          }
         }
         
-        newImages.push(newImage)
+        reader.readAsDataURL(webpFile)
+      } catch (conversionError) {
+        console.error(`Failed to convert ${file.name} to WebP:`, conversionError)
+        toast.error(`Failed to process ${file.name}`)
         processedCount++
         
-        if (processedCount === files.slice(0, availableSlots).length) {
+        // Check if we've processed all files even with errors
+        if (processedCount === files.slice(0, availableSlots).length && newImages.length > 0) {
           const updatedImages = multiple ? [...images, ...newImages] : newImages
           setImages(updatedImages)
           
           if (autoUpload) {
-            // Stagger uploads for better UX with slight delay
             newImages.forEach((img, index) => {
               setTimeout(() => uploadImage(img, updatedImages), index * 150 + 50)
             })
           }
         }
       }
-      
-      reader.readAsDataURL(file)
     }
   }
 
