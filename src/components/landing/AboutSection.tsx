@@ -5,7 +5,7 @@ export function AboutSection() {
       <div className="mx-auto w-full  ">
         {/* Headline */}
         <div className="text-center mb-8 sm:mb-12 xl:mb-16">
-          <h2 className="text-2xl sm:text-[32px] md:text-[42px] xl:text-[48px] text-center xl:text-left max-w-[1075px] font-[700] text-dark-green leading-[56px]">
+          <h2 className="text-2xl sm:text-[32px] md:text-[42px] xl:text-[48px] text-center xl:text-left max-w-[1075px] font-[700] text-dark-green leading-[40px] md:leading-[50px] xl:leading-[56px]">
             At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.
           </h2>
         </div>

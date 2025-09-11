@@ -44,7 +44,7 @@ const navigation = [
   ...baseItems,
   ...(localStorage.getItem('role') === 'admin' ? adminItems : [])
 ];
-```
+``` 
 
 **Good:**
 ```tsx
@@ -151,3 +151,4 @@ Before committing code, check:
 > "The first render on the client must match the server render exactly. After that first render, you can show different content."
 
 This is the golden rule for avoiding hydration errors in Next.js applications.
+

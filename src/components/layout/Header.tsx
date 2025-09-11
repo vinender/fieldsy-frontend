@@ -146,13 +146,13 @@ export function Header() {
             </Link>
           </div>
 
-          <div className="hidden xl:ml-16 xl:flex xl:space-x-10">
+          <div className="hidden   sm:flex space-x-4 md:space-x-8 ">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "text-base font-medium transition-colors",
+                  " text-[12px] md:text-[15px] font-[600] transition-colors",
                   pathname === item.href
                     ? !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "text-gray-900" 
@@ -276,11 +276,73 @@ export function Header() {
             )}
           </div>
           
-          {/* Mobile menu button */}
+          {/* Mobile and tablet menu items */}
           <div className="flex items-center gap-2 xl:hidden">
-            {/* Mobile Login/Signup buttons - visible when not authenticated */}
-            {!isAuthenticated && (
+            {isAuthenticated ? (
               <>
+                {/* Message Icon - visible on sm and up */}
+                <button 
+                  onClick={() => router.push('/user/messages')}
+                  className={cn(
+                    "flex p-2 rounded-full bg-cream transition-colors relative",
+                    !isLandingPage || scrolled || isFieldOwnerHomepage
+                      ? "hover:bg-gray-100" 
+                      : "hover:bg-cream"
+                  )}
+                  aria-label="Messages"
+                >
+                  <img src='/header/msg.svg' className={cn("h-5 w-5", textColor)} />
+                  {unreadMessagesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 bg-blue-500 rounded-full shadow-md">
+                      <span className="text-[10px] text-white font-bold">
+                        {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                      </span>
+                    </span>
+                  )}
+                </button>
+                
+                {/* Notification Icon - visible on sm and up */}
+                <button 
+                  className={cn(
+                    "flex p-2 rounded-full bg-cream transition-colors relative",
+                    !isLandingPage || scrolled || isFieldOwnerHomepage
+                      ? "hover:bg-gray-100" 
+                      : "hover:bg-white/10"
+                  )}
+                  aria-label="Notifications"
+                  onClick={() => setNotificationsOpen(true)}
+                >
+                  <img src='/header/bell.svg' className={cn("h-5 w-5", textColor)} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 bg-blood-red rounded-full shadow-md">
+                      <span className="text-[10px] text-white font-bold">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    </span>
+                  )}
+                </button>
+                
+                {/* Profile Icon as Menu Button */}
+                <button 
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
+                  aria-label="User menu"
+                >
+                  <div className="h-9 w-9 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white">
+                    <img 
+                      src={getUserImage(currentUser)} 
+                      alt={currentUser?.name || "Profile"} 
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
+                      }}
+                    />
+                  </div>
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Mobile Login/Signup buttons - visible when not authenticated */}
                 <Link href="/login">
                   <button 
                     className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-full transition-colors bg-light-green text-white hover:bg-dark-green"
@@ -295,21 +357,22 @@ export function Header() {
                     Sign Up
                   </button>
                 </Link>
+                {/* Burger menu for non-authenticated users */}
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-md p-2 transition-colors",
+                    !isLandingPage || scrolled || isFieldOwnerHomepage
+                      ? "text-gray-900 hover:bg-gray-100 hover:text-gray-700" 
+                      : "text-white hover:bg-white/10"
+                  )}
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                  <span className="sr-only">Open main menu</span>
+                  <Menu className="h-6 w-6" />
+                </button>
               </>
             )}
-            <button
-              type="button"
-              className={cn(
-                "inline-flex items-center justify-center rounded-md p-2 transition-colors",
-                !isLandingPage || scrolled || isFieldOwnerHomepage
-                  ? "text-gray-900 hover:bg-gray-100 hover:text-gray-700" 
-                  : "text-white hover:bg-white/10"
-              )}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <span className="sr-only">Open main menu</span>
-              <Menu className="h-6 w-6" />
-            </button>
           </div>
         </div>
       </nav>
@@ -352,6 +415,48 @@ export function Header() {
             </div>
             
             <div className="flex-1 h-0 pb-4 overflow-y-auto">
+              {/* Show Messages and Notifications on mobile only (below sm screens) */}
+              {isAuthenticated && (
+                <div className="sm:hidden px-4 py-3 border-b border-gray-200">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        router.push('/user/messages');
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-cream rounded-lg hover:bg-gray-100 transition-colors relative"
+                    >
+                      <MessageCircle className="h-5 w-5 text-gray-700" />
+                      <span className="text-sm font-medium">Messages</span>
+                      {unreadMessagesCount > 0 && (
+                        <span className="flex items-center justify-center min-w-[18px] h-4 px-1 bg-blue-500 rounded-full">
+                          <span className="text-[10px] text-white font-bold">
+                            {unreadMessagesCount}
+                          </span>
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setNotificationsOpen(true);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-cream rounded-lg hover:bg-gray-100 transition-colors relative"
+                    >
+                      <Bell className="h-5 w-5 text-gray-700" />
+                      <span className="text-sm font-medium">Notifications</span>
+                      {unreadCount > 0 && (
+                        <span className="flex items-center justify-center min-w-[18px] h-4 px-1 bg-blood-red rounded-full">
+                          <span className="text-[10px] text-white font-bold">
+                            {unreadCount}
+                          </span>
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               {/* Navigation - Show different nav items based on auth state */}
               <nav className="mt-4 px-2 space-y-1">
                 <div className="px-2 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">

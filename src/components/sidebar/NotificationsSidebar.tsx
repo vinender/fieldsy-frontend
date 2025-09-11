@@ -344,41 +344,41 @@ console.log('notification',notifications);
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 h-full w-full max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out overflow-hidden ${
+        className={`fixed right-0 top-0 h-full w-full sm:max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out overflow-hidden ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
               <button
                 onClick={closeSidebar}
-                className="w-12 h-12 bg-cream rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors"
+                className="w-10 h-10 sm:w-12 sm:h-12 bg-cream rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors flex-shrink-0"
               >
-                <ArrowLeft className="w-6 h-6 text-dark-green" />
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-dark-green" />
               </button>
-              <div>
-                <h2 className="text-[29px] font-semibold text-dark-green">Notifications</h2>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[22px] sm:text-[29px] font-semibold text-dark-green truncate">Notifications</h2>
                 {unreadCount > 0 && (
-                  <p className="text-sm text-gray-600">{unreadCount} unread</p>
+                  <p className="text-xs sm:text-sm text-gray-600">{unreadCount} unread</p>
                 )}
               </div>
             </div>
             {notifications.length > 0 && (
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="p-2 text-green hover:bg-green/10 rounded-lg transition-colors"
+                    className="p-1.5 sm:p-2 text-green hover:bg-green/10 rounded-lg transition-colors sm:hidden"
                     title="Mark all as read"
                   >
-                    <CheckCheck className="w-5 h-5" />
+                    <CheckCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 )}
                 <button
                 onClick={markAllAsRead}
-                className="p-2 text-green text-[16px] font-[600] underline hover:bg-red-50 rounded-lg transition-colors"
+                className="hidden sm:block p-2 text-green text-[14px] sm:text-[16px] font-[600] underline hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap"
                 title="Clear all"
               >
                Mark all as read
@@ -427,27 +427,27 @@ console.log('notification',notifications);
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 > 
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-3 flex-1 p-4">
+                  <div className="flex items-start justify-between gap-2 p-3 sm:p-4">
+                    <div className="flex gap-2 sm:gap-3 flex-1 min-w-0">
                       {/* <div className="text-2xl">{getNotificationIcon(notification.type)}</div> */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <div className="text-dark-green font-[700] text-[18px]">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          <div className="text-dark-green font-[600] sm:font-[700] text-[16px] sm:text-[18px] flex-1 break-words">
                             {notification.title}
                           </div>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-green rounded-full"></span>
+                            <span className="w-2 h-2 bg-green rounded-full flex-shrink-0 mt-2"></span>
                           )}
                         </div>
-                        <div className="text-[14px] text-gray-700 font-[400] mt-1">
+                        <div className="text-[13px] sm:text-[14px] text-gray-700 font-[400] mt-1 break-words">
                           {notification.message}
                         </div>
-                        <div className="text-xs text-gray-500 mt-2">
+                        <div className="text-[11px] sm:text-xs text-gray-500 mt-2">
                           {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       {!notification.read && (
                         <button
                           onClick={(e) => {
@@ -457,7 +457,7 @@ console.log('notification',notifications);
                           className="p-1 text-green hover:bg-green/10 rounded transition-colors"
                           title="Mark as read"
                         >
-                          <Check className="w-4 h-4" />
+                          <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
                       )}
                         {/* <button
