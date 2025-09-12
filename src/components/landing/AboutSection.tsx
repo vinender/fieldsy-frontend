@@ -2,7 +2,8 @@
 export function AboutSection() {
 
 
-  
+
+
   return (
 
     <section className="py-10 px-4 sm:py-16 sm:px-8 xl:py-20 xl:px-20 bg-light-cream">
@@ -23,32 +24,32 @@ export function AboutSection() {
           
           {/* Container for content blocks - Below image on mobile/medium, beside on large */}
           <div className="flex flex-col md:flex-row w-full xl:flex-1 xl:min-w-[600px] gap-4 sm:gap-6 xl:gap-8"> 
-          {/* Middle Block - Text with Dog Icons */}
-          <div className="bg-white rounded-2xl sm:rounded-[32px] flex flex-col justify-evenly p-4 sm:p-6 xl:p-8 shadow-xl flex-1 xl:min-w-[280px]">
-            <p className="text-dark-green font-[600] text-sm sm:text-base xl:text-[18px] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 xl:mb-6">
-              Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK—quickly and effortlessly.
-            </p>
-            <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
-              Whether your pup is reactive, in training, or just loves wide-open spaces, we&apos;re here to make your walks safer, calmer, and more joyful.
-            </p>
-            
-            {/* Dog Profile Pictures */}
-            <div className="flex justify-center">
-              {[1, 2, 3, 4, 5].map((i, index) => (
-                <div
-                  key={i}
-                  className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 rounded-full flex items-center justify-center ${
-                    index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-8' : ''
-                  }`}
-                >
-                  <span className="text-lg">
-                    <img src="/about/dog1.png" className="w-full object-contain" />
-                  </span>
-                </div>
-              ))}
-            </div>
+            {/* Middle Block - Text with Dog Icons */}
+            <div className="bg-white rounded-2xl sm:rounded-[32px] flex flex-col justify-evenly p-4 sm:p-6 xl:p-8 shadow-xl flex-1 xl:min-w-[280px]">
+              <p className="text-dark-green font-[600] text-sm sm:text-base xl:text-[18px] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 xl:mb-6">
+                Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK—quickly and effortlessly.
+              </p>
+              <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
+                Whether your pup is reactive, in training, or just loves wide-open spaces, we&apos;re here to make your walks safer, calmer, and more joyful.
+              </p>
+              
+              {/* Dog Profile Pictures */}
+              <div className="flex justify-center">
+                {[1, 2, 3, 4, 5].map((i, index) => (
+                  <div
+                    key={i}
+                    className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 rounded-full flex items-center justify-center ${
+                      index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-8' : ''
+                    }`}
+                  >
+                    <span className="text-lg">
+                      <img src="/about/dog1.png" className="w-full object-contain" />
+                    </span>
+                  </div>
+                ))}
+              </div>
 
-          </div>
+            </div>
 
           {/* Right Block - Image and Text */}
             <div className="bg-white rounded-2xl sm:rounded-[32px] p-4 sm:p-6 xl:p-8 shadow-xl flex-1  flex flex-col h-full ">
