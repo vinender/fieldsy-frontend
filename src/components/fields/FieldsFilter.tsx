@@ -43,6 +43,41 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
 
   // Use initial filters if provided, otherwise use defaults
   const [tempFilters, setTempFilters] = useState<FilterState>(initialFilters || defaultFilters);
+  const [shouldRender, setShouldRender] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Handle animation timing and body scroll lock
+  useEffect(() => {
+    if (isOpen) {
+      // First render the element off-screen
+      setShouldRender(true);
+      // Prevent body scroll on mobile
+      if (window.innerWidth < 1024) {
+        document.body.style.overflow = 'hidden';
+      }
+      // Use double requestAnimationFrame to ensure the element is rendered before animating
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
+      });
+    } else {
+      // Start exit animation
+      setIsAnimating(false);
+      // Remove body scroll lock
+      document.body.style.overflow = '';
+      // Delay unmounting to allow exit animation to complete
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300); // Match the duration of the animation
+      return () => clearTimeout(timer);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
   
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     fieldSize: true,
@@ -92,12 +127,28 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
   };
 
   return (
-    <div className={`${
-      isOpen ? 'fixed inset-0 bg-black/50 z-50 lg:relative lg:inset-auto lg:bg-transparent' : 'hidden lg:block'
-    }`}>
-      <div className={`${
-        isOpen ? 'fixed left-0 top-0 h-full w-[85%] max-w-[375px] bg-white overflow-y-auto' : 'w-full lg:w-[280px] min-[1400px]:w-[375px] bg-white rounded-[22px] border border-black/[0.06]'
-      } p-6`}>
+    <>
+      {/* Backdrop overlay for mobile - with fade animation */}
+      {shouldRender && (
+        <div 
+          className={`lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out ${
+            isAnimating ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Filter sidebar - desktop always visible, mobile slides in from right */}
+      <div className={`
+        ${shouldRender ? 'fixed' : 'hidden'} lg:block lg:relative z-50 lg:z-auto
+      `}>
+        <div className={`
+          lg:w-[280px] min-[1400px]:w-[375px] lg:bg-white lg:rounded-[22px] lg:border lg:border-black/[0.06]
+          fixed lg:relative right-0 top-0 h-full w-[85%] max-w-[375px] bg-white overflow-y-auto
+          transform transition-transform duration-300 ease-in-out
+          ${isAnimating ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+          p-6
+        `}>
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-[18px] font-semibold text-dark-green">Filters</h2>
           <div className="flex items-center gap-3">
@@ -507,8 +558,9 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
             Apply Filters
           </button>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

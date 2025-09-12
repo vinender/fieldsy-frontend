@@ -1,6 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { ReactNode, useEffect, useState, useRef } from 'react';
 
 interface LazySectionProps {
   children: ReactNode;
@@ -11,75 +9,88 @@ interface LazySectionProps {
   minHeight?: string;
   animation?: 'fade' | 'slide' | 'scale' | 'slideUp' | 'slideDown';
   delay?: number;
+  duration?: number;
 }
 
 export function LazySection({
   children,
   fallback,
-  rootMargin = '100px',
-  threshold = 0,
+  rootMargin = '50px',
+  threshold = 0.1,
   className = '',
   minHeight = '400px',
   animation = 'fade',
   delay = 0,
+  duration = 800,
 }: LazySectionProps) {
-  const [ref, entry] = useIntersectionObserver({
-    threshold,
-    rootMargin,
-    freezeOnceVisible: true,
-  });
-
+  const ref = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const isVisible = entry?.isIntersecting;
 
   useEffect(() => {
-    if (isVisible && !hasAnimated) {
-      const timer = setTimeout(() => {
-        setHasAnimated(true);
-      }, delay);
-      return () => clearTimeout(timer);
-    }
-  }, [isVisible, hasAnimated, delay]);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isInView) {
+          console.log(`LazySection [${animation}]: Now in view`);
+          setIsInView(true);
+          
+          // Trigger animation after delay
+          setTimeout(() => {
+            console.log(`LazySection [${animation}]: Starting animation`);
+            setHasAnimated(true);
+          }, delay);
+        }
+      },
+      {
+        rootMargin,
+        threshold
+      }
+    );
 
-  // Animation classes based on the animation prop
-  const getAnimationClass = () => {
-    if (!isVisible) return 'opacity-0';
-    if (!hasAnimated) return 'opacity-0';
-    
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, [animation, delay, rootMargin, threshold, isInView]);
+
+  // Get initial transform based on animation type
+  const getInitialTransform = () => {
     switch (animation) {
-      case 'fade':
-        return 'animate-fadeIn';
-      case 'slide':
-        return 'animate-slideIn';
-      case 'scale':
-        return 'animate-scaleIn';
       case 'slideUp':
-        return 'animate-slideUp';
+        return 'translate-y-10';
       case 'slideDown':
-        return 'animate-slideDown';
+        return '-translate-y-10';
+      case 'slide':
+        return 'translate-x-10';
+      case 'scale':
+        return 'scale-95';
       default:
-        return 'animate-fadeIn';
+        return '';
     }
   };
 
+  // Build animation classes
+  const animationClasses = hasAnimated 
+    ? 'opacity-100 translate-x-0 translate-y-0 scale-100 transition-all duration-[800ms] ease-out'
+    : `opacity-0 ${getInitialTransform()} transition-all duration-[800ms] ease-out`;
+
   return (
-    <div ref={ref} className={`${className} transition-all duration-700 ease-out ${isVisible ? getAnimationClass() : ''}`}>
-      {isVisible ? (
-        children
+    <div 
+      ref={ref} 
+      className={`${className}`}
+      style={{ minHeight: !isInView ? minHeight : undefined }}
+    >
+      {isInView ? (
+        <div className={`lazy-section-animate ${animationClasses}`}>
+          {children}
+        </div>
       ) : (
-        fallback || (
-          <div className="w-full flex items-center justify-center" style={{ minHeight }}>
-            <div className="space-y-4 w-full max-w-4xl mx-auto px-4">
-              <Skeleton className="h-12 w-3/4 mx-auto" />
-              <Skeleton className="h-64 w-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-                <Skeleton className="h-4 w-4/6" />
-              </div>
-            </div>
-          </div>
-        )
+        fallback || <div style={{ minHeight }} />
       )}
     </div>
   );

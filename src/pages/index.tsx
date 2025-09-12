@@ -140,7 +140,7 @@ export default function HomePage() {
         minHeight="500px"
         rootMargin="50px"
         animation="slideUp"
-        delay={0}
+        delay={50}
         fallback={
           <div className="py-20 bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-20">
@@ -161,7 +161,7 @@ export default function HomePage() {
       <LazySection 
         minHeight="400px"
         rootMargin="50px"
-        animation="scaleIn"
+        animation="scale"
         delay={100}
         fallback={
           <div className="py-20 bg-light-cream">
@@ -228,7 +228,7 @@ export default function HomePage() {
         <LazySection 
           minHeight="400px"
           rootMargin="50px"
-          animation="scaleIn"
+          animation="scale"
           delay={100}
           fallback={
             <div className="py-20 bg-white">

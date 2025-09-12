@@ -94,7 +94,7 @@ export function HeroSection() {
       {/* Search Form */}
       <FieldSearchInput
         placeholder="Search by field name or postcode"
-        className="w-full pl-4 pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
+        className="w-full pl-4 lg:pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
         showRecentSearches={true}
       />
     </div>

@@ -688,3 +688,29 @@ a {
     background-repeat: no-repeat;
     opacity: 0.9;
   }
+
+/* Smooth scroll animations - GPU acceleration */
+.lazy-section-animate {
+  will-change: transform, opacity;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Prevent flicker on initial load */
+.opacity-0 {
+  opacity: 0 !important;
+}
+
+.opacity-100 {
+  opacity: 1 !important;
+}
+
+/* Smooth transitions for lazy sections */
+.transition-smooth {
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}

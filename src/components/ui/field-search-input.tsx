@@ -293,10 +293,10 @@ export function FieldSearchInput({
         <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border overflow-hidden z-40">
           {/* Show loading state */}
           {isLoadingSuggestions && (
-            <div className="px-5 py-8 text-center">
+            <div className="px-4 sm:px-5 py-6 sm:py-8 text-center">
               <div className="inline-flex items-center gap-2 text-dark-green/70">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green"></div>
-                <span className="text-[14px]">Searching fields...</span>
+                <span className="text-xs sm:text-sm">Searching fields...</span>
               </div>
             </div>
           )}
@@ -313,16 +313,16 @@ export function FieldSearchInput({
                     router.push(`/fields/${field.id}`);
                     setShowDropdown(false);
                   }}
-                  className="w-full text-left px-5 py-4 hover:bg-cream/40 flex justify-between items-start gap-3 border-b last:border-b-0"
+                  className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-start gap-2 sm:gap-3 border-b last:border-b-0"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center mt-0.5">
-                      <img src="/search/search.svg" className="w-6 h-6 text-green" />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mt-0.5">
+                      <img src="/search/search.svg" className="w-4 h-4 sm:w-6 sm:h-6 text-green" />
                     </div>
                     <div>
-                      <div className="text-[18px] font-semibold text-dark-green">{field.name || 'Dog Field'}</div>
+                      <div className="text-sm sm:text-base lg:text-lg font-semibold text-dark-green">{field.name || 'Dog Field'}</div>
                       {field.fullAddress && (
-                        <div className="text-[14px] text-gray-500 mt-0.5">{field.fullAddress}</div>
+                        <div className="text-xs sm:text-sm text-gray-500 mt-0.5">{field.fullAddress}</div>
                       )}
                     </div>
                   </div>
@@ -333,18 +333,18 @@ export function FieldSearchInput({
 
           {/* Show no results message */}
           {!isLoadingSuggestions && searchQuery.trim().length >= 2 && suggestions.length === 0 && (
-            <div className="px-5 py-8 text-center">
+            <div className="px-4 sm:px-5 py-6 sm:py-8 text-center">
               <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
               {(() => {
                 const postcodeInfo = detectPostcodeInQuery(searchQuery);
                 if (postcodeInfo.isPostcode) {
                   return (
                     <>
-                      <p className="text-[16px] text-dark-green/70">
+                      <p className="text-sm sm:text-base text-dark-green/70">
                         No fields found in postcode "{getPostcodeDisplay(searchQuery)}"
                       </p>
                       {postcodeInfo.isPartial && (
-                        <p className="text-[14px] text-gray-500 mt-2">
+                        <p className="text-xs sm:text-sm text-gray-500 mt-2">
                           Try entering a full postcode (e.g., SW1A 1AA)
                         </p>
                       )}
@@ -352,12 +352,12 @@ export function FieldSearchInput({
                   );
                 }
                 return (
-                  <p className="text-[16px] text-dark-green/70">No fields found matching "{searchQuery}"</p>
+                  <p className="text-sm sm:text-base text-dark-green/70">No fields found matching "{searchQuery}"</p>
                 );
               })()}
               <button
                 onClick={handleUseMyLocation}
-                className="mt-3 text-[14px] text-green hover:text-light-green font-semibold transition"
+                className="mt-3 text-xs sm:text-sm text-green hover:text-light-green font-semibold transition"
               >
                 Try searching near your location
               </button>
@@ -367,8 +367,8 @@ export function FieldSearchInput({
           {/* Show recent searches when not searching */}
           {showRecentSearches && !searchQuery && recentSearches.length > 0 && (
             <>
-              <div className="px-5 py-4 border-b">
-                <h4 className="text-[20px] font-bold text-dark-green">Recent Search</h4>
+              <div className="px-4 sm:px-5 py-3 sm:py-4 border-b">
+                <h4 className="text-base sm:text-lg lg:text-xl font-bold text-dark-green">Recent Search</h4>
               </div>
               <div className="max-h-[60vh] overflow-y-auto">
                 {recentSearches.map((search) => (
@@ -378,17 +378,17 @@ export function FieldSearchInput({
                       setSearchQuery(search.query);
                       handleSearch(search.query);
                     }}
-                    className="w-full text-left px-5 py-4 hover:bg-cream/40 flex justify-between items-start gap-3 border-b last:border-b-0"
+                    className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-start gap-2 sm:gap-3 border-b last:border-b-0"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center mt-0.5">
-                        <img src="/location.svg" className="w-6 h-6 text-green" />
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mt-0.5">
+                        <img src="/location.svg" className="w-4 h-4 sm:w-6 sm:h-6 text-green" />
                       </div>
                       <div>
-                        <div className="text-[18px] font-semibold text-dark-green">
+                        <div className="text-sm sm:text-base lg:text-lg font-semibold text-dark-green">
                           {search.type === 'postcode' ? getPostcodeDisplay(search.query) : search.query}
                         </div>
-                        <div className="text-sm text-dark-green/70">
+                        <div className="text-xs sm:text-sm text-dark-green/70">
                           {search.type === 'postcode' ? 'UK Postcode' : 'Field Search'} · Recent
                         </div>
                       </div>

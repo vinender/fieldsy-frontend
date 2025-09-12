@@ -1,16 +1,19 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 
 export  function HowItWorksSection() {
   const [activeStep, setActiveStep] = useState(0)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [videoError, setVideoError] = useState(false)
   
   const steps = [
     {
       icon: "/how-it-works/field.svg",
       title: "Find Fields Near You",
       description: "Easily find trusted, private dog walking fields near you using GPS or postcode search. No more crowded parks—just peaceful, secure spaces tailored for your dog's freedom.",
-      image: "/how-it-works/dog.png"
+      image: "/dog.mp4",
+      thumbnail: "/how-it-works/dog.png"
     },
-    {
+    { 
       icon: "/how-it-works/icon2.png",
       title: "Select a Time Slot",
       description: "Choose from available time slots that work for your schedule.",
@@ -35,6 +38,28 @@ export  function HowItWorksSection() {
       image: "https://images.unsplash.com/photo-1601758124096-1fd661873b95?w=800&h=600&fit=crop"
     }
   ]
+
+  // Effect to handle video playback when activeStep changes
+  useEffect(() => {
+    setVideoError(false); // Reset error state when step changes
+    
+    // Small delay to ensure video element is mounted
+    const timer = setTimeout(() => {
+      if (videoRef.current && steps[activeStep].image.endsWith('.mp4')) {
+        // Reset and play video
+        videoRef.current.currentTime = 0;
+        videoRef.current.muted = true; // Ensure muted for autoplay
+        
+        videoRef.current.play().catch(error => {
+          console.log('Video autoplay failed:', error);
+          // If still fails, mark as error
+          setVideoError(true);
+        });
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [activeStep]);
 
   return (
     <section className="py-20 px-8 lg:px-20  bg-light-cream">
@@ -81,16 +106,54 @@ export  function HowItWorksSection() {
             </div>
           </div>
 
-          {/* Right Section - Dynamic Image */}
+          {/* Right Section - Dynamic Image/Video */}
           <div className="relative h-full">
-            <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl">
-              <img 
-                src={steps[activeStep].image}
-                alt={steps[activeStep].title}
-                className="w-full h-full object-cover transition-opacity duration-500"
-              />
+            <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-gray-900">
+              {steps[activeStep].image.endsWith('.mp4') && !videoError ? (
+                <video
+                  ref={videoRef}
+                  key={`video-${activeStep}`}
+                  poster={(steps[activeStep] as any).thumbnail || undefined}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  controls={false}
+                  className="w-full h-full object-cover"
+                  onError={() => {
+                    console.log('Video failed to load, falling back to image');
+                    setVideoError(true);
+                  }}
+                  onLoadedData={(e) => {
+                    // Ensure video plays when data is loaded
+                    const video = e.currentTarget;
+                    video.muted = true;
+                    video.play().catch(err => {
+                      console.log('Autoplay prevented:', err);
+                      setVideoError(true);
+                    });
+                  }}
+                >
+                  <source src={steps[activeStep].image} type="video/mp4" />
+                  {/* Fallback to image if video doesn't load */}
+                  {(steps[activeStep] as any).thumbnail && (
+                    <img 
+                      src={(steps[activeStep] as any).thumbnail}
+                      alt={steps[activeStep].title}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </video>
+              ) : (
+                <img 
+                  src={(steps[activeStep] as any).thumbnail || steps[activeStep].image}
+                  alt={steps[activeStep].title}
+                  className="w-full h-full object-cover transition-opacity duration-500"
+                />
+              )}
               {/* Overlay gradient for better text visibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
             </div>
           </div>
         </div>

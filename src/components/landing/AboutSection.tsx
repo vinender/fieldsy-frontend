@@ -1,6 +1,10 @@
 
 export function AboutSection() {
+
+
+  
   return (
+
     <section className="py-10 px-4 sm:py-16 sm:px-8 xl:py-20 xl:px-20 bg-light-cream">
       <div className="mx-auto w-full  ">
         {/* Headline */}
@@ -69,19 +73,19 @@ export function AboutSection() {
         <div className="grid grid-cols-2  md:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
             <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">500+</div>
-            <div className="text-dark-green/80 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Early Access Signups</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Early Access Signups</div>
           </div>
           <div className="text-center border-r-0 md:border-r border-dark-green/20 pr-0 xl:pr-8">
             <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">200+</div>
-            <div className="text-dark-green/80 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Private Fields Being Onboarded</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Private Fields Being Onboarded</div>
           </div>
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
             <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">50+</div>
-            <div className="text-dark-green/80 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Cities Covered Across the UK</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Cities Covered Across the UK</div>
           </div>
           <div className="text-center">
             <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">100%</div>
-            <div className="text-dark-green/80 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Safe, Secure & Fenced Spaces</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Safe, Secure & Fenced Spaces</div>
           </div>
         </div>
       </div>
