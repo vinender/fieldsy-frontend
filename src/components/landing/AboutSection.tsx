@@ -32,22 +32,22 @@ export function AboutSection() {
               <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
                 Whether your pup is reactive, in training, or just loves wide-open spaces, we&apos;re here to make your walks safer, calmer, and more joyful.
               </p>
-              
+
               {/* Dog Profile Pictures */}
-              <div className="flex justify-center">
-                {[1, 2, 3, 4, 5].map((i, index) => (
-                  <div
-                    key={i}
-                    className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 rounded-full flex items-center justify-center ${
-                      index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-8' : ''
-                    }`}
-                  >
-                    <span className="text-lg">
-                      <img src="/about/dog1.png" className="w-full object-contain" />
-                    </span>
-                  </div>
-                ))}
-              </div>
+                <div className="flex justify-center">
+                  {[1, 2, 3, 4, 5].map((i, index) => (
+                    <div
+                      key={i}
+                      className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 rounded-full flex items-center justify-center ${
+                        index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-8' : ''
+                      }`}
+                    >
+                      <span className="text-lg">
+                        <img src="/about/dog1.png" className="w-full object-contain" />
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
             </div>
 

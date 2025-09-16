@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Search } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useResponsiveRouter } from '@/hooks/useResponsiveRouter';
 import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
 import { detectPostcodeInQuery, getPostcodeDisplay } from '@/utils/postcode';
@@ -47,7 +47,7 @@ export function FieldSearchInput({
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const router = useRouter();
+  const router = useResponsiveRouter();
   
   // Get location context
   const { requestLocation, isLoadingLocation } = useLocation();

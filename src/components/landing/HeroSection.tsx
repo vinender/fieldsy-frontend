@@ -21,7 +21,7 @@ export function HeroSection() {
     <div className="relative min-h-screen bg-gray-100">
       {/* Low-res Background Image (loads immediately) */}
       <div 
-        className={`absolute inset-0 z-0 transition-opacity duration-500 ${highResLoaded ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute inset-0 z-0 transition-opacity duration-100 ${highResLoaded ? 'opacity-100' : 'opacity-100'}`}
         style={{
           backgroundImage: `url('/green-field.png')`,
           backgroundSize: 'cover',

@@ -2,6 +2,8 @@ import { useEffect } from "react"
 import { useRouter } from "next/router"
 import { toast } from "sonner"
 import { LoginForm } from "@/components/forms/auth/LoginForm"
+import { PageWithSkeleton } from "@/components/common/PageWithSkeleton"
+import { LoginFormSkeleton } from "@/components/skeletons/PageSkeletons"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -30,5 +32,9 @@ export default function LoginPage() {
     }
   }, [router])
   
-  return <LoginForm />
+  return (
+    <PageWithSkeleton skeleton={<LoginFormSkeleton />}>
+      <LoginForm />
+    </PageWithSkeleton>
+  )
 }

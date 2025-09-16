@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useRouter } from "next/router"
+import { useResponsiveRouter } from "@/hooks/useResponsiveRouter"
 import { signIn } from "next-auth/react"
 import { useAuth } from "@/hooks/auth/useAuth"
 import { useForm } from "react-hook-form"
@@ -23,7 +23,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const router = useRouter()
+  const router = useResponsiveRouter()
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [isAppleLoading, setIsAppleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)

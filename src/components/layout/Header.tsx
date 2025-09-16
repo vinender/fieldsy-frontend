@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useNotifications } from "@/contexts/NotificationContext"
 import { useChat } from "@/contexts/ChatContext"
 import { getUserImage, getUserInitials } from "@/utils/getUserImage"
+import { ResponsiveLink } from "@/components/common/ResponsiveLink"
 import router from "next/router"
 
 export function Header() {
@@ -135,7 +136,7 @@ export function Header() {
       <nav className="mx-auto w-full">
         <div className="flex h-12 sm:h-14 xl:h-16 justify-between items-center">
           <div className="flex items-center">
-            <Link href="/">
+            <ResponsiveLink href="/">
               <Image 
                 alt='logo' 
                 width={500} 
@@ -143,7 +144,7 @@ export function Header() {
                 src={`${!isLandingPage || scrolled || isFieldOwnerHomepage ? '/logo/logo.svg' : '/logo/logo.svg'}`} 
                 className='object-contain w-[120px] sm:w-[140px] xl:w-[163px] h-[48px] sm:h-[56px] xl:h-[64px]' 
               />
-            </Link>
+            </ResponsiveLink>
           </div>
 
           <div className="hidden   sm:flex space-x-4 md:space-x-8 ">
@@ -258,20 +259,20 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link href="/login">
+                <ResponsiveLink href="/login">
                   <button 
                     className="inline-flex items-center justify-center px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base font-medium rounded-full transition-colors bg-light-green text-white hover:bg-green"
                   >
                     Login
                   </button>
-                </Link>
-                <Link href="/register">
+                </ResponsiveLink>
+                <ResponsiveLink href="/register">
                   <button 
                     className="inline-flex items-center justify-center px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base text-white font-medium rounded-full transition-colors bg-dark-green hover:bg-green"
                   >
                     Sign Up
                   </button>
-                </Link>
+                </ResponsiveLink>
               </>
             )}
           </div>
@@ -343,20 +344,20 @@ export function Header() {
             ) : (
               <>
                 {/* Mobile Login/Signup buttons - visible when not authenticated */}
-                <Link href="/login">
+                <ResponsiveLink href="/login">
                   <button 
                     className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-full transition-colors bg-light-green text-white hover:bg-dark-green"
                   >
                     Login
                   </button>
-                </Link>
-                <Link href="/register">
+                </ResponsiveLink>
+                <ResponsiveLink href="/register">
                   <button 
                     className="inline-flex items-center justify-center px-3 py-1.5 text-xs text-white font-medium rounded-full transition-colors bg-dark-green hover:bg-light-green"
                   >
                     Sign Up
                   </button>
-                </Link>
+                </ResponsiveLink>
                 {/* Burger menu for non-authenticated users */}
                 <button
                   type="button"

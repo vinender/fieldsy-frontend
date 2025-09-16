@@ -7,6 +7,7 @@ export const fieldOwnerBookingKeys = {
   today: (page: number = 1) => ['field-owner-bookings', 'today', page] as const,
   upcoming: (page: number = 1) => ['field-owner-bookings', 'upcoming', page] as const,
   previous: (page: number = 1) => ['field-owner-bookings', 'previous', page] as const,
+  recent: () => ['field-owner-bookings', 'recent'] as const,
 };
 
 // Types
@@ -102,6 +103,24 @@ export function usePreviousBookings(
     gcTime: 15 * 60 * 1000, // 15 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: false, // Previous bookings don't change as often
+    ...options,
+  });
+}
+
+// Hook for recent bookings (last 5)
+export function useRecentBookings(
+  options?: Omit<UseQueryOptions<BookingResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: fieldOwnerBookingKeys.recent(),
+    queryFn: async () => {
+      const response = await axiosClient.get(`/fields/owner/bookings/recent?limit=5`);
+      return response.data as BookingResponse;
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     ...options,
   });
 }

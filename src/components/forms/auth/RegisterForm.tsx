@@ -7,7 +7,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Link from "next/link"
-import { useRouter } from "next/router"
+import { useResponsiveRouter } from "@/hooks/useResponsiveRouter"
 import { signIn } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -42,7 +42,7 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>
 
 export default function RegisterForm() {
-  const router = useRouter()
+  const router = useResponsiveRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [isAppleLoading, setIsAppleLoading] = useState(false)

@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function PageLoader() {
+  
+  
   return (
     <div className="min-h-screen bg-light-cream flex items-center justify-center">
       <div className="text-center">
@@ -15,7 +17,7 @@ export default function PageLoader() {
             </div>
           </div>
         </div>
-        <p className="text-gray-text font-sans animate-pulse">Loading your dashboard...</p>
+        <p className="text-gray-text font-sans animate-pulse">Loading...</p>
       </div>
 
       <style jsx>{`

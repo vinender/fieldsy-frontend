@@ -5,6 +5,8 @@ import { HeroSection } from "@/components/landing/HeroSection"
 import FieldOwnerHome from "@/components/field-owner/FieldOwnerHome"
 import { HomePageSkeleton } from "@/components/skeletons/HomePageSkeleton"
 import { LazySection } from "@/components/common/LazySection"
+import { PageWithSkeleton } from "@/components/common/PageWithSkeleton"
+import { HeroSkeleton } from "@/components/skeletons/PageSkeletons"
 import { useAuth } from "@/contexts/AuthContext"
 import { useSession } from "next-auth/react"
 import { useEffect } from "react"
@@ -131,9 +133,10 @@ export default function HomePage() {
 
   // Otherwise show the regular landing page
   return (
-    <div className="bg-light-cream overflow-x-hidden">
-      {/* Hero Section - Always loaded immediately as it's above the fold */}
-      <HeroSection />
+    <PageWithSkeleton skeleton={<HeroSkeleton />}>
+      <div className="bg-light-cream overflow-x-hidden">
+        {/* Hero Section - Always loaded immediately as it's above the fold */}
+        <HeroSection />
 
       {/* About Section - Lazy loaded with fade animation */}
       <LazySection 
@@ -271,6 +274,7 @@ export default function HomePage() {
 
       {/* Footer */}
       {/* <Footer /> */}
-    </div>
+      </div>
+    </PageWithSkeleton>
   )
 }
