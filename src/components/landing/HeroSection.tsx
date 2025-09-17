@@ -4,6 +4,9 @@ import Image from 'next/image';
 
 export function HeroSection() {
   const [highResLoaded, setHighResLoaded] = useState(false);
+  const [bannerText, setBannerText] = useState('Find Safe, Private Dog Walking Fields');
+  const [highlightedText, setHighlightedText] = useState('Near You');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Preload the high-resolution image
@@ -15,6 +18,28 @@ export function HeroSection() {
         setHighResLoaded(true);
       }, 100);
     };
+  }, []);
+
+  useEffect(() => {
+    // Fetch banner settings
+    const fetchBannerSettings = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/public`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data) {
+            setBannerText(data.data.bannerText || 'Find Safe, Private Dog Walking Fields');
+            setHighlightedText(data.data.highlightedText || 'Near You');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching banner settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBannerSettings();
   }, []);
 
   return (
@@ -53,8 +78,20 @@ export function HeroSection() {
         <div className="px-4 sm:px-8 md:px-12 xl:px-20 pt-[150px] sm:pt-32 md:pt-40 xl:pt-[211px]">
           <div className="w-full max-w-[626px] text-left">
             <h1 className="text-5xl md:text-5xl xl:text-[68px] font-semibold sm:font-bold xl:font-[700] leading-tight sm:leading-tight md:leading-tight xl:leading-[76px] text-white mb-4 sm:mb-6">
-              Find Safe, Private Dog
-              Walking Fields <span className='text-cream'> Near You</span> 
+              {bannerText && highlightedText && bannerText.includes(highlightedText) ? (
+                bannerText.split(highlightedText).map((part, index, array) => (
+                  <React.Fragment key={index}>
+                    {part}
+                    {index < array.length - 1 && (
+                      <span className="text-cream">{highlightedText}</span>
+                    )}
+                  </React.Fragment>
+                ))
+              ) : (
+                <>
+                  {bannerText} <span className="text-cream">{highlightedText}</span>
+                </>
+              )}
             </h1>
             {/* <p className="text-xl text-white/90 w-full">
               Discover safe and private dog walking fields designed for peaceful, off-lead

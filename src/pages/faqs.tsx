@@ -3,49 +3,17 @@ import { Search } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { Input } from "@/components/ui/input"
 import { FAQList, type FAQItem } from "@/components/common/FAQList"
+import { useFAQs } from "@/hooks/queries/useFAQQueries"
 
 export default function FAQPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  // FAQ accordion state is managed inside FAQList
-
-  const faqs: FAQItem[] = [
-    {
-      question: "How do I book a field?",
-      answer: "Simply search by postcode or use your location, choose a field and time slot, and confirm your booking through our secure checkout. You'll receive instant confirmation via email and in the app."
-    },
-    {
-      question: "How do I know what amenities are available?",
-      answer: "Each field listing includes detailed information about available amenities such as water access, parking, shelter, agility equipment, and more. You can view all amenities in the field details section before booking."
-    },
-    {
-      question: "Can I cancel or reschedule my booking?",
-      answer: "Yes, you can cancel or reschedule your booking up to 24 hours before your scheduled time through the app or website. Cancellations made within 24 hours may be subject to our cancellation policy."
-    },
-    {
-      question: "Is it safe for all dog breeds?",
-      answer: "All our fields are fully fenced and secure, making them safe for dogs of all breeds and sizes. Field listings include fence height and type information to help you choose the most suitable space for your dog."
-    },
-    {
-      question: "What is your refund policy?",
-      answer: "Full refunds are available for cancellations made at least 24 hours before your booking. Cancellations within 24 hours may receive a partial refund or credit for future bookings, depending on circumstances."
-    },
-    {
-      question: "How do I access the field after booking?",
-      answer: "After booking, you'll receive detailed access instructions including the exact location, gate codes (if applicable), and any specific entry instructions. This information is also available in your booking confirmation within the app."
-    },
-    {
-      question: "Can I leave a review after my visit?",
-      answer: "Yes! We encourage all users to leave reviews after their visits. You can rate your experience and leave feedback through the app or website within 7 days of your visit. Your reviews help other dog owners and field owners improve their services."
-    },
-    {
-      question: "Are all fields fully fenced and secure?",
-      answer: "Yes, all fields listed on Fieldsy are required to be fully enclosed with secure fencing. We verify fencing details during the onboarding process, and field owners must maintain these safety standards."
-    },
-    {
-      question: "Can I bring more than one dog?",
-      answer: "Yes, you can bring multiple dogs to most fields. The maximum number of dogs allowed varies by field and is clearly stated in each listing. Some fields may charge an additional fee for extra dogs."
-    }
-  ]
+  const { faqs: dynamicFAQs, loading } = useFAQs()
+  
+  // Convert dynamic FAQs to FAQItem format
+  const faqs: FAQItem[] = dynamicFAQs.map(faq => ({
+    question: faq.question,
+    answer: faq.answer
+  }))
 
   const filteredFaqs = faqs.filter(faq => 
     faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,10 +45,16 @@ export default function FAQPage() {
               </div>
             </div>
 
-            <FAQList faqs={filteredFaqs} hideTitle variant="plain" />
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+              </div>
+            ) : (
+              <FAQList faqs={filteredFaqs} hideTitle variant="plain" />
+            )}
 
             {/* No results message */}
-            {filteredFaqs.length === 0 && (
+            {!loading && filteredFaqs.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-dark-green/60 text-base xl:text-[18px] font-[400]">
                   No questions found matching "{searchQuery}". Try a different search term.

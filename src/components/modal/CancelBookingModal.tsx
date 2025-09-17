@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useCheckRefundEligibility } from '@/hooks/useBookingApi';
+import { useCancellationWindow } from '@/hooks/usePublicSettings';
 
 interface CancelBookingModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
 }) => {
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
+  const cancellationWindowHours = useCancellationWindow();
   
   // Use React Query hook to check refund eligibility
   const { 
@@ -154,7 +156,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
       setFallbackMessage(
         eligible
           ? `This booking can be cancelled with a full refund. There are ${Math.floor(hoursUntilBooking)} hours until the booking time.`
-          : `This booking cannot be cancelled with a refund. Cancellations must be made at least 24 hours before the booking time. Only ${Math.floor(hoursUntilBooking)} hours remain.`
+          : `This booking cannot be cancelled with a refund. Cancellations must be made at least ${cancellationWindowHours} hours before the booking time. Only ${Math.floor(hoursUntilBooking)} hours remain.`
       );
     }
   }, [isOpen, booking, eligibilityError]);
@@ -279,8 +281,8 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         <div className="mt-3 sm:mt-4 flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-gray-500">
           <Clock className="w-3 h-3 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
           <p>
-            Our 24-hour advance booking policy: Only bookings made at least 24 hours in advance are eligible for refunds upon cancellation. 
-            If you book less than 24 hours before your scheduled time, the booking is non-refundable.
+            Our ${cancellationWindowHours}-hour advance booking policy: Only bookings made at least ${cancellationWindowHours} hours in advance are eligible for refunds upon cancellation. 
+            If you book less than ${cancellationWindowHours} hours before your scheduled time, the booking is non-refundable.
           </p>
         </div>
       </div>
