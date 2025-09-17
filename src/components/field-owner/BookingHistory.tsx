@@ -127,9 +127,7 @@ export default function BookingHistory() {
                   <p className="text-sm sm:text-base mb-1 sm:mb-2 border-b border-b-dotted font-sans">Today Bookings</p>
                   <p className="text-2xl sm:text-3xl md:text-4xl font-bold font-sans">{stats.todayBookings}</p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <img src="/dashboard/bookings.svg" alt="Bookings" className="w-6 h-6 sm:w-8 sm:h-8 filter brightness-0 invert" />
-                </div>
+                
               </div>
             </div>
 
@@ -142,9 +140,7 @@ export default function BookingHistory() {
                     {stats.totalBookings.toLocaleString()}
                   </p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-light-green/10 rounded-lg flex items-center justify-center">
-                  <img src="/dashboard/bookings.svg" alt="Total Bookings" className="w-6 h-6 sm:w-8 sm:h-8" />
-                </div>
+               
               </div>
             </div>
 
@@ -157,107 +153,12 @@ export default function BookingHistory() {
                     {formatCurrency(stats.totalEarnings)}
                   </p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green/10 rounded-lg flex items-center justify-center">
-                  <img src="/dashboard/revenue.svg" alt="Revenue" className="w-6 h-6 sm:w-8 sm:h-8" />
-                </div>
+               
               </div>
             </div>
           </div>
         </div>
-
-        {/* Bookings Overview Section - Last 5 Bookings */}
-        <div className="mb-6 sm:mb-8">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-dark-green mb-4 sm:mb-6 font-sans">Bookings Overview</h2>
-          
-          {recentLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
-              {[...Array(5)].map((_, index) => (
-                <div key={index} className="bg-white shadow-md rounded-xl p-4 animate-pulse">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-200"></div>
-                    <div className="flex-1">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between">
-                      <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                    </div>
-                    <div className="flex justify-between">
-                      <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : recentData?.bookings && recentData.bookings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
-              {recentData.bookings.slice(0, 5).map((booking) => (
-                <div key={booking.id} className="bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleViewDetails(booking)}>
-                  {/* User Info */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {booking.userAvatar ? (
-                        <img 
-                          src={booking.userAvatar} 
-                          alt={booking.userName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xs font-semibold text-gray-600">
-                          {booking.userName.charAt(0)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-dark-green truncate">
-                        {booking.userName}
-                      </h3>
-                      <p className="text-xs text-dark-green/70">{booking.time}</p>
-                    </div>
-                  </div>
-                  
-                  {/* Booking Info */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-dark-green/70">Date</span>
-                      <p className="text-xs font-medium text-dark-green">{booking.date}</p>
-                    </div>
-                    <div className="flex justify-between items-center pt-1 border-t border-gray-100">
-                      <span className="text-xs text-dark-green/70">Amount</span>
-                      <p className="text-sm font-bold text-green">
-                        {formatCurrency(booking.amount)}
-                      </p>
-                    </div>
-                    <div className={`mt-2 text-center py-1 px-2 rounded-full text-xs font-medium ${
-                      booking.status === 'completed' ? 'bg-green/10 text-green' :
-                      booking.status === 'cancelled' ? 'bg-red/10 text-red' :
-                      booking.status === 'confirmed' ? 'bg-blue/10 text-blue' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl p-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-dark-green mb-2">No recent bookings</h3>
-                <p className="text-sm text-dark-green/70">Your recent bookings will appear here</p>
-              </div>
-            </div>
-          )}
-        </div>
+ 
 
         {/* Bookings Tabs */}
         <div className="mb-4 sm:mb-6">
