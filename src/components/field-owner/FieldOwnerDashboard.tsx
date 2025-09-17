@@ -125,7 +125,7 @@ export default function AddYourField() {
     postalCode: string;
     country: string;
     images: string[];
-    pricePerHour: string;
+    price: string;
     bookingDuration: string;
     instantBooking: boolean;
     requireDeposit: boolean;
@@ -152,7 +152,7 @@ export default function AddYourField() {
     country: '',
     images: [], // Add images field
     // Pricing fields
-    pricePerHour: '',
+    price: '',
     bookingDuration: '30min',
     instantBooking: false,
     requireDeposit: false,
@@ -214,7 +214,7 @@ export default function AddYourField() {
         postalCode: fieldData.zipCode || '',
         country: fieldData.country || '',
         images: fieldData.images || [],
-        pricePerHour: fieldData.pricePerHour?.toString() || '',
+        price: fieldData.price?.toString() || fieldData.pricePerHour?.toString() || '',
         bookingDuration: fieldData.bookingDuration || '30min',
         instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
@@ -256,8 +256,8 @@ export default function AddYourField() {
         break;
         
       case 'pricing-availability':
-        if (!formData.pricePerHour || parseFloat(formData.pricePerHour) <= 0) {
-          errors.pricePerHour = 'Please enter a valid price per hour (must be greater than 0)';
+        if (!formData.price || parseFloat(formData.price) <= 0) {
+          errors.price = 'Please enter a valid price (must be greater than 0)';
         }
         if (!formData.bookingDuration) errors.bookingDuration = 'Please select a booking duration';
         break;
@@ -299,12 +299,15 @@ export default function AddYourField() {
         'field-details': 'fieldDetailsCompleted',
         'upload-images': 'uploadImagesCompleted',
         'pricing-availability': 'pricingAvailabilityCompleted',
-        'booking-rules': 'bookingRulesCompleted'
+        'booking-rules': 'bookingRulesCompleted',
       };
+
       const targetCompletedKey = completedKeyMap[sectionId];
       return fieldData && fieldData[targetCompletedKey] === true;
     }
     
+
+
     // Can only go forward if ALL previous sections are completed
     for (let i = 0; i < targetIndex; i++) {
       const sectionKey = sections[i];
@@ -314,14 +317,17 @@ export default function AddYourField() {
         'pricing-availability': 'pricingAvailabilityCompleted',
         'booking-rules': 'bookingRulesCompleted'
       };
+
       const completedKey = completedKeyMap[sectionKey];
       if (!fieldData || !fieldData[completedKey]) {
         return false;
       }
+
     }
     
     return false; // Default to disabled for forward navigation
   };
+
 
   // Use custom save progress mutation hook
   const saveProgressMutation = useSaveFieldProgress({

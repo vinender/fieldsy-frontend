@@ -26,8 +26,9 @@ export interface FieldData {
   fenceType: string;
   fenceSize: string;
   surfaceType: string;
-  pricePerHour: number;
+  price: number;
   pricePerDay: number;
+  bookingDuration?: string;
   amenities: string[];
   rules: string[];
   images: string[];

@@ -162,6 +162,7 @@ export default function BookingHistory() {
 
         {/* Bookings Tabs */}
         <div className="mb-4 sm:mb-6">
+          
           <div className="flex flex-wrap bg-cream w-fit rounded-[50px] gap-2 sm:gap-3 px-2 sm:px-3 py-2">
             <button
               onClick={() => setActiveTab('today')}
@@ -174,6 +175,7 @@ export default function BookingHistory() {
               <span className="hidden sm:inline">Today Bookings</span>
               <span className="sm:hidden">Today</span>
             </button>
+
             <button
               onClick={() => setActiveTab('upcoming')}
               className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${

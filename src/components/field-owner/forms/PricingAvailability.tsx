@@ -11,7 +11,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev: any) => ({
       ...prev,
-      pricePerHour: e.target.value
+      price: e.target.value
     }));
   };
 
@@ -88,10 +88,10 @@ export default function PricingAvailability({ formData, setFormData, validationE
             </span>
             <Input
               type="number"
-              value={formData.pricePerHour || ''}
+              value={formData.price || ''}
               onChange={handlePriceChange}
               placeholder="0.00"
-              className={`pl-8 pr-40 py-3 font-sans ${validationErrors.pricePerHour ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
+              className={`pl-8 pr-40 py-3 font-sans ${validationErrors.price ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <div className="h-6 w-px bg-gray-text" />
@@ -100,8 +100,8 @@ export default function PricingAvailability({ formData, setFormData, validationE
               </span>
             </div>
           </div>
-          {validationErrors.pricePerHour && (
-            <p className="text-red-500 text-sm mt-1">{validationErrors.pricePerHour}</p>
+          {validationErrors.price && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.price}</p>
           )}
         </div>
 

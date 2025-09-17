@@ -1,8 +1,28 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter } from 'next/router';
-import FieldOwnerDashboard from './FieldOwnerDashboard';
+import dynamic from 'next/dynamic';
 import { useOwnerField } from '@/hooks';
-import BookingHistory from '@/components/field-owner/BookingHistory';
+import { 
+  BookingHistoryPageSkeleton, 
+  FieldOwnerDashboardPageSkeleton 
+} from '@/components/skeletons/FieldOwnerSkeletons';
+
+// Lazy load the dashboard components
+const FieldOwnerDashboard = dynamic(
+  () => import('./FieldOwnerDashboard'),
+  {
+    loading: () => <FieldOwnerDashboardPageSkeleton />,
+    ssr: false
+  }
+);
+
+const BookingHistory = dynamic(
+  () => import('./BookingHistory'),
+  {
+    loading: () => <BookingHistoryPageSkeleton />,
+    ssr: false
+  }
+);
 
 export default function FieldOwnerHome() {
   const { data: field, isLoading, showAddForm } = useOwnerField();
@@ -15,27 +35,49 @@ export default function FieldOwnerHome() {
   console.log('FieldOwnerHome - showAddForm:', showAddForm);
   console.log('FieldOwnerHome - isEditMode:', isEditMode);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    // Show appropriate skeleton based on what we expect to load
+    if (!field || showAddForm || isEditMode) {
+      return <FieldOwnerDashboardPageSkeleton />;
+    }
+    return <BookingHistoryPageSkeleton />;
+  }
 
   // If no field exists or showAddForm is true, show add-field flow
   if (!field || showAddForm) {
     console.log('Showing FieldOwnerDashboard - no field or showAddForm');
-    return <FieldOwnerDashboard />;
+    return (
+      <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
+        <FieldOwnerDashboard />
+      </Suspense>
+    );
   }
   
   // If edit mode is explicitly set, show the dashboard form for editing
   if (isEditMode) {
     console.log('Showing FieldOwnerDashboard - edit mode');
-    return <FieldOwnerDashboard />;
+    return (
+      <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
+        <FieldOwnerDashboard />
+      </Suspense>
+    );
   }
   
   // If field submitted, show quick stats dashboard
   if (field?.isSubmitted) {
     console.log('Showing BookingHistory - field is submitted');
-    return <BookingHistory />;
+    return (
+      <Suspense fallback={<BookingHistoryPageSkeleton />}>
+        <BookingHistory />
+      </Suspense>
+    );
   }
   
   // Otherwise show add-field flow for incomplete fields
   console.log('Showing FieldOwnerDashboard - field not submitted');
-  return <FieldOwnerDashboard />;
+  return (
+    <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
+      <FieldOwnerDashboard />
+    </Suspense>
+  );
 }
