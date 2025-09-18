@@ -4,6 +4,7 @@ import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/router';
 import { getAmenityLabel } from '@/utils/formatters';
+import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 
 interface FieldDetailsDisplayProps {
   field: any;
@@ -40,7 +41,7 @@ export default function FieldDetailsDisplay({
     { label: 'Opening Hours', value: field?.openingTime && field?.closingTime ? `${field.openingTime} - ${field.closingTime}` : 'Monday to Friday (6:00 AM – 8:00 PM)' },
   ];
 
-  const fieldImages = field?.images && field.images.length > 0 ? field.images : [ 
+  const fieldImages = field?.images && field.images.length > 0 ? getImageUrls(field.images) : [ 
     'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop',

@@ -8,6 +8,7 @@ import { LoginPromptModal } from "@/components/modal/LoginPromptModal"
 import { useLocation } from "@/contexts/LocationContext"
 import { calculateDistance, formatDistance, getFieldCoordinates } from "@/utils/location"
 import { getAmenityLabel } from "@/utils/formatters"
+import { getImageUrl } from "@/utils/imageUrl"
 
 export interface FieldCardProps {
   id: string
@@ -162,7 +163,7 @@ export function FieldCard({
           <div className="relative mb-4 ">
             <div className={imageHeight + " w-full"}>
               <img 
-                src={image} 
+                src={getImageUrl(image)} 
                 alt={name} 
                 className={`w-full h-full object-cover ${imageRoundness}`}
               />
@@ -249,7 +250,7 @@ export function FieldCard({
 
       <div className={`relative ${imageHeight} mx-3 mb-3 ${imageRoundness} overflow-hidden`}>
         <Image 
-          src={image} 
+          src={getImageUrl(image)} 
           alt={name}
           fill
           className="object-cover"

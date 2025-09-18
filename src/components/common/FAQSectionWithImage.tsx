@@ -1,11 +1,21 @@
-import { FAQList, defaultFaqs, type FAQItem } from "@/components/common/FAQList"
+import { FAQList, type FAQItem, defaultFaqs } from "@/components/common/FAQList"
+import { useFAQs } from "@/hooks/queries/useFAQQueries"
 
 interface FAQSectionWithImageProps {
-  faqs?: FAQItem[]
   title?: string
 }
 
-export function FAQSectionWithImage({ faqs = defaultFaqs, title = "Frequently Asked Questions" }: FAQSectionWithImageProps) {
+export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FAQSectionWithImageProps) {
+  const { faqs: dynamicFAQs, loading } = useFAQs()
+  
+  // Convert dynamic FAQs to FAQItem format - show first 6 for the homepage
+  // Use default FAQs if no dynamic FAQs available
+  const faqs: FAQItem[] = dynamicFAQs.length > 0
+    ? dynamicFAQs.slice(0, 6).map(faq => ({
+        question: faq.question,
+        answer: faq.answer
+      }))
+    : defaultFaqs.slice(0, 6)
 
   return (
     <section className="relative px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden bg-light-cream max-w-full">
@@ -17,7 +27,7 @@ export function FAQSectionWithImage({ faqs = defaultFaqs, title = "Frequently As
       <div className="w-full relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
           {/* Left Section - FAQ */}
-          <FAQList faqs={faqs} title={title} />
+          <FAQList faqs={faqs} title={title} loading={loading} />
 
           {/* Right Section - Dog Image with Background */}
           <div className="relative rounded-3xl overflow-hidden h-[400px] lg:h-[600px] xl:h-[700px] lg:self-start">

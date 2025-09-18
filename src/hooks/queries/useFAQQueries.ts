@@ -1,4 +1,5 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import axiosClient from '@/lib/api/axios-client';
 
 // Query keys
@@ -32,6 +33,13 @@ export interface FAQResponse {
 export function useFAQs(
   options?: Omit<UseQueryOptions<FAQResponse, Error>, 'queryKey' | 'queryFn'>
 ) {
+  // Track if we're on the client to avoid hydration mismatches
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
   const query = useQuery({
     queryKey: faqQueryKeys.public(),
     queryFn: async () => {
@@ -40,14 +48,19 @@ export function useFAQs(
     },
     staleTime: 10 * 60 * 1000, // 10 minutes - FAQs don't change often
     gcTime: 30 * 60 * 1000, // 30 minutes cache time
+    enabled: isClient, // Only fetch after hydration
     ...options,
   });
 
+  // During SSR and initial hydration, always return loading false with default FAQs
+  // to prevent hydration mismatches
+  const isHydrating = !isClient;
+  
   return {
     faqs: query.data?.data?.faqs || [],
     groupedFAQs: query.data?.data?.grouped || {},
-    loading: query.isLoading,
-    isLoading: query.isLoading,
+    loading: isHydrating ? false : query.isLoading,
+    isLoading: isHydrating ? false : query.isLoading,
     error: query.error,
     isError: query.isError,
     isSuccess: query.isSuccess,
@@ -59,6 +72,13 @@ export function useFAQs(
 export function useGroupedFAQs(
   options?: Omit<UseQueryOptions<FAQResponse, Error>, 'queryKey' | 'queryFn'>
 ) {
+  // Track if we're on the client to avoid hydration mismatches
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
   const query = useQuery({
     queryKey: faqQueryKeys.grouped(),
     queryFn: async () => {
@@ -67,15 +87,18 @@ export function useGroupedFAQs(
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
+    enabled: isClient, // Only fetch after hydration
     ...options,
   });
 
+  const isHydrating = !isClient;
+  
   // Transform data to return only grouped FAQs
   return {
     data: query.data?.data?.grouped || {},
     faqs: query.data?.data?.faqs || [],
-    loading: query.isLoading,
-    isLoading: query.isLoading,
+    loading: isHydrating ? false : query.isLoading,
+    isLoading: isHydrating ? false : query.isLoading,
     error: query.error,
     isError: query.isError,
     isSuccess: query.isSuccess,

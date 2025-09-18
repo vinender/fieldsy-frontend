@@ -13,6 +13,7 @@ import { useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PerformanceMonitor } from "@/utils/performance"
 
+
 // Lazy load sections that are below the fold
 const AboutSection = dynamic(
   () => import("@/components/landing/AboutSection").then(mod => ({ default: mod.AboutSection })),
@@ -27,6 +28,7 @@ const AboutSection = dynamic(
   }
 )
 
+
 const HowItWorksSection = dynamic(
   () => import("@/components/landing/HowItWorksSection").then(mod => ({ default: mod.HowItWorksSection })),
   {
@@ -39,6 +41,7 @@ const HowItWorksSection = dynamic(
     ),
   }
 )
+
 
 const FeaturesSection = dynamic(
   () => import("@/components/landing/FeaturesSection").then(mod => ({ default: mod.FeaturesSection })),
@@ -53,6 +56,7 @@ const FeaturesSection = dynamic(
   }
 )
 
+
 const PlatformSection = dynamic(
   () => import("@/components/landing/PlatformSection").then(mod => ({ default: mod.PlatformSection })),
   {
@@ -66,6 +70,7 @@ const PlatformSection = dynamic(
   }
 )
 
+
 const TestimonialsSection = dynamic(
   () => import("@/components/landing/TestimonialsSection").then(mod => ({ default: mod.TestimonialsSection })),
   {
@@ -78,6 +83,7 @@ const TestimonialsSection = dynamic(
     ),
   }
 )
+
 
 const FAQSectionWithImage = dynamic(
   () => import("@/components/common/FAQSectionWithImage").then(mod => ({ default: mod.FAQSectionWithImage })),

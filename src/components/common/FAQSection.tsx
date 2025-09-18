@@ -1,7 +1,14 @@
 import { useState } from "react"
 import { Plus, Minus } from "lucide-react"
+import { useFAQs } from "@/hooks/queries/useFAQQueries"
 
-const defaultFaqs = [
+interface FAQItem {
+  question: string
+  answer: string
+}
+
+// Default FAQs to show during SSR/initial render
+const defaultFaqs: FAQItem[] = [
   {
     question: "How do I book a field?",
     answer: "Simply search by postcode or use your location, choose a field and time slot, and confirm your booking through our secure checkout. You'll receive instant confirmation via email and in the app."
@@ -28,23 +35,26 @@ const defaultFaqs = [
   }
 ]
 
-interface FAQItem {
-  question: string
-  answer: string
-}
-
 interface FAQSectionProps {
   title?: string
-  faqs?: FAQItem[]
   showContactSupport?: boolean
 }
 
 export function FAQSection({ 
   title = "Frequently Asked Questions", 
-  faqs = defaultFaqs,
   showContactSupport = true 
 }: FAQSectionProps) {
   const [openFaq, setOpenFaq] = useState<number>(-1)
+  const { faqs: dynamicFAQs, loading } = useFAQs()
+  
+  // Convert dynamic FAQs to FAQItem format - limit to 6 items for the section
+  // Use default FAQs if no dynamic FAQs available
+  const faqs: FAQItem[] = dynamicFAQs.length > 0 
+    ? dynamicFAQs.slice(0, 6).map(faq => ({
+        question: faq.question,
+        answer: faq.answer
+      }))
+    : defaultFaqs
 
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-white">
@@ -56,7 +66,18 @@ export function FAQSection({
 
         {/* FAQ Items */}
         <div className="max-w-4xl mx-auto space-y-4">
-          {faqs.map((faq, index) => (
+          {loading ? (
+            // Loading skeleton
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-light-cream rounded-2xl p-6 animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Always show FAQs (either dynamic or default)
+            faqs.map((faq, index) => (
             <div 
               key={index} 
               className="bg-light-cream rounded-2xl overflow-hidden shadow-sm"
@@ -91,7 +112,8 @@ export function FAQSection({
                 </div>
               )}
             </div>
-          ))}
+          ))
+          )}
         </div>
 
         {/* Contact Support */}

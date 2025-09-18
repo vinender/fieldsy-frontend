@@ -44,9 +44,10 @@ interface FAQListProps {
   title?: string
   hideTitle?: boolean
   variant?: "default" | "plain"
+  loading?: boolean
 }
 
-export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Questions", hideTitle = false, variant = "default" }: FAQListProps) {
+export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Questions", hideTitle = false, variant = "default", loading = false }: FAQListProps) {
   const [openFaqIndex, setOpenFaqIndex] = useState<number>(-1)
 
   const isPlain = variant === "plain"
@@ -54,6 +55,10 @@ export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Question
   const wrapperClass = isPlain
     ? ""
     : "bg-cream bg-opacity-[30%] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg"
+  
+  // Use default FAQs if no FAQs provided and not loading
+  // This helps prevent hydration mismatches
+  const displayFaqs = loading ? [] : (faqs.length > 0 ? faqs : defaultFaqs)
 
   return (
     <div className={wrapperClass}>
@@ -64,7 +69,18 @@ export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Question
       )}
 
       <div className="space-y-0">
-        {faqs.map((faq, index) => (
+        {loading ? (
+          // Loading skeleton
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className={`${isPlain ? "bg-white" : "bg-white/50"} rounded-2xl p-6 animate-pulse`}>
+                <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // FAQ items - always show displayFaqs (which defaults to defaultFaqs if empty)
+          displayFaqs.map((faq, index) => (
           <div key={index}
             className={
               isPlain
@@ -106,7 +122,8 @@ export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Question
               </div>
             )}
           </div>
-        ))}
+        ))
+        )}
       </div>
     </div>
   )
