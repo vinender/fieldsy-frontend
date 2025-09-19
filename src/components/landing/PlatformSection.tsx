@@ -100,6 +100,7 @@ export function PlatformSection() {
                     className="h-16 w-16 sm:h-18 sm:w-18 md:h-20 md:w-20 lg:h-22 lg:w-22 xl:h-24 xl:w-24 object-contain transition-all duration-300 cursor-pointer"
                   />
                 </div>
+                
               </div>
             </div>
           ))}

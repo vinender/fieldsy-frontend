@@ -1,4 +1,30 @@
-export function AboutWhoWeAreSection() {
+interface AboutWhoWeAreSectionProps {
+  data?: {
+    title: string
+    description: string
+    mainImage?: string
+    rightCardImage?: string
+    rightCardTitle?: string
+    rightCardDescription?: string
+    features: Array<{
+      icon: string
+      title: string
+      description: string
+      order: number
+    }>
+  }
+  loading?: boolean
+}
+
+export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProps) {
+  // Use data from API or fallback to hardcoded values
+  const title = data?.title || 'Who We Are'
+  const description = data?.description || "We're a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we've built Fieldsy to give every dog the freedom they deserve."
+  const mainImage = data?.mainImage || '/about/fam.png'
+  const rightCardImage = data?.rightCardImage || '/about/fam.png'
+  const rightCardTitle = data?.rightCardTitle || 'Loved by Paws and People Alike'
+  const rightCardDescription = data?.rightCardDescription || 'From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.'
+
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-light-cream">
       <div className="w-full">
@@ -6,13 +32,11 @@ export function AboutWhoWeAreSection() {
           {/* Left Content - 30% width */}
           <div className="w-full lg:w-[30%] shadow-xl flex flex-col px-[24px] py-[28px] bg-white rounded-[32px]">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-[24px] font-[700] text-dark-green mb-3 sm:mb-4 md:mb-6 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[30px]">
-              Who We Are
+              {title}
             </h2>
             
             <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-4 sm:mb-6 md:mb-8 leading-[1.6] sm:leading-[1.7] md:leading-relaxed lg:leading-[30px] font-[400] flex-grow">
-              We're a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the 
-              challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined 
-              love for technology and animals, we've built Fieldsy to give every dog the freedom they deserve.
+              {description}
             </p>
             
             {/* Team member avatars */}
@@ -38,7 +62,7 @@ export function AboutWhoWeAreSection() {
           <div className="w-full lg:w-[40%] flex">
             <div className="rounded-3xl overflow-hidden shadow-xl flex-1 flex">
               <img 
-                src="/about/fam.png"
+                src={mainImage}
                 alt="Woman playing with dog in field"
                 className="w-full h-full object-cover"
               />
@@ -54,18 +78,22 @@ export function AboutWhoWeAreSection() {
                 className="rounded-2xl w-full h-[150px] sm:h-[200px] lg:h-[250px] object-cover"
               /> */}
               <img 
-                src="/about/fam.png"
+                src={rightCardImage}
                 alt="Happy dog in field"
                 className="rounded-2xl w-full h-[120px] sm:h-[150px] md:h-[200px] lg:h-[250px] object-cover"
               />
             </div>
             
             <h3 className="text-lg sm:text-xl md:text-2xl lg:text-[32px] font-[700] text-dark-green mb-2 sm:mb-3 md:mb-4 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[40px]">
-              Loved by Paws and<br />People Alike
+              {rightCardTitle.split('and').map((part, index) => (
+                <span key={index}>
+                  {part}
+                  {index === 0 && <><br />and</>}
+                </span>
+              ))}
             </h3>
             <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 leading-[1.6] sm:leading-[1.7] md:leading-relaxed lg:leading-[30px] font-[400] mt-auto">
-              From tail wags to five-star ratings—Fieldsy is the go-to space for dog 
-              lovers to connect, explore, and book safe outdoor spots with ease.
+              {rightCardDescription}
             </p>
           </div>
         </div>
