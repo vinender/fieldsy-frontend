@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { conversationId } = req.query
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001'
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
 
   if (req.method === 'GET') {
     try {

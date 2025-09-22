@@ -121,7 +121,7 @@ export default function ChatModal({
       const token = (session as any)?.accessToken || localStorage.getItem('authToken');
       
       // Check if conversation exists or create new one
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/chat/conversations`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api'}/chat/conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export default function ChatModal({
       const token = (session as any)?.accessToken || localStorage.getItem('authToken');
       
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api'}/chat/conversations/${conversationId}/messages`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api'}/chat/conversations/${conversationId}/messages`,
         {
           headers: {
             'Authorization': `Bearer ${token}`

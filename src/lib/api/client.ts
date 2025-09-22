@@ -5,7 +5,7 @@ const baseURL = (() => {
   if (env) {
     return env.endsWith('/api') ? env : `${env}/api`
   }
-  return 'http://localhost:5001/api'
+  return 'http://localhost:5000/api'
 })()
 
 export const apiClient = axios.create({

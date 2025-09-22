@@ -37,7 +37,7 @@ export const useSlotAvailability = (fieldId: string | undefined, date: string | 
       }
       
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/bookings/fields/${fieldId}/slot-availability`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/fields/${fieldId}/slot-availability`,
         {
           params: { date }
         }

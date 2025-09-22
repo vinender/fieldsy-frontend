@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
         if (credentials?.token && credentials?.email) {
           try {
             // Verify the token with our backend
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/auth/me`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`, {
               headers: {
                 'Authorization': `Bearer ${credentials.token}`,
               },
@@ -88,7 +88,7 @@ export const authOptions: NextAuthOptions = {
         // Regular login with email and password
         if (credentials?.email && credentials?.password) {
           try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/auth/login`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/login`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

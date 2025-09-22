@@ -38,7 +38,7 @@ export function useToggleFavorite(fieldId: string) {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/favorites/toggle/${fieldId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/favorites/toggle/${fieldId}`,
         {
           method: 'POST',
           headers: {
@@ -82,7 +82,7 @@ export function useFavoriteStatus(fieldId: string | undefined) {
       if (!token) return false;
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/favorites/check/${fieldId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/favorites/check/${fieldId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -115,7 +115,7 @@ export function useSavedFields(page: number = 1, limit: number = 10) {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/favorites/my-saved-fields?page=${page}&limit=${limit}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/favorites/my-saved-fields?page=${page}&limit=${limit}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -151,7 +151,7 @@ export function useRemoveFavorite() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/favorites/${fieldId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/favorites/${fieldId}`,
         {
           method: 'DELETE',
           headers: {

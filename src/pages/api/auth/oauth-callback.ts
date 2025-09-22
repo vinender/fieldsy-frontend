@@ -24,7 +24,7 @@ export default async function handler(
     }
 
     // Update the user's role in the backend
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001/api';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api';
     const response = await fetch(`${backendUrl}/auth/update-role`, {
       method: 'PATCH',
       headers: {

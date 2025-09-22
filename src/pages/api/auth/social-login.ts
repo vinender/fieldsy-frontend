@@ -31,7 +31,7 @@ export default async function handler(
     }
 
     // Call backend API to handle social login
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
     const response = await fetch(`${backendUrl}/auth/social-login`, {
       method: 'POST',
       headers: {

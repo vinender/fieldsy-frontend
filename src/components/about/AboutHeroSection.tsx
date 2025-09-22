@@ -1,6 +1,7 @@
 import { Play, Apple } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
+
 interface AboutHeroSectionProps {
   data?: {
     sectionTitle: string
@@ -17,6 +18,7 @@ interface AboutHeroSectionProps {
   }
   loading?: boolean
 }
+
 
 export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   // Default data for fallback
@@ -37,13 +39,18 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   const content = data || defaultData
   const sortedStats = content.stats.sort((a, b) => a.order - b.order)
 
+
   if (loading) {
+
     return (
       <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 w-full lg:py-20 bg-light-cream">
+       
         <div className="w-full">
+
           <Skeleton className="h-6 w-24 mb-6 sm:mb-8" />
           
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            
             <div>
               <Skeleton className="h-12 w-full mb-4" />
               <Skeleton className="h-12 w-3/4 mb-8" />
@@ -62,10 +69,14 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
               </div>
             ))}
           </div>
+
         </div>
+
       </section>
     )
   }
+
+
 
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 w-full lg:py-20 bg-light-cream">

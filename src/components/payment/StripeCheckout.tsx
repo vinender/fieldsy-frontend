@@ -63,7 +63,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
         }
         
         setProcessing(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/payments/create-payment-intent`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/create-payment-intent`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -223,7 +223,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
           return;
         }
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/payments/create-payment-intent`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/create-payment-intent`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -302,7 +302,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
       // Confirm payment on backend
       try {
         const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/payments/confirm-payment`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/confirm-payment`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

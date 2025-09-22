@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001'
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
 
   if (req.method === 'GET') {
     try {

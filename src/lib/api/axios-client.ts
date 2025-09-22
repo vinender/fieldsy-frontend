@@ -3,7 +3,7 @@ import { getSession, signOut } from 'next-auth/react';
 import Router from 'next/router';
 import { isPublicRoute } from '@/utils/auth-routes';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const axiosClient = axios.create({

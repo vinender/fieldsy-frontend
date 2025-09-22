@@ -154,7 +154,7 @@ console.log('notifications',notificationData  )
     if (token) {
 
       const socketInstance = io(
-        process.env.NEXT_PUBLIC_BACKEND_URL?.replace('/api', '') || 'http://localhost:5001',
+        process.env.NEXT_PUBLIC_BACKEND_URL?.replace('/api', '') || 'http://localhost:5000',
         {
           auth: {
             token,

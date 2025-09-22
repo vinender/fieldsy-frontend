@@ -360,7 +360,7 @@ const MessagesPage = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/user-blocks/status/${otherUserId}`, {
+      const response = await fetch(`http://localhost:5000/api/user-blocks/status/${otherUserId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -463,7 +463,7 @@ const MessagesPage = () => {
     setIsDeleting(true);
     try {
       const token = (session as any)?.accessToken || localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:5001/api/chat/conversations/${selectedConversation.id}`, {
+      const response = await fetch(`http://localhost:5000/api/chat/conversations/${selectedConversation.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -919,7 +919,7 @@ const MessagesPage = () => {
                               if (otherUser) {
                                 try {
                                   const token = (session as any)?.accessToken || localStorage.getItem('authToken');
-                                  const response = await fetch(`http://localhost:5001/api/user-blocks/unblock`, {
+                                  const response = await fetch(`http://localhost:5000/api/user-blocks/unblock`, {
                                     method: 'POST',
                                     headers: {
                                       'Authorization': `Bearer ${token}`,

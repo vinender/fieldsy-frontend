@@ -50,7 +50,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
+    const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
     console.log('🚀 SocketContext - Creating socket connection to:', socketUrl);
     
     const newSocket = io(socketUrl, {
