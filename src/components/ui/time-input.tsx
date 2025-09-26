@@ -10,6 +10,9 @@ interface TimeInputProps {
   className?: string;
   name?: string;
   disabled?: boolean;
+  minHoursDifference?: number; // Minimum hours difference for end time
+  startTime?: string; // Start time in 24-hour format (for end time validation)
+  isEndTime?: boolean; // Whether this is an end time selector
 }
 
 // Helper function to format 24-hour time to 12-hour with AM/PM
@@ -34,7 +37,10 @@ export function TimeInput({
   placeholder = 'Select time',
   className = '',
   name,
-  disabled = false
+  disabled = false,
+  minHoursDifference = 0,
+  startTime,
+  isEndTime = false
 }: TimeInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState('');
@@ -101,6 +107,32 @@ export function TimeInput({
 
   const hours = Array.from({ length: 12 }, (_, i) => i === 0 ? 12 : i);
   const minutes = ['00', '15', '30', '45'];
+  
+  // Calculate disabled hours for end time based on start time and minimum hours
+  const isHourDisabled = (hour: number, period: string): boolean => {
+    if (!isEndTime || !startTime || !minHoursDifference) return false;
+    
+    // Convert hour to 24-hour format
+    let hour24 = hour;
+    if (period === 'PM' && hour !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hour === 12) {
+      hour24 = 0;
+    }
+    
+    // Parse start time
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    
+    // Calculate end time in minutes
+    const endTotalMinutes = hour24 * 60;
+    
+    // Check if the difference meets minimum hours requirement
+    const diffHours = (endTotalMinutes - startTotalMinutes) / 60;
+    
+    // Disable if less than minimum hours or if end time is before start time
+    return diffHours < minHoursDifference;
+  };
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -134,21 +166,27 @@ export function TimeInput({
               <div>
                 <div className="text-xs font-semibold text-gray-500 mb-2">Hour</div>
                 <div className="max-h-48 overflow-y-auto space-y-1">
-                  {hours.map(hour => (
-                    <button
-                      key={hour}
-                      type="button"
-                      onClick={() => handleTimeSelect(hour.toString(), selectedMinute || '00', selectedPeriod)}
-                      className={`
-                        w-full px-2 py-1.5 text-sm rounded-lg transition-colors
-                        ${selectedHour === hour.toString() 
-                          ? 'bg-light-green text-white font-medium' 
-                          : 'hover:bg-gray-100 text-gray-700'}
-                      `}
-                    >
-                      {hour}
-                    </button>
-                  ))}
+                  {hours.map(hour => {
+                    const disabled = isHourDisabled(hour, selectedPeriod);
+                    return (
+                      <button
+                        key={hour}
+                        type="button"
+                        onClick={() => !disabled && handleTimeSelect(hour.toString(), selectedMinute || '00', selectedPeriod)}
+                        disabled={disabled}
+                        className={`
+                          w-full px-2 py-1.5 text-sm rounded-lg transition-colors
+                          ${disabled 
+                            ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                            : selectedHour === hour.toString() 
+                              ? 'bg-light-green text-white font-medium' 
+                              : 'hover:bg-gray-100 text-gray-700'}
+                        `}
+                      >
+                        {hour}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -178,54 +216,31 @@ export function TimeInput({
               <div>
                 <div className="text-xs font-semibold text-gray-500 mb-2">Period</div>
                 <div className="space-y-1">
-                  {['AM', 'PM'].map(period => (
-                    <button
-                      key={period}
-                      type="button"
-                      onClick={() => handleTimeSelect(selectedHour || '12', selectedMinute || '00', period)}
-                      className={`
-                        w-full px-2 py-1.5 text-sm rounded-lg transition-colors
-                        ${selectedPeriod === period 
-                          ? 'bg-light-green text-white font-medium' 
-                          : 'hover:bg-gray-100 text-gray-700'}
-                      `}
-                    >
-                      {period}
-                    </button>
-                  ))}
+                  {['AM', 'PM'].map(period => {
+                    const disabled = selectedHour && isHourDisabled(parseInt(selectedHour), period);
+                    return (
+                      <button
+                        key={period}
+                        type="button"
+                        onClick={() => !disabled && handleTimeSelect(selectedHour || '12', selectedMinute || '00', period)}
+                        disabled={disabled}
+                        className={`
+                          w-full px-2 py-1.5 text-sm rounded-lg transition-colors
+                          ${disabled
+                            ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                            : selectedPeriod === period 
+                              ? 'bg-light-green text-white font-medium' 
+                              : 'hover:bg-gray-100 text-gray-700'}
+                        `}
+                      >
+                        {period}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* Quick time buttons */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="text-xs font-semibold text-gray-500 mb-2">Quick Select</div>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { label: '6:00 AM', value: '06:00' },
-                  { label: '9:00 AM', value: '09:00' },
-                  { label: '12:00 PM', value: '12:00' },
-                  { label: '3:00 PM', value: '15:00' },
-                  { label: '6:00 PM', value: '18:00' },
-                  { label: '9:00 PM', value: '21:00' },
-                ].map(({ label, value: timeValue }) => (
-                  <button
-                    key={timeValue}
-                    type="button"
-                    onClick={() => {
-                      const [hours, minutes] = timeValue.split(':');
-                      const hour = parseInt(hours);
-                      const period = hour >= 12 ? 'PM' : 'AM';
-                      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-                      handleTimeSelect(displayHour.toString(), minutes, period);
-                    }}
-                    className="px-2 py-1 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors"
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       )}

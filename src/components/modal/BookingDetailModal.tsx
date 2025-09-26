@@ -17,6 +17,7 @@ import { AddReviewModal } from './AddReviewModal';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
 import { deslugify } from '@/utils/formatters';
+import { useCancellationWindow } from '@/hooks/usePublicSettings';
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   onReschedule 
 }) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const cancellationWindowHours = useCancellationWindow();
   
   // Fetch detailed booking data
   const { data: bookingDetails, isLoading } = useBookingDetails(
@@ -48,7 +50,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   // Use fetched data if available, otherwise fall back to passed booking
   const fullBooking = bookingDetails?.data || bookingDetails?.booking || booking;
   console.log('fullBooking', bookingDetails);
-  // Calculate if booking can be cancelled (24 hours before booking time)
+  // Calculate if booking can be cancelled (using dynamic cancellation window from settings)
   const canCancelBooking = () => {
     if (!fullBooking || fullBooking.status !== 'CONFIRMED') return false;
     
@@ -73,7 +75,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     // Calculate hours until booking
     const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
     
-    return hoursUntilBooking >= 24;
+    return hoursUntilBooking >= cancellationWindowHours;
   };
   
   const getTimeUntilBooking = () => {
@@ -452,7 +454,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             ? 'bg-[#e8f5ff] border-2 border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
                             : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                         }`}
-                        title={!isCancellable ? `Cannot reschedule within 24 hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}
+                        title={!isCancellable ? `Cannot reschedule within ${cancellationWindowHours} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}
                       >
                         Reschedule Booking
                       </button>
@@ -469,7 +471,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             ? 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
                             : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                         }`}
-                        title={!isCancellable ? `Cannot cancel within 24 hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}
+                        title={!isCancellable ? `Cannot cancel within ${cancellationWindowHours} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}
                       >
                         Cancel Booking
                       </button>
@@ -480,7 +482,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 sm:p-3">
                         <p className="text-xs sm:text-sm text-yellow-800 text-center">
                           <Clock className="inline w-4 h-4 mr-1" />
-                          Cancellation and rescheduling are not available within 24 hours of your booking.
+                          Cancellation and rescheduling are not available within {cancellationWindowHours} hours of your booking.
                           <br />
                           <span className="font-semibold">{getTimeUntilBooking()} hours remaining until booking.</span>
                         </p>

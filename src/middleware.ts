@@ -2,50 +2,63 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
+// Pre-compile path sets for O(1) lookup performance
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-otp",
+  "/about",
+  "/how-it-works",
+  "/faqs",
+  "/privacy-policy",
+  "/terms-conditions",
+  "/unauthorized",
+]);
+
+const PUBLIC_PATH_PREFIXES = [
+  "/fields", // Public field listing
+  "/api/public", // Public API routes
+];
+
+const PROTECTED_PATH_PREFIXES = [
+  "/user",
+  "/field-owner",
+  "/admin",
+  "/fields/add-field",
+  "/fields/book-field",
+];
+
+// Cache for path checks to avoid repeated computations
+const pathCache = new Map<string, boolean>();
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
-  // Public paths that don't require authentication
-  const publicPaths = [
-    "/",
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-    "/verify-otp",
-    "/about",
-    "/how-it-works",
-    "/faqs",
-    "/privacy-policy",
-    "/terms-conditions",
-    "/unauthorized",
-    "/fields", // Public field listing and search
-    "/fields/claim-field-form", // Allow claiming fields without auth
-  ];
+  // Early return for static assets and API routes (except auth)
+  if (path.startsWith('/_next/') || path.startsWith('/api/') && !path.startsWith('/api/auth')) {
+    return NextResponse.next();
+  }
   
-  // Protected paths that require authentication
-  const protectedPaths = [
-    "/user",
-    "/field-owner",
-    "/admin",
-    "/fields/add-field",
-    "/fields/book-field",
-  ];
+  // Check cache first
+  const cachedPublic = pathCache.get(`public:${path}`);
+  if (cachedPublic !== undefined) {
+    if (cachedPublic) return NextResponse.next();
+  }
   
-  // Check if the path is public
-  const isPublicPath = publicPaths.some(publicPath => 
-    path === publicPath || (publicPath !== "/" && path.startsWith(`${publicPath}/`))
-  );
+  // Fast path check for public routes
+  const isPublicPath = PUBLIC_PATHS.has(path) || 
+    PUBLIC_PATH_PREFIXES.some(prefix => path.startsWith(prefix));
   
-  // If public path, allow access
   if (isPublicPath) {
+    pathCache.set(`public:${path}`, true);
     return NextResponse.next();
   }
   
   // Check if path is protected
-  const isProtectedPath = protectedPaths.some(protectedPath =>
-    path.startsWith(protectedPath)
-  );
+  const isProtectedPath = PROTECTED_PATH_PREFIXES.some(prefix => path.startsWith(prefix));
   
   if (isProtectedPath) {
     try {
@@ -59,7 +72,10 @@ export async function middleware(request: NextRequest) {
       if (!token) {
         const url = new URL('/login', request.url);
         url.searchParams.set('callbackUrl', path);
-        return NextResponse.redirect(url);
+        // Use temporary redirect (307) in development, permanent (308) in production
+        return NextResponse.redirect(url, { 
+          status: process.env.NODE_ENV === 'production' ? 308 : 307 
+        });
       }
       
       // Check if token has exp claim and if it's expired

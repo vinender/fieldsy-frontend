@@ -120,7 +120,7 @@ export function FAQSection({
         {showContactSupport && (
           <div className="mt-12 sm:mt-16 text-center">
             <p className="text-dark-green/80 mb-4 text-base xl:text-[18px] font-[400]">
-              Can't find what you're looking for?
+              Can&apos;t find what you&apos;re looking for?
             </p>
             <button 
               className="px-8 py-3 rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors"

@@ -46,9 +46,10 @@ export const useSlotAvailability = (fieldId: string | undefined, date: string | 
       return response.data;
     },
     enabled: !!fieldId && !!date,
-    staleTime: 1000 * 30, // Cache for 30 seconds only
-    refetchInterval: 1000 * 30, // Refetch every 30 seconds to get updated availability
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    refetchOnMount: true, // Always refetch when component mounts
+    staleTime: 1000 * 60, // Cache for 1 minute
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    refetchInterval: false, // Don't auto-refetch
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't always refetch when component mounts
   });
 };

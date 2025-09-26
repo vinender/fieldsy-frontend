@@ -166,8 +166,8 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   </h1>
                   <span className="text-xl lg:text-2xl text-dark-green">•</span>
                   <div className="flex items-baseline">
-                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.pricePerHour || 0}</span>
-                    <span className="text-sm lg:text-base text-gray-500 ml-1">/hour</span>
+                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.price || 0}</span>
+                    <span className="text-sm lg:text-base text-gray-500 ml-1">/dog/{field.bookingDuration}</span>
                   </div>
                 </div>
                 <button 

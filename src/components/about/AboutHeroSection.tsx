@@ -1,5 +1,6 @@
 import { Play, Apple } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import Image from "next/image"
 
 
 interface AboutHeroSectionProps {
@@ -112,11 +113,14 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
           
           {/* Right Image */}
           <div className="relative mt-8 lg:mt-0">
-            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl">
-              <img 
+            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl relative h-[300px] sm:h-[400px] lg:h-[500px]">
+              <Image 
                 src={content?.image || defaultData?.image}
                 alt="Dog playing with toy in field"
-                className="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover"
+                fill
+                className="object-cover"
+                priority // Since this is above the fold
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               />
             </div>
           </div>

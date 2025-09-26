@@ -1,4 +1,5 @@
 import React from 'react';
+import { GetStaticProps } from 'next';
 import BackButton from '@/components/common/BackButton';
 import { ChevronLeft } from 'lucide-react';
 
@@ -152,3 +153,12 @@ const TermsConditions = () => {
 };
 
 export default TermsConditions;
+
+// Use getStaticProps to pre-render this page at build time
+export const getStaticProps: GetStaticProps = async () => {
+  // Since terms and conditions is static content, we don't need to fetch anything
+  // Just return empty props to enable static generation
+  return {
+    props: {},
+  };
+};

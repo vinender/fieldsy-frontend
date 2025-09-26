@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Bell, Settings, LogOut, ChevronDown, Check, Star, MoreVertical, FileText, Layout, Users, MapPin } from 'lucide-react';
+import React from 'react';
+import { Search, Bell, Settings, LogOut, Check, Star, FileText, Layout, Users, MapPin } from 'lucide-react';
 
 // Reusable Button Component
 const Button = ({ children, variant = 'primary', size = 'md', className = '', ...props }) => {
@@ -259,12 +259,12 @@ export default function FieldDetailsDashboard() {
   ];
   
   const earningsData = [
-    ['#0008', 'ALEXANDRA', 'Jan 15, 2024 at 3:30 PM', '35', '1', '$84.31', <Badge variant="warning">Pending</Badge>],
-    ['#0009', 'ISABELLA', 'Jan 15, 2024 at 10:30 AM', '12', '1', '$91.72', <Badge variant="warning">Pending</Badge>],
-    ['#0010', 'SCAREMAH', 'Jan 15, 2024 at 04:15 AM', '41', '3', '$49.48', <Badge>Active</Badge>],
-    ['#0011', 'MARWOOD', 'Jan 15, 2024 at 02:30 AM', '21', '2', '$36.97', <Badge>Active</Badge>],
-    ['#0012', 'ALEXANDER', 'Jan 15, 2024 at 01:11 AM', '132', '6', '$141.11', <Badge variant="warning">Pending</Badge>],
-    ['#0013', 'NIERMANN', 'Jan 15, 2024 at 05:18 AM', '132', '2', '$76.19', <Badge variant="warning">Pending</Badge>]
+    ['#0008', 'ALEXANDRA', 'Jan 15, 2024 at 3:30 PM', '35', '1', '$84.31', <Badge key="badge-0008" variant="warning">Pending</Badge>],
+    ['#0009', 'ISABELLA', 'Jan 15, 2024 at 10:30 AM', '12', '1', '$91.72', <Badge key="badge-0009" variant="warning">Pending</Badge>],
+    ['#0010', 'SCAREMAH', 'Jan 15, 2024 at 04:15 AM', '41', '3', '$49.48', <Badge key="badge-0010">Active</Badge>],
+    ['#0011', 'MARWOOD', 'Jan 15, 2024 at 02:30 AM', '21', '2', '$36.97', <Badge key="badge-0011">Active</Badge>],
+    ['#0012', 'ALEXANDER', 'Jan 15, 2024 at 01:11 AM', '132', '6', '$141.11', <Badge key="badge-0012" variant="warning">Pending</Badge>],
+    ['#0013', 'NIERMANN', 'Jan 15, 2024 at 05:18 AM', '132', '2', '$76.19', <Badge key="badge-0013" variant="warning">Pending</Badge>]
   ];
   
   const reviews = [

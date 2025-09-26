@@ -128,7 +128,7 @@ export default function SearchResults() {
   const fields = fieldsData?.data || [];
   const totalPages = fieldsData?.pagination?.totalPages || 1;
   const totalResults = fieldsData?.pagination?.total || 0;
-
+ console.log('fields',fields)
   const handleSearch = () => {
     setCurrentPage(1);
     // React Query will automatically refetch with new params
@@ -246,6 +246,7 @@ export default function SearchResults() {
             </div>
 
             {/* Fields Grid using the refactored FieldCard component */}
+            {/* Show skeleton only when loading API data, not during navigation */}
             {isLoading ? (
               <FieldGridSkeleton count={12} />
             ) : isError ? (
@@ -291,8 +292,8 @@ export default function SearchResults() {
                     {...(fields.length > 0 ? {
                       id: field.id,
                       name: field.name,
-                      price: field.pricePerHour,
-                      priceUnit: 'hour',
+                      price: field.price,
+                      priceUnit: field.bookingDuration === '30min' ? 'dog/30min' : 'dog/hour',
                       location: field.city ? `${field.city}, ${field.state}` : 'Location',
                       fullLocation: field.address,
                       rating: field.averageRating || 0,

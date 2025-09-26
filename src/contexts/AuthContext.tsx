@@ -47,7 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Listen for storage changes
       const handleStorageChange = () => {
         const newToken = localStorage.getItem('authToken');
-        console.log('[AuthContext] Storage changed, new token:', newToken);
         setAuthToken(newToken);
         // The token change will trigger a refetch via the useCurrentUser enabled prop
       };
@@ -81,10 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Update local user state when userData changes
   useEffect(() => {
-    console.log('[AuthContext] userData:', userData);
-    console.log('[AuthContext] status:', status);
-    console.log('[AuthContext] authToken:', authToken);
-    
     if (userData) {
       setUser({
         id: userData.id,

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "analyze": "cross-env ANALYZE=true next build",
+    "analyze:server": "cross-env BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "cross-env BUNDLE_ANALYZE=browser next build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.864.0",
@@ -36,6 +39,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookies-next": "^6.1.0",
+    "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "formidable": "^3.5.4",
     "jose": "^6.0.12",
@@ -51,6 +55,7 @@
     "react-day-picker": "^9.9.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.61.1",
+    "react-intersection-observer": "^9.16.0",
     "react-time-picker": "^8.0.2",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.6",
@@ -61,11 +66,13 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.5.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "postcss": "^8.5.6",

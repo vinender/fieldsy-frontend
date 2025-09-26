@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '@/lib/api/axios-client';
 import { toast } from 'sonner';
+// Import fieldQueryKeys from useFieldQueries to avoid conflicts
+import { fieldQueryKeys } from '../queries/useFieldQueries';
 
 // Types for field data
 export interface FieldBasicInfo {
@@ -43,15 +45,7 @@ export interface FieldData {
   updatedAt?: string;
 }
 
-// Query keys
-export const fieldQueryKeys = {
-  all: ['fields'] as const,
-  lists: () => [...fieldQueryKeys.all, 'list'] as const,
-  list: (filters: any) => [...fieldQueryKeys.lists(), filters] as const,
-  details: () => [...fieldQueryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...fieldQueryKeys.details(), id] as const,
-  ownerField: () => ['owner-field'] as const,
-};
+// Query keys are imported from useFieldQueries to avoid conflicts
 
 // Hook to fetch owner's field
 export function useGetOwnerField() {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Elements,
   CardElement,
@@ -42,23 +42,38 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   const [succeeded, setSucceeded] = useState(false);
   const [bookingId, setBookingId] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [paymentInitiated, setPaymentInitiated] = useState(false);
+  const [apiCallInProgress, setApiCallInProgress] = useState(false);
+  
+  // Use useRef to track if we've already initiated payment for this specific booking
+  const paymentInitiatedRef = useRef(false);
+  const bookingKeyRef = useRef(`${fieldId}_${date}_${timeSlot}_${paymentMethodId}`);
 
   useEffect(() => {
-    // Prevent duplicate payment attempts
-    if (paymentInitiated) {
+    const currentBookingKey = `${fieldId}_${date}_${timeSlot}_${paymentMethodId}`;
+    
+    // Check if this is a different booking (props changed)
+    if (bookingKeyRef.current !== currentBookingKey) {
+      paymentInitiatedRef.current = false;
+      bookingKeyRef.current = currentBookingKey;
+    }
+    
+    // Prevent duplicate payment attempts for the same booking
+    if (paymentInitiatedRef.current || apiCallInProgress) {
       return;
     }
     
     // Create PaymentIntent with saved card
     const createPaymentIntent = async () => {
       // Mark payment as initiated to prevent duplicate calls
-      setPaymentInitiated(true);
+      paymentInitiatedRef.current = true;
+      setApiCallInProgress(true);
+      
       try {
         const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
           setError('Please log in to continue with payment');
           onError?.('Authentication required');
+          setApiCallInProgress(false);
           return;
         }
         
@@ -83,6 +98,19 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
         if (!response.ok) {
           const errorData = await response.json();
           
+          // Check if it's a duplicate booking
+          if (errorData.isDuplicate) {
+            setSucceeded(true);
+            setBookingId(errorData.bookingId);
+            setProcessing(false);
+            // Show success modal for existing booking
+            setTimeout(() => {
+              onSuccess?.();
+              setShowSuccessModal(true);
+            }, 1000);
+            return;
+          }
+          
           // Handle specific error codes from backend
           if (errorData.code === 'PAYMENT_METHOD_EXPIRED') {
             toast.error('This payment method is no longer valid. Please select a different payment method.');
@@ -102,11 +130,34 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
 
         const data = await response.json();
         
+        // Check if it's a duplicate booking (from 200 response)
+        if (data.isDuplicate) {
+          if (data.isPending) {
+            // There's a pending booking, inform the user
+            setError('A booking for this time slot is already being processed. Please wait a moment and check your bookings.');
+            setProcessing(false);
+            setApiCallInProgress(false);
+            return;
+          }
+          // Existing confirmed booking
+          setSucceeded(true);
+          setBookingId(data.bookingId);
+          setProcessing(false);
+          setApiCallInProgress(false);
+          // Show success modal for existing booking
+          setTimeout(() => {
+            onSuccess?.();
+            setShowSuccessModal(true);
+          }, 1000);
+          return;
+        }
+        
         // Check if payment was already successful (saved card was used)
         if (data.paymentSucceeded) {
           setSucceeded(true);
           setBookingId(data.bookingId);
           setProcessing(false);
+          setApiCallInProgress(false);
           // Show success modal directly
           setTimeout(() => {
             onSuccess?.();
@@ -116,19 +167,25 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
           // Payment requires additional action
           setError('Payment requires additional verification. Please check your banking app.');
           setProcessing(false);
+          setApiCallInProgress(false);
         }
       } catch (err) {
         console.error('Error creating payment intent:', err);
         setError(err instanceof Error ? err.message : 'Failed to initialize payment');
         onError?.(err instanceof Error ? err.message : 'Failed to initialize payment');
         setProcessing(false);
+        setApiCallInProgress(false);
+        // Reset payment initiated flag on error to allow retry
+        paymentInitiatedRef.current = false;
+      } finally {
+        setApiCallInProgress(false);
       }
     };
 
     if (amount > 0 && paymentMethodId && (session || typeof window !== 'undefined')) {
       createPaymentIntent();
     }
-  }, [amount, fieldId, numberOfDogs, date, timeSlot, repeatBooking, paymentMethodId, session]);
+  }, [fieldId, date, timeSlot, paymentMethodId, amount, numberOfDogs, repeatBooking, session, onSuccess, onError]); // Include all dependencies but use ref to prevent duplicate calls
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
@@ -211,15 +268,37 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   const [clientSecret, setClientSecret] = useState('');
   const [bookingId, setBookingId] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [apiCallInProgress, setApiCallInProgress] = useState(false);
+  
+  // Use useRef to track if we've already initiated payment for this specific booking
+  const paymentInitiatedRef = useRef(false);
+  const bookingKeyRef = useRef(`${fieldId}_${date}_${timeSlot}_new_card`);
 
   useEffect(() => {
+    const currentBookingKey = `${fieldId}_${date}_${timeSlot}_new_card`;
+    
+    // Check if this is a different booking (props changed)
+    if (bookingKeyRef.current !== currentBookingKey) {
+      paymentInitiatedRef.current = false;
+      bookingKeyRef.current = currentBookingKey;
+    }
+    
+    // Prevent duplicate payment attempts for the same booking
+    if (paymentInitiatedRef.current || apiCallInProgress) {
+      return;
+    }
+    
     // Create PaymentIntent as soon as the component loads
     const createPaymentIntent = async () => {
+      paymentInitiatedRef.current = true;
+      setApiCallInProgress(true);
+      
       try {
         const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
           setError('Please log in to continue with payment');
           onError?.('Authentication required');
+          setApiCallInProgress(false);
           return;
         }
         
@@ -242,6 +321,18 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
         if (!response.ok) {
           const errorData = await response.json();
           
+          // Check if it's a duplicate booking
+          if (errorData.isDuplicate) {
+            setSucceeded(true);
+            setBookingId(errorData.bookingId);
+            // Show success modal for existing booking
+            setTimeout(() => {
+              onSuccess?.();
+              setShowSuccessModal(true);
+            }, 1000);
+            return;
+          }
+          
           // Handle specific error codes from backend
           if (errorData.code === 'PAYMENT_PROCESSING_ERROR') {
             toast.error('Unable to process payment. Please try again.');
@@ -253,24 +344,54 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
         }
 
         const data = await response.json();
+        
+        // Check if it's a duplicate booking (from 200 response)
+        if (data.isDuplicate) {
+          if (data.isPending) {
+            // There's a pending booking, inform the user
+            setError('A booking for this time slot is already being processed. Please wait a moment and check your bookings.');
+            setApiCallInProgress(false);
+            return;
+          }
+          // Existing confirmed booking
+          setSucceeded(true);
+          setBookingId(data.bookingId);
+          setApiCallInProgress(false);
+          // Show success modal for existing booking
+          setTimeout(() => {
+            onSuccess?.();
+            setShowSuccessModal(true);
+          }, 1000);
+          return;
+        }
+        
         setClientSecret(data.clientSecret);
         setBookingId(data.bookingId);
+        setApiCallInProgress(false);
       } catch (err) {
         console.error('Error creating payment intent:', err);
         setError(err instanceof Error ? err.message : 'Failed to initialize payment');
         onError?.(err instanceof Error ? err.message : 'Failed to initialize payment');
+        setApiCallInProgress(false);
+        // Reset flag on error to allow retry
+        paymentInitiatedRef.current = false;
       }
     };
 
     if (amount > 0 && (session || typeof window !== 'undefined')) {
       createPaymentIntent();
     }
-  }, [amount, fieldId, numberOfDogs, date, timeSlot, repeatBooking, session]);
+  }, [fieldId, date, timeSlot, amount, numberOfDogs, repeatBooking, session, onSuccess, onError]); // Include all dependencies but use ref to prevent duplicate calls
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!stripe || !elements || !clientSecret) {
+      return;
+    }
+    
+    // Prevent double submission
+    if (processing || succeeded) {
       return;
     }
 

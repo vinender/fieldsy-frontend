@@ -17,85 +17,37 @@ import { PerformanceMonitor } from "@/utils/performance"
 // Lazy load sections that are below the fold
 const AboutSection = dynamic(
   () => import("@/components/landing/AboutSection").then(mod => ({ default: mod.AboutSection })),
-  {
-    loading: () => (
-      <div className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    ),
-  }
+  { ssr: false }
 )
 
 
 const HowItWorksSection = dynamic(
   () => import("@/components/landing/HowItWorksSection").then(mod => ({ default: mod.HowItWorksSection })),
-  {
-    loading: () => (
-      <div className="py-20 bg-light-cream">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    ),
-  }
+  { ssr: false }
 )
 
 
 const FeaturesSection = dynamic(
   () => import("@/components/landing/FeaturesSection").then(mod => ({ default: mod.FeaturesSection })),
-  {
-    loading: () => (
-      <div className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    ),
-  }
+  { ssr: false }
 )
 
 
 const PlatformSection = dynamic(
   () => import("@/components/landing/PlatformSection").then(mod => ({ default: mod.PlatformSection })),
-  {
-    loading: () => (
-      <div className="py-20 bg-light-cream">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    ),
-  }
+  { ssr: false }
 )
 
 
 const TestimonialsSection = dynamic(
   () => import("@/components/landing/TestimonialsSection").then(mod => ({ default: mod.TestimonialsSection })),
-  {
-    loading: () => (
-      <div className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    ),
-  }
+  { ssr: false }
 )
 
 
 const FAQSectionWithImage = dynamic(
   () => import("@/components/common/FAQSectionWithImage").then(mod => ({ default: mod.FAQSectionWithImage })),
-  {
-    loading: () => (
-      <div className="py-20 bg-light-cream">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    ),
-  }
+  { ssr: false }
 )
 
 
@@ -104,30 +56,30 @@ export default function HomePage() {
   const { status } = useSession();
 
   useEffect(() => {
-    // Log user data for debugging
-    console.log('[HomePage] User data from AuthContext:', user);
-    console.log('[HomePage] User role:', user?.role);
-    console.log('[HomePage] Session status:', status);
-    console.log('[HomePage] Is loading:', isLoading);
-    
-    // Track page load performance
-    if (!isLoading && status !== 'loading') {
-      PerformanceMonitor.mark('home-page-interactive');
-      PerformanceMonitor.measure('Time to Interactive', 'home-page-start', 'home-page-interactive');
+    // Only track performance in development
+    if (process.env.NODE_ENV === 'development') {
+      if (!isLoading && status !== 'loading') {
+        PerformanceMonitor.mark('home-page-interactive');
+        PerformanceMonitor.measure('Time to Interactive', 'home-page-start', 'home-page-interactive');
+      }
     }
-  }, [user, isLoading, status])
+  }, [isLoading, status])
   
   useEffect(() => {
     // Mark the start of page load
-    PerformanceMonitor.mark('home-page-start');
+    if (process.env.NODE_ENV === 'development') {
+      PerformanceMonitor.mark('home-page-start');
+    }
     
     return () => {
       // Clean up performance marks when component unmounts
-      PerformanceMonitor.clear();
+      if (process.env.NODE_ENV === 'development') {
+        PerformanceMonitor.clear();
+      }
     };
   }, [])
 
-  // Show loading skeleton while determining user role
+  // Show loading skeleton when loading data
   if (isLoading || status === 'loading') {
     return <HomePageSkeleton />
   }

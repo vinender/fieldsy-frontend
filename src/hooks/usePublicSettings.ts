@@ -16,7 +16,7 @@ export const usePublicSettings = () => {
     queryKey: ['publicSettings'],
     queryFn: async () => {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/settings/public`
+        `${process.env.NEXT_PUBLIC_API_URL}/settings/public`
       );
       return response.data.data as PublicSettings;
     },

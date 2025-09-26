@@ -6,7 +6,15 @@
  * 3. Profile image (legacy field)
  * 4. Dummy/placeholder image
  */
-export const getUserImage = (user: any): string => {
+interface UserWithImage {
+  image?: string;
+  profileImage?: string;
+  provider?: string;
+  name?: string;
+  email?: string;
+}
+
+export const getUserImage = (user: UserWithImage | null | undefined): string => {
   // Check if user object exists
   if (!user) {
     return generateDummyImage();
@@ -50,19 +58,19 @@ export const generateDummyImage = (nameOrEmail?: string): string => {
 /**
  * Get user display name
  */
-export const getUserDisplayName = (user: any): string => {
+export const getUserDisplayName = (user: UserWithImage | null | undefined): string => {
   if (!user) return 'User';
   
-  return user.name || user.firstName || user.email?.split('@')[0] || 'User';
+  return user.name || (user as any).firstName || user.email?.split('@')[0] || 'User';
 };
 
 /**
  * Get user initials for avatar
  */
-export const getUserInitials = (user: any): string => {
+export const getUserInitials = (user: UserWithImage | null | undefined): string => {
   if (!user) return 'U';
   
-  const name = user.name || user.firstName || user.email;
+  const name = user.name || (user as any).firstName || user.email;
   if (!name) return 'U';
   
   // If full name with space, get first letters of first and last name

@@ -1,4 +1,5 @@
 import React from 'react';
+import { GetStaticProps } from 'next';
 import BackButton from '@/components/common/BackButton';
 
 const PrivacyPolicy = () => {
@@ -183,3 +184,12 @@ const PrivacyPolicy = () => {
 };
 
 export default PrivacyPolicy;
+
+// Use getStaticProps to pre-render this page at build time
+export const getStaticProps: GetStaticProps = async () => {
+  // Since privacy policy is static content, we don't need to fetch anything
+  // Just return empty props to enable static generation
+  return {
+    props: {},
+  };
+};

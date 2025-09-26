@@ -22,6 +22,8 @@ import { useCancelBooking, useRescheduleBooking } from '@/hooks/useBookingApi';
 import { formatAmenities } from '@/utils/formatters';
 import { calculateDistance, formatDistance } from '@/utils/location';
 import { toast } from 'sonner';
+import { useCancellationWindow } from '@/hooks/usePublicSettings';
+import { BookingCardSkeleton } from '@/components/skeletons/SkeletonComponents';
 
 
 // MongoDB Document Structure for Bookings
@@ -52,12 +54,42 @@ interface Booking {
   averageRating?: number; // Field's average rating
 }
 
+// Recurring Booking Interface
+interface RecurringBooking {
+  id: string;
+  fieldId: string;
+  fieldName: string;
+  fieldAddress: string;
+  fieldOwner: string;
+  interval: 'weekly' | 'monthly';
+  dayOfWeek?: string;
+  dayOfMonth?: number;
+  timeSlot: string;
+  startTime: string;
+  endTime: string;
+  numberOfDogs: number;
+  totalPrice: number;
+  status: string;
+  nextBillingDate?: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: string;
+  recentBookings: Array<{
+    id: string;
+    date: string;
+    status: string;
+    paymentStatus: string;
+  }>;
+  createdAt: string;
+}
+
 
 const BookingHistoryPage = () => {
   const { data: session } = useSession();
   const router = useRouter();
   const cancelBookingMutation = useCancelBooking();
   const rescheduleBookingMutation = useRescheduleBooking();
+  const cancellationWindow = useCancellationWindow();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showFilter, setShowFilter] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -67,6 +99,7 @@ const BookingHistoryPage = () => {
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [recurringBookings, setRecurringBookings] = useState<RecurringBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -125,7 +158,11 @@ const BookingHistoryPage = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    fetchBookings();
+    if (activeTab === 'recurring') {
+      fetchRecurringBookings();
+    } else {
+      fetchBookings();
+    }
   }, [activeTab, page, session, userLocation]);
   
   // Get user's current location
@@ -146,6 +183,53 @@ const BookingHistoryPage = () => {
     }
   }, []);
 
+  const fetchRecurringBookings = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Get token from session or localStorage
+      let token = (session as any)?.accessToken;
+      
+      if (!token) {
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.token;
+        }
+      }
+      
+      if (!token) {
+        setError('Please login to view bookings');
+        setLoading(false);
+        return;
+      }
+      
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/my-recurring`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setRecurringBookings(data.data || []);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to fetch recurring bookings');
+      }
+    } catch (err) {
+      setError('Failed to fetch recurring bookings');
+      console.error('Error fetching recurring bookings:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const fetchBookings = async () => {
     setLoading(true);
     setError(null);
@@ -335,7 +419,7 @@ const BookingHistoryPage = () => {
           } else if (data.data.isRefundEligible) {
             message = 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
           } else {
-            message = 'Booking cancelled successfully. This booking was not eligible for a refund as it was cancelled less than 24 hours before the scheduled time.';
+            message = `Booking cancelled successfully. This booking was not eligible for a refund as it was cancelled less than ${cancellationWindow} hours before the scheduled time.`;
           }
           
           toast.success(message, {
@@ -398,8 +482,191 @@ const BookingHistoryPage = () => {
   };
 
 
+  const RecurringBookingCard = ({ subscription }: { subscription: RecurringBooking }) => {
+    const [isCancelling, setIsCancelling] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    
+    const handleCancelRecurring = async (immediately: boolean = false) => {
+      setIsCancelling(true);
+      
+      try {
+        // Get token from session or localStorage
+        let token = (session as any)?.accessToken;
+        
+        if (!token) {
+          const storedUser = localStorage.getItem('currentUser');
+          if (storedUser) {
+            const user = JSON.parse(storedUser);
+            token = user.token;
+          }
+        }
+        
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/${subscription.id}/cancel-recurring`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ cancelImmediately: immediately })
+          }
+        );
+        
+        if (response.ok) {
+          toast.success(
+            immediately 
+              ? 'Recurring booking canceled immediately' 
+              : 'Recurring booking will be canceled at the end of the current period',
+            { position: 'top-center' }
+          );
+          fetchRecurringBookings(); // Refresh the list
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.message || 'Failed to cancel recurring booking', {
+            position: 'top-center',
+          });
+        }
+      } catch (err) {
+        toast.error('Failed to cancel recurring booking', {
+          position: 'top-center',
+        });
+      } finally {
+        setIsCancelling(false);
+        setShowCancelModal(false);
+      }
+    };
+    
+    const formatInterval = () => {
+      if (subscription.interval === 'weekly') {
+        return `Every ${subscription.dayOfWeek}`;
+      } else if (subscription.interval === 'monthly') {
+        return `Monthly on day ${subscription.dayOfMonth}`;
+      }
+      return subscription.interval;
+    };
+    
+    return (
+      <>
+        <div className="bg-white rounded-xl p-4 mb-4 hover:shadow-lg transition-shadow border border-gray-100">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Field Info */}
+            <div className="flex-grow">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#192215]">{subscription.fieldName}</h3>
+                  <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                    <MapPin className="w-4 h-4" />
+                    {subscription.fieldAddress}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    subscription.status === 'active' 
+                      ? 'bg-green-100 text-green-700' 
+                      : subscription.status === 'canceled'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {subscription.status.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                <div>
+                  <p className="text-xs text-gray-500">Schedule</p>
+                  <p className="text-sm font-semibold">{formatInterval()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Time</p>
+                  <p className="text-sm font-semibold">{subscription.timeSlot}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Dogs</p>
+                  <p className="text-sm font-semibold">{subscription.numberOfDogs}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Price</p>
+                  <p className="text-sm font-semibold">£{subscription.totalPrice}/{subscription.interval}</p>
+                </div>
+              </div>
+              
+              {subscription.nextBillingDate && (
+                <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-600">
+                    Next billing: {new Date(subscription.nextBillingDate).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {subscription.cancelAtPeriodEnd && (
+                <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
+                  <p className="text-xs text-yellow-700">
+                    Will be canceled on {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Actions */}
+          {subscription.status === 'active' && !subscription.cancelAtPeriodEnd && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <button
+                onClick={() => setShowCancelModal(true)}
+                disabled={isCancelling}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {/* Cancel Modal */}
+        {showCancelModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Cancel Recurring Booking</h3>
+              <p className="text-gray-600 mb-6">
+                How would you like to cancel your recurring booking for {subscription.fieldName}?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleCancelRecurring(false)}
+                  className="w-full px-4 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                >
+                  Cancel at End of Period
+                  <span className="block text-xs mt-1 opacity-90">
+                    Keep access until {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                  </span>
+                </button>
+                <button
+                  onClick={() => handleCancelRecurring(true)}
+                  className="w-full px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                >
+                  Cancel Immediately
+                  <span className="block text-xs mt-1 opacity-90">
+                    Stop all future bookings now
+                  </span>
+                </button>
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                >
+                  Keep Subscription
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   const BookingCard = ({ booking }: { booking: Booking }) => {
-    // Calculate if booking can be cancelled (24 hours before booking time)
+    // Calculate if booking can be cancelled (using dynamic cancellation window from settings)
     const canCancel = () => {
       if (booking.status !== 'upcoming') return false;
       
@@ -421,7 +688,7 @@ const BookingHistoryPage = () => {
       // Calculate hours until booking
       const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
       
-      return hoursUntilBooking >= 24;
+      return hoursUntilBooking >= cancellationWindow;
     };
     
     const isCancellable = canCancel();
@@ -513,7 +780,7 @@ const BookingHistoryPage = () => {
                     ? 'bg-[#e8f5ff] border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
                     : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
                 }`}
-                title={!isCancellable ? `Cannot reschedule within 24 hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}>
+                title={!isCancellable ? `Cannot reschedule within ${cancellationWindow} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}>
                 Reschedule
               </button>
               <button 
@@ -524,7 +791,7 @@ const BookingHistoryPage = () => {
                     ? 'bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer'
                     : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
                 }`}
-                title={!isCancellable ? `Cannot cancel within 24 hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}>
+                title={!isCancellable ? `Cannot cancel within ${cancellationWindow} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}>
                 Cancel
               </button>
             </div>
@@ -592,7 +859,7 @@ const BookingHistoryPage = () => {
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
               }`}
             >
-              Upcoming Bookings
+              Upcoming
             </button>
             <button
               onClick={() => setActiveTab('previous')}
@@ -602,7 +869,17 @@ const BookingHistoryPage = () => {
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
               }`}
             >
-              Previous Bookings
+              Previous
+            </button>
+            <button
+              onClick={() => setActiveTab('recurring')}
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${
+                activeTab === 'recurring' 
+                  ? 'bg-[#8fb366] text-white' 
+                  : 'bg-transparent text-[#192215] hover:bg-white/50'
+              }`}
+            >
+              Recurring
             </button>
           </div>
 
@@ -620,10 +897,11 @@ const BookingHistoryPage = () => {
         {/* Bookings List */}
         <div className="bg-light rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6">
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <p className="text-gray-600">Loading bookings...</p>
-              </div>
+            <div className="space-y-4">
+              {/* Show skeleton cards while loading API data */}
+              {[1, 2, 3, 4].map((index) => (
+                <BookingCardSkeleton key={index} />
+              ))}
             </div>
           ) : error ? (
             <div className="text-center py-12">
@@ -662,6 +940,32 @@ const BookingHistoryPage = () => {
                 Find Fields
               </button>
             </div>
+          ) : activeTab === 'recurring' ? (
+            recurringBookings.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">
+                  No recurring bookings
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  You don't have any recurring bookings set up.
+                </p>
+                <button 
+                  onClick={() => router.push('/fields')}
+                  className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
+                >
+                  Find Fields
+                </button>
+              </div>
+            ) : (
+              recurringBookings.map((subscription) => (
+                <RecurringBookingCard key={subscription.id} subscription={subscription} />
+              ))
+            )
           ) : (
             displayBookings.map((booking) => (
               <BookingCard key={booking._id} booking={booking} />
@@ -670,7 +974,7 @@ const BookingHistoryPage = () => {
         </div>  
 
         {/* Pagination */}
-        {!loading && !error && displayBookings.length > 0 && (
+        {!loading && !error && activeTab !== 'recurring' && displayBookings.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-[12px] sm:text-[14px] font-semibold italic text-[#192215] text-center sm:text-left">
               Showing {(page - 1) * 10 + 1}-{Math.min(page * 10, totalBookings)} of {totalBookings}

@@ -85,10 +85,13 @@ const EarningsHistory: React.FC = () => {
       if (!accountStatus?.data?.hasAccount) {
         // Create Stripe Connect account first
         await createAccount.mutateAsync();
+        // Get onboarding link for new account
+        getOnboardingLink.mutate({});
+      } else {
+        // For existing accounts, get onboarding link
+        // The Stripe onboarding flow will automatically show only required fields
+        getOnboardingLink.mutate({});
       }
-      
-      // Get onboarding link and redirect
-      getOnboardingLink.mutate({});
     } catch (error) {
       console.error('Failed to connect bank:', error);
       setIsConnecting(false);
@@ -191,13 +194,17 @@ const EarningsHistory: React.FC = () => {
                         <h2 className="text-2xl sm:text-3xl font-bold text-[#192215]">
                           {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled 
                             ? `Total Earnings ${formatCurrency(summaryData?.totalEarnings || 0)}`
+                            : accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
+                            ? 'Account Restricted'
                             : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
                             ? 'Account Unable to Receive Payments'
                             : 'Connect your bank for payouts'}
                         </h2>
                       )}
                       <p className="text-base sm:text-lg text-gray-500 max-w-2xl">
-                        {accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
+                        {accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
+                          ? 'Your account needs additional information to start receiving payments.'
+                          : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
                           ? 'Your linked account is currently unable to accept customer payments.'
                           : 'Link your bank account securely to receive payouts directly. Fast, safe, and hassle-free transfers every time you get paid.'}
                       </p>
@@ -205,7 +212,7 @@ const EarningsHistory: React.FC = () => {
                   </div>
 
                   {/* Show different UI based on account connection status */}
-                  {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled ? (
+                  {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && !accountStatus?.data?.requiresAction ? (
                     <div className="flex flex-col gap-2 items-start lg:items-end lg:self-center">
                       <button 
                         onClick={handleConnectBank}
@@ -214,6 +221,17 @@ const EarningsHistory: React.FC = () => {
                       >
                         Change Bank Account
                       </button>
+                    </div>
+                  ) : accountStatus?.data?.hasAccount && accountStatus?.data?.requiresAction ? (
+                    <div className="flex flex-col gap-2 items-start lg:items-center lg:self-center">
+                      <button 
+                        onClick={handleConnectBank}
+                        disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                        className="bg-[#FF5733] hover:bg-[#CC4125] transition-colors text-white font-semibold px-6 py-3.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed animate-pulse"
+                      >
+                        {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Complete Account Setup'}
+                      </button>
+                      <span className="text-xs text-red-600">Action Required</span>
                     </div>
                   ) : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled ? (
                     <div className="flex flex-col sm:flex-row gap-2 items-start lg:items-center lg:self-center">
@@ -256,6 +274,86 @@ const EarningsHistory: React.FC = () => {
                 </div>
             </div>
           </div>
+          
+          {/* Critical Requirements Alert Section - Show when account needs immediate action */}
+          {accountStatus?.data?.hasAccount && accountStatus?.data?.hasCriticalRequirements && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h3 className="font-semibold text-red-800 mb-2">⚠️ Urgent: Account Action Required</h3>
+              <p className="text-sm text-red-700 mb-3">
+                Your account requires immediate attention to continue processing payments:
+              </p>
+              
+              {accountStatus?.data?.requirements?.pastDue && accountStatus.data.requirements.pastDue.length > 0 && (
+                <div className="mb-3">
+                  <h4 className="text-sm font-medium text-red-800 mb-1">Past Due (Critical)</h4>
+                  <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+                    {accountStatus.data.requirements.pastDue.map((req: any, idx: number) => (
+                      <li key={idx}>{req.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {accountStatus?.data?.requirements?.currentlyDue && accountStatus.data.requirements.currentlyDue.length > 0 && (
+                <div className="mb-3">
+                  <h4 className="text-sm font-medium text-orange-800 mb-1">Currently Due</h4>
+                  <ul className="list-disc list-inside text-sm text-orange-700 space-y-1">
+                    {accountStatus.data.requirements.currentlyDue.map((req: any, idx: number) => (
+                      <li key={idx}>{req.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {accountStatus?.data?.requirements?.disabledReason && (
+                <div className="mt-3 p-2 bg-red-100 rounded">
+                  <p className="text-sm text-red-800">
+                    <strong>Account Disabled:</strong> {accountStatus.data.requirements.disabledReason}
+                  </p>
+                </div>
+              )}
+              
+              <button 
+                onClick={handleConnectBank}
+                disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                className="mt-4 bg-red-600 hover:bg-red-700 transition-colors text-white font-semibold px-6 py-2.5 rounded-full text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Complete Requirements Now'}
+              </button>
+            </div>
+          )}
+          
+          {/* Eventually Due Requirements - Informational notice */}
+          {accountStatus?.data?.hasAccount && accountStatus?.data?.hasEventualRequirements && !accountStatus?.data?.hasCriticalRequirements && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-800 mb-2">ℹ️ Future Requirements</h3>
+              <p className="text-sm text-blue-700 mb-3">
+                Your account is active and can receive payments. However, the following information will be required in the future:
+              </p>
+              
+              {accountStatus?.data?.requirements?.eventuallyDue && accountStatus.data.requirements.eventuallyDue.length > 0 && (
+                <div className="mb-3">
+                  <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                    {accountStatus.data.requirements.eventuallyDue.map((req: any, idx: number) => (
+                      <li key={idx}>{req.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              <p className="text-xs text-blue-600 mt-3">
+                You can continue receiving payments normally. We'll notify you when these documents become required.
+              </p>
+              
+              <button 
+                onClick={handleConnectBank}
+                disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 transition-colors text-white font-semibold px-6 py-2.5 rounded-full text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Complete Future Requirements'}
+              </button>
+            </div>
+          )}
 
         </div>
 

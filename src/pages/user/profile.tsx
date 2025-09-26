@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { useProfile, useUpdateProfile, useUploadProfileImage, useDeleteProfileImage } from '@/hooks/useProfile';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
+import { ProfileSkeleton } from '@/components/skeletons/SkeletonComponents';
 
 const MyProfilePage = () => {
   const router = useRouter();
@@ -108,8 +109,10 @@ const MyProfilePage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#fffcf3] py-10 mt-16 xl:mt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#3A6B22]" />
+      <div className="min-h-screen bg-[#fffcf3] py-10 mt-16 xl:mt-24">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ProfileSkeleton />
+        </div>
       </div>
     );
   }

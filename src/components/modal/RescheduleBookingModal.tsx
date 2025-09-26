@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, AlertCircle, Calendar } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useCancellationWindow } from '@/hooks/usePublicSettings';
 
 interface RescheduleBookingModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
   booking,
 }) => {
   const router = useRouter();
+  const cancellationWindow = useCancellationWindow();
 
   const handleProceed = () => {
     // Store booking info in localStorage for the book-field page to access
@@ -83,7 +85,7 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
               <p className="text-sm text-blue-700">
                 <strong>Note:</strong> You'll be redirected to select a new date and time slot. 
                 Rescheduling is free and maintains your original payment. 
-                The same cancellation policy (24 hours notice) will apply to the new booking time.
+                The same cancellation policy ({cancellationWindow} hours notice) will apply to the new booking time.
               </p>
             </div>
           </div>

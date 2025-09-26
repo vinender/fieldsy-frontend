@@ -18,6 +18,7 @@ interface AboutWhyFieldsySectionProps {
   loading?: boolean
 }
 
+
 export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySectionProps) {
   // Use data from API or fallback to hardcoded values
   const title = data?.title || 'Why Fieldsy?'
@@ -33,10 +34,13 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
     { icon: 'Shield', title: 'Trusted Community', description: 'All field owners are verified and reviewed', order: 4 }
   ]
 
+
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-light-cream">
+     
       <div className="w-full">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+         
           {/* Left Image */}
           <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl mb-8 lg:mb-0">
             <img 
@@ -46,8 +50,9 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
             />
           </div>
           
+
           {/* Right Content */}
-          <div className="w-full bg-">
+          <div className="w-full bg-white rounded-2xl shadow-xl p-4">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-dark-green mb-6 sm:mb-8 leading-tight lg:leading-[60px]">
               {title}
             </h2>
@@ -55,7 +60,8 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
             <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-6 sm:mb-8 leading-relaxed lg:leading-[30px] font-[400]">
               {subtitle}
             </p>
-            
+
+
             <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-12">
               {features.sort((a, b) => a.order - b.order).map((feature, index) => (
                 <li key={feature.order || index} className="flex items-start">
@@ -65,14 +71,15 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
                   </span>
                 </li>
               ))}
-            </ul>
+            </ul> 
             
+
             <div
-              className="p-6 sm:p-8 shadow-sm border-l-4 border-l-light-green"
+              className="p-6 sm:p-8 shadow-sm border-l-4 border-l-light-green rounded-2xl"
               style={{
                 background: "linear-gradient(90deg, rgba(143, 179, 102, 0.20) 0%, rgba(143, 179, 102, 0.00) 100%), white"
               }}
-            > 
+              > 
               <h3 className="text-lg sm:text-xl lg:text-[24px] font-[700] text-dark-green mb-3 sm:mb-4 leading-tight lg:leading-[32px]">
                 {boxTitle}
               </h3>
@@ -89,9 +96,15 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
               <Play className="w-5 h-5 fill-white" />
               <Apple className="w-5 h-5" />
             </button>
+
           </div>
+
         </div>
       </div>
     </section>
   )
 }
+
+
+
+

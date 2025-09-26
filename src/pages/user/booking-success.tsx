@@ -20,7 +20,7 @@ const BookingSuccessPage = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/bookings/${bookingId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/${bookingId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`

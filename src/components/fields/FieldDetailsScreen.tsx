@@ -11,6 +11,7 @@ interface FieldDetailsScreenProps {
   showOwnerInfo?: boolean;
   showClaimField?: boolean;
   headerContent?: React.ReactNode;
+  initialData?: any;
 }
 
 export default function FieldDetailsScreen({
@@ -21,11 +22,13 @@ export default function FieldDetailsScreen({
   showOwnerInfo,
   showClaimField,
   headerContent,
+  initialData,
 }: FieldDetailsScreenProps) {
-  const shouldFetch = !providedField && !!fieldId;
+  // Use initial data if available (from SSG), otherwise fetch
+  const shouldFetch = !providedField && !initialData && !!fieldId;
   const { data: fetchedField, isLoading, error } = useFieldDetails(shouldFetch ? (fieldId as string) : undefined as any);
 
-  const field = providedField || fetchedField?.data || fetchedField;
+  const field = providedField || initialData || fetchedField?.data || fetchedField;
 
   if (shouldFetch && isLoading) {
     return <FieldDetailsSkeleton />;

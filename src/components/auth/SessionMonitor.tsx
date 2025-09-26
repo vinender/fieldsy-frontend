@@ -43,10 +43,10 @@ export function SessionMonitor() {
     
     if (session?.accessToken) {
       token = session.accessToken;
-    } else if ((session?.user as any)?.token) {
-      token = (session.user as any).token;
-    } else if ((session as any)?.token) {
-      token = (session as any).token;
+    } else if ((session?.user as Record<string, unknown>)?.token) {
+      token = (session.user as Record<string, unknown>).token as string;
+    } else if ((session as Record<string, unknown>)?.token) {
+      token = (session as Record<string, unknown>).token as string;
     } else {
       const authToken = localStorage.getItem('authToken');
       if (authToken) {

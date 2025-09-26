@@ -76,7 +76,7 @@ export default function SavedFieldsPage() {
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Saved Fields</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                We couldn't load your saved fields. Please try again later.
+                We couldn&apos;t load your saved fields. Please try again later.
               </p>
               <button 
                 onClick={() => window.location.reload()}
@@ -115,8 +115,8 @@ export default function SavedFieldsPage() {
                     key={field.id}
                     id={field.id}
                     name={field.name || 'Unnamed Field'}
-                    price={field.pricePerHour || 0}
-                    priceUnit="hour"
+                    price={field.price || 0}
+                    priceUnit={field.bookingDuration === '30min' ? 'dog/30min' : 'dog/hour'}
                     location={field.city ? `${field.city}, ${field.state || ''}` : 'Location'}
                     rating={field.averageRating || 4.5}
                     amenities={field.amenities || []}

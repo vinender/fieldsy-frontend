@@ -1,4 +1,5 @@
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
+import { useNavigationLoader } from '@/contexts/NavigationLoaderContext';
 
 interface LazySectionProps {
   children: ReactNode;
@@ -26,6 +27,7 @@ export function LazySection({
   const ref = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const { isNavigating } = useNavigationLoader();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -83,14 +85,16 @@ export function LazySection({
     <div 
       ref={ref} 
       className={`${className}`}
-      style={{ minHeight: !isInView ? minHeight : undefined }}
+      style={{ minHeight: !isInView && !isNavigating ? minHeight : undefined }}
     >
       {isInView ? (
         <div className={`lazy-section-animate ${animationClasses}`}>
           {children}
         </div>
       ) : (
-        fallback || <div style={{ minHeight }} />
+        // During navigation, don't show fallback or placeholder
+        // But still render the container so intersection observer can work
+        !isNavigating && (fallback || <div style={{ minHeight }} />)
       )}
     </div>
   );

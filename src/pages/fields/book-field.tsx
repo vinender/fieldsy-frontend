@@ -44,8 +44,13 @@ const BookFieldPage = () => {
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
 
-  // Fetch field details using the hook
-  const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string);
+  // Fetch field details using the hook with optimizations
+  const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string, {
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+    gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
+    refetchOnMount: false, // Don't refetch on mount if cached
+    refetchOnWindowFocus: false // Don't refetch on window focus
+  });
   const field = fieldData?.data || fieldData;
   
   // Load reschedule data from localStorage if in reschedule mode
@@ -246,27 +251,72 @@ const BookFieldPage = () => {
       // Fallback to basic time slot generation if no availability data
       const openingHour = field?.openingTime ? parseInt(field.openingTime.split(':')[0]) : 6;
       const closingHour = field?.closingTime ? parseInt(field.closingTime.split(':')[0]) : 21;
+      const bookingDuration = field?.bookingDuration || '1hour';
+      
+      // Helper function to format time
+      const formatTime = (hour: number, minutes: number = 0): string => {
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        return `${displayHour}:${displayMinutes}${period}`;
+      };
 
-      for (let hour = openingHour; hour < closingHour; hour++) {
-        const startTime = hour === 0 ? '12:00AM' : hour < 12 ? `${hour}:00AM` : hour === 12 ? '12:00PM' : `${hour - 12}:00PM`;
-        const endHour = hour + 1;
-        const endTime = endHour === 0 ? '12:00AM' : endHour < 12 ? `${endHour}:00AM` : endHour === 12 ? '12:00PM' : `${endHour - 12}:00PM`;
-        const slotTime = `${startTime} - ${endTime}`;
+      if (bookingDuration === '30min') {
+        // Generate 30-minute slots
+        for (let hour = openingHour; hour < closingHour; hour++) {
+          for (let minutes = 0; minutes < 60; minutes += 30) {
+            const endMinutes = minutes + 30;
+            const endHour = endMinutes === 60 ? hour + 1 : hour;
+            const actualEndMinutes = endMinutes === 60 ? 0 : endMinutes;
+            
+            // Don't create slots that go beyond closing time
+            if (endHour > closingHour || (endHour === closingHour && actualEndMinutes > 0)) {
+              break;
+            }
+            
+            const startTime = formatTime(hour, minutes);
+            const endTime = formatTime(endHour, actualEndMinutes);
+            const slotTime = `${startTime} - ${endTime}`;
 
-        const isAvailable = checkSlotAvailability(selectedDate, hour);
+            const isAvailable = checkSlotAvailability(selectedDate, hour);
 
-        const slot = {
-          time: slotTime,
-          available: isAvailable,
-          selected: slotTime === selectedTimeSlot
-        };
+            const slot = {
+              time: slotTime,
+              available: isAvailable,
+              selected: slotTime === selectedTimeSlot
+            };
 
-        if (hour < 12) {
-          slots.morning.push(slot);
-        } else if (hour < 18) {
-          slots.afternoon.push(slot);
-        } else {
-          slots.evening.push(slot);
+            if (hour < 12) {
+              slots.morning.push(slot);
+            } else if (hour < 18) {
+              slots.afternoon.push(slot);
+            } else {
+              slots.evening.push(slot);
+            }
+          }
+        }
+      } else {
+        // Generate 1-hour slots
+        for (let hour = openingHour; hour < closingHour; hour++) {
+          const startTime = formatTime(hour);
+          const endTime = formatTime(hour + 1);
+          const slotTime = `${startTime} - ${endTime}`;
+
+          const isAvailable = checkSlotAvailability(selectedDate, hour);
+
+          const slot = {
+            time: slotTime,
+            available: isAvailable,
+            selected: slotTime === selectedTimeSlot
+          };
+
+          if (hour < 12) {
+            slots.morning.push(slot);
+          } else if (hour < 18) {
+            slots.afternoon.push(slot);
+          } else {
+            slots.evening.push(slot);
+          }
         }
       }
     }
@@ -497,7 +547,9 @@ const BookFieldPage = () => {
                   </h2>
                   <div className="flex items-baseline gap-1">
                     <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">${field.pricePerHour || field.price || 0}</span>
-                    <span className="text-sm sm:text-[16px] text-dark-green/70">/hour</span>
+                    <span className="text-sm sm:text-[16px] text-dark-green/70">
+                      /{field.bookingDuration === '30min' ? '30min' : 'hour'}
+                    </span>
                   </div>
                 </div>
                 

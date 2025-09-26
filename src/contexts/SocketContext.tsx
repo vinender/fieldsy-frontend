@@ -22,36 +22,27 @@ const SocketContext = createContext<SocketContextType>({
 export const useSocket = () => useContext(SocketContext)
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('🏁 SocketProvider rendering...')
-  
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const sendMessageMutation = useSendMessage()
-  
-  // Log on every render
-  console.log('🏁 SocketProvider - session:', !!session)
-  console.log('🏁 SocketProvider - socket state:', !!socket)
 
   useEffect(() => {
-    console.log('🔧 SocketContext main effect running...', new Date().toISOString());
+    // Don't attempt connection if session is still loading or unauthenticated
+    if (status === 'loading' || status === 'unauthenticated') {
+      return;
+    }
     
     // Get token from session or localStorage directly
     const sessionToken = (session as any)?.accessToken;
     const localToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
     const token = sessionToken || localToken;
     
-    console.log('🔍 SocketContext - Session token:', !!sessionToken, 'at', new Date().toISOString());
-    console.log('🔍 SocketContext - LocalStorage token:', !!localToken);
-    console.log('🔍 SocketContext - Final token:', !!token);
-    
     if (!token) {
-      console.log('⚠️ SocketContext - No token available, socket not created');
       return;
     }
 
     const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-    console.log('🚀 SocketContext - Creating socket connection to:', socketUrl);
     
     const newSocket = io(socketUrl, {
       auth: {
@@ -64,32 +55,26 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     })
 
     newSocket.on('connect', () => {
-      console.log('🟢 Chat Socket connected - Socket ID:', newSocket.id)
       setIsConnected(true)
       newSocket.emit('join-conversations')
     })
     
-    // Debug: Log all events
-    newSocket.onAny((eventName, ...args) => {
-      console.log('🔵 Chat Socket event received:', eventName, args)
-    })
-    
     newSocket.on('connect_error', (error) => {
-      console.error('🔴 Chat Socket connection error:', error.message)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Socket connection error:', error.message)
+      }
     })
 
     newSocket.on('disconnect', () => {
-      console.log('🔴 Chat Socket disconnected')
       setIsConnected(false)
     })
 
     setSocket(newSocket)
 
     return () => {
-      console.log('🧹 Cleaning up chat socket connection')
       newSocket.close()
     }
-  }, [session]) // Only depend on session changes
+  }, [session, status]) // Depend on session and status changes
 
   const sendMessage = useCallback(async (conversationId: string, content: string, receiverId: string) => {
     try {

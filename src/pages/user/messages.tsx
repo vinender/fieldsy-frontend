@@ -18,6 +18,8 @@ import { useRouter } from 'next/router';
 import styles from '@/styles/messages.module.css';
 import { toast } from 'sonner';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
+import { ListSkeleton, ChatMessageSkeleton } from '@/components/skeletons/SkeletonComponents';
+import GreenSpinner from '@/components/common/GreenSpinner';
 
 interface User {
   id: string;
@@ -83,6 +85,7 @@ const MessagesPage = () => {
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockMessage, setBlockMessage] = useState('');
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -326,6 +329,7 @@ const MessagesPage = () => {
       return;
     }
 
+    setIsLoadingMessages(true);
     try {
       const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
         headers: {
@@ -352,6 +356,8 @@ const MessagesPage = () => {
       }
     } catch (error) {
       console.error('Error loading messages:', error);
+    } finally {
+      setIsLoadingMessages(false);
     }
   };
 
@@ -681,8 +687,8 @@ const MessagesPage = () => {
             {/* Conversations */}
             <div className="flex-1 overflow-y-auto no-scrollbar">
               {isLoading ? (
-                <div className="flex justify-center items-center h-32">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
+                <div className="px-4 py-2">
+                  <ListSkeleton items={4} />
                 </div>
               ) : conversations.length === 0 ? (
                 <div className="text-center py-12">
@@ -858,7 +864,14 @@ const MessagesPage = () => {
 
                   {/* Message List */}
                   <div className="space-y-4">
-                    {messages.map((message) => (
+                    {isLoadingMessages ? (
+                      <ChatMessageSkeleton />
+                    ) : messages.length === 0 ? (
+                      <div className="text-center py-12 text-gray-500">
+                        No messages yet. Start a conversation!
+                      </div>
+                    ) : (
+                      messages.map((message) => (
                       <div
                         key={message.id}
                         className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'} ${
@@ -886,7 +899,7 @@ const MessagesPage = () => {
                           </span>
                         </div>
                       </div>
-                    ))}
+                    )))}
 
                     {otherUserTyping && (
                       <div className="flex justify-start">

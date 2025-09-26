@@ -16,7 +16,7 @@ export default async function handler(
     }
 
     // Forward the request to the backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/chat/unread-count`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/chat/unread-count`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,

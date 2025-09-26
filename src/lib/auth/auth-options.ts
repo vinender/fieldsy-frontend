@@ -22,6 +22,17 @@ interface ExtendedSession extends Session {
 }
 
 export const authOptions: NextAuthOptions = {
+  // Add session configuration to reduce polling
+  session: {
+    strategy: 'jwt',
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+    updateAge: 24 * 60 * 60, // Update session every 24 hours
+  },
+  
+  // Reduce session polling
+  refetchInterval: 5 * 60, // 5 minutes instead of default
+  refetchOnWindowFocus: false, // Disable refetch on window focus
+  
   providers: [
     // Only add Google provider if credentials are available
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET

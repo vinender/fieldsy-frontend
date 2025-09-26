@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import { TimeInput } from '@/components/ui/time-input';
+import { usePublicSettings } from '@/hooks/usePublicSettings';
 
 interface FieldDetailsProps {
   formData: any;
@@ -12,6 +13,10 @@ interface FieldDetailsProps {
 }
 
 export default function FieldDetails({ formData, setFormData, validationErrors = {} }: FieldDetailsProps) {
+  const { data: settings } = usePublicSettings();
+  const minimumOperatingHours = settings?.minimumFieldOperatingHours || 4;
+  const [timeError, setTimeError] = useState('');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({
@@ -19,6 +24,43 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
       [name]: value
     }));
   };
+
+  // Helper function to convert time string to minutes
+  const timeToMinutes = (timeStr: string): number => {
+    if (!timeStr) return 0;
+    const [time, period] = timeStr.split(/(?=[AP]M)/i);
+    const [hours, minutes] = time.split(':').map(Number);
+    let totalHours = hours;
+    if (period === 'PM' && hours !== 12) totalHours += 12;
+    if (period === 'AM' && hours === 12) totalHours = 0;
+    return totalHours * 60 + (minutes || 0);
+  };
+
+  // Validate time difference
+  const validateTimeDifference = (startTime: string, endTime: string) => {
+    if (!startTime || !endTime) {
+      setTimeError('');
+      return;
+    }
+    
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
+    const diffMinutes = endMinutes - startMinutes;
+    const diffHours = diffMinutes / 60;
+    
+    if (diffHours < 0) {
+      setTimeError('End time must be after start time');
+    } else if (diffHours < minimumOperatingHours) {
+      setTimeError(`Field must be open for at least ${minimumOperatingHours} hours`);
+    } else {
+      setTimeError('');
+    }
+  };
+
+  // Validate whenever times change
+  useEffect(() => {
+    validateTimeDifference(formData.startTime, formData.endTime);
+  }, [formData.startTime, formData.endTime, minimumOperatingHours]);
 
   console.log('fieldData formData',formData);
 
@@ -277,6 +319,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                     ...prev,
                     startTime: value
                   }));
+                  validateTimeDifference(value, formData.endTime);
                 }}
                 placeholder="Select start time"
               />
@@ -296,14 +339,21 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                     ...prev,
                     endTime: value
                   }));
+                  validateTimeDifference(formData.startTime, value);
                 }}
                 placeholder="Select end time"
+                isEndTime={true}
+                startTime={formData.startTime}
+                minHoursDifference={minimumOperatingHours}
               />
               {validationErrors.endTime && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.endTime}</p>
               )}
             </div>
           </div>
+          {timeError && (
+            <p className="text-red-500 text-sm mt-1 col-span-2">{timeError}</p>
+          )}
         </div>
       </div>
 

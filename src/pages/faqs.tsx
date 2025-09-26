@@ -1,19 +1,16 @@
 import { useState } from "react"
+import { GetStaticProps } from "next"
 import { Search } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { Input } from "@/components/ui/input"
 import { FAQList, type FAQItem } from "@/components/common/FAQList"
-import { useFAQs } from "@/hooks/queries/useFAQQueries"
 
-export default function FAQPage() {
+interface FAQPageProps {
+  faqs: FAQItem[]
+}
+
+export default function FAQPage({ faqs }: FAQPageProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const { faqs: dynamicFAQs, loading } = useFAQs()
-  
-  // Convert dynamic FAQs to FAQItem format
-  const faqs: FAQItem[] = dynamicFAQs.map(faq => ({
-    question: faq.question,
-    answer: faq.answer
-  }))
 
   const filteredFaqs = faqs.filter(faq => 
     faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -45,16 +42,10 @@ export default function FAQPage() {
               </div>
             </div>
 
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
-              </div>
-            ) : (
-              <FAQList faqs={filteredFaqs} hideTitle variant="plain" />
-            )}
+            <FAQList faqs={filteredFaqs} hideTitle variant="plain" />
 
             {/* No results message */}
-            {!loading && filteredFaqs.length === 0 && (
+            {filteredFaqs.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-dark-green/60 text-base xl:text-[18px] font-[400]">
                   No questions found matching "{searchQuery}". Try a different search term.
@@ -79,4 +70,34 @@ export default function FAQPage() {
   
     </>
   )
+}
+
+export const getStaticProps: GetStaticProps = async () => {
+  try {
+    // Fetch FAQs at build time
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/faqs`)
+    const data = await response.json()
+    
+    const faqs: FAQItem[] = data?.data?.faqs?.map((faq: any) => ({
+      question: faq.question,
+      answer: faq.answer
+    })) || []
+
+    return {
+      props: {
+        faqs,
+      },
+      // Revalidate every 2 hours
+      revalidate: 7200,
+    }
+  } catch (error) {
+    console.error('Error fetching FAQs:', error)
+    return {
+      props: {
+        faqs: [],
+      },
+      // Try again in 60 seconds if there was an error
+      revalidate: 60,
+    }
+  }
 }

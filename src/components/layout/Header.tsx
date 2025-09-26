@@ -15,6 +15,7 @@ import { useNotifications } from "@/contexts/NotificationContext"
 import { useChat } from "@/contexts/ChatContext"
 import { getUserImage, getUserInitials } from "@/utils/getUserImage"
 import { ResponsiveLink } from "@/components/common/ResponsiveLink"
+import { OptimizedLink, usePrefetch } from "@/components/common/OptimizedLink"
 import router from "next/router"
 
 export function Header() {
@@ -149,9 +150,15 @@ export function Header() {
 
           <div className="hidden   sm:flex space-x-4 md:space-x-8 ">
             {navigation.map((item) => (
-              <Link
+              <OptimizedLink
                 key={item.name}
                 href={item.href}
+                prefetchStrategy={
+                  item.href === "/fields" || item.href === "/" 
+                    ? "immediate" 
+                    : "viewport"
+                }
+                priority={item.href === "/fields"}
                 className={cn(
                   " text-[12px] md:text-[15px] font-[600] transition-colors",
                   pathname === item.href
@@ -162,7 +169,7 @@ export function Header() {
                 )}
               >
                 {item.name}
-              </Link>
+              </OptimizedLink>
             ))}
           </div>  
           
