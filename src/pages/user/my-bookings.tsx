@@ -588,7 +588,7 @@ const BookingHistoryPage = () => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Price</p>
-                  <p className="text-sm font-semibold">£{subscription.totalPrice}/{subscription.interval}</p>
+                  <p className="text-sm font-semibold">€{subscription.totalPrice}/{subscription.interval}</p>
                 </div>
               </div>
               
