@@ -20,6 +20,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Check if we're on a public page where chat isn't needed
+  const isPublicPage = router.pathname === '/' && !user;
+  const shouldLoadChat = !!user && !isPublicPage;
 
   // Initialize audio on mount
   useEffect(() => {
@@ -27,15 +31,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     audioRef.current = new Audio('/sounds/message-notification.mp3');
     audioRef.current.volume = 0.5; // Set volume to 50%
     
-    // Load unread count from localStorage on mount
-    const savedCount = localStorage.getItem('unreadMessagesCount');
-    if (savedCount) {
-      setUnreadMessagesCount(parseInt(savedCount, 10));
-    }
+    // Only load chat data if authenticated and not on public page
+    if (shouldLoadChat) {
+      // Load unread count from localStorage on mount
+      const savedCount = localStorage.getItem('unreadMessagesCount');
+      if (savedCount) {
+        setUnreadMessagesCount(parseInt(savedCount, 10));
+      }
 
-    // Fetch initial unread count from API
-    fetchUnreadCount();
-  }, []);
+      // Fetch initial unread count from API
+      fetchUnreadCount();
+    }
+  }, [shouldLoadChat]);
 
   // Save unread count to localStorage whenever it changes
   useEffect(() => {
@@ -46,7 +53,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const fetchUnreadCount = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      if (!token || !user) return;
+      if (!token || !user || !shouldLoadChat) return;
 
       const response = await fetch('/api/chat/unread-count', {
         headers: {

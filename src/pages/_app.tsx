@@ -13,6 +13,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext"
 import { SocketProvider } from "@/contexts/SocketContext"
 import { LocationProvider } from "@/contexts/LocationContext"
 import { ChatProvider } from "@/contexts/ChatContext"
+import { MessageSocketProvider } from "@/contexts/MessageSocketContext"
 import { SkeletonProvider } from "@/contexts/SkeletonContext"
 import { NavigationLoaderProvider } from "@/contexts/NavigationLoaderContext"
 import { SessionMonitor } from "@/components/auth/SessionMonitor"
@@ -74,6 +75,9 @@ export default function App({
   const hideLayout = noLayoutPaths.some(path => 
     router.pathname.startsWith(path)
   )
+  
+  // Check if we're on the messages page
+  const isMessagesPage = router.pathname === '/user/messages'
 
   return (
     <SessionProvider 
@@ -95,7 +99,13 @@ export default function App({
                         <div className="min-h-screen flex flex-col overflow-x-hidden">
                           {!hideLayout && <Header />}
                           <main className="flex-grow overflow-x-hidden">
-                            <Component {...pageProps} />
+                            {isMessagesPage ? (
+                              <MessageSocketProvider>
+                                <Component {...pageProps} />
+                              </MessageSocketProvider>
+                            ) : (
+                              <Component {...pageProps} />
+                            )}
                           </main>
                           {!hideLayout && <Footer />}
                         </div>

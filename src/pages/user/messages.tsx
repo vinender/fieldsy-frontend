@@ -13,6 +13,7 @@ import ReportUserModal from '@/components/modal/ReportUserModal';
 import DeleteChatModal from '@/components/modal/DeleteChatModal';
 import { useSession } from 'next-auth/react';
 import { useSocket } from '@/contexts/SocketContext';
+import { useMessageSocket } from '@/contexts/MessageSocketContext';
 import { useChat } from '@/contexts/ChatContext';
 import { useRouter } from 'next/router';
 import styles from '@/styles/messages.module.css';
@@ -58,7 +59,16 @@ interface Conversation {
 const MessagesPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { socket, sendMessage, markAsRead, emitTyping } = useSocket();
+  const { socket, sendMessage } = useSocket();
+  const { 
+    socket: messageSocket, 
+    isConnected: isMessageSocketConnected,
+    fetchMessages: fetchMessagesViaSocket,
+    markAsRead,
+    emitTyping,
+    connect: connectMessageSocket,
+    disconnect: disconnectMessageSocket
+  } = useMessageSocket();
   const { decrementUnreadCount } = useChat();
   
   // Extract query params, accounting for router not being ready
@@ -113,6 +123,14 @@ const MessagesPage = () => {
   console.log('conversationId', queryConversationId);
   console.log('userId', queryUserId);
 
+  // Connect message socket when component mounts
+  useEffect(() => {
+    connectMessageSocket();
+    return () => {
+      disconnectMessageSocket();
+    };
+  }, [connectMessageSocket, disconnectMessageSocket]);
+  
   // Redirect if not logged in
   useEffect(() => {
     // Don't redirect while session is loading
@@ -197,8 +215,51 @@ const MessagesPage = () => {
     decrementUnreadCountRef.current = decrementUnreadCount;
   }, [decrementUnreadCount]);
 
+  // Listen for messages fetched via socket
   useEffect(() => {
-    if (!socket) return;
+    if (!messageSocket) return;
+    
+    const handleMessagesFetched = (data: {
+      conversationId: string;
+      messages: Message[];
+      pagination: any;
+    }) => {
+      console.log('[Messages] Received messages from socket:', data);
+      if (selectedConversation && data.conversationId === selectedConversation.id) {
+        setMessages(data.messages || []);
+        setIsLoadingMessages(false);
+        
+        // Mark unread messages as read
+        const unreadMessageIds = data.messages
+          .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
+          .map((msg: Message) => msg.id);
+        
+        if (unreadMessageIds.length > 0) {
+          markAsRead(unreadMessageIds);
+          decrementUnreadCount(unreadMessageIds.length);
+        }
+      }
+    };
+    
+    const handleMessagesError = (data: { error: string }) => {
+      console.error('[Messages] Error fetching messages:', data.error);
+      setIsLoadingMessages(false);
+    };
+    
+    messageSocket.on('messages-fetched', handleMessagesFetched);
+    messageSocket.on('messages-error', handleMessagesError);
+    
+    return () => {
+      messageSocket.off('messages-fetched', handleMessagesFetched);
+      messageSocket.off('messages-error', handleMessagesError);
+    };
+  }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount]);
+  
+  // Listen for new messages and typing indicators
+  useEffect(() => {
+    if (!socket && !messageSocket) return;
+    
+    const activeSocket = messageSocket || socket;
 
     const handleNewMessage = (message: Message) => {
       console.log('🔵 Received new message:', message);
@@ -262,22 +323,22 @@ const MessagesPage = () => {
     console.log('🟢 Setting up socket listeners');
     
     // Listen for both new-message and new-message-notification events
-    socket.on('new-message', handleNewMessage);
-    socket.on('new-message-notification', (data: any) => {
+    activeSocket.on('new-message', handleNewMessage);
+    activeSocket.on('new-message-notification', (data: any) => {
       console.log('🔵 Received new-message-notification:', data);
       if (data.message) {
         handleNewMessage(data.message);
       }
     });
-    socket.on('user-typing', handleUserTyping);
+    activeSocket.on('user-typing', handleUserTyping);
 
     return () => {
       console.log('🔴 Cleaning up socket listeners');
-      socket.off('new-message', handleNewMessage);
-      socket.off('new-message-notification');
-      socket.off('user-typing', handleUserTyping);
+      activeSocket.off('new-message', handleNewMessage);
+      activeSocket.off('new-message-notification');
+      activeSocket.off('user-typing', handleUserTyping);
     };
-  }, [socket, currentUserId]); // Removed markAsRead and decrementUnreadCount from deps
+  }, [socket, messageSocket, currentUserId]); // Removed markAsRead and decrementUnreadCount from deps
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -322,42 +383,49 @@ const MessagesPage = () => {
   };
 
   const loadMessages = async (conversationId: string) => {
-    // Get token from session or localStorage
-    const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
-    if (!token) {
-      console.log('No auth token found for loading messages');
-      return;
-    }
-
     setIsLoadingMessages(true);
-    try {
-      const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Loaded messages:', data);
-        // Backend returns { messages: [...], pagination: {...} }
-        setMessages(data.messages || data || []);
-        
-        // Mark unread messages as read
-        const unreadMessageIds = data.messages
-          .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
-          .map((msg: Message) => msg.id);
-        
-        if (unreadMessageIds.length > 0) {
-          markAsRead(unreadMessageIds);
-          // Update the unread count in chat context
-          decrementUnreadCount(unreadMessageIds.length);
-        }
+    
+    // Try to fetch via socket first
+    if (isMessageSocketConnected) {
+      console.log('[Messages] Fetching messages via socket');
+      fetchMessagesViaSocket(conversationId, 1, 50);
+    } else {
+      // Fallback to REST API if socket not connected
+      console.log('[Messages] Socket not connected, using REST API');
+      const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
+      if (!token) {
+        console.log('No auth token found for loading messages');
+        setIsLoadingMessages(false);
+        return;
       }
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    } finally {
-      setIsLoadingMessages(false);
+
+      try {
+        const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Loaded messages via REST:', data);
+          setMessages(data.messages || data || []);
+          
+          // Mark unread messages as read
+          const unreadMessageIds = data.messages
+            .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
+            .map((msg: Message) => msg.id);
+          
+          if (unreadMessageIds.length > 0) {
+            markAsRead(unreadMessageIds);
+            decrementUnreadCount(unreadMessageIds.length);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      } finally {
+        setIsLoadingMessages(false);
+      }
     }
   };
 
@@ -406,7 +474,9 @@ const MessagesPage = () => {
     }
     
     // Join conversation room for real-time updates
-    if (socket) {
+    if (messageSocket) {
+      messageSocket.emit('join-conversation', conversation.id);
+    } else if (socket) {
       socket.emit('join-conversation', conversation.id);
     }
     

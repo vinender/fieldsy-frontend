@@ -53,7 +53,13 @@ const FAQSectionWithImage = dynamic(
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
-  const { status } = useSession();
+  // Only use session hook if we're checking for authentication
+  const { status } = useSession({
+    required: false,
+    onUnauthenticated() {
+      // Do nothing - we allow unauthenticated access to landing page
+    },
+  });
 
   useEffect(() => {
     // Only track performance in development

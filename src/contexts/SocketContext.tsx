@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
 import io, { Socket } from 'socket.io-client'
 import { useSendMessage } from '@/hooks/mutations/useMessageMutations'
 
@@ -23,13 +24,18 @@ export const useSocket = () => useContext(SocketContext)
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const sendMessageMutation = useSendMessage()
+  
+  // Check if we're on a public page where socket isn't needed
+  const isPublicPage = router.pathname === '/' && status !== 'authenticated'
+  const shouldConnect = status === 'authenticated' && !isPublicPage
 
   useEffect(() => {
-    // Don't attempt connection if session is still loading or unauthenticated
-    if (status === 'loading' || status === 'unauthenticated') {
+    // Don't attempt connection if session is still loading, unauthenticated, or on public page
+    if (status === 'loading' || !shouldConnect) {
       return;
     }
     
@@ -74,7 +80,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => {
       newSocket.close()
     }
-  }, [session, status]) // Depend on session and status changes
+  }, [session, status, shouldConnect]) // Depend on session, status and shouldConnect
 
   const sendMessage = useCallback(async (conversationId: string, content: string, receiverId: string) => {
     try {
