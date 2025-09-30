@@ -224,18 +224,35 @@ export const authOptions: NextAuthOptions = {
           if (!response.ok) {
             // Try to get error message
             let errorMessage = 'Social login failed';
+            let errorDetails = '';
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               try {
                 const errorData = await response.json();
-                errorMessage = errorData.error || errorMessage;
+                errorMessage = errorData.message || errorData.error || errorMessage;
+                errorDetails = errorData.details || errorData.message || '';
+
+                // Check for duplicate account error
+                if (errorData.error === 'DUPLICATE_ACCOUNT' || errorDetails.includes('An account already exists with this email as a')) {
+                  console.error('[NextAuth] Duplicate account error:', errorDetails);
+                  // Store the error message in sessionStorage for the error page to retrieve
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('authError', errorDetails);
+                  }
+                  // Throw error to trigger redirect to error page
+                  throw new Error('DUPLICATE_ACCOUNT');
+                }
               } catch (e) {
+                if (e instanceof Error && e.message === 'DUPLICATE_ACCOUNT') {
+                  throw e; // Re-throw our custom error
+                }
                 errorMessage = await response.text();
               }
             } else {
               errorMessage = await response.text();
             }
             console.error('Social login failed:', errorMessage);
+
             return false;
           }
 

@@ -112,8 +112,17 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   // Send a message via socket
   const sendMessage = useCallback((conversationId: string, content: string, receiverId: string) => {
     if (socketRef.current?.connected) {
-      console.log(`[MessageSocket] Sending message to conversation ${conversationId}`)
+      console.log(`[MessageSocket] === SENDING MESSAGE ===`)
+      console.log(`[MessageSocket] Socket ID:`, socketRef.current.id)
+      console.log(`[MessageSocket] Conversation ID:`, conversationId)
+      console.log(`[MessageSocket] Content:`, content)
+      console.log(`[MessageSocket] Receiver ID:`, receiverId)
+      console.log(`[MessageSocket] Emitting 'send-message' event...`)
       socketRef.current.emit('send-message', { conversationId, content, receiverId })
+      console.log(`[MessageSocket] Event emitted, waiting for server response`)
+    } else {
+      console.error('[MessageSocket] Socket not connected! Cannot send message')
+      console.error('[MessageSocket] Socket state:', socketRef.current)
     }
   }, [])
 

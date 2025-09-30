@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import {
   ArrowLeft,
   Search,
@@ -59,10 +59,55 @@ interface Conversation {
   messages: Message[];
 }
 
+// Memoized message component to prevent re-renders
+const MessageItem = memo(({
+  message,
+  isMyMessage,
+  isNewMessage,
+  formatMessageTime
+}: {
+  message: Message;
+  isMyMessage: boolean;
+  isNewMessage: boolean;
+  formatMessageTime: (date: string) => string;
+}) => {
+  return (
+    <div
+      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${
+        isNewMessage ? styles.newMessage : ''
+      }`}
+    >
+      <div className={`max-w-[70%] sm:max-w-[528px] ${isMyMessage ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
+        <div
+          className={`px-4 sm:px-6 py-3 sm:py-4 break-words ${styles.messageBubble} ${
+            isMyMessage
+              ? 'bg-light-green text-white rounded-tl-[30px] sm:rounded-tl-[60px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-tr-[15px] sm:rounded-tr-[30px] rounded-br-none'
+              : 'bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none'
+          } ${
+            isNewMessage ? 'transition-all duration-300' : ''
+          }`}
+        >
+          <p className="text-[14px] sm:text-[15px] leading-[20px] sm:leading-[22px] break-words whitespace-pre-wrap">{message.content}</p>
+        </div>
+        <span className={`text-[12px] sm:text-[14px] text-gray-text ${
+          isMyMessage ? 'text-right' : 'text-left'
+        } ${isNewMessage ? 'opacity-0 animate-fadeIn' : ''}`}
+          style={isNewMessage ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}
+        >
+          {formatMessageTime(message.createdAt)}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+
 const MessagesPage = () => {
+  
   const { data: session, status } = useSession();
   const router = useRouter();
   const { socket, sendMessage } = useSocket();
+
   const {
     socket: messageSocket,
     isConnected: isMessageSocketConnected,
@@ -74,8 +119,11 @@ const MessagesPage = () => {
     connect: connectMessageSocket,
     disconnect: disconnectMessageSocket
   } = useMessageSocket();
+
+
   const { decrementUnreadCount } = useChat();
 
+  
   // React Query hooks
   const { data: conversationsData, isLoading: isLoadingConversations, refetch: refetchConversations } = useConversations(1, 20);
   const createConversationMutation = useCreateConversation();
@@ -108,11 +156,13 @@ const MessagesPage = () => {
   const [blockMessage, setBlockMessage] = useState('');
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-  
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const messageIdsSetRef = useRef<Set<string>>(new Set()); // Track all message IDs to prevent duplicates
+  const processingMessagesRef = useRef<Set<string>>(new Set()); // Track messages being processed to prevent race conditions
 
   // Get current user ID from session or localStorage
   const getCurrentUserId = () => {
@@ -138,30 +188,51 @@ const MessagesPage = () => {
     return conversation?.participants?.find(p => p.id !== currentUserId);
   };
 
+  // Helper function to safely add/update messages with deduplication
+  const safelyUpdateMessages = useCallback((
+    updateFn: (prev: Message[]) => Message[]
+  ) => {
+    setMessages(prev => {
+      const newMessages = updateFn(prev);
+
+      // Create a map to track unique messages by ID
+      const uniqueMessagesMap = new Map<string, Message>();
+
+      // Process messages in order, keeping only the latest version of each
+      newMessages.forEach(msg => {
+        // Skip if this message is currently being processed (but allow temp messages)
+        if (!msg.id.startsWith('temp-') && processingMessagesRef.current.has(msg.id)) {
+          return;
+        }
+
+        // Add to map (will overwrite if duplicate ID exists)
+        uniqueMessagesMap.set(msg.id, msg);
+      });
+
+      // Convert back to array and sort by creation date
+      const uniqueMessages = Array.from(uniqueMessagesMap.values())
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+      // Update our tracking set (excluding temp messages)
+      messageIdsSetRef.current = new Set(
+        uniqueMessages.filter(m => !m.id.startsWith('temp-')).map(m => m.id)
+      );
+
+      return uniqueMessages;
+    });
+  }, []);
+
   // Get other user and block status
   const otherUserForBlock = selectedConversation ? getOtherUser(selectedConversation) : null;
   const { data: blockStatusData, refetch: refetchBlockStatus } = useBlockStatus(otherUserForBlock?.id);
-  console.log('conversationId', queryConversationId);
-  console.log('userId', queryUserId);
 
   // Connect message socket when component mounts
   useEffect(() => {
-    console.log('[Messages] Component mounted, connecting message socket');
     connectMessageSocket();
     return () => {
-      console.log('[Messages] Component unmounting, disconnecting message socket');
       disconnectMessageSocket();
     };
   }, [connectMessageSocket, disconnectMessageSocket]);
-
-  // Log socket connection status
-  useEffect(() => {
-    console.log('[Messages] Socket connection status:', {
-      messageSocket: !!messageSocket,
-      isMessageSocketConnected,
-      socket: !!socket
-    });
-  }, [messageSocket, isMessageSocketConnected, socket]);
   
   // Redirect if not logged in
   useEffect(() => {
@@ -280,9 +351,24 @@ const MessagesPage = () => {
       messages: Message[];
       total: number;
     }) => {
-      console.log('[Messages] Received message history:', data);
       if (selectedConversation && data.conversationId === selectedConversation.id) {
-        setMessages(data.messages || []);
+        // Don't replace if we have optimistic messages - merge instead
+        const hasOptimisticMessages = messagesRef.current.some(m => m.id.startsWith('temp-'));
+
+        if (hasOptimisticMessages) {
+          // Keep optimistic messages and merge with new ones
+          safelyUpdateMessages(prev => {
+            const optimistic = prev.filter(m => m.id.startsWith('temp-'));
+            const newMessages = data.messages || [];
+            // Combine optimistic with new messages (avoiding duplicates)
+            return [...newMessages, ...optimistic];
+          });
+        } else {
+          // No optimistic messages, safe to replace
+          messageIdsSetRef.current.clear();
+          processingMessagesRef.current.clear();
+          safelyUpdateMessages(() => data.messages || []);
+        }
         setIsLoadingMessages(false);
 
         // Mark unread messages as read
@@ -302,9 +388,24 @@ const MessagesPage = () => {
       messages: Message[];
       pagination: any;
     }) => {
-      console.log('[Messages] Received messages from socket:', data);
       if (selectedConversation && data.conversationId === selectedConversation.id) {
-        setMessages(data.messages || []);
+        // Don't replace if we have optimistic messages - merge instead
+        const hasOptimisticMessages = messagesRef.current.some(m => m.id.startsWith('temp-'));
+
+        if (hasOptimisticMessages) {
+          // Keep optimistic messages and merge with new ones
+          safelyUpdateMessages(prev => {
+            const optimistic = prev.filter(m => m.id.startsWith('temp-'));
+            const newMessages = data.messages || [];
+            // Combine optimistic with new messages (avoiding duplicates)
+            return [...newMessages, ...optimistic];
+          });
+        } else {
+          // No optimistic messages, safe to replace
+          messageIdsSetRef.current.clear();
+          processingMessagesRef.current.clear();
+          safelyUpdateMessages(() => data.messages || []);
+        }
         setIsLoadingMessages(false);
 
         // Mark unread messages as read
@@ -320,22 +421,59 @@ const MessagesPage = () => {
     };
 
     const handleMessagesError = (data: { error: string }) => {
-      console.error('[Messages] Error fetching messages:', data.error);
       setIsLoadingMessages(false);
     };
 
     const handleConversationError = (data: { error: string }) => {
-      console.error('[Messages] Conversation error:', data.error);
       setIsLoadingMessages(false);
     };
 
     const handleMessageSent = (message: Message) => {
-      console.log('[Messages] Message sent confirmation:', message);
-      // The message will already be added via the 'new-message' event
+      console.log('=== MESSAGE-SENT EVENT RECEIVED ===');
+      console.log('Message ID:', message.id);
+      console.log('Content:', message.content);
+
+      // Replace optimistic message with real message
+      safelyUpdateMessages(prev => {
+        console.log('Current messages before update:', prev.length);
+        console.log('Looking for optimistic message with content:', message.content);
+
+        // Find and replace the optimistic message
+        const optimisticIndex = prev.findIndex(m =>
+          m.id.startsWith('temp-') &&
+          m.content === message.content &&
+          m.senderId === message.senderId
+        );
+
+        if (optimisticIndex !== -1) {
+          console.log('Found optimistic message at index:', optimisticIndex);
+          const updated = [...prev];
+          updated[optimisticIndex] = message;
+          console.log('Replaced optimistic with real message');
+          return updated;
+        }
+
+        console.log('No optimistic message found');
+        // If no optimistic message found, check if message already exists
+        if (prev.some(m => m.id === message.id)) {
+          console.log('Message already exists, not adding');
+          return prev;
+        }
+
+        // Add as new message if not found
+        console.log('Adding as new message');
+        return [...prev, message];
+      });
+
+      // Update conversation list with confirmed message
+      setConversations(prev => prev.map(conv =>
+        conv.id === message.conversationId
+          ? { ...conv, lastMessage: message.content, lastMessageAt: message.createdAt }
+          : conv
+      ));
     };
 
     const handleMessageError = (data: { error: string; blocked?: boolean }) => {
-      console.error('[Messages] Message error:', data.error);
       if (data.blocked) {
         setIsBlocked(true);
         setBlockMessage(data.error || 'Cannot send messages. One or both users have blocked each other.');
@@ -358,7 +496,7 @@ const MessagesPage = () => {
       messageSocket.off('message-sent', handleMessageSent);
       messageSocket.off('message-error', handleMessageError);
     };
-  }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount]);
+  }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount, safelyUpdateMessages]);
   
   // Listen for new messages and typing indicators
   useEffect(() => {
@@ -367,32 +505,55 @@ const MessagesPage = () => {
     const activeSocket = messageSocket || socket;
 
     const handleNewMessage = (message: Message) => {
-      console.log('🔵 Received new message:', message);
-      console.log('🔵 Current user ID:', currentUserId);
-      console.log('🔵 Message sender ID:', message.senderId);
-      console.log('🔵 Message receiver ID:', message.receiverId);
-      console.log('🔵 Current conversation:', selectedConversationRef.current?.id);
-      console.log('🔵 Message conversation:', message.conversationId);
+      console.log('=== NEW-MESSAGE EVENT RECEIVED ===');
+      console.log('Message ID:', message.id);
+      console.log('Sender ID:', message.senderId);
+      console.log('Current User ID:', currentUserId);
+      console.log('Content:', message.content);
+      console.log('Conversation ID:', message.conversationId);
+      console.log('Selected Conversation ID:', selectedConversationRef.current?.id);
+
+      // Prevent processing duplicate messages (but allow temp messages)
+      if (!message.id.startsWith('temp-') && messageIdsSetRef.current.has(message.id)) {
+        console.log('Message already in set, skipping');
+        return; // Message already exists, skip
+      }
+
+      // Add to processing set to prevent race conditions (only for non-temp messages)
+      if (!message.id.startsWith('temp-')) {
+        processingMessagesRef.current.add(message.id);
+      }
 
       // Add message to current conversation if it belongs to it
       if (selectedConversationRef.current && message.conversationId === selectedConversationRef.current.id) {
-        setMessages(prev => {
-          // Check if message already exists to avoid duplicates (including optimistic messages)
-          const exists = prev.some(m => m.id === message.id || (m.id.startsWith('temp-') && m.content === message.content && m.senderId === message.senderId));
-          if (exists) {
-            console.log('🔵 Message already exists, skipping');
-            // If it's replacing an optimistic message, replace it
-            if (prev.some(m => m.id.startsWith('temp-') && m.content === message.content && m.senderId === message.senderId)) {
-              console.log('🔵 Replacing optimistic message with real message');
-              return prev.map(m =>
-                (m.id.startsWith('temp-') && m.content === message.content && m.senderId === message.senderId)
-                  ? message
-                  : m
-              );
-            }
+        console.log('Message belongs to current conversation, updating UI');
+
+        safelyUpdateMessages(prev => {
+          console.log('Current messages count:', prev.length);
+
+          // Check for optimistic message to replace
+          const optimisticIndex = prev.findIndex(m =>
+            m.id.startsWith('temp-') &&
+            m.content === message.content &&
+            m.senderId === message.senderId
+          );
+
+          if (optimisticIndex !== -1) {
+            console.log('Replacing optimistic message at index:', optimisticIndex);
+            // Replace optimistic message with real message
+            const updated = [...prev];
+            updated[optimisticIndex] = message;
+            return updated;
+          }
+
+          // Check if message already exists (double-check)
+          if (prev.some(m => m.id === message.id)) {
+            console.log('Message already exists, not adding');
             return prev;
           }
-          console.log('🔵 Adding new message to conversation');
+
+          // Add new message
+          console.log('Adding new message to list');
           return [...prev, message];
         });
 
@@ -418,9 +579,15 @@ const MessagesPage = () => {
         }
       } else {
         // Message is for a different conversation, just update the conversation list
-        console.log('🔵 Message is for different conversation, updating list');
         // Update conversation list to show latest message
         loadConversations();
+      }
+
+      // Remove from processing set after a short delay (only for non-temp messages)
+      if (!message.id.startsWith('temp-')) {
+        setTimeout(() => {
+          processingMessagesRef.current.delete(message.id);
+        }, 100);
       }
     };
 
@@ -430,12 +597,9 @@ const MessagesPage = () => {
       }
     };
 
-    console.log('🟢 Setting up socket listeners');
-    
     // Listen for both new-message and new-message-notification events
     activeSocket.on('new-message', handleNewMessage);
     activeSocket.on('new-message-notification', (data: any) => {
-      console.log('🔵 Received new-message-notification:', data);
       if (data.message) {
         handleNewMessage(data.message);
       }
@@ -443,12 +607,11 @@ const MessagesPage = () => {
     activeSocket.on('user-typing', handleUserTyping);
 
     return () => {
-      console.log('🔴 Cleaning up socket listeners');
       activeSocket.off('new-message', handleNewMessage);
       activeSocket.off('new-message-notification');
       activeSocket.off('user-typing', handleUserTyping);
     };
-  }, [socket, messageSocket, currentUserId]); // Removed markAsRead and decrementUnreadCount from deps
+  }, [socket, messageSocket, currentUserId, safelyUpdateMessages]); // Added safelyUpdateMessages to deps
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -478,39 +641,18 @@ const MessagesPage = () => {
   const loadMessages = async (conversationId: string) => {
     setIsLoadingMessages(true);
 
-    // Try to fetch via socket first
+    // Always fetch via socket - no REST fallback
     if (isMessageSocketConnected) {
-      console.log('[Messages] Fetching messages via socket');
       fetchMessagesViaSocket(conversationId, 1, 50);
     } else {
-      // Fallback to REST API if socket not connected
-      console.log('[Messages] Socket not connected, using REST API');
-
-      try {
-        // Using axios client which handles auth automatically
-        const { default: axiosClient } = await import('@/lib/api/axios-client');
-        const response = await axiosClient.get(`/chat/conversations/${conversationId}/messages`, {
-          params: { page: 1, limit: 50 }
-        });
-
-        const data = response.data;
-        console.log('Loaded messages via REST:', data);
-        setMessages(data.messages || data || []);
-
-        // Mark unread messages as read
-        const unreadMessageIds = (data.messages || [])
-          .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
-          .map((msg: Message) => msg.id);
-
-        if (unreadMessageIds.length > 0) {
-          markAsRead(unreadMessageIds);
-          decrementUnreadCount(unreadMessageIds.length);
+      // Wait for socket connection
+      setTimeout(() => {
+        if (isMessageSocketConnected) {
+          fetchMessagesViaSocket(conversationId, 1, 50);
+        } else {
+          setIsLoadingMessages(false);
         }
-      } catch (error) {
-        console.error('Error loading messages:', error);
-      } finally {
-        setIsLoadingMessages(false);
-      }
+      }, 500); // Wait 500ms for socket to connect
     }
   };
 
@@ -532,14 +674,13 @@ const MessagesPage = () => {
   }, [blockStatusData]);
 
   const handleSelectConversation = async (conversation: Conversation) => {
-    console.log('[Messages] Selecting conversation:', {
-      conversationId: conversation.id,
-      isMessageSocketConnected,
-      hasJoinConversation: !!joinConversation
-    });
 
     setSelectedConversation(conversation);
     setIsLoadingMessages(true);
+
+    // Clear message tracking for new conversation
+    messageIdsSetRef.current.clear();
+    processingMessagesRef.current.clear();
 
     // Show mobile chat view
     setShowMobileChat(true);
@@ -550,14 +691,9 @@ const MessagesPage = () => {
 
     // Join conversation via socket to get message history
     if (isMessageSocketConnected && joinConversation) {
-      console.log('[Messages] Joining conversation via socket:', conversation.id);
       joinConversation(conversation.id);
     } else {
       // Fallback to REST API if socket not connected
-      console.log('[Messages] Socket not connected, loading via REST API. Status:', {
-        isMessageSocketConnected,
-        hasJoinConversation: !!joinConversation
-      });
       loadMessages(conversation.id);
     }
 
@@ -591,7 +727,6 @@ const MessagesPage = () => {
         }
       },
       onError: (error) => {
-        console.error('Error creating conversation:', error);
         toast.error('Failed to create conversation');
       }
     });
@@ -623,7 +758,7 @@ const MessagesPage = () => {
     });
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!messageInput.trim() || !selectedConversation) return;
 
     // Check if blocked first
@@ -642,7 +777,7 @@ const MessagesPage = () => {
 
     // Create optimistic message to show immediately
     const optimisticMessage: Message = {
-      id: `temp-${Date.now()}`,
+      id: `temp-${Date.now()}-${Math.random()}`, // Add random to ensure unique
       conversationId: selectedConversation.id,
       content,
       senderId: currentUserId!,
@@ -655,77 +790,52 @@ const MessagesPage = () => {
         email: session?.user?.email || '',
         image: session?.user?.image,
         role: (session?.user as any)?.role || 'DOG_OWNER'
-      }
+      },
+      receiver: otherUser // Add receiver info as well
     };
 
-    // Add optimistic message to UI immediately
-    setMessages(prev => [...prev, optimisticMessage]);
+    // Add optimistic message to UI immediately - direct state update for optimistic messages
+    setMessages(prev => {
+      // Don't add if somehow it already exists
+      if (prev.some(m => m.id === optimisticMessage.id)) {
+        return prev;
+      }
+      return [...prev, optimisticMessage];
+    });
     setNewMessageIds(prev => new Set(prev).add(optimisticMessage.id));
 
-    // Send via socket
+    // Scroll to bottom immediately after adding optimistic message
+    setTimeout(() => {
+      scrollToBottom();
+    }, 50);
+
+    // Always send via socket only - no REST API fallback
     if (isMessageSocketConnected && sendMessageViaSocket) {
-      console.log('[Messages] Sending message via socket');
       sendMessageViaSocket(selectedConversation.id, content, otherUser.id);
 
       // The optimistic message will be replaced by the real message when it arrives via socket
-      // Update conversation's last message
+      // Update conversation's last message optimistically
       setConversations(prev => prev.map(conv =>
         conv.id === selectedConversation.id
           ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
           : conv
       ));
     } else {
-      // Fallback to REST API if socket not connected
-      console.log('[Messages] Socket not connected, using mutation');
-      sendMessageMutation.mutate({
-        conversationId: selectedConversation.id,
-        content,
-        receiverId: otherUser.id
-      }, {
-        onSuccess: (newMessage) => {
-          // Remove optimistic message and add real one
-          setMessages(prev => [
-            ...prev.filter(m => m.id !== optimisticMessage.id),
-            newMessage
-          ]);
-          setNewMessageIds(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(optimisticMessage.id);
-            newSet.add(newMessage.id);
-            return newSet;
-          });
-
-          setTimeout(() => {
-            setNewMessageIds(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(newMessage.id);
-              return newSet;
-            });
-          }, 500);
-
-          // Update conversation's last message
-          setConversations(prev => prev.map(conv =>
-            conv.id === selectedConversation.id
-              ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
-              : conv
-          ));
-        },
-        onError: (error: any) => {
-          console.error('Failed to send message:', error);
-          if (error.response?.data?.blocked) {
-            setIsBlocked(true);
-            setBlockMessage(error.response.data.error || 'Cannot send messages. One or both users have blocked each other.');
-            refetchBlockStatus();
-          }
-          // Remove optimistic message on error
-          setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-          setMessageInput(content);
-        }
+      // Socket not connected - remove optimistic message and show error
+      safelyUpdateMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      setNewMessageIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(optimisticMessage.id);
+        return newSet;
       });
-    }
-  };
+      toast.error('Connection lost. Please wait a moment and try again.');
 
-  const handleTyping = () => {
+      // Restore the message input so user doesn't lose their message
+      setMessageInput(content);
+    }
+  }, [messageInput, selectedConversation, isBlocked, currentUserId, session, isMessageSocketConnected, sendMessageViaSocket, emitTyping]);
+
+  const handleTyping = useCallback(() => {
     if (!selectedConversation) return;
 
     if (!isTyping) {
@@ -743,7 +853,7 @@ const MessagesPage = () => {
       setIsTyping(false);
       emitTyping(selectedConversation.id, false);
     }, 1000);
-  };
+  }, [selectedConversation, isTyping, emitTyping]);
 
 
   // Close dropdown when clicking outside
@@ -776,13 +886,13 @@ const MessagesPage = () => {
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   };
 
-  const formatMessageTime = (timestamp: string | Date) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+  const formatMessageTime = useCallback((timestamp: string | Date) => {
+    return new Date(timestamp).toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
-  };
+  }, []);
 
   // Don't render anything if not authenticated after loading
   if (status === 'unauthenticated' && !(typeof window !== 'undefined' && localStorage.getItem('authToken'))) {
@@ -1020,47 +1130,15 @@ const MessagesPage = () => {
                         No messages yet. Start a conversation!
                       </div>
                     ) : (
-                      messages.map((message) => {
-                        const isMyMessage = message.senderId === currentUserId;
-                        // Debug log to check message display logic
-                        if (process.env.NODE_ENV === 'development') {
-                          console.log('Message display:', {
-                            messageId: message.id,
-                            senderId: message.senderId,
-                            currentUserId,
-                            isMyMessage,
-                            senderName: message.sender?.name
-                          });
-                        }
-                        return (
-                      <div
-                        key={message.id}
-                        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${
-                          newMessageIds.has(message.id) ? styles.newMessage : ''
-                        }`}
-                      >
-                        <div className={`max-w-[70%] sm:max-w-[528px] ${isMyMessage ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
-                          <div
-                            className={`px-4 sm:px-6 py-3 sm:py-4 break-words ${styles.messageBubble} ${
-                              isMyMessage
-                                ? 'bg-light-green text-white rounded-tl-[30px] sm:rounded-tl-[60px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-tr-[15px] sm:rounded-tr-[30px] rounded-br-none'
-                                : 'bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none'
-                            } ${
-                              newMessageIds.has(message.id) ? 'transition-all duration-300' : ''
-                            }`}
-                          >
-                            <p className="text-[14px] sm:text-[15px] leading-[20px] sm:leading-[22px] break-words whitespace-pre-wrap">{message.content}</p>
-                          </div>
-                          <span className={`text-[12px] sm:text-[14px] text-gray-text ${
-                            isMyMessage ? 'text-right' : 'text-left'
-                          } ${newMessageIds.has(message.id) ? 'opacity-0 animate-fadeIn' : ''}`}
-                            style={newMessageIds.has(message.id) ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}
-                          >
-                            {formatMessageTime(message.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                    )}))}
+                      messages.map((message) => (
+                        <MessageItem
+                          key={message.id}
+                          message={message}
+                          isMyMessage={message.senderId === currentUserId}
+                          isNewMessage={newMessageIds.has(message.id)}
+                          formatMessageTime={formatMessageTime}
+                        />
+                      )))}
 
                     {otherUserTyping && (
                       <div className="flex justify-start">
@@ -1163,7 +1241,6 @@ const MessagesPage = () => {
         userName={userToBlock?.name}
         userId={userToBlock?.id}
         onBlock={async () => {
-          console.log(`Blocked user: ${userToBlock?.name}`);
           // Update block status immediately
           setIsBlocked(true);
           setBlockMessage('You have blocked this user. Unblock them to send messages.');
@@ -1186,7 +1263,6 @@ const MessagesPage = () => {
         userName={userToReport?.name}
         userId={userToReport?.id}
         onReport={(reason, details) => {
-          console.log(`Reported user: ${userToReport?.name}`, { reason, details });
           // The API call is handled inside the ReportUserModal
         }}
       />

@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Sonner Toast Styles */
+[data-sonner-toaster] {
+  position: fixed !important;
+  z-index: 99999 !important;
+}
+
+[data-sonner-toast] {
+  z-index: 99999 !important;
+  font-family: inherit !important;
+}
+
 /* Custom Scrollbar Styles for Notification Sidebar */
 .notification-scrollbar {
   scrollbar-width: thin;

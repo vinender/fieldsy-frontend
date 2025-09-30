@@ -51,10 +51,12 @@ export default function OTPVerificationForm() {
 
   const verifyPasswordResetMutation = useVerifyPasswordResetOtp({
     onSuccess: (result) => {
-      // Store the OTP in session storage for the reset password page
-      const otpCode = otp.join("")
-      sessionStorage.setItem('reset_otp', otpCode)
-      
+      // Store the reset token in session storage for the reset password page
+      if (result.data?.resetToken) {
+        sessionStorage.setItem('reset_token', result.data.resetToken)
+        sessionStorage.setItem('reset_email', email)
+      }
+
       // For password reset, redirect to reset password page
       router.push(`/reset-password?email=${encodeURIComponent(email)}&verified=true`)
     },

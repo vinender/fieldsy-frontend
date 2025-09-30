@@ -101,10 +101,7 @@ export function RoleSelectionModal({
             </div>
           )}
 
-          {/* Info text */}
-          <p className="text-xs text-gray-500 text-center mt-6">
-            You can update your role later in your profile settings
-          </p>
+         
         </div>
       </div>
     </>

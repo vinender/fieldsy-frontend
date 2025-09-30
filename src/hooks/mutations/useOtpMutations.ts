@@ -33,8 +33,7 @@ export interface RequestPasswordResetData {
 }
 
 export interface ResetPasswordData {
-  email: string;
-  otp: string;
+  resetToken: string;
   newPassword: string;
 }
 
@@ -65,16 +64,23 @@ export function useRegisterWithOtp(
     onError: (error: any, variables) => {
       console.error('Registration error:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Registration failed';
-      
+
       // Show specific error messages
-      if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
+      if (errorMessage.includes('An account already exists with this email as a')) {
+        // Extract the role from the error message for a clearer toast
+        const roleMatch = errorMessage.match(/as a ([^.]+)/);
+        const existingRole = roleMatch ? roleMatch[1] : 'different role';
+        toast.error(`An account already exists with this email as a ${existingRole}. Each email can only have one account.`);
+      } else if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
         toast.error(`Account already exists. Please sign in instead.`);
       } else if (errorMessage.includes('phone number')) {
         toast.error('This phone number is already registered.');
+      } else if (errorMessage.includes('Google/Apple')) {
+        toast.error('This email is already registered with social login. Please use the Google/Apple sign in button.');
       } else {
         toast.error(errorMessage);
       }
-      
+
       if (options?.onError) {
         options.onError(error, variables, {} as any);
       }

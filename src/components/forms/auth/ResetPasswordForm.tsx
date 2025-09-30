@@ -35,7 +35,7 @@ export default function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
   const verified = searchParams.get("verified") === "true"
-  const [otp, setOtp] = useState("") // Store OTP from previous verification
+  const [resetToken, setResetToken] = useState("") // Store reset token from previous verification
 
   const {
     register,
@@ -82,11 +82,15 @@ export default function ResetPasswordForm() {
       toast.error("Please verify your email first")
       router.push("/forgot-password")
     }
-    
-    // Get the OTP from session storage (stored during verification)
-    const storedOtp = sessionStorage.getItem('reset_otp')
-    if (storedOtp) {
-      setOtp(storedOtp)
+
+    // Get the reset token from session storage (stored during verification)
+    const storedToken = sessionStorage.getItem('reset_token')
+    if (storedToken) {
+      setResetToken(storedToken)
+    } else {
+      // If no token found, redirect back to forgot password
+      toast.error("Session expired. Please verify your email again.")
+      router.push("/forgot-password")
     }
   }, [verified, email, router])
 
@@ -97,28 +101,28 @@ export default function ResetPasswordForm() {
         toast.error("Passwords do not match")
         return
       }
-      
-      // Get OTP from session storage or prompt user
-      let otpToUse = otp
-      if (!otpToUse) {
-        otpToUse = sessionStorage.getItem('reset_otp') || ''
+
+      // Get reset token from state or session storage
+      let tokenToUse = resetToken
+      if (!tokenToUse) {
+        tokenToUse = sessionStorage.getItem('reset_token') || ''
       }
-      
-      if (!otpToUse) {
-        toast.error("OTP verification required. Please go back to forgot password.")
+
+      if (!tokenToUse) {
+        toast.error("Session expired. Please verify your email again.")
         router.push("/forgot-password")
         return
       }
-      
-      // Reset password with OTP
+
+      // Reset password with reset token
       await resetPasswordMutation.mutateAsync({
-        email,
-        otp: otpToUse,
+        resetToken: tokenToUse,
         newPassword: values.password,
       })
-      
-      // Clear stored OTP
-      sessionStorage.removeItem('reset_otp')
+
+      // Clear stored token and email
+      sessionStorage.removeItem('reset_token')
+      sessionStorage.removeItem('reset_email')
     } catch (error) {
       // Error is already handled by the mutation's onError callback
       console.log('Password reset error handled by mutation hook')

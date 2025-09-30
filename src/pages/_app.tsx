@@ -109,18 +109,22 @@ export default function App({
                           </main>
                           {!hideLayout && <Footer />}
                         </div>
-                        <Toaster 
-                        toastOptions={{
-                          style: {
-                            background: '#2D3748', // Dark gray background
-                            color: '#FFFFFF', // White text
-                            border: '1px solid #4A5568', // Slightly lighter border
-                          },
-                          className: 'sonner-toast',
-                          descriptionClassName: 'sonner-description',
-                        }}
-                        richColors
-                      />
+                        <Toaster
+                          position="top-right"
+                          toastOptions={{
+                            duration: 4000,
+                            style: {
+                              background: '#ffffff',
+                              color: '#000000',
+                              border: '1px solid #e5e5e5',
+                              borderRadius: '8px',
+                              padding: '16px',
+                              fontSize: '14px',
+                              zIndex: 9999,
+                            },
+                          }}
+                          richColors
+                        />
                     </div>
                     </NavigationLoaderProvider>
                   </SkeletonProvider>
