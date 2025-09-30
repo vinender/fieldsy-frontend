@@ -5,17 +5,17 @@ import { toast } from 'sonner';
 
 // Types
 export interface SendMessageData {
+  conversationId: string;
   receiverId: string;
   content: string;
-  conversationId?: string;
 }
 
 export interface CreateConversationData {
-  participantId: string;
-  initialMessage?: string;
+  receiverId: string;
+  fieldId?: string;
 }
 
-// Send message mutation
+// Send message mutation (REST API fallback - prefer socket)
 export function useSendMessage(
   options?: Omit<UseMutationOptions<any, Error, SendMessageData>, 'mutationFn'>
 ) {
@@ -23,20 +23,23 @@ export function useSendMessage(
 
   return useMutation({
     mutationFn: async (data: SendMessageData) => {
-      const response = await axiosClient.post('/chat/messages', data);
+      const response = await axiosClient.post('/chat/messages', {
+        conversationId: data.conversationId,
+        content: data.content,
+        receiverId: data.receiverId
+      });
       return response.data;
     },
     onSuccess: (result, variables) => {
       // Invalidate messages and conversations
       queryClient.invalidateQueries({ queryKey: messageQueryKeys.conversations() });
-      if (variables.conversationId) {
-        queryClient.invalidateQueries({ 
-          queryKey: messageQueryKeys.messages(variables.conversationId) 
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: messageQueryKeys.messages(variables.conversationId)
+      });
     },
     onError: (error: any) => {
-      toast.error('Failed to send message');
+      const errorMessage = error.response?.data?.error || 'Failed to send message';
+      toast.error(errorMessage);
     },
     ...options,
   });
@@ -50,7 +53,10 @@ export function useCreateConversation(
 
   return useMutation({
     mutationFn: async (data: CreateConversationData) => {
-      const response = await axiosClient.post('/chat/conversations', data);
+      const response = await axiosClient.post('/chat/conversations', {
+        receiverId: data.receiverId,
+        fieldId: data.fieldId
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -58,7 +64,8 @@ export function useCreateConversation(
       queryClient.invalidateQueries({ queryKey: messageQueryKeys.conversations() });
     },
     onError: (error: any) => {
-      toast.error('Failed to create conversation');
+      const errorMessage = error.response?.data?.error || 'Failed to create conversation';
+      toast.error(errorMessage);
     },
     ...options,
   });
@@ -80,8 +87,8 @@ export function useMarkMessagesAsRead(
     onSuccess: (result, conversationId) => {
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: messageQueryKeys.conversations() });
-      queryClient.invalidateQueries({ 
-        queryKey: messageQueryKeys.messages(conversationId) 
+      queryClient.invalidateQueries({
+        queryKey: messageQueryKeys.messages(conversationId)
       });
       queryClient.invalidateQueries({ queryKey: messageQueryKeys.unreadCount() });
     },
@@ -106,7 +113,8 @@ export function useDeleteMessage(
       toast.success('Message deleted');
     },
     onError: (error: any) => {
-      toast.error('Failed to delete message');
+      const errorMessage = error.response?.data?.error || 'Failed to delete message';
+      toast.error(errorMessage);
     },
     ...options,
   });
@@ -129,7 +137,8 @@ export function useDeleteConversation(
       toast.success('Conversation deleted');
     },
     onError: (error: any) => {
-      toast.error('Failed to delete conversation');
+      const errorMessage = error.response?.data?.error || 'Failed to delete conversation';
+      toast.error(errorMessage);
     },
     ...options,
   });

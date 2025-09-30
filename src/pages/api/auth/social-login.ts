@@ -47,12 +47,42 @@ export default async function handler(
       }),
     });
 
+    // Handle response - check if it's JSON first
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+
     if (!response.ok) {
-      const error = await response.json();
+      let error;
+      if (isJson) {
+        try {
+          error = await response.json();
+        } catch (e) {
+          error = { error: 'Failed to parse error response' };
+        }
+      } else {
+        // Response is not JSON (could be text like "Too many requests")
+        const text = await response.text();
+        console.error('[Social Login] Non-JSON error response:', text);
+        error = { error: text || 'Authentication failed' };
+      }
+
       return res.status(response.status).json(error);
     }
 
-    const data = await response.json();
+    // Parse successful response
+    let data;
+    if (isJson) {
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.error('[Social Login] Failed to parse success response:', e);
+        return res.status(500).json({ error: 'Invalid response from server' });
+      }
+    } else {
+      const text = await response.text();
+      console.error('[Social Login] Non-JSON success response:', text);
+      return res.status(500).json({ error: 'Invalid response format from server' });
+    }
     
     // Return the backend response
     res.status(200).json({

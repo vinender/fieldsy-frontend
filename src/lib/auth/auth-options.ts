@@ -222,10 +222,23 @@ export const authOptions: NextAuthOptions = {
           });
           
           if (!response.ok) {
-            console.error('Social login failed:', await response.text());
+            // Try to get error message
+            let errorMessage = 'Social login failed';
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+              } catch (e) {
+                errorMessage = await response.text();
+              }
+            } else {
+              errorMessage = await response.text();
+            }
+            console.error('Social login failed:', errorMessage);
             return false;
           }
-          
+
           const data = await response.json();
           
           // Store the user data for use in JWT callback

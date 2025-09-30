@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ArrowLeft, 
-  Search, 
-  Send, 
+import {
+  ArrowLeft,
+  Search,
+  Send,
   MoreVertical,
   Circle,
   MessageCircle
@@ -21,6 +21,9 @@ import { toast } from 'sonner';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { ListSkeleton, ChatMessageSkeleton } from '@/components/skeletons/SkeletonComponents';
 import GreenSpinner from '@/components/common/GreenSpinner';
+import { useConversations } from '@/hooks/queries/useMessageQueries';
+import { useCreateConversation, useDeleteConversation, useSendMessage } from '@/hooks/mutations/useMessageMutations';
+import { useBlockStatus, useUnblockUser } from '@/hooks/queries/useUserBlockQueries';
 
 interface User {
   id: string;
@@ -72,6 +75,13 @@ const MessagesPage = () => {
     disconnect: disconnectMessageSocket
   } = useMessageSocket();
   const { decrementUnreadCount } = useChat();
+
+  // React Query hooks
+  const { data: conversationsData, isLoading: isLoadingConversations, refetch: refetchConversations } = useConversations(1, 20);
+  const createConversationMutation = useCreateConversation();
+  const deleteConversationMutation = useDeleteConversation();
+  const sendMessageMutation = useSendMessage();
+  const unblockUserMutation = useUnblockUser();
   
   // Extract query params, accounting for router not being ready
   // These are optional - only used when navigating with specific conversation/user
@@ -90,7 +100,7 @@ const MessagesPage = () => {
   const [userToBlock, setUserToBlock] = useState<{ name: string; id: string } | null>(null);
   const [userToReport, setUserToReport] = useState<{ name: string; id: string } | null>(null);
   const [userToDelete, setUserToDelete] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
+  // Using isLoadingConversations from React Query instead
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
@@ -103,11 +113,11 @@ const MessagesPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Get current user ID from session or localStorage
   const getCurrentUserId = () => {
     if (session?.user?.id) return session.user.id;
-    
+
     // Check if we're in the browser before accessing localStorage
     if (typeof window !== 'undefined') {
       const currentUser = localStorage.getItem('currentUser');
@@ -120,8 +130,17 @@ const MessagesPage = () => {
     }
     return null;
   };
-  
+
   const currentUserId = getCurrentUserId();
+
+  // Helper function to get other user
+  const getOtherUser = (conversation: Conversation): User | undefined => {
+    return conversation?.participants?.find(p => p.id !== currentUserId);
+  };
+
+  // Get other user and block status
+  const otherUserForBlock = selectedConversation ? getOtherUser(selectedConversation) : null;
+  const { data: blockStatusData, refetch: refetchBlockStatus } = useBlockStatus(otherUserForBlock?.id);
   console.log('conversationId', queryConversationId);
   console.log('userId', queryUserId);
 
@@ -165,8 +184,6 @@ const MessagesPage = () => {
     const hasAuth = session || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
     if (hasAuth) {
       loadConversations();
-    } else {
-      setIsLoading(false);
     }
   }, [session, status]);
 
@@ -185,26 +202,52 @@ const MessagesPage = () => {
     }
   }, [router.isReady, queryConversationId, conversations]);
 
-  // Auto-open or create conversation with specific user
+  // Check for saved messaging intent from sessionStorage
+  useEffect(() => {
+    if (router.isReady && !isLoadingConversations && !queryUserId && typeof window !== 'undefined') {
+      const savedUserId = sessionStorage.getItem('messageIntentUserId');
+      const savedFieldId = sessionStorage.getItem('messageIntentFieldId');
+
+      if (savedUserId) {
+        // Clear the saved intent
+        sessionStorage.removeItem('messageIntentUserId');
+        sessionStorage.removeItem('messageIntentFieldId');
+
+        // Find conversation with this user
+        const targetConversation = conversations.find(conv =>
+          conv.participants.some(p => p.id === savedUserId)
+        );
+
+        if (targetConversation) {
+          handleSelectConversation(targetConversation);
+        } else {
+          // If no existing conversation, create one with the field context
+          createConversationWithUser(savedUserId, savedFieldId);
+        }
+      }
+    }
+  }, [router.isReady, conversations, isLoadingConversations, queryUserId]);
+
+  // Auto-open or create conversation with specific user from query param
   useEffect(() => {
     // Only process if router is ready, not loading and we have the userId
-    if (router.isReady && queryUserId && !isLoading) {
+    if (router.isReady && queryUserId && !isLoadingConversations) {
       // Find conversation with this user
-      const targetConversation = conversations.find(conv => 
+      const targetConversation = conversations.find(conv =>
         conv.participants.some(p => p.id === queryUserId)
       );
-      
+
       if (targetConversation) {
         handleSelectConversation(targetConversation);
       } else {
         // If no existing conversation, create or initiate one
         createConversationWithUser(queryUserId);
       }
-      
+
       // Clear the query parameter after processing
       router.replace('/user/messages', undefined, { shallow: true });
     }
-  }, [router.isReady, queryUserId, conversations, isLoading]);
+  }, [router.isReady, queryUserId, conversations, isLoadingConversations]);
 
   // Socket event listeners - using useRef to maintain stable references
   const selectedConversationRef = useRef(selectedConversation);
@@ -420,38 +463,21 @@ const MessagesPage = () => {
     }
   };
 
-  const loadConversations = async () => {
-    // Get token from session or localStorage
-    const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
-    if (!token) {
-      console.log('No auth token found for loading conversations');
-      setIsLoading(false);
-      return;
+  // Update conversations from React Query data
+  useEffect(() => {
+    if (conversationsData?.conversations) {
+      setConversations(conversationsData.conversations);
     }
+  }, [conversationsData]);
 
-    try {
-      const response = await fetch('/api/chat/conversations', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Loaded conversations:', data);
-        // Backend returns { conversations: [...], pagination: {...} }
-        setConversations(data.conversations || data || []);
-      }
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  // Helper to refresh conversations
+  const loadConversations = () => {
+    refetchConversations();
   };
 
   const loadMessages = async (conversationId: string) => {
     setIsLoadingMessages(true);
-    
+
     // Try to fetch via socket first
     if (isMessageSocketConnected) {
       console.log('[Messages] Fetching messages via socket');
@@ -459,34 +485,26 @@ const MessagesPage = () => {
     } else {
       // Fallback to REST API if socket not connected
       console.log('[Messages] Socket not connected, using REST API');
-      const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
-      if (!token) {
-        console.log('No auth token found for loading messages');
-        setIsLoadingMessages(false);
-        return;
-      }
 
       try {
-        const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+        // Using axios client which handles auth automatically
+        const { default: axiosClient } = await import('@/lib/api/axios-client');
+        const response = await axiosClient.get(`/chat/conversations/${conversationId}/messages`, {
+          params: { page: 1, limit: 50 }
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Loaded messages via REST:', data);
-          setMessages(data.messages || data || []);
-          
-          // Mark unread messages as read
-          const unreadMessageIds = data.messages
-            .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
-            .map((msg: Message) => msg.id);
-          
-          if (unreadMessageIds.length > 0) {
-            markAsRead(unreadMessageIds);
-            decrementUnreadCount(unreadMessageIds.length);
-          }
+        const data = response.data;
+        console.log('Loaded messages via REST:', data);
+        setMessages(data.messages || data || []);
+
+        // Mark unread messages as read
+        const unreadMessageIds = (data.messages || [])
+          .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
+          .map((msg: Message) => msg.id);
+
+        if (unreadMessageIds.length > 0) {
+          markAsRead(unreadMessageIds);
+          decrementUnreadCount(unreadMessageIds.length);
         }
       } catch (error) {
         console.error('Error loading messages:', error);
@@ -496,32 +514,22 @@ const MessagesPage = () => {
     }
   };
 
-  const checkBlockStatus = async (otherUserId: string) => {
-    const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
-    if (!token) return;
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/user-blocks/status/${otherUserId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+  // Update block status when data changes
+  useEffect(() => {
+    if (blockStatusData?.data) {
+      setIsBlocked(!blockStatusData.data.canChat);
+      if (!blockStatusData.data.canChat) {
+        if (blockStatusData.data.isBlocked) {
+          setBlockMessage('You have blocked this user. Unblock them to send messages.');
+        } else if (blockStatusData.data.isBlockedBy) {
+          setBlockMessage('This user has blocked you. You cannot send messages.');
         }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsBlocked(!data.data.canChat);
-        if (!data.data.canChat) {
-          if (data.data.isBlocked) {
-            setBlockMessage('You have blocked this user. Unblock them to send messages.');
-          } else if (data.data.isBlockedBy) {
-            setBlockMessage('This user has blocked you. You cannot send messages.');
-          }
-        }
+      } else {
+        setIsBlocked(false);
+        setBlockMessage('');
       }
-    } catch (error) {
-      console.error('Error checking block status:', error);
     }
-  };
+  }, [blockStatusData]);
 
   const handleSelectConversation = async (conversation: Conversation) => {
     console.log('[Messages] Selecting conversation:', {
@@ -539,12 +547,6 @@ const MessagesPage = () => {
     // Reset block status
     setIsBlocked(false);
     setBlockMessage('');
-
-    // Check block status
-    const otherUser = getOtherUser(conversation);
-    if (otherUser) {
-      await checkBlockStatus(otherUser.id);
-    }
 
     // Join conversation via socket to get message history
     if (isMessageSocketConnected && joinConversation) {
@@ -569,28 +571,9 @@ const MessagesPage = () => {
     // setSelectedConversation(null);
   };
 
-  const createConversationWithUser = async (userId: string) => {
-    // Get token from session or localStorage
-    const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
-    if (!token) {
-      console.log('No auth token for creating conversation');
-      return;
-    }
-
-    try {
-      // Create or get existing conversation with this user
-      // The backend expects receiverId for creating a conversation
-      const response = await fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ receiverId: userId })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+  const createConversationWithUser = async (userId: string, fieldId?: string | null) => {
+    createConversationMutation.mutate({ receiverId: userId, fieldId: fieldId || undefined }, {
+      onSuccess: (data) => {
         // The conversation is returned directly with participants info
         if (data) {
           // Add to conversations list if not already there
@@ -606,49 +589,38 @@ const MessagesPage = () => {
           // Show mobile chat view
           setShowMobileChat(true);
         }
+      },
+      onError: (error) => {
+        console.error('Error creating conversation:', error);
+        toast.error('Failed to create conversation');
       }
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-    }
+    });
   };
 
-  const handleDeleteConversation = async () => {
+  const handleDeleteConversation = () => {
     if (!selectedConversation) return;
-    
-    setIsDeleting(true);
-    try {
-      const token = (session as any)?.accessToken || localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:5000/api/chat/conversations/${selectedConversation.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
 
-      if (response.ok) {
+    setIsDeleting(true);
+    deleteConversationMutation.mutate(selectedConversation.id, {
+      onSuccess: () => {
         // Remove conversation from list
         setConversations(prev => prev.filter(conv => conv.id !== selectedConversation.id));
-        
+
         // Clear selected conversation
         setSelectedConversation(null);
         setMessages([]);
-        
+
         // Go back to list on mobile
         setShowMobileChat(false);
-        
+
         // Close modal
         setShowDeleteModal(false);
-      } else {
-        const error = await response.json();
-        console.error('Failed to delete conversation:', error);
-        alert('Failed to delete conversation. Please try again.');
+        setIsDeleting(false);
+      },
+      onError: () => {
+        setIsDeleting(false);
       }
-    } catch (error) {
-      console.error('Error deleting conversation:', error);
-      alert('An error occurred while deleting the conversation.');
-    } finally {
-      setIsDeleting(false);
-    }
+    });
   };
 
   const handleSendMessage = async () => {
@@ -704,24 +676,13 @@ const MessagesPage = () => {
       ));
     } else {
       // Fallback to REST API if socket not connected
-      console.log('[Messages] Socket not connected, using REST API');
-      try {
-        const token = (session as any)?.accessToken || localStorage.getItem('authToken');
-        const response = await fetch('/api/chat/messages', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            conversationId: selectedConversation.id,
-            content,
-            receiverId: otherUser.id
-          })
-        });
-
-        if (response.ok) {
-          const newMessage = await response.json();
+      console.log('[Messages] Socket not connected, using mutation');
+      sendMessageMutation.mutate({
+        conversationId: selectedConversation.id,
+        content,
+        receiverId: otherUser.id
+      }, {
+        onSuccess: (newMessage) => {
           // Remove optimistic message and add real one
           setMessages(prev => [
             ...prev.filter(m => m.id !== optimisticMessage.id),
@@ -741,23 +702,26 @@ const MessagesPage = () => {
               return newSet;
             });
           }, 500);
-        } else {
-          const error = await response.json();
-          if (error.blocked) {
+
+          // Update conversation's last message
+          setConversations(prev => prev.map(conv =>
+            conv.id === selectedConversation.id
+              ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
+              : conv
+          ));
+        },
+        onError: (error: any) => {
+          console.error('Failed to send message:', error);
+          if (error.response?.data?.blocked) {
             setIsBlocked(true);
-            setBlockMessage(error.error || 'Cannot send messages. One or both users have blocked each other.');
-            await checkBlockStatus(otherUser.id);
+            setBlockMessage(error.response.data.error || 'Cannot send messages. One or both users have blocked each other.');
+            refetchBlockStatus();
           }
           // Remove optimistic message on error
           setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
           setMessageInput(content);
         }
-      } catch (error) {
-        console.error('Failed to send message:', error);
-        // Remove optimistic message and restore input
-        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-        setMessageInput(content);
-      }
+      });
     }
   };
 
@@ -781,9 +745,6 @@ const MessagesPage = () => {
     }, 1000);
   };
 
-  const getOtherUser = (conversation: Conversation): User | undefined => {
-    return conversation.participants.find(p => p.id !== currentUserId);
-  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -874,7 +835,7 @@ const MessagesPage = () => {
 
             {/* Conversations */}
             <div className="flex-1 overflow-y-auto no-scrollbar">
-              {isLoading ? (
+              {isLoadingConversations ? (
                 <div className="px-4 py-2">
                   <ListSkeleton items={4} />
                 </div>
@@ -1126,31 +1087,17 @@ const MessagesPage = () => {
                       </p>
                       {blockMessage.includes('You have blocked') && (
                         <div className="text-center">
-                          <button 
-                            onClick={async () => {
+                          <button
+                            onClick={() => {
                               const otherUser = getOtherUser(selectedConversation);
                               if (otherUser) {
-                                try {
-                                  const token = (session as any)?.accessToken || localStorage.getItem('authToken');
-                                  const response = await fetch(`http://localhost:5000/api/user-blocks/unblock`, {
-                                    method: 'POST',
-                                    headers: {
-                                      'Authorization': `Bearer ${token}`,
-                                      'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ blockedUserId: otherUser.id })
-                                  });
-                                  
-                                  if (response.ok) {
+                                unblockUserMutation.mutate({ blockedUserId: otherUser.id }, {
+                                  onSuccess: () => {
                                     setIsBlocked(false);
                                     setBlockMessage('');
-                                    await checkBlockStatus(otherUser.id);
-                                    toast.success('User unblocked successfully');
+                                    refetchBlockStatus();
                                   }
-                                } catch (error) {
-                                  console.error('Failed to unblock user:', error);
-                                  toast.error('Failed to unblock user');
-                                }
+                                });
                               }
                             }}
                             className="text-[14px] text-blue-600 hover:text-blue-700 underline"

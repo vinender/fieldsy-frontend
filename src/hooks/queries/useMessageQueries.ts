@@ -71,13 +71,14 @@ export function useConversations(
   return useQuery({
     queryKey: [...messageQueryKeys.conversations(), page],
     queryFn: async () => {
-      const response = await axiosClient.get(`/messages/conversations?page=${page}&limit=${limit}`);
+      const response = await axiosClient.get(`/chat/conversations`, {
+        params: { page, limit }
+      });
       return response.data as ConversationsResponse;
     },
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds for real-time updates
     ...options,
   });
 }
@@ -90,7 +91,7 @@ export function useConversation(
   return useQuery({
     queryKey: messageQueryKeys.conversation(conversationId),
     queryFn: async () => {
-      const response = await axiosClient.get(`/messages/conversations/${conversationId}`);
+      const response = await axiosClient.get(`/chat/conversations/${conversationId}`);
       return response.data as Conversation;
     },
     enabled: !!conversationId,
@@ -112,7 +113,8 @@ export function useMessages(
     queryKey: [...messageQueryKeys.messages(conversationId), page],
     queryFn: async () => {
       const response = await axiosClient.get(
-        `/messages/conversations/${conversationId}/messages?page=${page}&limit=${limit}`
+        `/chat/conversations/${conversationId}/messages`,
+        { params: { page, limit } }
       );
       return response.data as MessagesResponse;
     },
@@ -120,7 +122,6 @@ export function useMessages(
     staleTime: 10 * 1000, // 10 seconds
     gcTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: true,
-    refetchInterval: 10 * 1000, // Refetch every 10 seconds for real-time updates
     ...options,
   });
 }
@@ -135,7 +136,8 @@ export function useInfiniteMessages(
     queryKey: messageQueryKeys.messages(conversationId),
     queryFn: async ({ pageParam = 1 }) => {
       const response = await axiosClient.get(
-        `/messages/conversations/${conversationId}/messages?page=${pageParam}&limit=${limit}`
+        `/chat/conversations/${conversationId}/messages`,
+        { params: { page: pageParam, limit } }
       );
       return response.data as MessagesResponse;
     },
@@ -157,18 +159,17 @@ export function useInfiniteMessages(
 
 // Hook to fetch unread messages count
 export function useUnreadMessagesCount(
-  options?: Omit<UseQueryOptions<{ count: number }, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<{ unreadCount: number }, Error>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: messageQueryKeys.unreadCount(),
     queryFn: async () => {
-      const response = await axiosClient.get('/messages/unread-count');
+      const response = await axiosClient.get('/chat/unread-count');
       return response.data;
     },
     staleTime: 10 * 1000, // 10 seconds
     gcTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds
     ...options,
   });
 }

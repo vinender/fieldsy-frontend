@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useRescheduleBooking } from '@/hooks/useBookingApi';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface TimeSlot {
   time: string;
@@ -30,17 +31,18 @@ interface TimeSlots {
 
 const BookFieldPage = () => {
   const router = useRouter();
+  const { data: session } = useSession();
   const { id, mode, bookingId } = router.query;
   const fieldIdToUse = id ; // Support both query parameters
   const isRescheduleMode = mode === 'reschedule';
-  
+
   const [numberOfDogs, setNumberOfDogs] = useState('1');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Start with null
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('8:00AM - 9:00AM');
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
   const [rescheduleData, setRescheduleData] = useState<any>(null);
-  
+
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
 
@@ -596,7 +598,24 @@ const BookFieldPage = () => {
                         </span>
                       </div>
                     </div>
-                    <button className="bg-white border border-[#8FB366]/40 rounded-[10px] px-2.5 py-2.5 flex items-center gap-1.5 hover:bg-gray-50 transition-colors">
+                    <button
+                      onClick={() => {
+                        // Check if user is authenticated
+                        if (!session) {
+                          // Save the intended action in sessionStorage
+                          if (field?.owner?.id) {
+                            sessionStorage.setItem('messageIntentUserId', field.owner.id);
+                            sessionStorage.setItem('messageIntentFieldId', field.id);
+                          }
+                          // Redirect to login with return URL
+                          router.push('/login?redirect=/user/messages');
+                        } else if (field?.owner?.id) {
+                          // Navigate to messages page with the field owner's ID
+                          router.push(`/user/messages?userId=${field.owner.id}`);
+                        }
+                      }}
+                      className="bg-white border border-[#8FB366]/40 rounded-[10px] px-2.5 py-2.5 flex items-center gap-1.5 hover:bg-gray-50 transition-colors"
+                    >
                       <img src='/msg.svg' className="w-5 h-5" />
                       <span className="text-[12px] font-semibold text-dark-green">Send a Message</span>
                     </button>
