@@ -682,6 +682,7 @@ const MessagesPage = () => {
   }, [blockStatusData]);
 
   const handleSelectConversation = async (conversation: Conversation) => {
+    console.log('[Messages] Selecting conversation:', conversation.id);
 
     setSelectedConversation(conversation);
     setIsLoadingMessages(true);
@@ -697,12 +698,21 @@ const MessagesPage = () => {
     setIsBlocked(false);
     setBlockMessage('');
 
-    // Join conversation via socket to get message history
+    // Always join conversation via socket to ensure we're in the room
     if (isMessageSocketConnected && joinConversation) {
+      console.log('[Messages] Joining conversation via socket');
       joinConversation(conversation.id);
     } else {
-      // Fallback to REST API if socket not connected
-      loadMessages(conversation.id);
+      console.log('[Messages] Socket not connected, will retry');
+      // Retry joining after a short delay
+      setTimeout(() => {
+        if (isMessageSocketConnected && joinConversation) {
+          joinConversation(conversation.id);
+        } else {
+          // Fallback to REST API if socket not connected
+          loadMessages(conversation.id);
+        }
+      }, 500);
     }
 
     // Scroll to bottom after loading messages
@@ -819,7 +829,14 @@ const MessagesPage = () => {
 
     // Always send via socket only - no REST API fallback
     if (isMessageSocketConnected && sendMessageViaSocket) {
-      sendMessageViaSocket(selectedConversation.id, content, otherUser.id);
+      // Ensure we're in the conversation room before sending
+      if (joinConversation) {
+        joinConversation(selectedConversation.id);
+      }
+      // Small delay to ensure room join is processed
+      setTimeout(() => {
+        sendMessageViaSocket(selectedConversation.id, content, otherUser.id);
+      }, 50);
 
       // The optimistic message will be replaced by the real message when it arrives via socket
       // Update conversation's last message optimistically

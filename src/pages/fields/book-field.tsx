@@ -38,7 +38,7 @@ const BookFieldPage = () => {
 
   const [numberOfDogs, setNumberOfDogs] = useState('1');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Start with null
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState('8:00AM - 9:00AM');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(''); // User must explicitly select a slot
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
   const [rescheduleData, setRescheduleData] = useState<any>(null);
@@ -371,6 +371,22 @@ const BookFieldPage = () => {
 
   const selectTimeSlot = (time: string) => {
     setSelectedTimeSlot(time);
+  };
+
+  // Helper function to check if any available slots exist
+  const hasAvailableSlots = () => {
+    const allSlots = [...timeSlots.morning, ...timeSlots.afternoon, ...timeSlots.evening];
+    return allSlots.some(slot => slot.available && !slot.isPast && !slot.isBooked);
+  };
+
+  // Helper function to check if the selected time slot is valid and available
+  const isSelectedSlotValid = () => {
+    if (!selectedTimeSlot) return false;
+
+    const allSlots = [...timeSlots.morning, ...timeSlots.afternoon, ...timeSlots.evening];
+    const slot = allSlots.find(s => s.time === selectedTimeSlot);
+
+    return slot && slot.available && !slot.isPast && !slot.isBooked;
   };
 
   // Function to check if a date should be disabled in the date picker
@@ -919,26 +935,96 @@ const BookFieldPage = () => {
               </div>
               )}
 
+              {/* Warning Messages */}
+              {selectedDate && !hasAvailableSlots() && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-amber-900 mb-1">No Available Time Slots</h4>
+                      <p className="text-sm text-amber-700">
+                        There are no available time slots for {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}.
+                      </p>
+                      <p className="text-sm text-amber-700 mt-2 font-medium">
+                        Please select a different date to see available slots.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedDate && hasAvailableSlots() && !selectedTimeSlot && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-blue-900 mb-1">Select a Time Slot</h4>
+                      <p className="text-sm text-blue-700">
+                        Please select an available time slot from the options above to continue with your booking.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedDate && hasAvailableSlots() && selectedTimeSlot && !isSelectedSlotValid() && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-red-900 mb-1">Selected Slot Unavailable</h4>
+                      <p className="text-sm text-red-700">
+                        The time slot you selected is no longer available. Please select another available slot or choose a different date.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Continue Button */}
-              <button 
+              <button
                 onClick={() => {
+                  // Validate time slot selection FIRST for both modes
+                  if (!selectedTimeSlot) {
+                    toast.error('Please select a time slot to continue');
+                    return;
+                  }
+
+                  // Check if the selected time slot is actually available
+                  if (!isSelectedSlotValid()) {
+                    toast.error('The selected time slot is not available. Please choose another slot or change the date.');
+                    return;
+                  }
+
+                  // Check if there are any available slots for the selected date
+                  if (!hasAvailableSlots()) {
+                    toast.error('No available time slots for the selected date. Please choose a different date.');
+                    return;
+                  }
+
                   // Only validate dog count if not in reschedule mode
                   if (!isRescheduleMode) {
                     if (!numberOfDogs) {
-                      alert('Please enter the number of dogs');
+                      toast.error('Please enter the number of dogs');
                       return;
                     }
-                    
+
                     const numDogs = parseInt(numberOfDogs);
                     const maxAllowed = field.maxDogs || 10;
-                    
+
                     if (numDogs < 1) {
-                      alert('Please enter at least 1 dog');
+                      toast.error('Please enter at least 1 dog');
                       return;
                     }
-                    
+
                     if (numDogs > maxAllowed) {
-                      alert(`This field allows a maximum of ${maxAllowed} dogs`);
+                      toast.error(`This field allows a maximum of ${maxAllowed} dogs`);
                       return;
                     }
                   }
@@ -990,7 +1076,12 @@ const BookFieldPage = () => {
                     });
                   }
                 }}
-                className="w-full h-14 bg-[#3A6B22] text-white rounded-full font-bold text-[16px] hover:bg-[#2D5A1B] transition-colors">
+                disabled={!selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots()}
+                className={`w-full h-14 rounded-full font-bold text-[16px] transition-colors ${
+                  !selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots()
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#3A6B22] text-white hover:bg-[#2D5A1B]'
+                }`}>
                 {isRescheduleMode ? 'Confirm Reschedule' : 'Continue'}
               </button>
             </div>
