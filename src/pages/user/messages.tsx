@@ -164,8 +164,6 @@ const MessagesPage = () => {
   const messageIdsSetRef = useRef<Set<string>>(new Set()); // Track all message IDs to prevent duplicates
   const processingMessagesRef = useRef<Set<string>>(new Set()); // Track messages being processed to prevent race conditions
 
-
-  
   // Get current user ID from session or localStorage
   const getCurrentUserId = () => {
     if (session?.user?.id) return session.user.id;
@@ -436,51 +434,6 @@ const MessagesPage = () => {
       setIsLoadingMessages(false);
     };
 
-    const handleMessageSent = (message: Message) => {
-      console.log('=== MESSAGE-SENT EVENT RECEIVED ===');
-      console.log('Message ID:', message.id);
-      console.log('Content:', message.content);
-
-      // Replace optimistic message with real message
-      safelyUpdateMessages(prev => {
-        console.log('Current messages before update:', prev.length);
-        console.log('Looking for optimistic message with content:', message.content);
-
-        // Find and replace the optimistic message
-        const optimisticIndex = prev.findIndex(m =>
-          m.id.startsWith('temp-') &&
-          m.content === message.content &&
-          m.senderId === message.senderId
-        );
-
-        if (optimisticIndex !== -1) {
-          console.log('Found optimistic message at index:', optimisticIndex);
-          const updated = [...prev];
-          updated[optimisticIndex] = message;
-          console.log('Replaced optimistic with real message');
-          return updated;
-        }
-
-        console.log('No optimistic message found');
-        // If no optimistic message found, check if message already exists
-        if (prev.some(m => m.id === message.id)) {
-          console.log('Message already exists, not adding');
-          return prev;
-        }
-
-        // Add as new message if not found
-        console.log('Adding as new message');
-        return [...prev, message];
-      });
-
-      // Update conversation list with confirmed message
-      setConversations(prev => prev.map(conv =>
-        conv.id === message.conversationId
-          ? { ...conv, lastMessage: message.content, lastMessageAt: message.createdAt }
-          : conv
-      ));
-    };
-
     const handleMessageError = (data: { error: string; blocked?: boolean }) => {
       if (data.blocked) {
         setIsBlocked(true);
@@ -493,7 +446,6 @@ const MessagesPage = () => {
     messageSocket.on('messages-fetched', handleMessagesFetched);
     messageSocket.on('messages-error', handleMessagesError);
     messageSocket.on('conversation-error', handleConversationError);
-    messageSocket.on('message-sent', handleMessageSent);
     messageSocket.on('message-error', handleMessageError);
 
     return () => {
@@ -501,7 +453,6 @@ const MessagesPage = () => {
       messageSocket.off('messages-fetched', handleMessagesFetched);
       messageSocket.off('messages-error', handleMessagesError);
       messageSocket.off('conversation-error', handleConversationError);
-      messageSocket.off('message-sent', handleMessageSent);
       messageSocket.off('message-error', handleMessageError);
     };
   }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount, safelyUpdateMessages]);
@@ -829,14 +780,8 @@ const MessagesPage = () => {
 
     // Always send via socket only - no REST API fallback
     if (isMessageSocketConnected && sendMessageViaSocket) {
-      // Ensure we're in the conversation room before sending
-      if (joinConversation) {
-        joinConversation(selectedConversation.id);
-      }
-      // Small delay to ensure room join is processed
-      setTimeout(() => {
-        sendMessageViaSocket(selectedConversation.id, content, otherUser.id);
-      }, 50);
+      // Send message immediately (we already joined the room when selecting the conversation)
+      sendMessageViaSocket(selectedConversation.id, content, otherUser.id);
 
       // The optimistic message will be replaced by the real message when it arrives via socket
       // Update conversation's last message optimistically
