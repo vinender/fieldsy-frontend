@@ -226,13 +226,18 @@ const MessagesPage = () => {
   const otherUserForBlock = selectedConversation ? getOtherUser(selectedConversation) : null;
   const { data: blockStatusData, refetch: refetchBlockStatus } = useBlockStatus(otherUserForBlock?.id);
 
-  // Connect message socket when component mounts
+  // Connect message socket only when we have authentication
   useEffect(() => {
-    connectMessageSocket();
+    // Only connect if we have authentication
+    const hasAuth = session || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
+    if (hasAuth && status !== 'loading') {
+      connectMessageSocket();
+    }
+
     return () => {
       disconnectMessageSocket();
     };
-  }, [connectMessageSocket, disconnectMessageSocket]);
+  }, [session, status, connectMessageSocket, disconnectMessageSocket]);
   
   // Redirect if not logged in
   useEffect(() => {
