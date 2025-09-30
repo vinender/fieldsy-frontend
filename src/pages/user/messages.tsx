@@ -60,10 +60,12 @@ const MessagesPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { socket, sendMessage } = useSocket();
-  const { 
-    socket: messageSocket, 
+  const {
+    socket: messageSocket,
     isConnected: isMessageSocketConnected,
+    joinConversation,
     fetchMessages: fetchMessagesViaSocket,
+    sendMessage: sendMessageViaSocket,
     markAsRead,
     emitTyping,
     connect: connectMessageSocket,
@@ -215,10 +217,32 @@ const MessagesPage = () => {
     decrementUnreadCountRef.current = decrementUnreadCount;
   }, [decrementUnreadCount]);
 
-  // Listen for messages fetched via socket
+  // Listen for message history when joining a conversation
   useEffect(() => {
     if (!messageSocket) return;
-    
+
+    const handleMessageHistory = (data: {
+      conversationId: string;
+      messages: Message[];
+      total: number;
+    }) => {
+      console.log('[Messages] Received message history:', data);
+      if (selectedConversation && data.conversationId === selectedConversation.id) {
+        setMessages(data.messages || []);
+        setIsLoadingMessages(false);
+
+        // Mark unread messages as read
+        const unreadMessageIds = data.messages
+          .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
+          .map((msg: Message) => msg.id);
+
+        if (unreadMessageIds.length > 0) {
+          markAsRead(unreadMessageIds);
+          decrementUnreadCount(unreadMessageIds.length);
+        }
+      }
+    };
+
     const handleMessagesFetched = (data: {
       conversationId: string;
       messages: Message[];
@@ -228,30 +252,57 @@ const MessagesPage = () => {
       if (selectedConversation && data.conversationId === selectedConversation.id) {
         setMessages(data.messages || []);
         setIsLoadingMessages(false);
-        
+
         // Mark unread messages as read
         const unreadMessageIds = data.messages
           .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
           .map((msg: Message) => msg.id);
-        
+
         if (unreadMessageIds.length > 0) {
           markAsRead(unreadMessageIds);
           decrementUnreadCount(unreadMessageIds.length);
         }
       }
     };
-    
+
     const handleMessagesError = (data: { error: string }) => {
       console.error('[Messages] Error fetching messages:', data.error);
       setIsLoadingMessages(false);
     };
-    
+
+    const handleConversationError = (data: { error: string }) => {
+      console.error('[Messages] Conversation error:', data.error);
+      setIsLoadingMessages(false);
+    };
+
+    const handleMessageSent = (message: Message) => {
+      console.log('[Messages] Message sent confirmation:', message);
+      // The message will already be added via the 'new-message' event
+    };
+
+    const handleMessageError = (data: { error: string; blocked?: boolean }) => {
+      console.error('[Messages] Message error:', data.error);
+      if (data.blocked) {
+        setIsBlocked(true);
+        setBlockMessage(data.error || 'Cannot send messages. One or both users have blocked each other.');
+      }
+      toast.error(data.error || 'Failed to send message');
+    };
+
+    messageSocket.on('message-history', handleMessageHistory);
     messageSocket.on('messages-fetched', handleMessagesFetched);
     messageSocket.on('messages-error', handleMessagesError);
-    
+    messageSocket.on('conversation-error', handleConversationError);
+    messageSocket.on('message-sent', handleMessageSent);
+    messageSocket.on('message-error', handleMessageError);
+
     return () => {
+      messageSocket.off('message-history', handleMessageHistory);
       messageSocket.off('messages-fetched', handleMessagesFetched);
       messageSocket.off('messages-error', handleMessagesError);
+      messageSocket.off('conversation-error', handleConversationError);
+      messageSocket.off('message-sent', handleMessageSent);
+      messageSocket.off('message-error', handleMessageError);
     };
   }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount]);
   
@@ -458,28 +509,31 @@ const MessagesPage = () => {
 
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    loadMessages(conversation.id);
-    
+    setIsLoadingMessages(true);
+
     // Show mobile chat view
     setShowMobileChat(true);
-    
+
     // Reset block status
     setIsBlocked(false);
     setBlockMessage('');
-    
+
     // Check block status
     const otherUser = getOtherUser(conversation);
     if (otherUser) {
       await checkBlockStatus(otherUser.id);
     }
-    
-    // Join conversation room for real-time updates
-    if (messageSocket) {
-      messageSocket.emit('join-conversation', conversation.id);
-    } else if (socket) {
-      socket.emit('join-conversation', conversation.id);
+
+    // Join conversation via socket to get message history
+    if (isMessageSocketConnected && joinConversation) {
+      console.log('[Messages] Joining conversation via socket:', conversation.id);
+      joinConversation(conversation.id);
+    } else {
+      // Fallback to REST API if socket not connected
+      console.log('[Messages] Socket not connected, loading via REST API');
+      loadMessages(conversation.id);
     }
-    
+
     // Scroll to bottom after loading messages
     setTimeout(scrollToBottom, 200);
   };
@@ -585,59 +639,107 @@ const MessagesPage = () => {
 
     const content = messageInput.trim();
     setMessageInput('');
-    
-    // Stop typing indicator
-    if (socket) {
-      emitTyping(selectedConversation.id, false);
-    }
 
-    try {
-      // Send message and get the created message back
-      const newMessage = await sendMessage(selectedConversation.id, content, otherUser.id);
-      
-      // Add the message to the UI immediately with animation
-      if (newMessage) {
-        setMessages(prev => {
-          // Check if message already exists to avoid duplicates
-          const exists = prev.some(m => m.id === newMessage.id);
-          if (exists) {
-            console.log('⚠️ Message already exists, skipping duplicate');
-            return prev;
-          }
-          return [...prev, newMessage];
+    // Stop typing indicator
+    emitTyping(selectedConversation.id, false);
+
+    // Create optimistic message to show immediately
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      conversationId: selectedConversation.id,
+      content,
+      senderId: currentUserId!,
+      receiverId: otherUser.id,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+      sender: {
+        id: currentUserId!,
+        name: session?.user?.name || 'You',
+        email: session?.user?.email || '',
+        image: session?.user?.image,
+        role: (session?.user as any)?.role || 'DOG_OWNER'
+      }
+    };
+
+    // Add optimistic message to UI immediately
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessageIds(prev => new Set(prev).add(optimisticMessage.id));
+
+    // Send via socket
+    if (isMessageSocketConnected && sendMessageViaSocket) {
+      console.log('[Messages] Sending message via socket');
+      sendMessageViaSocket(selectedConversation.id, content, otherUser.id);
+
+      // Remove optimistic message after a short delay (real message will arrive via socket)
+      setTimeout(() => {
+        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+        setNewMessageIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(optimisticMessage.id);
+          return newSet;
         });
-        
-        // Track this as a new message for animation
-        setNewMessageIds(prev => new Set(prev).add(newMessage.id));
-        
-        // Remove from new messages after animation completes
-        setTimeout(() => {
+      }, 1000);
+
+      // Update conversation's last message
+      setConversations(prev => prev.map(conv =>
+        conv.id === selectedConversation.id
+          ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
+          : conv
+      ));
+    } else {
+      // Fallback to REST API if socket not connected
+      console.log('[Messages] Socket not connected, using REST API');
+      try {
+        const token = (session as any)?.accessToken || localStorage.getItem('authToken');
+        const response = await fetch('/api/chat/messages', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            conversationId: selectedConversation.id,
+            content,
+            receiverId: otherUser.id
+          })
+        });
+
+        if (response.ok) {
+          const newMessage = await response.json();
+          // Remove optimistic message and add real one
+          setMessages(prev => [
+            ...prev.filter(m => m.id !== optimisticMessage.id),
+            newMessage
+          ]);
           setNewMessageIds(prev => {
             const newSet = new Set(prev);
-            newSet.delete(newMessage.id);
+            newSet.delete(optimisticMessage.id);
+            newSet.add(newMessage.id);
             return newSet;
           });
-        }, 500);
-        
-        // Update the conversation's last message
-        setConversations(prev => prev.map(conv => 
-          conv.id === selectedConversation.id 
-            ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
-            : conv
-        ));
-        
-        // Don't call loadConversations here - it will be updated via socket
-      }
-    } catch (error: any) {
-      // Check if it's a block error
-      if (error?.response?.data?.blocked) {
-        setIsBlocked(true);
-        setBlockMessage(error.response.data.error || 'Cannot send messages. One or both users have blocked each other.');
-        // Check the actual block status to get more specific message
-        await checkBlockStatus(otherUser.id);
-      } else {
+
+          setTimeout(() => {
+            setNewMessageIds(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(newMessage.id);
+              return newSet;
+            });
+          }, 500);
+        } else {
+          const error = await response.json();
+          if (error.blocked) {
+            setIsBlocked(true);
+            setBlockMessage(error.error || 'Cannot send messages. One or both users have blocked each other.');
+            await checkBlockStatus(otherUser.id);
+          }
+          // Remove optimistic message on error
+          setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+          setMessageInput(content);
+        }
+      } catch (error) {
         console.error('Failed to send message:', error);
-        // Put the message back in the input
+        // Remove optimistic message and restore input
+        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
         setMessageInput(content);
       }
     }

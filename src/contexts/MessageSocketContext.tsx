@@ -5,7 +5,9 @@ import io, { Socket } from 'socket.io-client'
 interface MessageSocketContextType {
   socket: Socket | null
   isConnected: boolean
+  joinConversation: (conversationId: string) => void
   fetchMessages: (conversationId: string, page?: number, limit?: number) => void
+  sendMessage: (conversationId: string, content: string, receiverId: string) => void
   markAsRead: (messageIds: string[]) => void
   emitTyping: (conversationId: string, isTyping: boolean) => void
   connect: () => void
@@ -15,7 +17,9 @@ interface MessageSocketContextType {
 const MessageSocketContext = createContext<MessageSocketContextType>({
   socket: null,
   isConnected: false,
+  joinConversation: () => {},
   fetchMessages: () => {},
+  sendMessage: () => {},
   markAsRead: () => {},
   emitTyping: () => {},
   connect: () => {},
@@ -89,11 +93,27 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [])
 
+  // Join a conversation and get message history
+  const joinConversation = useCallback((conversationId: string) => {
+    if (socketRef.current?.connected) {
+      console.log(`[MessageSocket] Joining conversation ${conversationId}`)
+      socketRef.current.emit('join-conversation', { conversationId })
+    }
+  }, [])
+
   // Fetch messages via socket event
   const fetchMessages = useCallback((conversationId: string, page: number = 1, limit: number = 50) => {
     if (socketRef.current?.connected) {
       console.log(`[MessageSocket] Fetching messages for conversation ${conversationId}`)
       socketRef.current.emit('fetch-messages', { conversationId, page, limit })
+    }
+  }, [])
+
+  // Send a message via socket
+  const sendMessage = useCallback((conversationId: string, content: string, receiverId: string) => {
+    if (socketRef.current?.connected) {
+      console.log(`[MessageSocket] Sending message to conversation ${conversationId}`)
+      socketRef.current.emit('send-message', { conversationId, content, receiverId })
     }
   }, [])
 
@@ -121,12 +141,14 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [])
 
   return (
-    <MessageSocketContext.Provider 
-      value={{ 
-        socket, 
-        isConnected, 
-        fetchMessages, 
-        markAsRead, 
+    <MessageSocketContext.Provider
+      value={{
+        socket,
+        isConnected,
+        joinConversation,
+        fetchMessages,
+        sendMessage,
+        markAsRead,
         emitTyping,
         connect,
         disconnect
