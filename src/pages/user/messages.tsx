@@ -127,11 +127,22 @@ const MessagesPage = () => {
 
   // Connect message socket when component mounts
   useEffect(() => {
+    console.log('[Messages] Component mounted, connecting message socket');
     connectMessageSocket();
     return () => {
+      console.log('[Messages] Component unmounting, disconnecting message socket');
       disconnectMessageSocket();
     };
   }, [connectMessageSocket, disconnectMessageSocket]);
+
+  // Log socket connection status
+  useEffect(() => {
+    console.log('[Messages] Socket connection status:', {
+      messageSocket: !!messageSocket,
+      isMessageSocketConnected,
+      socket: !!socket
+    });
+  }, [messageSocket, isMessageSocketConnected, socket]);
   
   // Redirect if not logged in
   useEffect(() => {
@@ -319,38 +330,43 @@ const MessagesPage = () => {
       console.log('🔵 Message receiver ID:', message.receiverId);
       console.log('🔵 Current conversation:', selectedConversationRef.current?.id);
       console.log('🔵 Message conversation:', message.conversationId);
-      
-      // Skip if this is our own message (we already added it when sending)
-      if (message.senderId === currentUserId) {
-        console.log('🔵 Skipping own message to avoid duplication');
-        return;
-      }
-      
+
       // Add message to current conversation if it belongs to it
       if (selectedConversationRef.current && message.conversationId === selectedConversationRef.current.id) {
         setMessages(prev => {
-          // Check if message already exists to avoid duplicates
-          const exists = prev.some(m => m.id === message.id);
+          // Check if message already exists to avoid duplicates (including optimistic messages)
+          const exists = prev.some(m => m.id === message.id || (m.id.startsWith('temp-') && m.content === message.content && m.senderId === message.senderId));
           if (exists) {
             console.log('🔵 Message already exists, skipping');
+            // If it's replacing an optimistic message, replace it
+            if (prev.some(m => m.id.startsWith('temp-') && m.content === message.content && m.senderId === message.senderId)) {
+              console.log('🔵 Replacing optimistic message with real message');
+              return prev.map(m =>
+                (m.id.startsWith('temp-') && m.content === message.content && m.senderId === message.senderId)
+                  ? message
+                  : m
+              );
+            }
             return prev;
           }
           console.log('🔵 Adding new message to conversation');
           return [...prev, message];
         });
-        
-        // Track as new message for animation
-        setNewMessageIds(prev => new Set(prev).add(message.id));
-        
-        // Remove from new messages after animation
-        setTimeout(() => {
-          setNewMessageIds(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(message.id);
-            return newSet;
-          });
-        }, 500);
-        
+
+        // Track as new message for animation (only for received messages, not our own)
+        if (message.senderId !== currentUserId) {
+          setNewMessageIds(prev => new Set(prev).add(message.id));
+
+          // Remove from new messages after animation
+          setTimeout(() => {
+            setNewMessageIds(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(message.id);
+              return newSet;
+            });
+          }, 500);
+        }
+
         // Mark as read if we're the receiver
         if (message.receiverId === currentUserId) {
           markAsReadRef.current([message.id]);
@@ -508,6 +524,12 @@ const MessagesPage = () => {
   };
 
   const handleSelectConversation = async (conversation: Conversation) => {
+    console.log('[Messages] Selecting conversation:', {
+      conversationId: conversation.id,
+      isMessageSocketConnected,
+      hasJoinConversation: !!joinConversation
+    });
+
     setSelectedConversation(conversation);
     setIsLoadingMessages(true);
 
@@ -530,7 +552,10 @@ const MessagesPage = () => {
       joinConversation(conversation.id);
     } else {
       // Fallback to REST API if socket not connected
-      console.log('[Messages] Socket not connected, loading via REST API');
+      console.log('[Messages] Socket not connected, loading via REST API. Status:', {
+        isMessageSocketConnected,
+        hasJoinConversation: !!joinConversation
+      });
       loadMessages(conversation.id);
     }
 
@@ -670,16 +695,7 @@ const MessagesPage = () => {
       console.log('[Messages] Sending message via socket');
       sendMessageViaSocket(selectedConversation.id, content, otherUser.id);
 
-      // Remove optimistic message after a short delay (real message will arrive via socket)
-      setTimeout(() => {
-        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-        setNewMessageIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(optimisticMessage.id);
-          return newSet;
-        });
-      }, 1000);
-
+      // The optimistic message will be replaced by the real message when it arrives via socket
       // Update conversation's last message
       setConversations(prev => prev.map(conv =>
         conv.id === selectedConversation.id
@@ -1043,17 +1059,29 @@ const MessagesPage = () => {
                         No messages yet. Start a conversation!
                       </div>
                     ) : (
-                      messages.map((message) => (
+                      messages.map((message) => {
+                        const isMyMessage = message.senderId === currentUserId;
+                        // Debug log to check message display logic
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('Message display:', {
+                            messageId: message.id,
+                            senderId: message.senderId,
+                            currentUserId,
+                            isMyMessage,
+                            senderName: message.sender?.name
+                          });
+                        }
+                        return (
                       <div
                         key={message.id}
-                        className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'} ${
+                        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${
                           newMessageIds.has(message.id) ? styles.newMessage : ''
                         }`}
                       >
-                        <div className={`max-w-[70%] sm:max-w-[528px] ${message.senderId === currentUserId ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
+                        <div className={`max-w-[70%] sm:max-w-[528px] ${isMyMessage ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
                           <div
                             className={`px-4 sm:px-6 py-3 sm:py-4 break-words ${styles.messageBubble} ${
-                              message.senderId === currentUserId
+                              isMyMessage
                                 ? 'bg-light-green text-white rounded-tl-[30px] sm:rounded-tl-[60px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-tr-[15px] sm:rounded-tr-[30px] rounded-br-none'
                                 : 'bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none'
                             } ${
@@ -1063,7 +1091,7 @@ const MessagesPage = () => {
                             <p className="text-[14px] sm:text-[15px] leading-[20px] sm:leading-[22px] break-words whitespace-pre-wrap">{message.content}</p>
                           </div>
                           <span className={`text-[12px] sm:text-[14px] text-gray-text ${
-                            message.senderId === currentUserId ? 'text-right' : 'text-left'
+                            isMyMessage ? 'text-right' : 'text-left'
                           } ${newMessageIds.has(message.id) ? 'opacity-0 animate-fadeIn' : ''}`}
                             style={newMessageIds.has(message.id) ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}
                           >
@@ -1071,7 +1099,7 @@ const MessagesPage = () => {
                           </span>
                         </div>
                       </div>
-                    )))}
+                    )}))}
 
                     {otherUserTyping && (
                       <div className="flex justify-start">
