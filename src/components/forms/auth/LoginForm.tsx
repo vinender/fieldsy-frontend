@@ -52,44 +52,42 @@ export function LoginForm() {
       }
 
       // Login successful, use NextAuth for session management
-      const roleFromQuery = router.query.role as string;
-      await login({ 
-        email: variables.email, 
+      // The role will be automatically retrieved from the database
+      await login({
+        email: variables.email,
         password: variables.password,
-        ...(roleFromQuery && { role: roleFromQuery })
       });
-      
-      // Redirect based on role or callback URL
+
+      // Redirect based on callback URL
       const callbackUrl = router.query.callbackUrl as string || '/';
       router.push(callbackUrl);
-    },
-    onError: (error: any) => {
-      const response = error?.response;
-      
-      // Check if email verification is required and redirect
-      if (response?.status === 403 && response?.data?.data?.requiresVerification) {
-        const email = response.data.data.email;
-        const role = response.data.data.role;
-        router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=login`);
-      }
     }
+    // NOTE: We intentionally DON'T override onError here
+    // The mutation hook already handles error toast display
+    // We handle special cases (like email verification redirect) in the catch block below
   });
 
   async function onSubmit(data: LoginFormData) {
     try {
-      // Get the role from the URL query params if present
-      const roleFromQuery = router.query.role as string;
-      
       // Use the mutation to login with OTP check
+      // Don't send role - the backend will return the user's role from database
       await loginWithOtpCheckMutation.mutateAsync({
         email: data.email,
         password: data.password,
-        role: roleFromQuery || 'DOG_OWNER',
       });
-    } catch (error) {
-      // Error is already handled by the mutation's onError callback
-      // Just catch it here to prevent unhandled promise rejection
-      console.log('Login error handled by mutation hook');
+    } catch (error: any) {
+      // The mutation hook's onError already displays toast messages for errors
+      // Here we only handle special cases that require navigation
+      const response = error?.response;
+
+      // Check if email verification is required and redirect
+      if (response?.status === 403 && response?.data?.data?.requiresVerification) {
+        const email = response.data.data.email;
+        const role = response.data.data.role;
+        // Redirect to OTP verification page
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=login`);
+      }
+      // All other errors are already shown as toast by the mutation hook
     }
   }
 

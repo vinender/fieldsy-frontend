@@ -25,7 +25,7 @@ export interface ResendOtpData {
 export interface LoginWithOtpCheckData {
   email: string;
   password: string;
-  role?: string;
+  // Note: role is no longer sent - backend returns user's role from database
 }
 
 export interface RequestPasswordResetData {
