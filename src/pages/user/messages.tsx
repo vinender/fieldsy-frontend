@@ -123,7 +123,7 @@ const MessagesPage = () => {
 
   const { decrementUnreadCount } = useChat();
 
-  
+
   // React Query hooks
   const { data: conversationsData, isLoading: isLoadingConversations, refetch: refetchConversations } = useConversations(1, 20);
   const createConversationMutation = useCreateConversation();
@@ -164,6 +164,8 @@ const MessagesPage = () => {
   const messageIdsSetRef = useRef<Set<string>>(new Set()); // Track all message IDs to prevent duplicates
   const processingMessagesRef = useRef<Set<string>>(new Set()); // Track messages being processed to prevent race conditions
 
+
+  
   // Get current user ID from session or localStorage
   const getCurrentUserId = () => {
     if (session?.user?.id) return session.user.id;
@@ -180,6 +182,7 @@ const MessagesPage = () => {
     }
     return null;
   };
+
 
   const currentUserId = getCurrentUserId();
 

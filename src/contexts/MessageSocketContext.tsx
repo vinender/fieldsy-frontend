@@ -77,15 +77,20 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
 
+    // Determine if we're in production
+    const isProduction = socketUrl.includes('indiitserver.in') || process.env.NODE_ENV === 'production'
+
     const newSocket = io(socketUrl, {
       auth: {
         token: token
       },
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // Polling first for better compatibility
       reconnection: true,
       reconnectionAttempts: 3,  // Reduced from 5 to fail faster
       reconnectionDelay: 1000,
-      timeout: 5000,  // Add timeout to fail faster
+      timeout: 10000,  // Increased timeout for production
+      path: '/socket.io/', // Explicit path
+      withCredentials: isProduction, // Only enable credentials in production
     })
 
     newSocket.on('connect', () => {
