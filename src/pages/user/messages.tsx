@@ -481,40 +481,49 @@ const MessagesPage = () => {
 
     const handleNewMessage = (message: Message) => {
       console.log('=== NEW-MESSAGE EVENT RECEIVED ===');
-      console.log('Message ID:', message.id);
-      console.log('Sender ID:', message.senderId);
-      console.log('Current User ID:', currentUserId);
-      console.log('Content:', message.content);
-      console.log('Conversation ID:', message.conversationId);
-      console.log('Selected Conversation ID:', selectedConversationRef.current?.id);
+      console.log('[NewMessage] Message ID:', message.id);
+      console.log('[NewMessage] Sender ID:', message.senderId);
+      console.log('[NewMessage] Current User ID:', currentUserId);
+      console.log('[NewMessage] Content:', message.content);
+      console.log('[NewMessage] Conversation ID:', message.conversationId);
+      console.log('[NewMessage] Selected Conversation ID:', selectedConversationRef.current?.id);
 
       // CRITICAL FIX: Skip ALL our own messages from new-message event
       // Our own messages are handled exclusively by the ACK callback
       const isOwnMessage = message.senderId === currentUserId;
+      console.log('[NewMessage] Is own message?', isOwnMessage);
       if (isOwnMessage) {
-        console.log('Skipping own message - handled by ACK callback only');
+        console.log('[NewMessage] ❌ SKIPPED: Own message - handled by ACK callback only');
         return;
       }
 
       // Prevent processing duplicate messages
-      if (messageIdsSetRef.current.has(message.id)) {
-        console.log('Message already in set, skipping');
+      const isDuplicate = messageIdsSetRef.current.has(message.id);
+      console.log('[NewMessage] Is duplicate?', isDuplicate);
+      if (isDuplicate) {
+        console.log('[NewMessage] ❌ SKIPPED: Message already in set');
         return;
       }
 
       // Add to processing set to prevent race conditions
       processingMessagesRef.current.add(message.id);
+      console.log('[NewMessage] ✅ Added to processing set');
 
       // Add message to current conversation if it belongs to it
-      if (selectedConversationRef.current && message.conversationId === selectedConversationRef.current.id) {
-        console.log('Message belongs to current conversation, updating UI');
+      const belongsToCurrentConv = selectedConversationRef.current && message.conversationId === selectedConversationRef.current.id;
+      console.log('[NewMessage] Belongs to current conversation?', belongsToCurrentConv);
+
+      if (belongsToCurrentConv) {
+        console.log('[NewMessage] ✅ Message belongs to current conversation, updating UI');
 
         safelyUpdateMessages(prev => {
-          console.log('Current messages count:', prev.length);
+          console.log('[NewMessage] Current messages count:', prev.length);
 
           // Check if message already exists (double-check)
-          if (prev.some(m => m.id === message.id)) {
-            console.log('Message already exists, not adding');
+          const alreadyExists = prev.some(m => m.id === message.id);
+          console.log('[NewMessage] Message already exists in list?', alreadyExists);
+          if (alreadyExists) {
+            console.log('[NewMessage] ❌ Message already exists, not adding');
             return prev;
           }
 
@@ -527,7 +536,7 @@ const MessagesPage = () => {
           );
 
           if (optimisticIndex !== -1) {
-            console.log('Replacing correlation ID message at index:', optimisticIndex);
+            console.log('[NewMessage] ✅ Replacing correlation ID message at index:', optimisticIndex);
             // Replace optimistic message with real message
             const updated = [...prev];
             updated[optimisticIndex] = message;
@@ -535,12 +544,16 @@ const MessagesPage = () => {
           }
 
           // Add new message
-          console.log('Adding new message to list');
+          console.log('[NewMessage] ✅ Adding NEW message to list');
           return [...prev, message];
         });
 
+        console.log('[NewMessage] After update - scrolling to bottom');
+        setTimeout(scrollToBottom, 100);
+
         // Track as new message for animation (only for received messages, not our own)
         if (message.senderId !== currentUserId) {
+          console.log('[NewMessage] Setting animation for new message');
           setNewMessageIds(prev => new Set(prev).add(message.id));
 
           // Remove from new messages after animation
@@ -554,12 +567,16 @@ const MessagesPage = () => {
         }
 
         // Mark as read if we're the receiver
-        if (message.receiverId === currentUserId) {
+        const shouldMarkAsRead = message.receiverId === currentUserId;
+        console.log('[NewMessage] Should mark as read?', shouldMarkAsRead);
+        if (shouldMarkAsRead) {
+          console.log('[NewMessage] ✅ Marking message as read');
           markAsReadRef.current([message.id]);
           // Update the unread count in chat context
           decrementUnreadCountRef.current(1);
         }
       } else {
+        console.log('[NewMessage] ❌ Message does NOT belong to current conversation');
         // Message is for a different conversation, just update the conversation list
         // Update conversation list to show latest message
         loadConversations();
@@ -578,18 +595,36 @@ const MessagesPage = () => {
     };
 
     // Listen for both new-message and new-message-notification events
+    console.log('[Messages] ✅ Registering socket event listeners');
+    console.log('[Messages] Socket ID:', activeSocket.id);
+    console.log('[Messages] Socket connected?', activeSocket.connected);
+
     activeSocket.on('new-message', handleNewMessage);
+    console.log('[Messages] ✅ Registered new-message listener');
+
     activeSocket.on('new-message-notification', (data: any) => {
+      console.log('[Messages] new-message-notification received:', data);
       if (data.message) {
         handleNewMessage(data.message);
       }
     });
+    console.log('[Messages] ✅ Registered new-message-notification listener');
+
     activeSocket.on('user-typing', handleUserTyping);
+    console.log('[Messages] ✅ Registered user-typing listener');
+
+    // Test: Log all events received
+    const anyEventHandler = (eventName: string, ...args: any[]) => {
+      console.log(`[Messages] 🔔 Socket event received: ${eventName}`, args);
+    };
+    activeSocket.onAny(anyEventHandler);
 
     return () => {
+      console.log('[Messages] ❌ Unregistering socket event listeners');
       activeSocket.off('new-message', handleNewMessage);
       activeSocket.off('new-message-notification');
       activeSocket.off('user-typing', handleUserTyping);
+      activeSocket.offAny(anyEventHandler);
     };
   }, [socket, messageSocket, currentUserId, safelyUpdateMessages]); // Added safelyUpdateMessages to deps
 
