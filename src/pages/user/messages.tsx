@@ -517,7 +517,10 @@ const MessagesPage = () => {
         console.log('[NewMessage] ✅ Message belongs to current conversation, updating UI');
 
         safelyUpdateMessages(prev => {
+          console.log('[NewMessage] === BEFORE UPDATE ===');
           console.log('[NewMessage] Current messages count:', prev.length);
+          console.log('[NewMessage] Last message ID:', prev[prev.length - 1]?.id);
+          console.log('[NewMessage] Incoming message ID:', message.id);
 
           // Check if message already exists (double-check)
           const alreadyExists = prev.some(m => m.id === message.id);
@@ -540,13 +543,26 @@ const MessagesPage = () => {
             // Replace optimistic message with real message
             const updated = [...prev];
             updated[optimisticIndex] = message;
+            console.log('[NewMessage] === AFTER REPLACE ===');
+            console.log('[NewMessage] Updated messages count:', updated.length);
             return updated;
           }
 
           // Add new message
           console.log('[NewMessage] ✅ Adding NEW message to list');
-          return [...prev, message];
+          const newMessages = [...prev, message];
+          console.log('[NewMessage] === AFTER ADD ===');
+          console.log('[NewMessage] New messages count:', newMessages.length);
+          console.log('[NewMessage] New last message ID:', newMessages[newMessages.length - 1]?.id);
+          console.log('[NewMessage] New last message content:', newMessages[newMessages.length - 1]?.content);
+          return newMessages;
         });
+
+        // Add a slight delay to check state after React has updated
+        setTimeout(() => {
+          console.log('[NewMessage] === STATE CHECK (after React update) ===');
+          console.log('[NewMessage] Messages state length should have increased');
+        }, 50);
 
         console.log('[NewMessage] After update - scrolling to bottom');
         setTimeout(scrollToBottom, 100);
@@ -1227,6 +1243,12 @@ const MessagesPage = () => {
 
                   {/* Message List */}
                   <div className="space-y-4">
+                    {/* Render-time logging */}
+                    {console.log('[RENDER] === MESSAGES RENDER ===') || null}
+                    {console.log('[RENDER] Messages count:', messages.length) || null}
+                    {console.log('[RENDER] Last message:', messages[messages.length - 1]?.content) || null}
+                    {console.log('[RENDER] isLoadingMessages:', isLoadingMessages) || null}
+
                     {isLoadingMessages ? (
                       <ChatMessageSkeleton />
                     ) : messages.length === 0 ? (
@@ -1234,15 +1256,21 @@ const MessagesPage = () => {
                         No messages yet. Start a conversation!
                       </div>
                     ) : (
-                      messages.map((message) => (
-                        <MessageItem
-                          key={message.id}
-                          message={message}
-                          isMyMessage={message.senderId === currentUserId}
-                          isNewMessage={newMessageIds.has(message.id)}
-                          formatMessageTime={formatMessageTime}
-                        />
-                      )))}
+                      messages.map((message, index) => {
+                        if (index === messages.length - 1) {
+                          console.log('[RENDER] Rendering LAST message:', message.id, message.content);
+                        }
+                        return (
+                          <MessageItem
+                            key={message.id}
+                            message={message}
+                            isMyMessage={message.senderId === currentUserId}
+                            isNewMessage={newMessageIds.has(message.id)}
+                            formatMessageTime={formatMessageTime}
+                          />
+                        );
+                      })
+                    )}
 
                     {otherUserTyping && (
                       <div className="flex justify-start">
