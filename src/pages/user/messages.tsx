@@ -197,28 +197,35 @@ const MessagesPage = () => {
     setMessages(prev => {
       const newMessages = updateFn(prev);
 
-      console.log('[safelyUpdateMessages] Input messages count:', newMessages.length);
-      console.log('[safelyUpdateMessages] Processing messages ref size:', processingMessagesRef.current.size);
+      // Fast path: if adding a single message to the end, skip expensive operations
+      if (newMessages.length === prev.length + 1 && newMessages.length > 0) {
+        const lastMsg = newMessages[newMessages.length - 1];
+        // Update tracking set
+        if (!lastMsg.id.startsWith('msg-')) {
+          messageIdsSetRef.current.add(lastMsg.id);
+        }
+        return newMessages;
+      }
 
+      // Slow path: for bulk updates or complex operations
       // Create a map to track unique messages by ID
       const uniqueMessagesMap = new Map<string, Message>();
 
       // Process messages in order, keeping only the latest version of each
       newMessages.forEach(msg => {
-        // REMOVED THE BROKEN CHECK - it was filtering out new messages!
-        // The processingMessagesRef check was preventing new messages from being added
-        // We already check for duplicates before calling this function
-
-        // Add to map (will overwrite if duplicate ID exists)
         uniqueMessagesMap.set(msg.id, msg);
       });
 
-      // Convert back to array and sort by creation date
-      const uniqueMessages = Array.from(uniqueMessagesMap.values())
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      // Convert back to array - messages are already sorted from backend
+      // Only sort if we detect out-of-order messages (rare)
+      const uniqueMessages = Array.from(uniqueMessagesMap.values());
+      const needsSort = uniqueMessages.some((msg, i) =>
+        i > 0 && new Date(msg.createdAt).getTime() < new Date(uniqueMessages[i - 1].createdAt).getTime()
+      );
 
-      console.log('[safelyUpdateMessages] Output messages count:', uniqueMessages.length);
-      console.log('[safelyUpdateMessages] Last message ID:', uniqueMessages[uniqueMessages.length - 1]?.id);
+      if (needsSort) {
+        uniqueMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
 
       // Update our tracking set (excluding correlation IDs - they'll be replaced)
       messageIdsSetRef.current = new Set(
@@ -485,53 +492,29 @@ const MessagesPage = () => {
     const activeSocket = messageSocket || socket;
 
     const handleNewMessage = (message: Message) => {
-      console.log('=== NEW-MESSAGE EVENT RECEIVED ===');
-      console.log('[NewMessage] Message ID:', message.id);
-      console.log('[NewMessage] Sender ID:', message.senderId);
-      console.log('[NewMessage] Current User ID:', currentUserId);
-      console.log('[NewMessage] Content:', message.content);
-      console.log('[NewMessage] Conversation ID:', message.conversationId);
-      console.log('[NewMessage] Selected Conversation ID:', selectedConversationRef.current?.id);
-
       // CRITICAL FIX: Skip ALL our own messages from new-message event
       // Our own messages are handled exclusively by the ACK callback
       const isOwnMessage = message.senderId === currentUserId;
-      console.log('[NewMessage] Is own message?', isOwnMessage);
       if (isOwnMessage) {
-        console.log('[NewMessage] ❌ SKIPPED: Own message - handled by ACK callback only');
         return;
       }
 
       // Prevent processing duplicate messages
-      const isDuplicate = messageIdsSetRef.current.has(message.id);
-      console.log('[NewMessage] Is duplicate?', isDuplicate);
-      if (isDuplicate) {
-        console.log('[NewMessage] ❌ SKIPPED: Message already in set');
+      if (messageIdsSetRef.current.has(message.id)) {
         return;
       }
 
       // Add to processing set to prevent race conditions
       processingMessagesRef.current.add(message.id);
-      console.log('[NewMessage] ✅ Added to processing set');
 
       // Add message to current conversation if it belongs to it
       const belongsToCurrentConv = selectedConversationRef.current && message.conversationId === selectedConversationRef.current.id;
-      console.log('[NewMessage] Belongs to current conversation?', belongsToCurrentConv);
 
       if (belongsToCurrentConv) {
-        console.log('[NewMessage] ✅ Message belongs to current conversation, updating UI');
 
         safelyUpdateMessages(prev => {
-          console.log('[NewMessage] === BEFORE UPDATE ===');
-          console.log('[NewMessage] Current messages count:', prev.length);
-          console.log('[NewMessage] Last message ID:', prev[prev.length - 1]?.id);
-          console.log('[NewMessage] Incoming message ID:', message.id);
-
           // Check if message already exists (double-check)
-          const alreadyExists = prev.some(m => m.id === message.id);
-          console.log('[NewMessage] Message already exists in list?', alreadyExists);
-          if (alreadyExists) {
-            console.log('[NewMessage] ❌ Message already exists, not adding');
+          if (prev.some(m => m.id === message.id)) {
             return prev;
           }
 
@@ -544,40 +527,26 @@ const MessagesPage = () => {
           );
 
           if (optimisticIndex !== -1) {
-            console.log('[NewMessage] ✅ Replacing correlation ID message at index:', optimisticIndex);
             // Replace optimistic message with real message
             const updated = [...prev];
             updated[optimisticIndex] = message;
-            console.log('[NewMessage] === AFTER REPLACE ===');
-            console.log('[NewMessage] Updated messages count:', updated.length);
             return updated;
           }
 
           // Add new message
-          console.log('[NewMessage] ✅ Adding NEW message to list');
-          const newMessages = [...prev, message];
-          console.log('[NewMessage] === AFTER ADD ===');
-          console.log('[NewMessage] New messages count:', newMessages.length);
-          console.log('[NewMessage] New last message ID:', newMessages[newMessages.length - 1]?.id);
-          console.log('[NewMessage] New last message content:', newMessages[newMessages.length - 1]?.content);
-          return newMessages;
+          return [...prev, message];
         });
 
-        // Add a slight delay to check state after React has updated
-        setTimeout(() => {
-          console.log('[NewMessage] === STATE CHECK (after React update) ===');
-          console.log('[NewMessage] Messages state length should have increased');
-        }, 50);
-
-        console.log('[NewMessage] After update - scrolling to bottom');
-        setTimeout(scrollToBottom, 100);
+        // Use requestAnimationFrame for immediate, smooth scrolling
+        requestAnimationFrame(() => {
+          requestAnimationFrame(scrollToBottom);
+        });
 
         // Track as new message for animation (only for received messages, not our own)
         if (message.senderId !== currentUserId) {
-          console.log('[NewMessage] Setting animation for new message');
           setNewMessageIds(prev => new Set(prev).add(message.id));
 
-          // Remove from new messages after animation
+          // Remove from new messages after animation (500ms for animation to complete)
           setTimeout(() => {
             setNewMessageIds(prev => {
               const newSet = new Set(prev);
@@ -587,26 +556,20 @@ const MessagesPage = () => {
           }, 500);
         }
 
-        // Mark as read if we're the receiver
-        const shouldMarkAsRead = message.receiverId === currentUserId;
-        console.log('[NewMessage] Should mark as read?', shouldMarkAsRead);
-        if (shouldMarkAsRead) {
-          console.log('[NewMessage] ✅ Marking message as read');
+        // Mark as read if we're the receiver - do this immediately
+        if (message.receiverId === currentUserId) {
           markAsReadRef.current([message.id]);
-          // Update the unread count in chat context
           decrementUnreadCountRef.current(1);
         }
-      } else {
-        console.log('[NewMessage] ❌ Message does NOT belong to current conversation');
-        // Message is for a different conversation, just update the conversation list
-        // Update conversation list to show latest message
-        loadConversations();
-      }
 
-      // Remove from processing set after a short delay
-      setTimeout(() => {
+        // Clean up processing set immediately (no need to delay)
         processingMessagesRef.current.delete(message.id);
-      }, 100);
+      } else {
+        // Message is for a different conversation, update the conversation list
+        loadConversations();
+        // Clean up processing set
+        processingMessagesRef.current.delete(message.id);
+      }
     };
 
     const handleUserTyping = ({ userId, isTyping: typing }: { userId: string; isTyping: boolean }) => {
@@ -649,10 +612,14 @@ const MessagesPage = () => {
     };
   }, [socket, messageSocket, currentUserId, safelyUpdateMessages]); // Added safelyUpdateMessages to deps
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom when new messages arrive - optimized with requestAnimationFrame
   useEffect(() => {
-    // Small delay to ensure DOM has updated
-    setTimeout(scrollToBottom, 100);
+    // Use requestAnimationFrame for smoother, more efficient scrolling
+    requestAnimationFrame(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    });
   }, [messages]);
 
   const scrollToBottom = () => {
@@ -755,10 +722,9 @@ const MessagesPage = () => {
     } else {
       console.log('[Messages] Same conversation, skipping join');
       setIsLoadingMessages(false); // Not loading since we kept messages
+      // Scroll immediately for same conversation
+      requestAnimationFrame(scrollToBottom);
     }
-
-    // Scroll to bottom after loading messages
-    setTimeout(scrollToBottom, 200);
   };
 
   const handleBackToList = () => {
@@ -867,10 +833,8 @@ const MessagesPage = () => {
     });
     setNewMessageIds(prev => new Set(prev).add(optimisticMessage.id));
 
-    // Scroll to bottom immediately after adding optimistic message
-    setTimeout(() => {
-      scrollToBottom();
-    }, 50);
+    // Scroll to bottom immediately with requestAnimationFrame
+    requestAnimationFrame(scrollToBottom);
 
     // Always send via socket only - no REST API fallback
     if (isMessageSocketConnected && sendMessageViaSocket) {
@@ -1248,12 +1212,6 @@ const MessagesPage = () => {
 
                   {/* Message List */}
                   <div className="space-y-4">
-                    {/* Render-time logging */}
-                    {console.log('[RENDER] === MESSAGES RENDER ===') || null}
-                    {console.log('[RENDER] Messages count:', messages.length) || null}
-                    {console.log('[RENDER] Last message:', messages[messages.length - 1]?.content) || null}
-                    {console.log('[RENDER] isLoadingMessages:', isLoadingMessages) || null}
-
                     {isLoadingMessages ? (
                       <ChatMessageSkeleton />
                     ) : messages.length === 0 ? (
@@ -1261,20 +1219,15 @@ const MessagesPage = () => {
                         No messages yet. Start a conversation!
                       </div>
                     ) : (
-                      messages.map((message, index) => {
-                        if (index === messages.length - 1) {
-                          console.log('[RENDER] Rendering LAST message:', message.id, message.content);
-                        }
-                        return (
-                          <MessageItem
-                            key={message.id}
-                            message={message}
-                            isMyMessage={message.senderId === currentUserId}
-                            isNewMessage={newMessageIds.has(message.id)}
-                            formatMessageTime={formatMessageTime}
-                          />
-                        );
-                      })
+                      messages.map((message) => (
+                        <MessageItem
+                          key={message.id}
+                          message={message}
+                          isMyMessage={message.senderId === currentUserId}
+                          isNewMessage={newMessageIds.has(message.id)}
+                          formatMessageTime={formatMessageTime}
+                        />
+                      ))
                     )}
 
                     {otherUserTyping && (

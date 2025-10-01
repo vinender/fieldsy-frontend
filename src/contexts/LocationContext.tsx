@@ -5,6 +5,9 @@ interface LocationCoordinates {
   lng: number;
   accuracy?: number;
   timestamp?: number;
+  formattedAddress?: string;
+  city?: string;
+  country?: string;
 }
 
 interface LocationContextType {
@@ -15,6 +18,7 @@ interface LocationContextType {
   requestLocation: () => Promise<void>;
   setCurrentLocation: (location: LocationCoordinates | null) => void;
   clearLocation: () => void;
+  updateFormattedAddress: (lat: number, lng: number) => Promise<void>;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -51,6 +55,47 @@ export function LocationProvider({ children }: LocationProviderProps) {
     }
   }, []);
 
+  // Reverse geocode coordinates to get formatted address
+  const updateFormattedAddress = async (lat: number, lng: number): Promise<void> => {
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+      const data = await response.json();
+
+      if (data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const formattedAddress = result.formatted_address;
+
+        // Extract city and country
+        const cityComponent = result.address_components?.find((c: any) =>
+          c.types.includes('locality') || c.types.includes('administrative_area_level_2')
+        );
+        const countryComponent = result.address_components?.find((c: any) =>
+          c.types.includes('country')
+        );
+
+        setCurrentLocation(prev => prev ? {
+          ...prev,
+          formattedAddress,
+          city: cityComponent?.long_name,
+          country: countryComponent?.long_name
+        } : null);
+
+        // Update localStorage
+        const updatedLocation = {
+          ...currentLocation,
+          formattedAddress,
+          city: cityComponent?.long_name,
+          country: countryComponent?.long_name
+        };
+        localStorage.setItem('userLocation', JSON.stringify(updatedLocation));
+      }
+    } catch (err) {
+      console.error('Error reverse geocoding:', err);
+    }
+  };
+
   const requestLocation = async (): Promise<void> => {
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by your browser');
@@ -62,20 +107,21 @@ export function LocationProvider({ children }: LocationProviderProps) {
 
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const newLocation: LocationCoordinates = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             accuracy: position.coords.accuracy,
             timestamp: Date.now()
           };
-          
+
           setCurrentLocation(newLocation);
           setIsLocationEnabled(true);
+
+          // Get formatted address
+          await updateFormattedAddress(position.coords.latitude, position.coords.longitude);
+
           setIsLoadingLocation(false);
-          
-          // Save to localStorage with timestamp
-          localStorage.setItem('userLocation', JSON.stringify(newLocation));
           resolve();
         },
         (err) => {
@@ -121,7 +167,8 @@ export function LocationProvider({ children }: LocationProviderProps) {
     locationError,
     requestLocation,
     setCurrentLocation,
-    clearLocation
+    clearLocation,
+    updateFormattedAddress
   };
 
   return (

@@ -54,7 +54,7 @@ const BookFieldPage = () => {
     refetchOnWindowFocus: false // Don't refetch on window focus
   });
   const field = fieldData?.data || fieldData;
-  
+  console.log('field',field)
   // Load reschedule data from localStorage if in reschedule mode
   useEffect(() => {
     if (isRescheduleMode) {
@@ -251,10 +251,45 @@ const BookFieldPage = () => {
       });
     } else {
       // Fallback to basic time slot generation if no availability data
-      const openingHour = field?.openingTime ? parseInt(field.openingTime.split(':')[0]) : 6;
-      const closingHour = field?.closingTime ? parseInt(field.closingTime.split(':')[0]) : 21;
+      // Parse opening and closing times to get hours and minutes
+      const parseTime = (timeStr: string): { hour: number; minute: number } => {
+        if (!timeStr) return { hour: 0, minute: 0 };
+
+        // First, try to match 12-hour format with AM/PM (e.g., "12:15AM", "2:30 PM")
+        const time12Match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+
+        if (time12Match) {
+          let hour = parseInt(time12Match[1]);
+          const minute = parseInt(time12Match[2]);
+          const period = time12Match[3].toUpperCase();
+
+          // Convert to 24-hour format
+          if (period === 'PM' && hour !== 12) {
+            hour += 12;
+          } else if (period === 'AM' && hour === 12) {
+            hour = 0;
+          }
+
+          return { hour, minute };
+        }
+
+        // Second, try to match 24-hour format (e.g., "14:30", "02:15")
+        const time24Match = timeStr.match(/(\d{1,2}):(\d{2})/);
+        if (time24Match) {  
+          const hour = parseInt(time24Match[1]);
+          const minute = parseInt(time24Match[2]);
+          return { hour, minute };
+        }
+
+        // Fallback: try to parse as just hour
+        const hour = parseInt(timeStr.split(':')[0]) || 0;
+        return { hour, minute: 0 };
+      };
+
+      const openingTime = parseTime(field?.openingTime || '6:00AM');
+      const closingTime = parseTime(field?.closingTime || '9:00PM');
       const bookingDuration = field?.bookingDuration || '1hour';
-      
+
       // Helper function to format time
       const formatTime = (hour: number, minutes: number = 0): string => {
         const period = hour >= 12 ? 'PM' : 'AM';
@@ -263,63 +298,54 @@ const BookFieldPage = () => {
         return `${displayHour}:${displayMinutes}${period}`;
       };
 
-      if (bookingDuration === '30min') {
-        // Generate 30-minute slots
-        for (let hour = openingHour; hour < closingHour; hour++) {
-          for (let minutes = 0; minutes < 60; minutes += 30) {
-            const endMinutes = minutes + 30;
-            const endHour = endMinutes === 60 ? hour + 1 : hour;
-            const actualEndMinutes = endMinutes === 60 ? 0 : endMinutes;
-            
-            // Don't create slots that go beyond closing time
-            if (endHour > closingHour || (endHour === closingHour && actualEndMinutes > 0)) {
-              break;
-            }
-            
-            const startTime = formatTime(hour, minutes);
-            const endTime = formatTime(endHour, actualEndMinutes);
-            const slotTime = `${startTime} - ${endTime}`;
+      // Convert time to minutes for easier calculation
+      const timeToMinutes = (hour: number, minute: number): number => {
+        return hour * 60 + minute;
+      };
 
-            const isAvailable = checkSlotAvailability(selectedDate, hour);
+      const openingMinutes = timeToMinutes(openingTime.hour, openingTime.minute);
+      const closingMinutes = timeToMinutes(closingTime.hour, closingTime.minute);
 
-            const slot = {
-              time: slotTime,
-              available: isAvailable,
-              selected: slotTime === selectedTimeSlot
-            };
+      const slotDurationMinutes = bookingDuration === '30min' ? 30 : 60;
 
-            if (hour < 12) {
-              slots.morning.push(slot);
-            } else if (hour < 18) {
-              slots.afternoon.push(slot);
-            } else {
-              slots.evening.push(slot);
-            }
-          }
+      // Generate slots from opening to closing time
+      let currentMinutes = openingMinutes;
+
+      while (currentMinutes + slotDurationMinutes <= closingMinutes) {
+        // Calculate start time
+        const startHour = Math.floor(currentMinutes / 60);
+        const startMinute = currentMinutes % 60;
+
+        // Calculate end time
+        const endTotalMinutes = currentMinutes + slotDurationMinutes;
+        const endHour = Math.floor(endTotalMinutes / 60);
+        const endMinute = endTotalMinutes % 60;
+
+        // Format times
+        const startTime = formatTime(startHour, startMinute);
+        const endTime = formatTime(endHour, endMinute);
+        const slotTime = `${startTime} - ${endTime}`;
+
+        // Check availability
+        const isAvailable = checkSlotAvailability(selectedDate, startHour);
+
+        const slot = {
+          time: slotTime,
+          available: isAvailable,
+          selected: slotTime === selectedTimeSlot
+        };
+
+        // Categorize by time of day
+        if (startHour < 12) {
+          slots.morning.push(slot);
+        } else if (startHour < 18) {
+          slots.afternoon.push(slot);
+        } else {
+          slots.evening.push(slot);
         }
-      } else {
-        // Generate 1-hour slots
-        for (let hour = openingHour; hour < closingHour; hour++) {
-          const startTime = formatTime(hour);
-          const endTime = formatTime(hour + 1);
-          const slotTime = `${startTime} - ${endTime}`;
 
-          const isAvailable = checkSlotAvailability(selectedDate, hour);
-
-          const slot = {
-            time: slotTime,
-            available: isAvailable,
-            selected: slotTime === selectedTimeSlot
-          };
-
-          if (hour < 12) {
-            slots.morning.push(slot);
-          } else if (hour < 18) {
-            slots.afternoon.push(slot);
-          } else {
-            slots.evening.push(slot);
-          }
-        }
+        // Move to next slot
+        currentMinutes += slotDurationMinutes;
       }
     }
 
