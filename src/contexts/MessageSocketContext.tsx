@@ -7,7 +7,7 @@ interface MessageSocketContextType {
   isConnected: boolean
   joinConversation: (conversationId: string) => void
   fetchMessages: (conversationId: string, page?: number, limit?: number) => void
-  sendMessage: (conversationId: string, content: string, receiverId: string) => void
+  sendMessage: (conversationId: string, content: string, receiverId: string, correlationId: string, callback?: (response: any) => void) => void
   markAsRead: (messageIds: string[]) => void
   emitTyping: (conversationId: string, isTyping: boolean) => void
   connect: () => void
@@ -148,20 +148,39 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [])
 
-  // Send a message via socket
-  const sendMessage = useCallback((conversationId: string, content: string, receiverId: string) => {
+  // Send a message via socket with ACK callback
+  const sendMessage = useCallback((conversationId: string, content: string, receiverId: string, correlationId: string, callback?: (response: any) => void) => {
     if (socketRef.current?.connected) {
       console.log(`[MessageSocket] === SENDING MESSAGE ===`)
       console.log(`[MessageSocket] Socket ID:`, socketRef.current.id)
       console.log(`[MessageSocket] Conversation ID:`, conversationId)
       console.log(`[MessageSocket] Content:`, content)
       console.log(`[MessageSocket] Receiver ID:`, receiverId)
+      console.log(`[MessageSocket] Correlation ID:`, correlationId)
       console.log(`[MessageSocket] Emitting 'send-message' event...`)
-      socketRef.current.emit('send-message', { conversationId, content, receiverId })
-      console.log(`[MessageSocket] Event emitted, waiting for server response`)
+
+      // Set timeout for ACK (5 seconds)
+      const ackTimeout = setTimeout(() => {
+        console.error('[MessageSocket] ACK timeout - server did not respond in 5 seconds')
+        if (callback) {
+          callback({ success: false, error: 'Server timeout', timeout: true })
+        }
+      }, 5000)
+
+      socketRef.current.emit('send-message', { conversationId, content, receiverId, correlationId }, (response: any) => {
+        clearTimeout(ackTimeout)
+        console.log(`[MessageSocket] ACK received:`, response)
+        if (callback) {
+          callback(response)
+        }
+      })
+      console.log(`[MessageSocket] Event emitted, waiting for ACK...`)
     } else {
       console.error('[MessageSocket] Socket not connected! Cannot send message')
       console.error('[MessageSocket] Socket state:', socketRef.current)
+      if (callback) {
+        callback({ success: false, error: 'Socket not connected' })
+      }
     }
   }, [])
 
