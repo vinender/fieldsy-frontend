@@ -656,12 +656,21 @@ const MessagesPage = () => {
   const handleSelectConversation = async (conversation: Conversation) => {
     console.log('[Messages] Selecting conversation:', conversation.id);
 
+    // Check if this is the same conversation we're already viewing
+    const isSameConversation = selectedConversation?.id === conversation.id;
+
     setSelectedConversation(conversation);
     setIsLoadingMessages(true);
 
-    // Clear message tracking for new conversation
-    messageIdsSetRef.current.clear();
-    processingMessagesRef.current.clear();
+    // Only clear messages if switching to a DIFFERENT conversation
+    if (!isSameConversation) {
+      console.log('[Messages] Switching to new conversation, clearing messages');
+      messageIdsSetRef.current.clear();
+      processingMessagesRef.current.clear();
+      setMessages([]); // Clear messages for new conversation
+    } else {
+      console.log('[Messages] Re-selecting same conversation, keeping messages');
+    }
 
     // Show mobile chat view
     setShowMobileChat(true);
@@ -670,21 +679,26 @@ const MessagesPage = () => {
     setIsBlocked(false);
     setBlockMessage('');
 
-    // Always join conversation via socket to ensure we're in the room
-    if (isMessageSocketConnected && joinConversation) {
-      console.log('[Messages] Joining conversation via socket');
-      joinConversation(conversation.id);
+    // Only join conversation if switching to a different one
+    if (!isSameConversation) {
+      if (isMessageSocketConnected && joinConversation) {
+        console.log('[Messages] Joining conversation via socket');
+        joinConversation(conversation.id);
+      } else {
+        console.log('[Messages] Socket not connected, will retry');
+        // Retry joining after a short delay
+        setTimeout(() => {
+          if (isMessageSocketConnected && joinConversation) {
+            joinConversation(conversation.id);
+          } else {
+            // Fallback to REST API if socket not connected
+            loadMessages(conversation.id);
+          }
+        }, 500);
+      }
     } else {
-      console.log('[Messages] Socket not connected, will retry');
-      // Retry joining after a short delay
-      setTimeout(() => {
-        if (isMessageSocketConnected && joinConversation) {
-          joinConversation(conversation.id);
-        } else {
-          // Fallback to REST API if socket not connected
-          loadMessages(conversation.id);
-        }
-      }, 500);
+      console.log('[Messages] Same conversation, skipping join');
+      setIsLoadingMessages(false); // Not loading since we kept messages
     }
 
     // Scroll to bottom after loading messages
@@ -813,9 +827,24 @@ const MessagesPage = () => {
         if (response.success && response.message) {
           // Replace optimistic message with real message from server
           console.log('[Messages] Replacing optimistic message with real message:', response.message.id);
-          setMessages(prev => prev.map(msg =>
-            msg.id === correlationId ? response.message : msg
-          ));
+          console.log('[Messages] Looking for correlation ID:', correlationId);
+
+          setMessages(prev => {
+            console.log('[Messages] Current messages count:', prev.length);
+            console.log('[Messages] Message IDs:', prev.map(m => m.id));
+
+            const found = prev.find(m => m.id === correlationId);
+            console.log('[Messages] Found optimistic message?', !!found);
+
+            if (!found) {
+              console.log('[Messages] Optimistic message not found, adding new message');
+              return [...prev, response.message];
+            }
+
+            return prev.map(msg =>
+              msg.id === correlationId ? response.message : msg
+            );
+          });
 
           // Update messageIdsSet to track the real message ID
           messageIdsSetRef.current.add(response.message.id);
