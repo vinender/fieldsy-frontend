@@ -197,15 +197,17 @@ const MessagesPage = () => {
     setMessages(prev => {
       const newMessages = updateFn(prev);
 
+      console.log('[safelyUpdateMessages] Input messages count:', newMessages.length);
+      console.log('[safelyUpdateMessages] Processing messages ref size:', processingMessagesRef.current.size);
+
       // Create a map to track unique messages by ID
       const uniqueMessagesMap = new Map<string, Message>();
 
       // Process messages in order, keeping only the latest version of each
       newMessages.forEach(msg => {
-        // Skip if this message is currently being processed (but allow correlation IDs)
-        if (!msg.id.startsWith('msg-') && processingMessagesRef.current.has(msg.id)) {
-          return;
-        }
+        // REMOVED THE BROKEN CHECK - it was filtering out new messages!
+        // The processingMessagesRef check was preventing new messages from being added
+        // We already check for duplicates before calling this function
 
         // Add to map (will overwrite if duplicate ID exists)
         uniqueMessagesMap.set(msg.id, msg);
@@ -214,6 +216,9 @@ const MessagesPage = () => {
       // Convert back to array and sort by creation date
       const uniqueMessages = Array.from(uniqueMessagesMap.values())
         .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+      console.log('[safelyUpdateMessages] Output messages count:', uniqueMessages.length);
+      console.log('[safelyUpdateMessages] Last message ID:', uniqueMessages[uniqueMessages.length - 1]?.id);
 
       // Update our tracking set (excluding correlation IDs - they'll be replaced)
       messageIdsSetRef.current = new Set(
