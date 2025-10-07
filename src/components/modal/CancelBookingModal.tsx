@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { X, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { useCheckRefundEligibility } from '@/hooks/useBookingApi';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
+import { useCancelBooking } from '@/hooks/mutations/useBookingMutations';
+import { toast } from 'sonner';
 
 interface CancelBookingModalProps {
   isOpen: boolean;
@@ -17,7 +19,7 @@ interface CancelBookingModalProps {
     currency: string;
     createdAt: string;
   };
-  onConfirm: (bookingId: string, reason: string) => void;
+  onConfirm?: (bookingId: string, reason: string) => void;
 }
 
 export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
@@ -27,14 +29,42 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
   onConfirm,
 }) => {
   const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
   const cancellationWindowHours = useCancellationWindow();
-  
+
+  // Use cancel booking mutation
+  const cancelBookingMutation = useCancelBooking({
+    onSuccess: (data) => {
+      // Show success message with refund status
+      const refundResult = data.data?.refundResult;
+      let message = 'Booking cancelled successfully.';
+
+      if (refundResult && refundResult.success) {
+        message = `Booking cancelled successfully. Refund of €${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
+      } else if (data.data?.isRefundEligible) {
+        message = 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
+      } else {
+        message = `Booking cancelled successfully. This booking was not eligible for a refund as it was cancelled less than ${cancellationWindowHours} hours before the scheduled time.`;
+      }
+
+      toast.success(message);
+      onClose();
+
+      // Call parent onConfirm if provided (for legacy support)
+      if (onConfirm) {
+        onConfirm(booking._id, reason);
+      }
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to cancel booking. Please try again.';
+      toast.error(errorMessage);
+    }
+  });
+
   // Use React Query hook to check refund eligibility
-  const { 
-    data: eligibilityData, 
+  const {
+    data: eligibilityData,
     isLoading: checkingEligibility,
-    error: eligibilityError 
+    error: eligibilityError
   } = useCheckRefundEligibility(booking?._id || '', isOpen);
   
   // State for fallback calculation
@@ -161,14 +191,11 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
     }
   }, [isOpen, booking, eligibilityError]);
 
-  const handleConfirm = async () => {
-    setLoading(true);
-    try {
-      await onConfirm(booking._id, reason);
-      onClose();
-    } finally {
-      setLoading(false);
-    }
+  const handleConfirm = () => {
+    cancelBookingMutation.mutate({
+      bookingId: booking._id,
+      reason
+    });
   };
 
   if (!isOpen) return null;
@@ -176,10 +203,22 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative">
+        {/* Loading Overlay */}
+        {cancelBookingMutation.isPending && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 rounded-xl sm:rounded-2xl flex items-center justify-center z-10">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 animate-spin text-[#3a6b22] mx-auto mb-3" />
+              <p className="text-sm sm:text-base font-semibold text-[#192215]">Cancelling your booking...</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Please wait</p>
+            </div>
+          </div>
+        )}
+
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          disabled={cancelBookingMutation.isPending}
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
         </button>
@@ -204,6 +243,25 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           
           </div>
         </div>
+
+        {/* Error Alert */}
+        {cancelBookingMutation.isError && (
+          <div className="mb-3 sm:mb-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-sm sm:text-base mb-1 text-red-900">
+                  Failed to Cancel Booking
+                </h4>
+                <p className="text-xs sm:text-sm text-red-700">
+                  {(cancelBookingMutation.error as any)?.response?.data?.message ||
+                   (cancelBookingMutation.error as any)?.message ||
+                   'An unexpected error occurred. Please try again.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Refund Eligibility Status */}
         {checkingEligibility ? (
@@ -263,17 +321,24 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
           <button
             onClick={onClose}
-            disabled={loading}
-            className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 bg-[#3a6b22] text-white text-sm sm:text-base rounded-full font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50"
+            disabled={cancelBookingMutation.isPending}
+            className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 bg-[#3a6b22] text-white text-sm sm:text-base rounded-full font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Keep Booking
           </button>
           <button
             onClick={handleConfirm}
-            disabled={loading || checkingEligibility}
-            className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 bg-white border-2 border-red-600 text-red-600 text-sm sm:text-base rounded-full font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={cancelBookingMutation.isPending || checkingEligibility}
+            className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 bg-white border-2 border-red-600 text-red-600 text-sm sm:text-base rounded-full font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? 'Cancelling...' : 'Cancel Booking'}
+            {cancelBookingMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                <span>Cancelling...</span>
+              </>
+            ) : (
+              'Cancel Booking'
+            )}
           </button>
         </div>
 
