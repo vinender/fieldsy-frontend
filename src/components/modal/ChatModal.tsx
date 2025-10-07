@@ -127,7 +127,7 @@ export default function ChatModal({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ participantId: userId })
+        body: JSON.stringify({ receiverId: userId })
       });
 
       if (response.ok) {

@@ -385,7 +385,7 @@ const MessagesPage = () => {
       messages: Message[];
       total: number;
     }) => {
-      if (selectedConversation && data.conversationId === selectedConversation.id) {
+      if (selectedConversationRef.current && data.conversationId === selectedConversationRef.current.id) {
         // Don't replace if we have optimistic messages (correlation IDs) - merge instead
         const hasOptimisticMessages = messagesRef.current.some(m => m.id.startsWith('msg-'));
 
@@ -422,7 +422,7 @@ const MessagesPage = () => {
       messages: Message[];
       pagination: any;
     }) => {
-      if (selectedConversation && data.conversationId === selectedConversation.id) {
+      if (selectedConversationRef.current && data.conversationId === selectedConversationRef.current.id) {
         // Don't replace if we have optimistic messages (correlation IDs) - merge instead
         const hasOptimisticMessages = messagesRef.current.some(m => m.id.startsWith('msg-'));
 
@@ -682,6 +682,10 @@ const MessagesPage = () => {
     // Check if this is the same conversation we're already viewing
     const isSameConversation = selectedConversation?.id === conversation.id;
 
+    // Capture current message count BEFORE any state updates
+    const currentMessageCount = messages.length;
+    console.log('[Messages] Current message count:', currentMessageCount);
+
     setSelectedConversation(conversation);
     setIsLoadingMessages(true);
 
@@ -702,8 +706,13 @@ const MessagesPage = () => {
     setIsBlocked(false);
     setBlockMessage('');
 
-    // Only join conversation if switching to a different one
-    if (!isSameConversation) {
+    // Join conversation and load messages if:
+    // 1. Switching to a different conversation, OR
+    // 2. Same conversation but messages aren't loaded yet
+    const needsToLoadMessages = !isSameConversation || currentMessageCount === 0;
+    console.log('[Messages] needsToLoadMessages:', needsToLoadMessages, '(isSameConversation:', isSameConversation, ', messageCount:', currentMessageCount, ')');
+
+    if (needsToLoadMessages) {
       if (isMessageSocketConnected && joinConversation) {
         console.log('[Messages] Joining conversation via socket');
         joinConversation(conversation.id);
@@ -720,7 +729,7 @@ const MessagesPage = () => {
         }, 500);
       }
     } else {
-      console.log('[Messages] Same conversation, skipping join');
+      console.log('[Messages] Same conversation with messages already loaded, skipping join');
       setIsLoadingMessages(false); // Not loading since we kept messages
       // Scroll immediately for same conversation
       requestAnimationFrame(scrollToBottom);
