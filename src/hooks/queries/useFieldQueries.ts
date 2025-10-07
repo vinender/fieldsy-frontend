@@ -98,7 +98,7 @@ export interface FieldsParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-// Hook to fetch fields with pagination and filters
+// Hook to fetch active fields with pagination and filters (public)
 export function useFields(
   params: FieldsParams = {},
   options?: Omit<UseQueryOptions<FieldsResponse, Error>, 'queryKey' | 'queryFn'>
@@ -108,7 +108,7 @@ export function useFields(
     queryFn: async () => {
       // Build query parameters
       const queryParams = new URLSearchParams();
-      
+
       // Add all params to query string
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -123,7 +123,8 @@ export function useFields(
         }
       });
 
-      const response = await axiosClient.get(`/fields?${queryParams.toString()}`);
+      // Use /fields/active to get only active and submitted fields
+      const response = await axiosClient.get(`/fields/active?${queryParams.toString()}`);
       return response.data as FieldsResponse;
     },
     staleTime: 30 * 1000, // 30 seconds

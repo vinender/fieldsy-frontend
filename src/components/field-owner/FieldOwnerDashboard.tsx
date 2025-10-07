@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useOwnerField, useSaveFieldProgress } from '@/hooks';
+import { useOwnerField, useOwnerFields, useSaveFieldProgress } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
 import { FieldOwnerDashboardSkeleton } from '@/components/skeletons/FieldOwnerDashboardSkeleton';
 import BackButton from '@/components/common/BackButton';
@@ -161,17 +161,36 @@ export default function AddYourField() {
     policies: ''
   });
 
-  
-  const isAddNewMode = router.query.addNew === 'true';
 
-  // Fetch existing field data using custom hook (skip if adding new field)
+  const isAddNewMode = router.query.addNew === 'true';
+  const isEditMode = router.query.edit === 'true';
+  const editFieldId = router.query.fieldId as string | undefined;
+
+  // Fetch all fields when in edit mode to get specific field by ID
   const {
-    data: fieldData,
-    isLoading: fetchingField,
-    refetch
-  } = useOwnerField({
-    enabled: !!user && user.role === 'FIELD_OWNER' && !isAddNewMode,
+    data: allFields,
+    isLoading: fetchingAllFields,
+    refetch: refetchAllFields
+  } = useOwnerFields({
+    enabled: !!user && user.role === 'FIELD_OWNER' && isEditMode && !!editFieldId,
   });
+
+  // Fetch single field when not in edit mode (legacy behavior)
+  const {
+    data: singleField,
+    isLoading: fetchingSingleField,
+    refetch: refetchSingleField
+  } = useOwnerField({
+    enabled: !!user && user.role === 'FIELD_OWNER' && !isAddNewMode && !isEditMode,
+  });
+
+  // Determine which field data to use
+  const fieldData = isEditMode && editFieldId
+    ? allFields?.find((f: any) => f.id === editFieldId)
+    : singleField;
+
+  const fetchingField = isEditMode ? fetchingAllFields : fetchingSingleField;
+  const refetch = isEditMode ? refetchAllFields : refetchSingleField;
 
   // Check if current section has been completed
   const isCurrentSectionCompleted = () => {
@@ -227,8 +246,10 @@ export default function AddYourField() {
   // Load field data when fetched (only if not in add new mode)
   useEffect(() => {
     if (fieldData && !isAddNewMode) {
-      setFieldId(fieldData.id);
-      console.log('fieldData',fieldData)
+      // When in edit mode with fieldId, use that; otherwise use fieldData.id
+      const currentFieldId = isEditMode && editFieldId ? editFieldId : fieldData.id;
+      setFieldId(currentFieldId);
+      console.log('Loading field data for edit:', currentFieldId, fieldData)
       // Pre-populate form data
       setFormData(prev => ({
         ...prev,
@@ -262,7 +283,7 @@ export default function AddYourField() {
         policies: fieldData.cancellationPolicy || ''
       }));
     }
-  }, [fieldData, isAddNewMode]);
+  }, [fieldData, isAddNewMode, isEditMode, editFieldId]);
 
   // Remove auto-save - only save on button click
 
@@ -461,8 +482,12 @@ export default function AddYourField() {
     if (currentIndex < sections.length - 1) {
       setActiveSection(sections[currentIndex + 1]);
     } else if (currentIndex === sections.length - 1) {
-      // On last tab (booking-rules), redirect to preview page
-      router.push('/field-owner/preview');
+      // On last tab (booking-rules), redirect to preview page with the current field ID
+      if (fieldId) {
+        router.push(`/field-owner/preview?fieldId=${fieldId}`);
+      } else {
+        router.push('/field-owner/preview');
+      }
     }
   };
 
