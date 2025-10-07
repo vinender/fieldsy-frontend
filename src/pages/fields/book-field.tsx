@@ -352,6 +352,7 @@ const BookFieldPage = () => {
     return slots;
   };
 
+  
   // Memoize time slots to recalculate when dependencies change
   // This MUST be called before any conditional returns for React hooks rules
   const timeSlots = useMemo(() => generateTimeSlots(), [

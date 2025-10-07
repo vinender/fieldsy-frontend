@@ -102,7 +102,7 @@ export function Header() {
     if (currentUser.role === 'FIELD_OWNER') {
       return [
         { name: "Dashboard", href: "/" },
-        { name: "My Field", href: "/field-owner/preview" },
+        { name: "My Fields", href: "/field-owner/my-fields" },
         { name: "Bookings", href: "/field-owner/preview" },
         { name: "Messages", href: "/user/messages" },
         { name: "Profile", href: "/user/profile" },

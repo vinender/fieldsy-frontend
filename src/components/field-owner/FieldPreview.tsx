@@ -11,9 +11,10 @@ interface FieldPreviewProps {
   isSubmitted?: boolean;
   isActive?: boolean;
   onToggleActive?: () => void;
+  onBack?: () => void;
 }
 
-export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, onToggleActive }: FieldPreviewProps) {
+export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, onToggleActive, onBack }: FieldPreviewProps) {
   // Transform formData to match field structure if needed
   const field = {
     ...formData,
@@ -107,10 +108,11 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
   const headerContent = (
     <div className="flex justify-between items-center">
-      <BackButton 
-        size='lg' 
-        label={isSubmitted ? 'My Field' : 'Preview'} 
+      <BackButton
+        size='lg'
+        label={isSubmitted ? 'My Field' : 'Preview'}
         showLabel={true}
+        onClick={onBack}
       />
       <div className="flex items-center gap-3">
         <button

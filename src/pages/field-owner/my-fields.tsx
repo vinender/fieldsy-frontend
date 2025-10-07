@@ -1,0 +1,135 @@
+import React, { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/router';
+import { UserLayout } from '@/components/layout/UserLayout';
+import { useOwnerFields } from '@/hooks';
+import { FieldData } from '@/hooks/queries/useFieldQueries';
+
+export default function MyFieldsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Fetch all fields owned by the user
+  const { data: fields, isLoading: fetchingFields, refetch, error, isError } = useOwnerFields({
+    enabled: !!user && user.role === 'FIELD_OWNER',
+  });
+
+  useEffect(() => {
+    // Redirect if not a field owner
+    if (user && user.role !== 'FIELD_OWNER') {
+      router.push('/');
+    }
+  }, [user, router]);
+
+  const handleAddNewField = () => {
+    router.push('/');
+  };
+
+  const handleViewField = (fieldId: string) => {
+    router.push(`/field-owner/preview?fieldId=${fieldId}`);
+  };
+
+  const handleEditField = (fieldId: string) => {
+    router.push(`/?edit=true&fieldId=${fieldId}`);
+  };
+
+  if (fetchingFields) {
+    return (
+      <UserLayout>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <p className="text-gray-600">Loading fields...</p>
+        </div>
+      </UserLayout>
+    );
+  }
+
+  return (
+    <UserLayout>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">My Fields</h1>
+          <button
+            onClick={handleAddNewField}
+            className="px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity flex items-center gap-2"
+          >
+            <span className="text-xl">+</span>
+            Add New Field
+          </button>
+        </div>
+
+        {isError && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600">Error loading fields. Please try again.</p>
+          </div>
+        )}
+
+        {!fields || fields.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-lg shadow-sm">
+            <p className="text-gray-500 text-lg mb-4">You haven't added any fields yet</p>
+            <button
+              onClick={handleAddNewField}
+              className="px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
+            >
+              Add Your First Field
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {fields.map((field: FieldData) => (
+              <div
+                key={field.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleViewField(field.id)}
+              >
+                <div className="h-48 bg-gray-200 relative">
+                  {field.images && field.images.length > 0 ? (
+                    <img
+                      src={field.images[0]}
+                      alt={field.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-gray-400">No image</span>
+                    </div>
+                  )}
+                  <div className="absolute top-3 right-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        field.isActive
+                          ? 'bg-green text-white'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {field.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{field.name}</h3>
+                  <p className="text-gray-600 text-sm mb-2">
+                    {field.address}, {field.city}
+                  </p>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-green font-bold text-lg">
+                      ${field.price || field.pricePerDay}/hour
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditField(field.id);
+                      }}
+                      className="text-green hover:text-green-dark font-semibold"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </UserLayout>
+  );
+}

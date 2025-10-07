@@ -6,6 +6,7 @@ export const fieldQueryKeys = {
   all: ['fields'] as const,
   list: (params: any) => ['fields', 'list', params] as const,
   ownerField: () => ['owner-field'] as const,
+  ownerFields: () => ['owner-fields'] as const,
   ownerBookings: () => ['owner-bookings'] as const,
   fieldDetails: (id: string) => ['field', id] as const,
   searchFields: (filters: any) => ['fields', 'search', filters] as const,
@@ -63,6 +64,12 @@ export interface FieldsResponse {
     total: number;
     totalPages: number;
   };
+}
+
+export interface OwnerFieldsResponse {
+  success: boolean;
+  data: FieldData[];
+  total: number;
 }
 
 export interface FieldsParams {
@@ -125,7 +132,7 @@ export function useFields(
   });
 }
 
-// Hook to fetch owner's field
+// Hook to fetch owner's field (legacy - returns single field)
 export function useOwnerField(options?: Omit<UseQueryOptions<OwnerFieldResponse, Error>, 'queryKey' | 'queryFn'>) {
   const query = useQuery({
     queryKey: fieldQueryKeys.ownerField(),
@@ -142,6 +149,32 @@ export function useOwnerField(options?: Omit<UseQueryOptions<OwnerFieldResponse,
     data: query.data?.field,
     showAddForm: query.data?.showAddForm || false,
     message: query.data?.message,
+    loading: query.isLoading,
+    isLoading: query.isLoading,
+    error: query.error,
+    isError: query.isError,
+    isSuccess: query.isSuccess,
+    refetch: query.refetch,
+    isFetching: query.isFetching,
+  };
+}
+
+// Hook to fetch all owner's fields
+export function useOwnerFields(options?: Omit<UseQueryOptions<OwnerFieldsResponse, Error>, 'queryKey' | 'queryFn'>) {
+  const query = useQuery({
+    queryKey: fieldQueryKeys.ownerFields(),
+    queryFn: async () => {
+      const response = await axiosClient.get('/fields/my-fields');
+      return response.data as OwnerFieldsResponse;
+    },
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache
+    ...options,
+  });
+
+  return {
+    data: query.data?.data || [],
+    total: query.data?.total || 0,
     loading: query.isLoading,
     isLoading: query.isLoading,
     error: query.error,

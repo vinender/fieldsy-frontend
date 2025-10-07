@@ -3,10 +3,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/router';
 import FieldPreview from '@/components/field-owner/FieldPreview';
 import { UserLayout } from '@/components/layout/UserLayout';
-import { useOwnerField, useSubmitFieldForReview } from '@/hooks';
+import { useOwnerField, useOwnerFields, useSubmitFieldForReview } from '@/hooks';
 import { toast } from 'sonner';
 import ThankYouModal from '@/components/modal/ThankYouModal';
 import axiosClient from '@/lib/api/axios-client';
+import { FieldData } from '@/hooks/queries/useFieldQueries';
 
 
 
@@ -14,11 +15,24 @@ export default function PreviewPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [showThankYou, setShowThankYou] = useState(false);
-  
-  // Fetch the field data
-  const { data: fieldData, isLoading: fetchingField, refetch } = useOwnerField({
-    enabled: !!user && user.role === 'FIELD_OWNER',
+  const { fieldId } = router.query;
+
+  // If fieldId is provided in query, fetch that specific field from the list
+  const { data: fields, isLoading: fetchingFields, refetch } = useOwnerFields({
+    enabled: !!user && user.role === 'FIELD_OWNER' && !!fieldId,
   });
+
+  // Also support legacy behavior - fetch single field if no fieldId in query
+  const { data: legacyField, isLoading: fetchingLegacyField, refetch: refetchLegacy } = useOwnerField({
+    enabled: !!user && user.role === 'FIELD_OWNER' && !fieldId,
+  });
+
+  // Determine which field to show
+  const fieldData = fieldId
+    ? fields?.find((f: FieldData) => f.id === fieldId)
+    : legacyField;
+
+  const isLoading = fetchingFields || fetchingLegacyField;
 
   // Submit field mutation
   const submitFieldMutation = useSubmitFieldForReview({
@@ -36,13 +50,18 @@ export default function PreviewPage() {
   }, [user, router]);
 
   const handleEdit = () => {
-    router.push('/?edit=true');
+    const editFieldId = fieldData?.id;
+    if (editFieldId) {
+      router.push(`/?edit=true&fieldId=${editFieldId}`);
+    } else {
+      router.push('/?edit=true');
+    }
   };
 
   const handleSubmit = async () => {
     if (fieldData?.id) {
       await submitFieldMutation.mutateAsync({ fieldId: fieldData.id });
-      refetch();
+      fieldId ? refetch() : refetchLegacy();
     }
   };
 
@@ -50,14 +69,18 @@ export default function PreviewPage() {
     if (!fieldData?.id) return;
     try {
       await axiosClient.patch(`/fields/${fieldData.id}/toggle-status`);
-      refetch();
+      fieldId ? refetch() : refetchLegacy();
     } catch (e) {
       console.error(e);
     }
   };
 
+  const handleBackToList = () => {
+    router.push('/field-owner/my-fields');
+  };
+
   // Transform field data to match the formData structure expected by FieldPreview
-  const formData = fieldData ? {
+  const transformFieldToFormData = (fieldData: FieldData) => ({
     fieldName: fieldData.name || '',
     fieldSize: fieldData.size || '',
     terrainType: fieldData.terrainType || '',
@@ -74,20 +97,22 @@ export default function PreviewPage() {
       return acc;
     }, {}) || {},
     streetAddress: fieldData.address || '',
-    apartment: fieldData.apartment || '',
+    apartment: (fieldData as any).apartment || '',
     city: fieldData.city || '',
     county: fieldData.state || '',
     postalCode: fieldData.zipCode || '',
     country: fieldData.country || '',
     images: fieldData.images || [],
-    pricePerHour: fieldData.pricePerHour?.toString() || '',
+    pricePerHour: fieldData.price?.toString() || '',
     bookingDuration: fieldData.bookingDuration || '30min',
     instantBooking: fieldData.instantBooking || false,
     rules: fieldData.rules?.[0] || '',
     policies: fieldData.cancellationPolicy || ''
-  } : null;
+  });
 
-  if (fetchingField) {
+  const formData = fieldData ? transformFieldToFormData(fieldData) : null;
+
+  if (isLoading) {
     return (
       <UserLayout>
         <div className="flex justify-center items-center min-h-[400px]">
@@ -115,13 +140,20 @@ export default function PreviewPage() {
 
   return (
     <UserLayout>
-      <ThankYouModal 
+      <ThankYouModal
         isOpen={showThankYou}
         onGoHome={() => router.push('/')}
-        onPreviewListing={() => router.push('/field-owner/preview')}
+        onPreviewListing={() => {
+          setShowThankYou(false);
+          if (fieldId) {
+            handleBackToList();
+          } else {
+            router.push('/field-owner/preview');
+          }
+        }}
         onClose={() => setShowThankYou(false)}
       />
-      <FieldPreview 
+      <FieldPreview
         formData={formData}
         onEdit={handleEdit}
         onSubmit={handleSubmit}
@@ -129,6 +161,7 @@ export default function PreviewPage() {
         isSubmitted={!!fieldData?.isSubmitted}
         isActive={!!fieldData?.isActive}
         onToggleActive={handleToggleActive}
+        onBack={fieldId ? handleBackToList : undefined}
       />
     </UserLayout>
   );

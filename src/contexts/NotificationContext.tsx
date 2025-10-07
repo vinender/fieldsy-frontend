@@ -73,9 +73,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteNotificationMutation = useDeleteNotification();
   const clearAllMutation = useClearAllNotifications();
-  
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Use React Query data as the source of truth for notifications
+  const notifications = notificationData?.data || [];
+  const unreadCount = unreadData?.count || 0;
   const loading = isLoading;
   // Get auth token from either NextAuth or custom auth
   const getAuthToken = useCallback(() => {
@@ -207,49 +208,41 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         });
       });
 
-      // Handle notifications fetched via socket
+      // Handle notifications fetched via socket - just log, React Query handles the data
       socketInstance.on('notifications-fetched', (data: {
         notifications: Notification[];
         unreadCount: number;
         pagination: any;
       }) => {
         console.log('[NotificationContext] Received notifications from socket:', data);
-        setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
+        // React Query handles the data, just trigger a refetch
+        refetchNotifications();
       });
-      
+
       // Handle notification read acknowledgment
       socketInstance.on('notification-read', (data: {
         notificationId: string;
         unreadCount: number;
       }) => {
         console.log('[NotificationContext] Notification marked as read:', data);
-        setUnreadCount(data.unreadCount || 0);
-        // Update the specific notification in the list
-        setNotifications(prev => prev.map(n => 
-          n.id === data.notificationId ? { ...n, read: true } : n
-        ));
+        // Refetch to get updated data
+        refetchNotifications();
       });
-      
+
       // Handle all notifications read acknowledgment
       socketInstance.on('all-notifications-read', (data: {
         unreadCount: number;
       }) => {
         console.log('[NotificationContext] All notifications marked as read');
-        setUnreadCount(0);
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        // Refetch to get updated data
+        refetchNotifications();
       });
-      
+
       // Handle errors
       socketInstance.on('notifications-error', (data: { error: string }) => {
         console.error('[NotificationContext] Error fetching notifications:', data.error);
         // Fallback to REST API
         refetchNotifications();
-      });
-      
-      // Handle unread count update
-      socketInstance.on('unreadCount', (count: number) => {
-        setUnreadCount(count);
       });
 
       setSocket(socketInstance);

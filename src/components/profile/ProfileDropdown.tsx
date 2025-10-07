@@ -50,7 +50,7 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
         { icon: '/profile/booking.svg', label: "Booking History", href: "/" },
         { icon: '/profile/payout.svg', label: "Payout History", href: "/field-owner/payouts" },
         { icon: '/profile/messages.svg', label: "Messages", href: "/user/messages" },
-        { icon: '/profile/field.svg', label: "My Field", href: "/field-owner/preview" },
+        { icon: '/profile/field.svg', label: "My Fields", href: "/field-owner/my-fields" },
       ]
     : [
         { icon: '/profile/profile.svg', label: "My Profile", href: "/user/profile" },
