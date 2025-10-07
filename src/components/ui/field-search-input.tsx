@@ -266,23 +266,23 @@ export function FieldSearchInput({
       />
 
       {/* Buttons inside input - only visible on desktop */}
-      <div className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-2">
+      <div className="hidden sm:flex absolute right-1 top-1/2 -translate-y-1/2 items-center gap-1">
         <button 
           type="button"
-          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-gray-600 hover:text-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4  text-gray-600 hover:text-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleUseMyLocation}
           disabled={isLoadingLocation}
         >
-          <MapPin className="w-4 h-4" />
-          <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">
+          <MapPin className="w-4 h-4 text-green" />
+          <span className="text-xs text-green underline font-[500] sm:text-sm whitespace-nowrap hidden md:inline">
             {isLoadingLocation ? 'Getting location...' : 'Use My Location'}
           </span>
         </button>
-        <div className="h-6 w-px bg-gray-300"></div>
+        {/* <div className="h-6 w-px bg-gray-300"></div> */}
         <button 
           type="button"
           onClick={() => handleSearch()}
-          className="px-4 sm:px-6 py-2.5 sm:py-3.5 bg-green text-white rounded-full hover:bg-light-green transition font-semibold text-sm sm:text-base"
+          className="px-4 sm:px-8 py-2.5 sm:py-3.5 bg-green text-white rounded-[90px] hover:bg-light-green transition font-semibold text-sm sm:text-base"
         >
           Search
         </button>

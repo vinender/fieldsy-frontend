@@ -1,4 +1,4 @@
-
+import Image from "next/image"
 import { usePublicAboutSettings } from '@/hooks/queries/useAboutSettings';
 
 export function AboutSection() {
@@ -26,7 +26,7 @@ export function AboutSection() {
         <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 mb-8 sm:mb-12 xl:mb-16">
           {/* Dog Image - Full width on mobile/medium, 44% on large */}
           <div className="relative w-full xl:w-[44%] xl:flex-shrink xl:flex-grow-0 xl:min-w-[200px] h-[300px] sm:h-[400px] md:h-[450px] xl:h-auto rounded-2xl overflow-hidden">
-            <img src={dogImage} alt="Happy dog" className="object-cover w-full h-full"/>
+            <Image src={dogImage} alt="Happy dog" fill className="object-cover"/>
           </div>
           
           {/* Container for content blocks - Below image on mobile/medium, beside on large */}
@@ -45,11 +45,11 @@ export function AboutSection() {
                   {dogIcons.slice(0, 5).map((icon, index) => (
                     <div
                       key={index}
-                      className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 rounded-full overflow-hidden flex items-center justify-center ${
+                      className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 rounded-full overflow-hidden flex items-center justify-center relative ${
                         index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-8' : ''
                       }`}
                     >
-                      <img src={icon} alt={`Dog ${index + 1}`} className="w-full h-full object-cover" />
+                      <Image src={icon} alt={`Dog ${index + 1}`} fill className="object-cover" />
                     </div>
                   ))}
                 </div>
@@ -57,9 +57,9 @@ export function AboutSection() {
             </div>
 
           {/* Right Block - Image and Text */}
-            <div className="bg-white rounded-2xl sm:rounded-[32px] p-4 sm:p-6 xl:p-8 shadow-xl flex-1  flex flex-col h-full ">
-              <div className="w-full h-[50%] xl:h-[80%]  flex items-center justify-center"> 
-                <img src={familyImage} alt="Trusted by thousands" className="object-cover rounded-[24px] w-full h-full"/> 
+            <div className="bg-white rounded-2xl sm:rounded-[32px] p-4 sm:p-6 xl:p-2 shadow-xl flex-1  flex flex-col h-full ">
+              <div className="w-full h-[50%] xl:h-[80%]  flex items-center justify-center relative">
+                <Image src={familyImage} alt="Trusted by thousands" fill className="object-cover rounded-[24px]"/>
               </div>
               <div className="h-full xl:h-3/5 flex space-y-5 flex-col justify-center"> 
                 <h3 className="text-lg sm:text-xl xl:text-[24px] text-center leading-[26px] sm:leading-[28px] xl:leading-[30px] font-[600] text-dark-green mb-2 sm:mb-3">

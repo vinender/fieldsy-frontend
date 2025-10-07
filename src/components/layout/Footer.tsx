@@ -1,5 +1,6 @@
 import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export function Footer() {
   return (
@@ -9,7 +10,7 @@ export function Footer() {
           {/* Company Information */}
           <div className="flex flex-col justify-evenly space-y-4">
             <div className="flex items-center justify-start">
-              <img className='object-contain w-32 h-10 sm:w-42 sm:h-12' src='/logo/logo-cream.png'/>
+              <Image className='object-contain w-32 h-10 sm:w-42 sm:h-12' src='/logo/logo-cream.png' alt="Fieldsy logo" width={168} height={48}/>
             </div>
             <p className="text-white/60 leading-6 sm:leading-7 lg:leading-[28px] font-normal text-sm sm:text-base lg:text-[18px]">
               Fieldsy helps UK dog owners find and book secure, private walking fields nearby with GPS search, instant booking, and verified, fully fenced locations.

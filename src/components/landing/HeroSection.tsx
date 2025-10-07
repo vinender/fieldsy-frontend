@@ -107,9 +107,12 @@ export function HeroSection() {
         <div className="relative px-4 sm:px-8 md:px-12 xl:px-20 pb-6 sm:pb-8 md:pb-10 xl:pb-[52px]">
           {/* Dog Image - Positioned absolutely */}
           <div className="hidden xl:block absolute -top-[160px] xl:left-[40%] 2xl:left-[20%]  z-30  ">
-            <img 
-              src="/dog.png" 
+            <Image
+              src="/dog.png"
               alt="Happy Golden Retriever"
+              width={288}
+              height={288}
+              priority
               className="w-72 h-auto object-contain"
               style={{
                 filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.1))'
@@ -130,8 +133,8 @@ export function HeroSection() {
       </p>
       {/* Search Form */}
       <FieldSearchInput
-        placeholder="Search by field name or postcode"
-        className="w-full pl-4 lg:pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
+        placeholder="Enter postcode or location"
+        className="w-full pl-4 lg:pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-[90px] focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
         showRecentSearches={true}
       />
     </div>
@@ -145,9 +148,9 @@ export function HeroSection() {
       </p>
       {/* App Store Buttons */}
       <div className="flex  gap-2 sm:gap-3 w-full max-w-sm">
-        <Image alt='android' src='/android.png' className='w-32 sm:w-40 xl:w-48 object-contain mx-auto sm:mx-0' height={500} width={500} />
+        <Image alt='android' src='/android.svg' className='w-32 sm:w-40 xl:w-48 object-contain mx-auto sm:mx-0' height={800} width={800} />
          
-        <Image alt='ios' src='/ios.png' className='w-32 sm:w-40 xl:w-48 object-contain mx-auto sm:mx-0' height={500} width={500} />
+        <Image alt='ios' src='/ios.svg' className='w-32 sm:w-40 xl:w-48 object-contain mx-auto sm:mx-0' height={800} width={800} />
 
       </div>
     </div>

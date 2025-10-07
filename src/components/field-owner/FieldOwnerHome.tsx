@@ -28,19 +28,31 @@ export default function FieldOwnerHome() {
   const { data: field, isLoading, showAddForm } = useOwnerField();
   const router = useRouter();
   const isEditMode = router.query.edit === 'true';
+  const isAddNewMode = router.query.addNew === 'true';
 
   // Debug logging
   console.log('FieldOwnerHome - field data:', field);
   console.log('FieldOwnerHome - isSubmitted:', field?.isSubmitted);
   console.log('FieldOwnerHome - showAddForm:', showAddForm);
   console.log('FieldOwnerHome - isEditMode:', isEditMode);
+  console.log('FieldOwnerHome - isAddNewMode:', isAddNewMode);
 
   if (isLoading) {
     // Show appropriate skeleton based on what we expect to load
-    if (!field || showAddForm || isEditMode) {
+    if (!field || showAddForm || isEditMode || isAddNewMode) {
       return <FieldOwnerDashboardPageSkeleton />;
     }
     return <BookingHistoryPageSkeleton />;
+  }
+
+  // If addNew mode is explicitly set, show fresh form for adding new field
+  if (isAddNewMode) {
+    console.log('Showing FieldOwnerDashboard - add new mode');
+    return (
+      <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
+        <FieldOwnerDashboard />
+      </Suspense>
+    );
   }
 
   // If no field exists or showAddForm is true, show add-field flow
@@ -52,7 +64,7 @@ export default function FieldOwnerHome() {
       </Suspense>
     );
   }
-  
+
   // If edit mode is explicitly set, show the dashboard form for editing
   if (isEditMode) {
     console.log('Showing FieldOwnerDashboard - edit mode');

@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useOwnerFields } from '@/hooks';
 import { FieldData } from '@/hooks/queries/useFieldQueries';
+import { Eye, Edit } from 'lucide-react';
+import  BackButton  from '@/components/common/BackButton';
 
 export default function MyFieldsPage() {
   const { user } = useAuth();
@@ -22,7 +24,7 @@ export default function MyFieldsPage() {
   }, [user, router]);
 
   const handleAddNewField = () => {
-    router.push('/');
+    router.push('/?addNew=true');
   };
 
   const handleViewField = (fieldId: string) => {
@@ -45,9 +47,10 @@ export default function MyFieldsPage() {
 
   return (
     <UserLayout>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Fields</h1>
+      <div className="max-w-7xl mx-auto px-4 mt-24 py-8 min-h-screen">
+        
+        <div className="flex justify-between items-center mb-8 mt-4">
+        <BackButton size='lg' label='My Fields' />
           <button
             onClick={handleAddNewField}
             className="px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity flex items-center gap-2"
@@ -114,15 +117,28 @@ export default function MyFieldsPage() {
                     <span className="text-green font-bold text-lg">
                       ${field.price || field.pricePerDay}/hour
                     </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditField(field.id);
-                      }}
-                      className="text-green hover:text-green-dark font-semibold"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewField(field.id);
+                        }}
+                        className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
+                        title="Preview"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditField(field.id);
+                        }}
+                        className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
+                        title="Edit"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

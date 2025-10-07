@@ -35,6 +35,7 @@ interface AboutPageProps {
   aboutData?: any
 }
 
+
 export default function AboutPage({ aboutData }: AboutPageProps) {
   return (
     <div className="min-h-screen overflow-x-hidden">

@@ -7,6 +7,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Link from "next/link"
+import Image from "next/image"
 import { useResponsiveRouter } from "@/hooks/useResponsiveRouter"
 import { signIn } from "next-auth/react"
 import { Input } from "@/components/ui/input"
@@ -168,10 +169,11 @@ export default function RegisterForm() {
     <div className="h-[100svh] overflow-hidden flex" style={{ background: 'linear-gradient(179deg, #FFFCF3 0.83%, #F9F0D7 61.62%)' }}>
       {/* Left - Image Grid like Login */}
       <div className="hidden lg:block relative w-[50%] h-screen">
-      <img 
-        src="/login/loginbg.jpg" 
-        alt="Login Background" 
-        className="w-full h-full object-cover" 
+      <Image
+        src="/login/loginbg.jpg"
+        alt="Login Background"
+        fill
+        className="object-cover"
       />
       
       <div className="absolute bottom-0 pb-20 left-0 text-left w-full flex items-  p-6 ">
@@ -217,7 +219,7 @@ export default function RegisterForm() {
                   setShowRoleModal(true)
                 }}
               >
-                <img src="/login/google.png" alt="Google" className={`w-10 h-10 object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
+                <Image src="/login/google.png" alt="Google" width={40} height={40} className={`w-10 h-10 object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
               </button>
               <span className="text-center flex-1 text-sm">Sign up with</span>
               <button 
@@ -229,7 +231,7 @@ export default function RegisterForm() {
                   setShowRoleModal(true)
                 }}
               >
-                <img src="/login/apple.png" alt="Apple" className={`w-10 h-10 object-contain ${isAppleLoading ? 'opacity-50' : ''}`} />
+                <Image src="/login/apple.png" alt="Apple" width={40} height={40} className={`w-10 h-10 object-contain ${isAppleLoading ? 'opacity-50' : ''}`} />
               </button>
             </div>
           </div>
@@ -258,9 +260,10 @@ export default function RegisterForm() {
                   }`}
                   id="DOG_OWNER"
                 >
-                  <img 
-                    src={selectedRole === "DOG_OWNER" ? '/login/dog-owner.svg' : '/login/dog-owner-black.svg'} 
-                    className="w-6 h-6" 
+                  <Image
+                    src={selectedRole === "DOG_OWNER" ? '/login/dog-owner.svg' : '/login/dog-owner-black.svg'}
+                    width={24}
+                    height={24}
                     alt="Dog Owner"
                   /> Dog Owner
                 </button>
@@ -274,9 +277,10 @@ export default function RegisterForm() {
                   }`}
                   id="FIELD_OWNER"
                 >
-                  <img 
-                    src={selectedRole === "FIELD_OWNER" ? '/login/field-owner-white.svg' : '/login/field-owner.svg'} 
-                    className="w-6 h-6" 
+                  <Image
+                    src={selectedRole === "FIELD_OWNER" ? '/login/field-owner-white.svg' : '/login/field-owner.svg'}
+                    width={24}
+                    height={24}
                     alt="Field Owner"
                   /> Field Owner
                 </button>

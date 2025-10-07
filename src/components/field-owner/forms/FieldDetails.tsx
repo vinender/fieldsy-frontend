@@ -5,6 +5,8 @@ import { CustomCheckbox } from '@/components/ui/custom-checkbox';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import { TimeInput } from '@/components/ui/time-input';
 import { usePublicSettings } from '@/hooks/usePublicSettings';
+import { useAmenities } from '@/hooks/api/useAmenities';
+import Image from 'next/image';
 
 interface FieldDetailsProps {
   formData: any;
@@ -14,6 +16,7 @@ interface FieldDetailsProps {
 
 export default function FieldDetails({ formData, setFormData, validationErrors = {} }: FieldDetailsProps) {
   const { data: settings } = usePublicSettings();
+  const { data: amenities, isLoading: amenitiesLoading } = useAmenities();
   const minimumOperatingHours = settings?.minimumFieldOperatingHours || 4;
   const [timeError, setTimeError] = useState('');
 
@@ -364,54 +367,55 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         </h2>
         
         <div className="flex flex-wrap gap-3">
-          {Object.entries({
-            secureFencing: { icon: '/field-details/fence.svg', label: 'Secure Fencing' },
-            waterAccess: { icon: '/add-field/water.svg', label: 'Water Access' },
-            parking: { icon: '/payment/card.svg', label: 'Parking Available' },
-            toilet: { icon: '/field-details/home.svg', label: 'Toilet Facilities' },
-            shelter: { icon: '/add-field/shelter.svg', label: 'Shelter' },
-            wasteDisposal: { icon: '/field-details/bin.svg', label: 'Waste Disposal' },
-            dogAgility: { icon: '/add-field/dog-agility.svg', label: 'Dog Agility' },
-            swimming: { icon: '/add-field/swimming.svg', label: 'Swimming Area' },
-            playArea: { icon: '/add-field/dog-play.svg', label: 'Play Area' },
-            cctv: { icon: '/add-field/cctv.svg', label: 'CCTV Security' },
-            shadeAreas: { icon: '/add-field/tree.svg', label: 'Shade Areas' },
-            lighting: { icon: '/add-field/clock.svg', label: 'Night Lighting' }
-          }).map(([key, { icon, label }]) => (
-            <div
-              key={key}
-              role="button"
-              tabIndex={0}
-              onClick={() => handleAmenityToggle(key)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleAmenityToggle(key);
-                }
-              }}
-              className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer ${
-                formData.amenities[key] 
-                  ? 'bg-cream border-green' 
-                  : 'bg-white border-gray-200 hover:border-green/50'
-              }`}
-              aria-pressed={!!formData.amenities[key]}
-            >
-              <CustomCheckbox
-                checked={formData.amenities[key] || false}
-                onChange={() => handleAmenityToggle(key)}
-              />
-              <div className="flex items-center gap-2">
-                <img 
-                  src={icon} 
-                  alt={label} 
-                  className="w-5 h-5 object-contain"
+          {amenitiesLoading ? (
+            <div className="text-gray-500">Loading amenities...</div>
+          ) : amenities && amenities.length > 0 ? (
+            amenities.map((amenity) => (
+              <div
+                key={amenity.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleAmenityToggle(amenity.name)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleAmenityToggle(amenity.name);
+                  }
+                }}
+                className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer ${
+                  formData.amenities[amenity.name]
+                    ? 'bg-cream border-green'
+                    : 'bg-white border-gray-200 hover:border-green/50'
+                }`}
+                aria-pressed={!!formData.amenities[amenity.name]}
+              >
+                <CustomCheckbox
+                  checked={formData.amenities[amenity.name] || false}
+                  onChange={() => handleAmenityToggle(amenity.name)}
                 />
-                <span className="font-sans text-sm text-dark-green">
-                  {label}
-                </span>
+                <div className="flex items-center gap-2">
+                  {amenity.icon ? (
+                    <div className="relative w-5 h-5">
+                      <Image
+                        src={amenity.icon}
+                        alt={amenity.name}
+                        height={100}
+                        width={100}
+                        className="object-contain "
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 bg-gray-200 rounded" />
+                  )}
+                  <span className="font-sans text-sm text-dark-green">
+                    {amenity.name}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-gray-500">No amenities available</div>
+          )}
         </div>
       </div>
 

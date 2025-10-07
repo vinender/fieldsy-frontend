@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useResetPasswordWithOtp } from "@/hooks/mutations/useOtpMutations"
@@ -149,7 +150,7 @@ export default function ResetPasswordForm() {
           <div className="grid grid-cols-3 gap-2 p-4 w-full h-full">
             {dogImages.map((src, idx) => (
               <div key={idx} className="relative overflow-hidden rounded-lg">
-                <img src={src} alt={`Dog ${idx + 1}`} className="w-full h-full object-cover" />
+                <Image src={src} alt={`Dog ${idx + 1}`} fill className="object-cover" />
               </div>
             ))}
           </div>

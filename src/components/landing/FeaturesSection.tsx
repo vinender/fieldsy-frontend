@@ -1,36 +1,37 @@
 import { Shield, Smartphone, MapPin, Calendar, Users, Smartphone as Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 
 export function FeaturesSection() {
   const features = [
     {
-      icon: "features/icon1.png",
+      icon: "/features/icon1.png",
       title: "Private & Secure Spaces",
       description: "All fields are fully enclosed for safe, stress-free visits."
     },
     {
-      icon: "features/icon2.png",
+      icon: "/features/icon2.png",
       title: "Effortless Booking",
       description: "Search, select, and reserve in just a few taps anytime, anywhere."
     },
     {
-      icon: "features/icon3.png",
+      icon: "/features/icon3.png",
       title: "GPS-Powered Discovery",
       description: "Find nearby dog fields instantly using your location or postcode."
     },
     {
-      icon: "features/icon4.png",
+      icon: "/features/icon4.png",
       title: "Flexible Scheduling",
       description: "Book by the hour, on your time—no rigid rules or waiting lists."
     },
     {
-      icon: "features/icon5.png",
+      icon: "/features/icon5.png",
       title: "Trusted Community",
       description: "Built by dog lovers, for dog lovers—backed by real users and local field owners."
     },
     {
-      icon: "features/icon6.png",
+      icon: "/features/icon6.png",
       title: "Two Apps, One Mission",
       description: "Connecting paws with places whether you walk or host."
     }
@@ -46,8 +47,8 @@ export function FeaturesSection() {
           </h2>
           
           {/* Download App Button */}
-          <div className="">
-          <img src='/features/download.png' className="w-full h-full object-contain"/>
+          <div className="relative w-full h-16">
+          <Image src='/features/download.png' alt="Download app" fill className="object-contain"/>
 
 
           </div>
@@ -73,10 +74,10 @@ export function FeaturesSection() {
           {features.map((feature, index) => (
             <div key={index} className="group">
               <div className="flex flex-col items-start gap-4">
-                <div className="w-12 h-12 bg-[#E8F5E8] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#7CB342] transition-colors">
+                <div className="w-12 h-12 bg-[#E8F5E8] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#7CB342] transition-colors relative">
                   <span className="text-2xl group-hover:text-white transition-colors text-[#7CB342]">
                     {/* {feature.icon} */}
-                    <img src={feature.icon} className="object-contain w-full h-full"/>
+                    <Image src={feature.icon} alt="Feature icon" fill className="object-contain p-2"/>
                   </span>
                 </div>
                 <div>

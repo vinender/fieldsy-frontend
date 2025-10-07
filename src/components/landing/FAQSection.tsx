@@ -1,5 +1,6 @@
 import { Plus, Minus } from "lucide-react"
 import { useState } from "react"
+import Image from "next/image"
 
 export function FAQSection() {
   const [openFaq, setOpenFaq] = useState(-1)
@@ -79,18 +80,21 @@ export function FAQSection() {
           <div className="relative rounded-3xl p-20 overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0">
-              <img 
+              <Image
                 src="/faq/dog-bg.png"
                 alt="Background"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
-            
+
             {/* Dog Image */}
             <div className="relative h-full flex items-center justify-center">
-              <img 
+              <Image
                 src="/faq/dog.png"
                 alt="Bernese Mountain Dog"
+                width={400}
+                height={400}
                 className="w-full h-full object-contain"
               />
             </div>

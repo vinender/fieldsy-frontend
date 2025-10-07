@@ -187,7 +187,7 @@ export function Header() {
                   )}
                   aria-label="Messages"
                 >
-                  <img src='/header/msg.svg' className={cn("h-6 w-6", textColor)} />
+                  <Image src='/header/msg.svg' alt="Messages" width={24} height={24} className={cn("h-6 w-6", textColor)} />
                   {unreadMessagesCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blue-500 rounded-full shadow-md">
                       <span className="text-[11px] text-white font-bold">
@@ -208,7 +208,7 @@ export function Header() {
                   aria-label="Notifications"
                   onClick={() => setNotificationsOpen(true)}
                 >
-                  <img src='/header/bell.svg' className={cn("h-6 w-6", textColor)} />
+                  <Image src='/header/bell.svg' alt="Notifications" width={24} height={24} className={cn("h-6 w-6", textColor)} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blood-red rounded-full shadow-md">
                       <span className="text-[11px] text-white font-bold">
@@ -226,11 +226,12 @@ export function Header() {
                     className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                     aria-label="User menu"
                   >
-                    <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white">
-                      <img 
-                        src={getUserImage(currentUser)} 
-                        alt={currentUser?.name || "Profile"} 
-                        className="h-full w-full object-cover"
+                    <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white relative">
+                      <Image
+                        src={getUserImage(currentUser)}
+                        alt={currentUser?.name || "Profile"}
+                        fill
+                        className="object-cover"
                         onError={(e) => {
                           e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
                         }}
@@ -299,7 +300,7 @@ export function Header() {
                   )}
                   aria-label="Messages"
                 >
-                  <img src='/header/msg.svg' className={cn("h-5 w-5", textColor)} />
+                  <Image src='/header/msg.svg' alt="Messages" width={20} height={20} className={cn("h-5 w-5", textColor)} />
                   {unreadMessagesCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 bg-blue-500 rounded-full shadow-md">
                       <span className="text-[10px] text-white font-bold">
@@ -320,7 +321,7 @@ export function Header() {
                   aria-label="Notifications"
                   onClick={() => setNotificationsOpen(true)}
                 >
-                  <img src='/header/bell.svg' className={cn("h-5 w-5", textColor)} />
+                  <Image src='/header/bell.svg' alt="Notifications" width={20} height={20} className={cn("h-5 w-5", textColor)} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 bg-blood-red rounded-full shadow-md">
                       <span className="text-[10px] text-white font-bold">
@@ -336,11 +337,12 @@ export function Header() {
                   className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                   aria-label="User menu"
                 >
-                  <div className="h-9 w-9 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white">
-                    <img 
-                      src={getUserImage(currentUser)} 
-                      alt={currentUser?.name || "Profile"} 
-                      className="h-full w-full object-cover"
+                  <div className="h-9 w-9 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white relative">
+                    <Image
+                      src={getUserImage(currentUser)}
+                      alt={currentUser?.name || "Profile"}
+                      fill
+                      className="object-cover"
                       onError={(e) => {
                         e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
                       }}
@@ -517,11 +519,12 @@ export function Header() {
                 <div className="space-y-1">
                   {/* User profile section */}
                   <div className="flex items-center p-4">
-                    <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden">
-                      <img 
-                        src={getUserImage(currentUser)} 
-                        alt="Profile" 
-                        className="h-full w-full object-cover"
+                    <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden relative">
+                      <Image
+                        src={getUserImage(currentUser)}
+                        alt="Profile"
+                        fill
+                        className="object-cover"
                         onError={(e) => {
                           e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
                         }}

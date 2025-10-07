@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { ImageGrid } from "@/components/forms/ImageGrid"
 import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 import Link from "next/link"
+import Image from "next/image"
 import { useLoginWithOtpCheck } from "@/hooks/mutations/useOtpMutations"
 import { useStorePendingRole } from "@/hooks/mutations/useAuthMutations"
 
@@ -153,19 +154,21 @@ export function LoginForm() {
         description="Find secure fields nearby, book in seconds, and give your dog the off-lead freedom they deserve—all with peace of mind."
       /> */}
      <div className="hidden lg:block relative w-[50%] h-screen">
-      <img 
-        src="/login/loginbg.jpg" 
-        alt="Login Background" 
-        className="w-full h-full object-cover" 
+      <Image
+        src="/login/loginbg.jpg"
+        alt="Login Background"
+        fill
+        className="object-cover"
+        priority
       />
-      
+
       <div className="absolute bottom-0 pb-20 left-0 text-left w-full flex items-  p-6 ">
         <div className="w-full max-w-full text-left text-left ">
           <h1 className="text-3xl md:text-4xl font-bold text-green">
             Fieldsy Makes Dog Walking Easy
           </h1>
           <p className="text-gray-text text-[16px] leading-[24px] font-[400]  mt-2">
-            Find secure fields nearby, book in seconds, and give your dog the 
+            Find secure fields nearby, book in seconds, and give your dog the
             off-lead freedom they deserve—all with peace of mind.
           </p>
         </div>
@@ -200,26 +203,26 @@ export function LoginForm() {
             <div className="w-full flex items-center justify-between p-1 rounded-[70px] text-white font-medium bg-light-green">
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
+                className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity relative"
                 disabled={isGoogleLoading || loginWithOtpCheckMutation.isLoading}
                 onClick={() => {
                   setPendingProvider('google')
                   setShowRoleModal(true)
                 }}
               >
-                <img src="/login/google.png" alt="Google" className={`w-12 h-12 object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
+                <Image src="/login/google.png" alt="Google" width={48} height={48} className={`object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
               </button>
               <span className="text-center flex-1">Login with</span>
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
+                className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity relative"
                 disabled={isAppleLoading || loginWithOtpCheckMutation.isLoading}
                 onClick={() => {
                   setPendingProvider('apple')
                   setShowRoleModal(true)
                 }}
               >
-                <img src="/login/apple.png" alt="Apple" className={`w-12 h-12 object-contain ${isAppleLoading ? 'opacity-50' : ''}`} />
+                <Image src="/login/apple.png" alt="Apple" width={48} height={48} className={`object-contain ${isAppleLoading ? 'opacity-50' : ''}`} />
               </button>
             </div>
           </div>

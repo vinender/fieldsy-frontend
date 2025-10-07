@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import Image from "next/image"
 
 export  function HowItWorksSection() {
   const [activeStep, setActiveStep] = useState(0)
@@ -84,11 +85,11 @@ export  function HowItWorksSection() {
                   <div className="flex items-start gap-4">
                     <div className={`w-12 h-12 group rounded-xl flex items-center justify-center text-2xl transition-all duration-300 ${
                       activeStep === index
-                        ? 'bg-[#4A7C59] text-white '
+                        ? 'text-white '
                         : 'bg-cream'
                     }`}>
-                      <img src={step.icon} className={`w-full h-full ${index === 0 ? 'p-2 bg-cream' : ' bg-cream'} rounded-xl group-hover:bg-cream object-contain`}/>
-                       
+                      <Image src={step.icon} alt="Step icon" width={48} height={48} className={`w-full h-full ${index === 0 ? 'p-2 bg-cream' : ' bg-cream'} rounded-xl group-hover:bg-cream object-contain`}/>
+
                     </div>
                     <div className="flex-1">
                       <h3 className="xl:text-[24px] font-[600] xl:leading-[30px] mb-2 text-dark-green">
@@ -108,7 +109,7 @@ export  function HowItWorksSection() {
 
           {/* Right Section - Dynamic Image/Video */}
           <div className="relative h-full">
-            <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-gray-900">
+            <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl ">
               {steps[activeStep].image.endsWith('.mp4') && !videoError ? (
                 <video
                   ref={videoRef}
@@ -138,18 +139,20 @@ export  function HowItWorksSection() {
                   <source src={steps[activeStep].image} type="video/mp4" />
                   {/* Fallback to image if video doesn't load */}
                   {(steps[activeStep] as any).thumbnail && (
-                    <img 
+                    <Image
                       src={(steps[activeStep] as any).thumbnail}
                       alt={steps[activeStep].title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   )}
                 </video>
               ) : (
-                <img 
+                <Image
                   src={(steps[activeStep] as any).thumbnail || steps[activeStep].image}
                   alt={steps[activeStep].title}
-                  className="w-full h-full object-cover transition-opacity duration-500"
+                  fill
+                  className="object-cover transition-opacity duration-500"
                 />
               )}
               {/* Overlay gradient for better text visibility */}

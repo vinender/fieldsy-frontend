@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Star } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 export function TestimonialsSection() {
   const [currentSlide, setCurrentSlide] = useState(1) // Starting at slide 2 (index 1)
@@ -62,19 +63,19 @@ export function TestimonialsSection() {
         {/* Testimonial Card */}
         <div className="relative w-full mx-auto px-14 sm:px-16 md:px-20 lg:px-24">
           {/* Navigation Arrows */}
-          <button 
+          <button
             onClick={prevSlide}
             className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10 bg-light-green"
           >
-           <img src='/testimonial/left.png' className="w-full h-full object-contain"/>
+           <Image src='/testimonial/left.png' alt="Previous" width={48} height={48} className="w-full h-full object-contain"/>
           </button>
           
-          <button 
+          <button
             onClick={nextSlide}
             className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 z-10 bg-light-green"
           >
             {/* <ChevronRight className="w-6 h-6 text-white" /> */}
-            <img src='/testimonial/right.png' className="w-full h-full object-contain"/>
+            <Image src='/testimonial/right.png' alt="Next" width={48} height={48} className="w-full h-full object-contain"/>
           </button>
           
           {/* Main Testimonial Card */}
@@ -82,11 +83,12 @@ export function TestimonialsSection() {
             <div className="flex flex-col lg:flex-row items-start gap-6 sm:gap-8 lg:gap-10 xl:gap-12">
               {/* Profile Picture */}
               <div className="flex-shrink-0 mx-auto lg:mx-0">
-                <div className="w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 xl:w-[263px] xl:h-[263px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-100">
-                  <img 
+                <div className="w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 xl:w-[263px] xl:h-[263px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-100 relative">
+                  <Image
                     src={`https://images.unsplash.com/photo-${currentSlide % 2 === 0 ? '1507003211169-0a1dd7228f2d' : '1633332755192-727a05c4013d'}?w=400&h=400&fit=crop`}
                     alt={currentTestimonial.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
               </div>
@@ -94,7 +96,7 @@ export function TestimonialsSection() {
               {/* Testimonial Content */}
               <div className="flex-1 w-full">
                 <div className="flex items-start justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
-                  <img src='/testimonial/quotes.png' className='w-8 h-8 sm:w-10 sm:h-10 object-contain'/>
+                  <Image src='/testimonial/quotes.png' alt="Quotes" width={40} height={40} className='w-8 h-8 sm:w-10 sm:h-10 object-contain'/>
                   {/* <div className="text-6xl leading-none" style={{ color: '#8FB653' }}>"</div> */}
                   <div className="flex gap-1 mt-1 sm:mt-2">
                     {[1, 2, 3, 4, 5].map((star) => (

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { toast } from "sonner"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { useVerifyOtp, useResendOtp, useVerifyPasswordResetOtp } from "@/hooks/mutations/useOtpMutations"
 import { signIn } from "next-auth/react"
 
@@ -200,7 +201,7 @@ export default function OTPVerificationForm() {
           <div className="grid grid-cols-3 gap-2 p-4 w-full h-full">
             {dogImages.map((src, idx) => (
               <div key={idx} className="relative overflow-hidden rounded-lg">
-                <img src={src} alt={`Dog ${idx + 1}`} className="w-full h-full object-cover" />
+                <Image src={src} alt={`Dog ${idx + 1}`} fill className="object-cover" />
               </div>
             ))}
           </div>

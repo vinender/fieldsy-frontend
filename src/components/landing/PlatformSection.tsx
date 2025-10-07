@@ -1,11 +1,21 @@
 import { useState } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/router"
 import { usePlatformSettings } from "@/hooks/queries/usePlatformSettings"
+import Image from "next/image"
 
 export function PlatformSection() {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null)
   const [hoveredImage, setHoveredImage] = useState<string | null>(null)
   const { settings, loading } = usePlatformSettings();
-  
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  // Don't render if user is logged in
+  if (session) {
+    return null;
+  }
+
   // Show loading state or skeleton if data is loading
   if (loading) {
     return (
@@ -20,6 +30,10 @@ export function PlatformSection() {
       </section>
     );
   }
+
+  const handleLoginRedirect = () => {
+    router.push('/login');
+  };
   
   // Create platform cards from dynamic settings
   const platformCards = [
@@ -62,11 +76,14 @@ export function PlatformSection() {
             >
               {/* Image Container - Fixed heights for consistency */}
               <div className="h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] xl:h-[400px] p-2 relative overflow-hidden">
-                <img 
-                  src={card.image}
-                  alt={card.imageAlt}
-                  className="w-full h-full rounded-[24px] object-cover"
-                />
+                <div className="relative w-full h-full rounded-[24px] overflow-hidden">
+                  <Image
+                    src={card.image}
+                    alt={card.imageAlt}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               </div>
               
               {/* Content - Flexible height */}
@@ -75,7 +92,7 @@ export function PlatformSection() {
                   <h3 className="text-base sm:text-[18px] leading-5 sm:leading-[20px] font-[700] text-green mb-2">
                     {card.subtitle}
                   </h3>
-                  <h4 className="text-xl sm:text-2xl md:text-[28px] lg:text-[30px] xl:text-[32px] font-[600] w-full sm:w-4/5 md:w-3/4 lg:w-4/5 xl:w-2/3 leading-6 sm:leading-8 md:leading-[36px] lg:leading-[38px] xl:leading-[40px] text-gray-900">
+                  <h4 className="text-xl sm:text-2xl md:text-[28px] lg:text-[30px] xl:text-[32px] font-[600] w-full leading-6 sm:leading-8 md:leading-[36px] lg:leading-[38px] xl:leading-[40px] text-gray-900">
                     {card.title}
                   </h4>
                 </div>
@@ -89,14 +106,17 @@ export function PlatformSection() {
                   ))}
                 </ul>
 
-                <div 
+                <div
                   className="absolute right-0 bottom-0"
                   onMouseEnter={() => setHoveredImage(card.id)}
                   onMouseLeave={() => setHoveredImage(null)}
+                  onClick={handleLoginRedirect}
                 >
-                  <img 
+                  <Image
                     src={hoveredImage === card.id ? "/platform-section/hover.png" : "/platform-section/wave.png"}
                     alt=""
+                    width={96}
+                    height={96}
                     className="h-16 w-16 sm:h-18 sm:w-18 md:h-20 md:w-20 lg:h-22 lg:w-22 xl:h-24 xl:w-24 object-contain transition-all duration-300 cursor-pointer"
                   />
                 </div>

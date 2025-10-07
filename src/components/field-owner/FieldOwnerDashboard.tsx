@@ -161,13 +161,16 @@ export default function AddYourField() {
     policies: ''
   });
 
-  // Fetch existing field data using custom hook
-  const { 
-    data: fieldData, 
+  
+  const isAddNewMode = router.query.addNew === 'true';
+
+  // Fetch existing field data using custom hook (skip if adding new field)
+  const {
+    data: fieldData,
     isLoading: fetchingField,
     refetch
   } = useOwnerField({
-    enabled: !!user && user.role === 'FIELD_OWNER',
+    enabled: !!user && user.role === 'FIELD_OWNER' && !isAddNewMode,
   });
 
   // Check if current section has been completed
@@ -184,9 +187,46 @@ export default function AddYourField() {
     return sectionMap[activeSection] || false;
   };
 
-  // Load field data when fetched
+  // Reset form when in add new mode
   useEffect(() => {
-    if (fieldData) {
+    if (isAddNewMode) {
+      setFieldId(null);
+      setFormData({
+        fieldName: '',
+        fieldSize: '',
+        terrainType: '',
+        fenceType: '',
+        fenceSize: '',
+        surfaceType: '',
+        maxDogs: '',
+        description: '',
+        openingDays: '',
+        startTime: '',
+        endTime: '',
+        amenities: {},
+        streetAddress: '',
+        apartment: '',
+        city: '',
+        county: '',
+        postalCode: '',
+        country: '',
+        latitude: null,
+        longitude: null,
+        images: [],
+        price: '',
+        bookingDuration: '30min',
+        instantBooking: false,
+        requireDeposit: false,
+        rules: '',
+        policies: ''
+      });
+      console.log('Form reset for add new mode');
+    }
+  }, [isAddNewMode]);
+
+  // Load field data when fetched (only if not in add new mode)
+  useEffect(() => {
+    if (fieldData && !isAddNewMode) {
       setFieldId(fieldData.id);
       console.log('fieldData',fieldData)
       // Pre-populate form data
@@ -222,7 +262,7 @@ export default function AddYourField() {
         policies: fieldData.cancellationPolicy || ''
       }));
     }
-  }, [fieldData]);
+  }, [fieldData, isAddNewMode]);
 
   // Remove auto-save - only save on button click
 
@@ -274,19 +314,34 @@ export default function AddYourField() {
 
   // Check if user can navigate to a specific section
   const canNavigateTo = (sectionId: string): boolean => {
+    // In add new mode, enforce sequential completion
+    if (isAddNewMode) {
+      const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+      const targetIndex = sections.indexOf(sectionId);
+
+      // Always allow first tab
+      if (sectionId === 'field-details') {
+        return true;
+      }
+
+      // For other sections, check if previous section is completed
+      // Since we don't have fieldData in add new mode, use local state
+      return false; // Only allow next section after current is completed via button
+    }
+
     // If all sections are completed (field is submitted), allow free navigation
-    if (fieldData && 
-        fieldData.fieldDetailsCompleted && 
-        fieldData.uploadImagesCompleted && 
-        fieldData.pricingAvailabilityCompleted && 
+    if (fieldData &&
+        fieldData.fieldDetailsCompleted &&
+        fieldData.uploadImagesCompleted &&
+        fieldData.pricingAvailabilityCompleted &&
         fieldData.bookingRulesCompleted) {
       return true; // Allow editing any tab when field is fully submitted
     }
-    
+
     const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
     const targetIndex = sections.indexOf(sectionId);
     const currentIndex = sections.indexOf(activeSection);
-    
+
     // Always allow first tab
     if (sectionId === 'field-details') {
       return true;
@@ -453,10 +508,10 @@ export default function AddYourField() {
         {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar - Keep on left for large screens */}
-          <Sidebar 
-            activeSection={activeSection} 
-            onSectionChange={setActiveSection} 
-            fieldData={fieldData} 
+          <Sidebar
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+            fieldData={isAddNewMode ? null : fieldData}
             canNavigateTo={canNavigateTo}
           />
 
