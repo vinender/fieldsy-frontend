@@ -121,7 +121,7 @@ export function useCancelBooking(
 
   const mutation = useMutation({
     mutationFn: async ({ bookingId, reason }: CancelBookingData) => {
-      const response = await axiosClient.post(`/bookings/${bookingId}/cancel`, { reason });
+      const response = await axiosClient.patch(`/bookings/${bookingId}/cancel`, { reason });
       return response.data;
     },
     onSuccess: (result, variables) => {
