@@ -1052,7 +1052,24 @@ const BookingHistoryPage = () => {
             setBookingToCancel(null);
           }}
           booking={bookingToCancel}
-          onConfirm={handleCancelBooking}
+          onSuccess={() => {
+            // Update the booking status locally immediately
+            setBookings(prevBookings =>
+              prevBookings.map(booking =>
+                booking._id === bookingToCancel._id
+                  ? { ...booking, status: 'cancelled' as const }
+                  : booking
+              )
+            );
+
+            setIsCancelModalOpen(false);
+            setBookingToCancel(null);
+
+            // Refresh from server to ensure consistency
+            setTimeout(() => {
+              fetchBookings();
+            }, 500);
+          }}
         />
       )}
 

@@ -20,6 +20,7 @@ interface CancelBookingModalProps {
     createdAt: string;
   };
   onConfirm?: (bookingId: string, reason: string) => void;
+  onSuccess?: () => void; // Callback after successful cancellation
 }
 
 export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
@@ -27,6 +28,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
   onClose,
   booking,
   onConfirm,
+  onSuccess: onSuccessCallback,
 }) => {
   const [reason, setReason] = useState('');
   const cancellationWindowHours = useCancellationWindow();
@@ -49,9 +51,9 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
       toast.success(message);
       onClose();
 
-      // Call parent onConfirm if provided (for legacy support)
-      if (onConfirm) {
-        onConfirm(booking._id, reason);
+      // Call the success callback to refresh the UI
+      if (onSuccessCallback) {
+        onSuccessCallback();
       }
     },
     onError: (error: any) => {
