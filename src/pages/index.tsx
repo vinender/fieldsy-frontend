@@ -95,7 +95,9 @@ export default function HomePage() {
     return <FieldOwnerHome />
   }
 
+
   // Otherwise show the regular landing page
+  
   return (
     <PageWithSkeleton skeleton={<HeroSkeleton />}>
       <div className="bg-light-cream overflow-x-hidden">

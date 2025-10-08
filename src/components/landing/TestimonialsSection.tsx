@@ -5,6 +5,7 @@ import Image from "next/image"
 
 export function TestimonialsSection() {
   const [currentSlide, setCurrentSlide] = useState(1) // Starting at slide 2 (index 1)
+  const [expandedSlides, setExpandedSlides] = useState<number[]>([])
   
   const testimonials = [
     {
@@ -47,6 +48,14 @@ export function TestimonialsSection() {
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+  }
+
+  const toggleExpand = (index: number) => {
+    setExpandedSlides(prev =>
+      prev.includes(index)
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    )
   }
 
   const currentTestimonial = testimonials[currentSlide]
@@ -108,10 +117,27 @@ export function TestimonialsSection() {
                   </div>
                 </div>
                 
-                <p className="text-dark-green font-normal min-h-[80px] sm:min-h-[100px] lg:min-h-[110px] xl:min-h-[120px] leading-6 sm:leading-8 lg:leading-9 xl:leading-[40px] text-base sm:text-lg md:text-xl lg:text-[22px] xl:text-[24px] mb-4 sm:mb-6">
-                  {currentTestimonial.text}
-                </p>
-                
+                <div className="mb-4 sm:mb-6">
+                  <p
+                    className={cn(
+                      "text-dark-green font-normal text-base sm:text-lg md:text-xl lg:text-[22px] xl:text-[24px] transition-all",
+                      "leading-7 sm:leading-8 lg:leading-9 xl:leading-[44px]",
+                      expandedSlides.includes(currentSlide)
+                        ? ""
+                        : "line-clamp-3 sm:line-clamp-4 lg:line-clamp-4"
+                    )}
+                  >
+                    {currentTestimonial.text}
+                  </p>
+
+                  <button
+                    onClick={() => toggleExpand(currentSlide)}
+                    className="text-green hover:text-dark-green font-medium text-sm sm:text-base mt-2 transition-colors"
+                  >
+                    {expandedSlides.includes(currentSlide) ? 'Read less' : 'Read more'}
+                  </button>
+                </div>
+
                 <div>
                   <p className="font-bold text-gray-900 text-base sm:text-lg">{currentTestimonial.name}</p>
                   <p className="text-gray-500 text-sm sm:text-base">{currentTestimonial.role}</p>

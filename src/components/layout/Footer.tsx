@@ -8,7 +8,7 @@ export function Footer() {
       <div className="mx-auto w-full   py-8 sm:py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
           {/* Company Information */}
-          <div className="flex flex-col justify-evenly space-y-4">
+          <div className="flex flex-col justify-evenly space-y-10">
             <div className="flex items-center justify-start">
               <Image className='object-contain w-32 h-10 sm:w-42 sm:h-12' src='/logo/logo-cream.png' alt="Fieldsy logo" width={168} height={48}/>
             </div>
@@ -24,9 +24,9 @@ export function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Quick Links</h3>
-            <ul className="space-y-2 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[40px] font-normal">
+            <ul className="space-y-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li><Link href="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link></li>
               <li><a href="#" className="text-white/80 hover:text-white transition-colors">Why Choose Us</a></li>
               <li><Link href="/how-it-works" className="text-white/80 hover:text-white transition-colors">How It Works</Link></li>
@@ -36,9 +36,9 @@ export function Footer() {
           </div>
 
           {/* Other Links */}
-          <div className="space-y-4">
+          <div className="space-y-6">
           <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Other Links</h3>
-            <ul className="space-y-2 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[40px] font-normal">
+            <ul className="space-y-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li><Link href="/faqs" className="text-white/80 hover:text-white transition-colors">FAQ&apos;s</Link></li>
               <li><Link href="/terms-conditions" className="text-white/80 hover:text-white transition-colors">Terms & Conditions</Link></li>
               <li><Link href="/privacy-policy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link></li>
@@ -46,9 +46,9 @@ export function Footer() {
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-4">
+          <div className="space-y-6">
           <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
-            <ul className="space-y-3 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[40px] font-normal">
+            <ul className="space-y-5 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li className="flex items-start sm:items-center space-x-3">
                 <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0">
                   <Phone className="w-4 h-4 text-white" />
@@ -65,7 +65,7 @@ export function Footer() {
                 <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-white/80 text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
+                <span className="text-white/80 w-60  text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
               </li>
             </ul>
           </div>

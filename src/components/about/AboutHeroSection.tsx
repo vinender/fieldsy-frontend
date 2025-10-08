@@ -1,5 +1,6 @@
 import { Play, Apple } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { DownloadAppButton } from "@/components/ui/download-app-button"
 import Image from "next/image"
 
 
@@ -25,8 +26,8 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   // Default data for fallback
   const defaultData = {
     sectionTitle: 'About Us',
-    mainTitle: 'Find Safe, Private Dog Walking Fields Near You',
-    description: 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely. Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK—quickly and effortlessly.',
+    mainTitle: 'All-in-One Platform for Smarter Field Operations',
+    description: 'Fieldsy brings every aspect of field operations into a single, easy-to-use platform. From property claims and terrain tracking to team coordination and document management—we help you digitize, streamline, and scale your fieldwork with confidence. No more juggling spreadsheets, paperwork, or disconnected tools. With Fieldsy, everything you need is at your fingertips, wherever the field takes you.',
     buttonText: 'Download App',
     image: '/about/dog2.png',
     stats: [
@@ -36,7 +37,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
       { value: '100%', label: 'Safe, Secure & Fenced Spaces', order: 4 }
     ]
   }
-
+  
   const content = data || defaultData
   const sortedStats = content.stats.sort((a, b) => a.order - b.order)
 
@@ -101,14 +102,8 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
             <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-8 sm:mb-10 leading-relaxed sm:leading-relaxed lg:leading-[30px] font-[400]">
               {content.description}
             </p>
-              
-            <button 
-              className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors text-sm sm:text-base"
-            >
-              {content.buttonText}
-              <Play className="w-5 h-5 fill-white" />
-              <Apple className="w-5 h-5" />
-            </button>
+
+            <DownloadAppButton />
           </div>
           
           {/* Right Image */}

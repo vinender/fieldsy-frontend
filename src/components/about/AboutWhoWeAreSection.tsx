@@ -80,7 +80,7 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
               <img 
                 src={rightCardImage}
                 alt="Happy dog in field"
-                className="rounded-2xl w-full h-[120px] sm:h-[150px] md:h-[200px] lg:h-[250px] object-cover"
+                className=" w-full h-[120px] sm:h-[150px] md:h-[200px] lg:h-[250px] object-cover"
               />
             </div>
             
@@ -96,6 +96,7 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
               {rightCardDescription}
             </p>
           </div>
+          
         </div>
       </div>
     </section>

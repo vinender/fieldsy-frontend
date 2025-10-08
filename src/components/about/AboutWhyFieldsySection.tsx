@@ -1,4 +1,5 @@
 import { Play, Apple } from "lucide-react"
+import { DownloadAppButton } from "@/components/ui/download-app-button"
 
 interface AboutWhyFieldsySectionProps {
   data?: {
@@ -28,10 +29,10 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
   const boxDescription = data?.boxDescription || "Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we're here to help you work smarter on-site, every day."
   const buttonText = data?.buttonText || 'Download App'
   const features = data?.features?.length ? data.features : [
-    { icon: 'CheckCircle', title: 'Secure & Private', description: 'All fields are fully fenced and exclusively yours during booking', order: 1 },
-    { icon: 'MapPin', title: 'Local & Convenient', description: 'Find fields near you with easy access and parking', order: 2 },
-    { icon: 'Calendar', title: 'Flexible Booking', description: 'Book by the hour, when it suits your schedule', order: 3 },
-    { icon: 'Shield', title: 'Trusted Community', description: 'All field owners are verified and reviewed', order: 4 }
+    { icon: 'CheckCircle', title: 'Secure & Private', description: 'Designed with compliance, transparency, and usability in mind', order: 1 },
+    { icon: 'MapPin', title: 'Local & Convenient', description: 'Lightweight, mobile-friendly, and easy to use', order: 2 },
+    { icon: 'Calendar', title: 'Flexible Booking', description: 'Scalable across teams, projects, and regions', order: 3 },
+    { icon: 'Shield', title: 'Trusted Community', description: 'Built for the field, not just the office', order: 4 }
   ]
 
 
@@ -39,30 +40,30 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-light-cream">
      
       <div className="w-full">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-12  lg:gap-16 items-center">
          
           {/* Left Image */}
-          <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl mb-8 lg:mb-0">
+          <div className="rounded-2xl sm:rounded-[40px] overflow-hidden -xl mb-8 lg:mb-0">
             <img 
               src={image}
               alt="Dog jumping over agility obstacle"
-              className="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover"
+              className="w-full h-full  object-cover"
             />
           </div>
           
 
           {/* Right Content */}
-          <div className="w-full bg-white rounded-2xl shadow-xl p-4">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-dark-green mb-6 sm:mb-8 leading-tight lg:leading-[60px]">
+          <div className="w-full flex flex-col bg-transparent rounded-2xl h-full space-y-4 justify-between lg:space-y-6 -xl p-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-dark-green  leading-tight lg:leading-[60px]">
               {title}
             </h2>
             
-            <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-6 sm:mb-8 leading-relaxed lg:leading-[30px] font-[400]">
+            <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80  leading-relaxed lg:leading-[30px] font-[400]">
               {subtitle}
             </p>
 
 
-            <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-12">
+            <ul className="space-y-1  ">
               {features.sort((a, b) => a.order - b.order).map((feature, index) => (
                 <li key={feature.order || index} className="flex items-start">
                   <span className="text-xl sm:text-2xl mr-3 sm:mr-4 text-light-green">•</span>
@@ -75,31 +76,48 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
             
 
             <div
-              className="p-6 sm:p-8 shadow-sm border-l-4 border-l-light-green rounded-2xl"
+              className="hidden xl:flex p-6 sm:p-8 -sm border-l-4 border-l-light-green rounded"
               style={{
                 background: "linear-gradient(90deg, rgba(143, 179, 102, 0.20) 0%, rgba(143, 179, 102, 0.00) 100%), white"
               }}
               > 
-              <h3 className="text-lg sm:text-xl lg:text-[24px] font-[700] text-dark-green mb-3 sm:mb-4 leading-tight lg:leading-[32px]">
+              <h3 className="text-lg sm:text-xl lg:text-[24px] font-[700] text-dark-green mb-3  leading-tight lg:leading-[32px]">
                 {boxTitle}
               </h3>
-              <p className="text-sm lg:text-[16px] text-dark-green/80 mb-4 sm:mb-6 leading-relaxed lg:leading-[24px] font-[400]">
+              <p className="text-sm lg:text-[16px] text-dark-green/80 leading-relaxed lg:leading-[24px] font-[400]">
                 {boxDescription}
               </p>
             </div>
 
-            
-            <button 
-              className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors mt-6 sm:mt-8 text-sm sm:text-base"
-            >
-              {buttonText}
-              <Play className="w-5 h-5 fill-white" />
-              <Apple className="w-5 h-5" />
-            </button>
+
+            <div className="hidden xl:flex mt-6 sm:mt-8">
+              <DownloadAppButton />
+            </div>
+
+             
 
           </div>
 
+       
+
         </div>
+        <div
+              className="flex xl:hidden w-full p-6 sm:p-8 -sm border-l-4 border-l-light-green rounded"
+              style={{
+                background: "linear-gradient(90deg, rgba(143, 179, 102, 0.20) 0%, rgba(143, 179, 102, 0.00) 100%), white"
+              }}
+              > 
+              <h3 className="text-lg sm:text-xl lg:text-[24px] font-[700] text-dark-green mb-3  leading-tight lg:leading-[32px]">
+                {boxTitle}
+              </h3>
+              <p className="text-sm lg:text-[16px] text-dark-green/80 leading-relaxed lg:leading-[24px] font-[400]">
+                {boxDescription}
+              </p>
+            </div>
+        <div className="flex xl:hidden mt-6 sm:mt-8">
+              <DownloadAppButton />
+        </div>
+        
       </div>
     </section>
   )

@@ -16,7 +16,7 @@ interface AboutWhatWeDoSectionProps {
 export function AboutWhatWeDoSection({ data, loading }: AboutWhatWeDoSectionProps) {
   // Use data from API or fallback to hardcoded values
   const title = data?.title || 'What We Do'
-  const description = data?.description || "At Fieldsy, we make it simple for dog owners to find and book secure fields, while helping landowners earn from their unused spaces. Our platform connects both sides seamlessly."
+  const description = data?.description || "At Fieldsy, we empower field teams and property managers with the tools they need to work smarter—not harder. Our platform is designed to bring structure, visibility, and control to on-ground operations across real estate, infrastructure, land surveying, and more."
   const features = data?.features?.length ? data.features : [
     { title: 'Browse Fields', description: 'Explore our growing list of private, secure dog walking fields across the UK', order: 1 },
     { title: 'Book Instantly', description: 'Reserve your slot with just a few clicks - no waiting, no hassle', order: 2 },
@@ -39,7 +39,7 @@ export function AboutWhatWeDoSection({ data, loading }: AboutWhatWeDoSectionProp
         
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {features.sort((a, b) => a.order - b.order).map((feature, index) => (
-            <div key={feature.order || index} className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div key={feature.order || index} className="bg-transparent rounded-2xl p-6 sm:p-8 hover:shadow-lg">
               <div 
                 className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl text-white font-[700] text-xl sm:text-[24px] mb-4 sm:mb-6 bg-light-green"
               >

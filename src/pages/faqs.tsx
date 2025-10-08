@@ -4,6 +4,7 @@ import { Search } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { Input } from "@/components/ui/input"
 import { FAQList, type FAQItem } from "@/components/common/FAQList"
+import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
 
 interface FAQPageProps {
   faqs: FAQItem[]
@@ -11,6 +12,7 @@ interface FAQPageProps {
 
 export default function FAQPage({ faqs }: FAQPageProps) {
   const [searchQuery, setSearchQuery] = useState("")
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
   const filteredFaqs = faqs.filter(faq => 
     faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -20,8 +22,8 @@ export default function FAQPage({ faqs }: FAQPageProps) {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-white overflow-x-hidden pt-24">
-        <div className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20">
+      <div className="min-h-screen bg-cream/10 overflow-x-hidden pt-24">
+        <div className="px-4  sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20">
           <div className="w-full">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
@@ -31,7 +33,7 @@ export default function FAQPage({ faqs }: FAQPageProps) {
               
               {/* Search Bar */}
               <div className="relative w-full md:w-96 ml-auto">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 fill-black  text-black transform -translate-y-1/2 w-5 h-5 " />
                 <Input
                   type="text"
                   placeholder="Search"
@@ -58,7 +60,8 @@ export default function FAQPage({ faqs }: FAQPageProps) {
               <p className="text-dark-green/80 mb-4 text-base xl:text-[18px] font-[400]">
                 Can't find what you're looking for?
               </p>
-              <button 
+              <button
+                onClick={() => setIsContactModalOpen(true)}
                 className="px-8 py-3 rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors"
               >
                 Contact Support
@@ -67,7 +70,12 @@ export default function FAQPage({ faqs }: FAQPageProps) {
           </div>
         </div>
       </div>
-  
+
+      {/* Contact Support Modal */}
+      <ContactSupportModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </>
   )
 }

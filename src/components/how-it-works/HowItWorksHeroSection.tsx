@@ -1,9 +1,10 @@
 import { Play, Apple } from "lucide-react"
+import { DownloadAppButton } from "@/components/ui/download-app-button"
 
 export function HowItWorksHeroSection() {
   return (
     <>
-      <h2 className="text-base font-[400] text-dark-green/80 mb-8">How it works</h2>
+      <h2 className=" text-[20px] xl:text-[29px] font-[600] text-dark-green mt-20 mb-8">How it works</h2>
       
       {/* Hero Banner */}
       <div 
@@ -24,13 +25,7 @@ export function HowItWorksHeroSection() {
           <p className="text-sm sm:text-base xl:text-[18px] text-white/90 mb-8 leading-relaxed xl:leading-[30px] font-[400]">
             Find, book, and enjoy secure dog walking fields—or list your land and start earning, all in just a few simple steps.
           </p>
-          <button 
-            className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-white font-[600] bg-light-green hover:bg-green transition-colors"
-          >
-            Download App
-            <Play className="w-5 h-5 fill-white" />
-            <Apple className="w-5 h-5" />
-          </button>
+          <DownloadAppButton />
         </div>
       </div>
     </>

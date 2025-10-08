@@ -53,8 +53,8 @@ export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Question
   const isPlain = variant === "plain"
 
   const wrapperClass = isPlain
-    ? ""
-    : "bg-cream bg-opacity-[30%] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg"
+    ? "rounded-[40px] bg-white p-[32px]"
+    : "bg-cream bg-opacity-[30%] border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg"
   
   // Use default FAQs if no FAQs provided and not loading
   // This helps prevent hydration mismatches
@@ -81,44 +81,57 @@ export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Question
         ) : (
           // FAQ items - always show displayFaqs (which defaults to defaultFaqs if empty)
           displayFaqs.map((faq, index) => (
-          <div key={index}
+          <div
+            key={index}
             className={
               isPlain
-                ? `bg-white rounded-2xl overflow-hidden shadow-sm mb-4 border ${openFaqIndex === index ? "border-yellow-300" : "border-transparent"}`
-                : ` ${openFaqIndex === index ? "bg-white  px-6 py-4   rounded-[20px]" : ""} transition-all px-6  duration-300`
+                ? `bg-white rounded-[40px] overflow-hidden ${index !== displayFaqs.length - 1 ? 'mb-4' : ''} ${openFaqIndex === index ? "border-yellow-300" : "border-transparent"}`
+                : `transition-all duration-300 ${index !== displayFaqs.length - 1 ? 'mb-0' : ''}`
             }
           >
-            <button
-              onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
-              className={isPlain ? "flex items-center justify-between w-full text-left p-6 hover:bg-gray-50 transition-colors" : "flex items-center justify-between w-full text-left py-5 sm:py-6 group"}
-            >
-              <span className="font-[600] text-dark-green text-base xl:text-[18px] pr-4 leading-relaxed xl:leading-[28px]">
-                {faq.question}
-              </span>
-              <div
-                className={
-                  isPlain
-                    ? `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors border ${
-                        openFaqIndex === index
-                          ? "bg-light-green border-light-green"
-                          : "bg-transparent border-light-green"
-                      }`
-                    : `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                        openFaqIndex === index ? "bg-green" : "bg-gray-200"
-                      }`
-                }
-              >
-                {openFaqIndex === index ? (
-                  <Minus className={`w-5 h-5 ${isPlain ? "text-white" : "text-white"}`} />
-                ) : (
-                  <Plus className={`w-5 h-5 ${isPlain ? "text-light-green" : "text-gray-600"}`} />
-                )}
-              </div>
-            </button>
+            {openFaqIndex === index ? (
+              <div className={isPlain ? "rounded-[40px] shadow-2xl border" : "bg-white   p-6"}>
+                <button
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
+                  className={isPlain ? "flex items-center justify-between w-full text-left p-6   transition-colors" : "flex items-center justify-between w-full text-left mb-4 group"}
+                >
+                  <span className="font-[600] text-dark-green text-base xl:text-[18px] pr-4 leading-relaxed xl:leading-[28px]">
+                    {faq.question}
+                  </span>
+                  <div
+                    className={
+                      isPlain
+                        ? `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors border bg-light-green border-light-green`
+                        : `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors bg-light-green`
+                    }
+                  >
+                    <Minus className="w-5 h-5 text-white" />
+                  </div>
+                </button>
 
-            {openFaqIndex === index && (
-              <div className={isPlain ? "px-6 pb-6" : "pb-5 sm:pb-6"}>
-                <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">{faq.answer}</p>
+                <div className={isPlain ? "px-6 pb-6" : ""}>
+                  <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">{faq.answer}</p>
+                </div>
+              </div>
+            ) : (
+              <div className={isPlain ? "" : "px-6"}>
+                <button
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
+                  className={isPlain ? "flex items-center justify-between w-full text-left p-6 hover:bg-gray-50 transition-colors" : "flex items-center justify-between w-full text-left py-5 sm:py-6 group"}
+                >
+                  <span className="font-[600] text-dark-green text-base xl:text-[18px] pr-4 leading-relaxed xl:leading-[28px]">
+                    {faq.question}
+                  </span>
+                  <div
+                    className={
+                      isPlain
+                        ? `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors border bg-transparent border-light-green`
+                        : `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors text-light-green fill-light-green border-2 border-light-green bg-transparent`
+                    }
+                  >
+                    <Plus className="w-5 h-5 text-light-green" />
+                  </div>
+                </button>
               </div>
             )}
           </div>
