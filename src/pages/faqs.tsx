@@ -3,8 +3,13 @@ import { GetStaticProps } from "next"
 import { Search } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { Input } from "@/components/ui/input"
-import { FAQList, type FAQItem } from "@/components/common/FAQList"
+import { FAQPageList } from "@/components/common/FAQPageList"
 import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
+
+export interface FAQItem {
+  question: string
+  answer: string
+}
 
 interface FAQPageProps {
   faqs: FAQItem[]
@@ -44,7 +49,7 @@ export default function FAQPage({ faqs }: FAQPageProps) {
               </div>
             </div>
 
-            <FAQList faqs={filteredFaqs} hideTitle variant="plain" />
+            <FAQPageList faqs={filteredFaqs} />
 
             {/* No results message */}
             {filteredFaqs.length === 0 && (

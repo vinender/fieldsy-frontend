@@ -18,7 +18,7 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
     : defaultFaqs.slice(0, 6)
 
   return (
-    <section className="relative px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden bg-light-cream max-w-full">
+    <section className="relative px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden bg-cream max-w-full">
       {/* Background decorative circle */}
       <div 
         className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-0 bg-cream"

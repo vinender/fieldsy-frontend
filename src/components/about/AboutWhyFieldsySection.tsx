@@ -76,7 +76,7 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
             
 
             <div
-              className="hidden xl:flex p-6 sm:p-8 -sm border-l-4 border-l-light-green rounded"
+              className="hidden xl:flex p-6 sm:p-8 space-x-4 -sm border-l-4 border-l-light-green rounded"
               style={{
                 background: "linear-gradient(90deg, rgba(143, 179, 102, 0.20) 0%, rgba(143, 179, 102, 0.00) 100%), white"
               }}

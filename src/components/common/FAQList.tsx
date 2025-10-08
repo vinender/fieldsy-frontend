@@ -53,8 +53,8 @@ export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Question
   const isPlain = variant === "plain"
 
   const wrapperClass = isPlain
-    ? "rounded-[40px] bg-white p-[32px]"
-    : "bg-cream bg-opacity-[30%] border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg"
+    ? "rounded-[40px] bg-light-cream p-[32px]"
+    : "bg-light-cream/80 bg-opacity-[30%] border  rounded-3xl p-6 sm:p-8 lg:p-10 shadow-lg"
   
   // Use default FAQs if no FAQs provided and not loading
   // This helps prevent hydration mismatches
@@ -90,10 +90,10 @@ export function FAQList({ faqs = defaultFaqs, title = "Frequently Asked Question
             }
           >
             {openFaqIndex === index ? (
-              <div className={isPlain ? "rounded-[40px] shadow-2xl border" : "bg-white   p-6"}>
+              <div className={isPlain ? "rounded-[40px]  shadow-2xl border" : "bg-white rounded-[20px] border p-6"}>
                 <button
                   onClick={() => setOpenFaqIndex(openFaqIndex === index ? -1 : index)}
-                  className={isPlain ? "flex items-center justify-between w-full text-left p-6   transition-colors" : "flex items-center justify-between w-full text-left mb-4 group"}
+                  className={isPlain ? "flex items-center justify-between w-full text-left p-6 transition-colors" : "flex items-center justify-between w-full text-left  mb-4 group"}
                 >
                   <span className="font-[600] text-dark-green text-base xl:text-[18px] pr-4 leading-relaxed xl:leading-[28px]">
                     {faq.question}
