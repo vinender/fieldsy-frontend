@@ -124,7 +124,7 @@ export function TestimonialsSection() {
                       "leading-7 sm:leading-8 lg:leading-9 xl:leading-[44px]",
                       expandedSlides.includes(currentSlide)
                         ? ""
-                        : "line-clamp-3 sm:line-clamp-4 lg:line-clamp-4"
+                        : "line-clamp-3 sm:line-clamp-3 lg:line-clamp-2"
                     )}
                   >
                     {currentTestimonial.text}
