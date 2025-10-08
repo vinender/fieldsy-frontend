@@ -4,6 +4,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import mockData from '@/data/mock-data.json';
 import { getAmenityLabel } from '@/utils/formatters';
+import Image from 'next/image';
+import { useAmenities } from '@/hooks/queries/useAmenities';
 
 export interface FilterState {
   size: string;
@@ -45,7 +47,10 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
   const [tempFilters, setTempFilters] = useState<FilterState>(initialFilters || defaultFilters);
   const [shouldRender, setShouldRender] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
+  // Fetch amenities using React Query
+  const { data: amenitiesList = [], isLoading: loadingAmenities } = useAmenities(true);
+
   // Handle animation timing and body scroll lock
   useEffect(() => {
     if (isOpen) {
@@ -180,10 +185,13 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
               {mockData.filterOptions.fieldSizes.map((size) => (
                 <button
                   key={size}
-                  onClick={() => setTempFilters(prev => ({ ...prev, size }))}
+                  onClick={() => setTempFilters(prev => ({
+                    ...prev,
+                    size: prev.size === size ? '' : size
+                  }))}
                   className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
-                    tempFilters.size === size 
-                      ? 'bg-[#8FB366] text-white' 
+                    tempFilters.size === size
+                      ? 'bg-[#8FB366] text-white'
                       : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                   }`}
                 >
@@ -201,34 +209,58 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
           <div className="flex justify-between items-center mb-2.5">
             <h3 className="text-[14px] font-bold text-dark-green">Amenities</h3>
             <button onClick={() => toggleSection('amenities')}>
-              {expandedSections.amenities ? 
-                <ChevronUp className="w-4 h-4" /> : 
+              {expandedSections.amenities ?
+                <ChevronUp className="w-4 h-4" /> :
                 <ChevronDown className="w-4 h-4" />
               }
             </button>
-          </div>  
+          </div>
           {expandedSections.amenities && (
             <div className="flex flex-wrap gap-2">
-              {mockData.filterOptions.amenities.slice(0, 6).map((amenity) => (
-                <button
-                  key={amenity}
-                  onClick={() => {
-                    setTempFilters(prev => ({
-                      ...prev,
-                      amenities: prev.amenities.includes(amenity) 
-                        ? prev.amenities.filter(a => a !== amenity)
-                        : [...prev.amenities, amenity]
-                    }));
-                  }}
-                  className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium flex items-center gap-2 ${
-                    tempFilters.amenities.includes(amenity)
-                      ? 'bg-[#8FB366] text-white' 
-                      : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
-                  }`}
-                >
-                  {getAmenityLabel(amenity)}
-                </button>
-              ))}
+              {loadingAmenities ? (
+                // Loading skeleton
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="px-3.5 py-2 rounded-[14px] bg-gray-200 animate-pulse w-24 h-9"></div>
+                ))
+              ) : (
+                amenitiesList.slice(0, 6).map((amenity) => {
+                  const isSelected = tempFilters.amenities.includes(amenity.name);
+                  return (
+                    <button
+                      key={amenity.id}
+                      onClick={() => {
+                        setTempFilters(prev => ({
+                          ...prev,
+                          amenities: prev.amenities.includes(amenity.name)
+                            ? prev.amenities.filter(a => a !== amenity.name)
+                            : [...prev.amenities, amenity.name]
+                        }));
+                      }}
+                      className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
+                        isSelected
+                          ? 'bg-[#8FB366] text-white'
+                          : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
+                      }`}
+                    >
+                      {amenity.icon && (
+                        <div className={`w-5 h-5 flex items-center justify-center ${isSelected ? '[&_svg]:fill-white' : '[&_svg]:fill-gray-500'}`}>
+                          <Image
+                            src={amenity.icon}
+                            alt={amenity.name}
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                            style={{
+                              filter: isSelected ? 'brightness(0) invert(1)' : 'brightness(0) saturate(100%) invert(48%) sepia(0%) saturate(0%) hue-rotate(196deg) brightness(91%) contrast(89%)'
+                            }}
+                          />
+                        </div>
+                      )}
+                      {amenity.name}
+                    </button>
+                  );
+                })
+              )}
             </div>
           )}
         </div>
@@ -253,54 +285,68 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
           {expandedSections.price && (
             <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
               <style jsx>{`
+                .range-slider {
+                  position: relative;
+                  height: 4px;
+                  background: #e0e0e0;
+                  border-radius: 4px;
+                  margin: 20px 0;
+                }
+                .range-slider-track {
+                  position: absolute;
+                  height: 4px;
+                  background: #3A6B22;
+                  border-radius: 4px;
+                }
                 input[type="range"] {
+                  position: absolute;
+                  width: 100%;
+                  height: 4px;
+                  background: transparent;
+                  pointer-events: none;
                   -webkit-appearance: none;
                   appearance: none;
-                  background: transparent;
-                  cursor: pointer;
-                  width: 100%;
-                }
-                input[type="range"]::-webkit-slider-track {
-                  background: #e0e0e0;
-                  border-radius: 0.25rem;
-                  height: 0.25rem;
                 }
                 input[type="range"]::-webkit-slider-thumb {
+                  pointer-events: all;
                   -webkit-appearance: none;
                   appearance: none;
                   background: #3A6B22;
                   border-radius: 50%;
-                  border: 0;
-                  height: 1rem;
-                  width: 1rem;
-                  margin-top: -0.375rem;
-                }
-                input[type="range"]::-moz-range-track {
-                  background: #e0e0e0;
-                  border-radius: 0.25rem;
-                  height: 0.25rem;
+                  border: 2px solid white;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                  height: 20px;
+                  width: 20px;
+                  cursor: pointer;
+                  position: relative;
+                  z-index: 2;
                 }
                 input[type="range"]::-moz-range-thumb {
+                  pointer-events: all;
                   background: #3A6B22;
                   border-radius: 50%;
-                  border: 0;
-                  height: 1rem;
-                  width: 1rem;
-                }
-                input[type="range"]::-moz-range-progress {
-                  background: #3A6B22;
-                  border-radius: 0.25rem;
-                  height: 0.25rem;
+                  border: 2px solid white;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                  height: 20px;
+                  width: 20px;
+                  cursor: pointer;
+                  position: relative;
+                  z-index: 2;
                 }
               `}</style>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Min Price</label>
-                  <input 
-                    type="range" 
-                    className="w-full" 
-                    min={mockData.filterOptions.priceRange.min} 
-                    max={mockData.filterOptions.priceRange.max} 
+              <div className="relative pt-2 pb-4">
+                <div className="range-slider">
+                  <div
+                    className="range-slider-track"
+                    style={{
+                      left: `${((tempFilters.priceRange[0] - mockData.filterOptions.priceRange.min) / (mockData.filterOptions.priceRange.max - mockData.filterOptions.priceRange.min)) * 100}%`,
+                      right: `${100 - ((tempFilters.priceRange[1] - mockData.filterOptions.priceRange.min) / (mockData.filterOptions.priceRange.max - mockData.filterOptions.priceRange.min)) * 100}%`
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={mockData.filterOptions.priceRange.min}
+                    max={mockData.filterOptions.priceRange.max}
                     value={tempFilters.priceRange[0]}
                     onChange={(e) => {
                       const newMin = parseInt(e.target.value);
@@ -312,14 +358,10 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                       }
                     }}
                   />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Max Price</label>
-                  <input 
-                    type="range" 
-                    className="w-full" 
-                    min={mockData.filterOptions.priceRange.min} 
-                    max={mockData.filterOptions.priceRange.max} 
+                  <input
+                    type="range"
+                    min={mockData.filterOptions.priceRange.min}
+                    max={mockData.filterOptions.priceRange.max}
                     value={tempFilters.priceRange[1]}
                     onChange={(e) => {
                       const newMax = parseInt(e.target.value);
@@ -333,7 +375,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                   />
                 </div>
               </div>
-              <div className="flex justify-between text-[12px] text-dark-green mt-2">
+              <div className="flex justify-between text-[12px] text-dark-green">
                 <span>${tempFilters.priceRange[0]}</span>
                 <span>${tempFilters.priceRange[1]}</span>
               </div>
@@ -360,54 +402,68 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
           {expandedSections.distance && (
             <div className="bg-white border border-black/[0.06] rounded-[14px] p-4">
               <style jsx>{`
-                input[type="range"] {
-                  -webkit-appearance: none;
-                  appearance: none;
-                  background: transparent;
-                  cursor: pointer;
+                .range-slider-distance {
+                  position: relative;
+                  height: 4px;
+                  background: #e0e0e0;
+                  border-radius: 4px;
+                  margin: 20px 0;
+                }
+                .range-slider-track-distance {
+                  position: absolute;
+                  height: 4px;
+                  background: #3A6B22;
+                  border-radius: 4px;
+                }
+                .distance-range input[type="range"] {
+                  position: absolute;
                   width: 100%;
+                  height: 4px;
+                  background: transparent;
+                  pointer-events: none;
+                  -webkit-appearance: none;
+                  appearance: none;
                 }
-                input[type="range"]::-webkit-slider-track {
-                  background: #e0e0e0;
-                  border-radius: 0.25rem;
-                  height: 0.25rem;
-                }
-                input[type="range"]::-webkit-slider-thumb {
+                .distance-range input[type="range"]::-webkit-slider-thumb {
+                  pointer-events: all;
                   -webkit-appearance: none;
                   appearance: none;
                   background: #3A6B22;
                   border-radius: 50%;
-                  border: 0;
-                  height: 1rem;
-                  width: 1rem;
-                  margin-top: -0.375rem;
+                  border: 2px solid white;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                  height: 20px;
+                  width: 20px;
+                  cursor: pointer;
+                  position: relative;
+                  z-index: 2;
                 }
-                input[type="range"]::-moz-range-track {
-                  background: #e0e0e0;
-                  border-radius: 0.25rem;
-                  height: 0.25rem;
-                }
-                input[type="range"]::-moz-range-thumb {
+                .distance-range input[type="range"]::-moz-range-thumb {
+                  pointer-events: all;
                   background: #3A6B22;
                   border-radius: 50%;
-                  border: 0;
-                  height: 1rem;
-                  width: 1rem;
-                }
-                input[type="range"]::-moz-range-progress {
-                  background: #3A6B22;
-                  border-radius: 0.25rem;
-                  height: 0.25rem;
+                  border: 2px solid white;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                  height: 20px;
+                  width: 20px;
+                  cursor: pointer;
+                  position: relative;
+                  z-index: 2;
                 }
               `}</style>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Min Distance</label>
-                  <input 
-                    type="range" 
-                    className="w-full" 
-                    min={mockData.filterOptions.distanceRange.min} 
-                    max={mockData.filterOptions.distanceRange.max} 
+              <div className="relative pt-2 pb-4 distance-range">
+                <div className="range-slider-distance">
+                  <div
+                    className="range-slider-track-distance"
+                    style={{
+                      left: `${((tempFilters.distanceRange[0] - mockData.filterOptions.distanceRange.min) / (mockData.filterOptions.distanceRange.max - mockData.filterOptions.distanceRange.min)) * 100}%`,
+                      right: `${100 - ((tempFilters.distanceRange[1] - mockData.filterOptions.distanceRange.min) / (mockData.filterOptions.distanceRange.max - mockData.filterOptions.distanceRange.min)) * 100}%`
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={mockData.filterOptions.distanceRange.min}
+                    max={mockData.filterOptions.distanceRange.max}
                     value={tempFilters.distanceRange[0]}
                     onChange={(e) => {
                       const newMin = parseInt(e.target.value);
@@ -419,14 +475,10 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                       }
                     }}
                   />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Max Distance</label>
-                  <input 
-                    type="range" 
-                    className="w-full" 
-                    min={mockData.filterOptions.distanceRange.min} 
-                    max={mockData.filterOptions.distanceRange.max} 
+                  <input
+                    type="range"
+                    min={mockData.filterOptions.distanceRange.min}
+                    max={mockData.filterOptions.distanceRange.max}
                     value={tempFilters.distanceRange[1]}
                     onChange={(e) => {
                       const newMax = parseInt(e.target.value);
@@ -440,7 +492,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                   />
                 </div>
               </div>
-              <div className="flex justify-between text-[12px] text-dark-green mt-2">
+              <div className="flex justify-between text-[12px] text-dark-green">
                 <span>{tempFilters.distanceRange[0]} mile{tempFilters.distanceRange[0] !== 1 ? 's' : ''}</span>
                 <span>{tempFilters.distanceRange[1]} mile{tempFilters.distanceRange[1] !== 1 ? 's' : ''}</span>
               </div>
@@ -466,10 +518,13 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
               {mockData.filterOptions.ratings.map((rating) => (
                 <button
                   key={rating}
-                  onClick={() => setTempFilters(prev => ({ ...prev, rating }))}
+                  onClick={() => setTempFilters(prev => ({
+                    ...prev,
+                    rating: prev.rating === rating ? '' : rating
+                  }))}
                   className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
                     tempFilters.rating === rating
-                      ? 'bg-[#8FB366] text-white' 
+                      ? 'bg-[#8FB366] text-white'
                       : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                   }`}
                 >

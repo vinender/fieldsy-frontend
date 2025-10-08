@@ -33,7 +33,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   const [bookingOpen, setBookingOpen] = useState(false);  // Collapsed by default
   console.log('field', field)
   const isClaimed = field?.isClaimed || isPreview || false;
-  
+  const ownerImg =field?.owner?.image
   // Favorite status and toggle
   const fieldId = field?.id || field?._id;
   const { data: isFavorited } = useFavoriteStatus(fieldId);
@@ -221,17 +221,19 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 );
               })}
             </div>
-
+            <h3 className="font-bold text-lg text-dark-green ">Owner Information</h3>
             {isClaimed && (
-              <div className="bg-[#F8F1D7] rounded-lg p-4">
-                <h3 className="font-bold text-lg text-dark-green mb-3">Owner Information</h3>
+              <div className="bg-[#F8F1D7] rounded-lg  p-4">
+                
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                    <div className="w-10 h-10 bg-gray-300 rounded-full">
+                      <img src={ownerImg} className='h-10 w-10 rounded-full object-contain'/>
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center">
                         <span className="font-medium text-[#090F1F] mr-1 truncate">{field?.ownerName || field?.owner?.name || 'Field Owner'}</span>
-                        <BadgeCheck className="w-4 h-4 text-[#3A6B22]" />
+                        <img src='/field-details/shield.svg' className="w-5 h-5 fill-green text-[#3A6B22]" />
                       </div>
                       <span className="text-xs text-gray-500">Joined on {field?.joinedOn || (field?.owner?.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'March 2025')}</span>
                     </div>

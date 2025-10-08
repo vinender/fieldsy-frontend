@@ -12,6 +12,7 @@ export function DocumentUploader({
   acceptPDFs = false,
   multiple = true,
   maxFiles = 10,
+  minFiles = 0,
   maxSize = 10,
   label = "Upload Field Images",
   description = "Add high-quality photos of your field to attract more customers",
@@ -34,6 +35,7 @@ export function DocumentUploader({
       {...props}
       multiple={multiple}
       maxFiles={maxFiles}
+      minFiles={minFiles}
       maxSize={maxSize}
       acceptedTypes={acceptedTypes}
       label={label}

@@ -45,7 +45,7 @@ export function FAQPageList({ faqs = [], loading = false }: FAQPageListProps) {
   const displayFaqs = loading ? [] : (faqs.length > 0 ? faqs : defaultFaqs)
 
   return (
-    <div className="rounded-[40px] bg-light-cream p-[32px]">
+    <div className="rounded-[40px] bg-white  p-[32px]">
       <div className="space-y-0">
         {loading ? (
           // Loading skeleton
@@ -66,7 +66,7 @@ export function FAQPageList({ faqs = [], loading = false }: FAQPageListProps) {
               }`}
             >
               {openFaqIndex === index ? (
-                <div className="rounded-[40px] shadow-2xl border">
+                <div className="rounded-[40px] shadow-xl border">
                   <button
                     onClick={() => setOpenFaqIndex(-1)}
                     className="flex items-center justify-between w-full text-left p-6 transition-colors"

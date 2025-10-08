@@ -52,13 +52,13 @@ export default function FAQPage({ faqs }: FAQPageProps) {
             <FAQPageList faqs={filteredFaqs} />
 
             {/* No results message */}
-            {filteredFaqs.length === 0 && (
+            {/* {filteredFaqs.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-dark-green/60 text-base xl:text-[18px] font-[400]">
                   No questions found matching "{searchQuery}". Try a different search term.
                 </p>
               </div>
-            )}
+            )} */}
 
             {/* Contact Support */}
             <div className="mt-16 text-center">

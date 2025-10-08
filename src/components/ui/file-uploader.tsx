@@ -18,10 +18,11 @@ export interface FileUploaderProps {
   // Core props
   value?: UploadedFile[] | string[];
   onChange?: (files: UploadedFile[] | string[]) => void;
-  
+
   // Configuration
   multiple?: boolean;
   maxFiles?: number;
+  minFiles?: number; // minimum files required
   maxSize?: number; // in MB
   acceptedTypes?: string[];
   disabled?: boolean;
@@ -107,6 +108,7 @@ export function FileUploader({
   onChange,
   multiple = false,
   maxFiles = 10,
+  minFiles = 0,
   maxSize = DEFAULT_MAX_SIZE,
   acceptedTypes = DEFAULT_ACCEPTED_TYPES,
   disabled = false,
@@ -151,6 +153,9 @@ export function FileUploader({
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check if max files limit is reached
+  const isMaxFilesReached = uploadedFiles.length >= maxFiles;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -359,7 +364,7 @@ export function FileUploader({
   };
 
   const openFileSelector = () => {
-    if (!disabled) {
+    if (!disabled && !isMaxFilesReached) {
       fileInputRef.current?.click();
     }
   };
@@ -387,6 +392,7 @@ export function FileUploader({
   };
 
   const isCompact = variant === 'compact';
+  const uploadAreaDisabled = disabled || isMaxFilesReached;
 
   return (
     <div className={cn("w-full", className)}>
@@ -397,19 +403,34 @@ export function FileUploader({
         <p className="text-[#6B737D] text-sm mb-6">{description}</p>
       )}
 
+      {/* File count indicator */}
+      {multiple && maxFiles > 1 && (
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            {uploadedFiles.length} / {maxFiles} images uploaded
+            {minFiles > 0 && uploadedFiles.length < minFiles && (
+              <span className="text-red-500 ml-2">(Minimum {minFiles} required)</span>
+            )}
+          </p>
+          {isMaxFilesReached && (
+            <span className="text-sm text-green-600 font-medium">Maximum limit reached</span>
+          )}
+        </div>
+      )}
+
       {/* Upload Area */}
       <div
         className={cn(
           "border-2 border-dashed rounded-xl text-center transition-colors",
-          dragActive ? "border-[#3A6B22] bg-green-50" : "border-gray-300 bg-light-green/20",
-          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+          dragActive && !uploadAreaDisabled ? "border-[#3A6B22] bg-green-50" : "border-gray-300 bg-light-green/20",
+          uploadAreaDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
           isCompact ? "p-4" : "p-8"
         )}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={openFileSelector}
+        onDragEnter={!uploadAreaDisabled ? handleDrag : undefined}
+        onDragLeave={!uploadAreaDisabled ? handleDrag : undefined}
+        onDragOver={!uploadAreaDisabled ? handleDrag : undefined}
+        onDrop={!uploadAreaDisabled ? handleDrop : undefined}
+        onClick={!uploadAreaDisabled ? openFileSelector : undefined}
       >
         <input
           ref={fileInputRef}
@@ -418,7 +439,7 @@ export function FileUploader({
           onChange={handleFileInput}
           className="hidden"
           accept={acceptedTypes.join(',')}
-          disabled={disabled}
+          disabled={uploadAreaDisabled}
         />
         
         {!isCompact && (

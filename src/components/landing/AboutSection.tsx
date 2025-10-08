@@ -57,15 +57,21 @@ export function AboutSection() {
             </div>
 
           {/* Right Block - Image and Text */}
-            <div className="bg-white rounded-2xl sm:rounded-[32px] p-4 sm:p-6 xl:p-2 shadow-xl flex-1  flex flex-col h-full ">
-              <div className="w-full h-[50%] xl:h-[80%]  flex items-center justify-center relative">
-                <Image src={familyImage} alt="Trusted by thousands" fill className="object-cover rounded-[24px]"/>
+            <div className="bg-white rounded-2xl sm:rounded-[32px] p-4 sm:p-6 xl:p-8 shadow-xl flex-1 flex flex-col min-h-[400px] sm:min-h-[450px] md:min-h-[500px] xl:min-h-0">
+              <div className="relative w-full h-[200px] sm:h-[250px] md:h-[280px] xl:flex-1 mb-4 sm:mb-6 rounded-[16px] sm:rounded-[20px] xl:rounded-[24px] overflow-hidden">
+                <Image
+                  src={familyImage}
+                  alt="Trusted by thousands"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
-              <div className="h-full xl:h-3/5 flex space-y-5 flex-col justify-center"> 
-                <h3 className="text-lg sm:text-xl xl:text-[24px] text-center leading-[26px] sm:leading-[28px] xl:leading-[30px] font-[600] text-dark-green mb-2 sm:mb-3">
+              <div className="flex flex-col justify-center space-y-2 sm:space-y-3 xl:space-y-4 py-2">
+                <h3 className="text-lg sm:text-xl xl:text-[24px] text-center leading-[26px] sm:leading-[28px] xl:leading-[30px] font-[600] text-dark-green">
                   Trusted by thousands of dog lovers
                 </h3>
-                <p className="text-sm sm:text-[18px] text-center leading-[30px] text-dark-green/70">
+                <p className="text-sm sm:text-base xl:text-[18px] text-center leading-[22px] sm:leading-[26px] xl:leading-[30px] text-dark-green/70">
                   Backed by real reviews, easy bookings, and growing across hundreds of secure fields.
                 </p>
               </div>

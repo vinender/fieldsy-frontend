@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Search } from 'lucide-react';
+import { MapPin, Search, X } from 'lucide-react';
 import { useResponsiveRouter } from '@/hooks/useResponsiveRouter';
 import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
@@ -267,9 +267,24 @@ export function FieldSearchInput({
 
       {/* Buttons inside input - only visible on desktop */}
       <div className="hidden sm:flex absolute right-1 top-1/2 -translate-y-1/2 items-center gap-1">
-        <button 
+        {/* Clear button - only show when there's text */}
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setSuggestions([]);
+              setShowDropdown(false);
+            }}
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition"
+            aria-label="Clear search"
+          >
+            <X className="w-5 h-5 bg-black rounded-full text-white p-0.5" />
+          </button>
+        )}
+        <button
           type="button"
-          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4  text-gray-600 hover:text-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center border-l border-gray-300 gap-1 sm:gap-2 px-2 sm:px-4 text-gray-600 hover:text-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleUseMyLocation}
           disabled={isLoadingLocation}
         >
@@ -279,7 +294,7 @@ export function FieldSearchInput({
           </span>
         </button>
         {/* <div className="h-6 w-px bg-gray-300"></div> */}
-        <button 
+        <button
           type="button"
           onClick={() => handleSearch()}
           className="px-4 sm:px-8 py-2.5 sm:py-3.5 bg-green text-white rounded-[90px] hover:bg-light-green transition font-semibold text-sm sm:text-base"
@@ -378,10 +393,10 @@ export function FieldSearchInput({
                       setSearchQuery(search.query);
                       handleSearch(search.query);
                     }}
-                    className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-start gap-2 sm:gap-3 border-b last:border-b-0"
+                    className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-center gap-2 sm:gap-3 border-b last:border-b-0"
                   >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mt-0.5">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center">
                         <img src="/location.svg" className="w-4 h-4 sm:w-6 sm:h-6 text-green" />
                       </div>
                       <div>
@@ -393,12 +408,13 @@ export function FieldSearchInput({
                         </div>
                       </div>
                     </div>
-                    <div 
+                    <button
                       onClick={(e) => removeRecentSearch(search.id, e)}
-                      className="w-6 h-6 rounded-full text-white bg-gray-400 hover:bg-gray-500 flex items-center justify-center text-sm font-medium cursor-pointer transition"
+                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-400 hover:bg-gray-500 flex items-center justify-center cursor-pointer transition flex-shrink-0"
+                      aria-label="Remove recent search"
                     >
-                      x
-                    </div>
+                      <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+                    </button>
                   </button>
                 ))}
               </div>

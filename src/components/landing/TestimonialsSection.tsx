@@ -142,6 +142,7 @@ export function TestimonialsSection() {
                   <p className="font-bold text-gray-900 text-base sm:text-lg">{currentTestimonial.name}</p>
                   <p className="text-gray-500 text-sm sm:text-base">{currentTestimonial.role}</p>
                 </div>
+                
               </div>
             </div>
           </div>

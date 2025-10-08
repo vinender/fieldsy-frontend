@@ -7,7 +7,8 @@ interface RescheduleBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   booking: {
-    _id: string;
+    _id?: string;
+    id?: string;
     fieldId: string;
     name: string;
     date: string;
@@ -32,17 +33,25 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
   const cancellationWindow = useCancellationWindow();
 
   const handleProceed = () => {
+    // Get booking ID - handle both _id and id properties
+    const bookingId = booking._id || (booking as any).id;
+
+    if (!bookingId) {
+      console.error('Booking ID not found', booking);
+      return;
+    }
+
     // Store booking info in localStorage for the book-field page to access
     localStorage.setItem('rescheduleBooking', JSON.stringify({
-      bookingId: booking._id,
+      bookingId: bookingId,
       fieldId: booking.fieldId,
       numberOfDogs: booking.dogs,
       originalDate: booking.rawDate || booking.date,
       originalTime: booking.time
     }));
-    
+
     // Navigate to book-field page in reschedule mode
-    router.push(`/fields/book-field?id=${booking.fieldId}&mode=reschedule&bookingId=${booking._id}`);
+    router.push(`/fields/book-field?id=${booking.fieldId}&mode=reschedule&bookingId=${bookingId}`);
     onClose();
   };
 

@@ -51,6 +51,7 @@ export default function UploadImages({ formData, setFormData, validationErrors =
         onChange={handleImagesChange}
         multiple={true}
         maxFiles={10}
+        minFiles={4}
         maxSize={10}
         returnUrls={true}
         acceptImages={true}
