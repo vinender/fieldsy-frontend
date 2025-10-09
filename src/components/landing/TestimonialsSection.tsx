@@ -62,6 +62,7 @@ export function TestimonialsSection() {
 
   return (
     <section className="py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32" style={{ backgroundColor: '#FAF7F2' }}>
+      
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         <div className="text-center mb-8 sm:mb-12 md:mb-16">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[44px] xl:text-[48px] leading-tight sm:leading-10 md:leading-[48px] lg:leading-[52px] xl:leading-[56px] font-bold text-dark-green">
@@ -161,6 +162,7 @@ export function TestimonialsSection() {
             ))}
           </div>
         </div>
+
       </div>
     </section>
   )

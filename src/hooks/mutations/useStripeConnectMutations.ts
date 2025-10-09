@@ -17,7 +17,15 @@ export interface OnboardingLinkResponse {
   success: boolean;
   data: {
     url: string;
+    type?: string;
+    isMobile?: boolean;
   };
+}
+
+export interface OnboardingLinkRequest {
+  returnUrl?: string;
+  refreshUrl?: string;
+  isMobile?: boolean;
 }
 
 export interface CreatePayoutData {
@@ -58,7 +66,7 @@ export function useCreateStripeAccount(
 
 // Hook to get Stripe onboarding link
 export function useGetOnboardingLink(
-  options?: Omit<UseMutationOptions<OnboardingLinkResponse, Error, { returnUrl?: string; refreshUrl?: string }>, 'mutationFn'>
+  options?: Omit<UseMutationOptions<OnboardingLinkResponse, Error, OnboardingLinkRequest>, 'mutationFn'>
 ) {
   return useMutation({
     mutationFn: async (data) => {
@@ -70,14 +78,14 @@ export function useGetOnboardingLink(
       if (result.data?.url) {
         window.location.href = result.data.url;
       }
-      
+
       if (options?.onSuccess) {
         options.onSuccess(result, variables, {} as any);
       }
     },
     onError: (error: any, variables) => {
       toast.error(error.response?.data?.message || 'Failed to get onboarding link');
-      
+
       if (options?.onError) {
         options.onError(error, variables, {} as any);
       }

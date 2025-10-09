@@ -623,7 +623,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                       router.push(`/fields/book-field?id=${field?._id || field?.id}`);
                     }
                   }}
-                  className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
+                  className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-[70px] hover:bg-[#2e5519] transition"
                 >
                   Book Now
                 </button>
