@@ -375,7 +375,7 @@ const BookFieldPage = () => {
   if (!field || error) {
     return (
       <UserLayout requireRole="DOG_OWNER">
-        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
+        <div className="min-h-screen  mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
           <div className="bg-white rounded-2xl p-8 max-w-md">
             <div className="text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -486,17 +486,19 @@ const BookFieldPage = () => {
   const getAvailableRecurringOptions = () => {
     const options = ['None'];
     const operatingDays = field?.operatingDays;
-    
+
     if (!field || !operatingDays || (Array.isArray(operatingDays) && operatingDays.length === 0)) {
-      return ['None', 'Daily', 'Weekly', 'Monthly'];
+      return ['None', 'Everyday', 'Weekly', 'Monthly'];
     }
 
     // Determine actual operating days count
     let daysCount = 0;
-    
+
     if (typeof operatingDays === 'string') {
       const lowerValue = operatingDays.toLowerCase();
-      if (lowerValue === 'weekend' || lowerValue === 'weekends') {
+      if (lowerValue === 'everyday') {
+        daysCount = 7;
+      } else if (lowerValue === 'weekend' || lowerValue === 'weekends') {
         daysCount = 2;
       } else if (lowerValue === 'weekdays' || lowerValue === 'weekday') {
         daysCount = 5;
@@ -506,7 +508,9 @@ const BookFieldPage = () => {
     } else if (Array.isArray(operatingDays)) {
       if (operatingDays.length === 1 && typeof operatingDays[0] === 'string') {
         const firstValue = operatingDays[0].toLowerCase();
-        if (firstValue === 'weekend' || firstValue === 'weekends') {
+        if (firstValue === 'everyday') {
+          daysCount = 7;
+        } else if (firstValue === 'weekend' || firstValue === 'weekends') {
           daysCount = 2;
         } else if (firstValue === 'weekdays' || firstValue === 'weekday') {
           daysCount = 5;
@@ -518,10 +522,8 @@ const BookFieldPage = () => {
       }
     }
 
-    // Only show Daily if field operates every day
-    if (daysCount === 7) {
-      options.push('Daily');
-    }
+    // Always show Everyday option
+    options.push('Everyday');
 
     // Always show Weekly if at least one day is available
     if (daysCount > 0) {
@@ -536,9 +538,9 @@ const BookFieldPage = () => {
 
   return (
     <UserLayout requireRole="DOG_OWNER">
-      <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3]">
+      <div className="min-h-screen  mt-16 xl:mt-24 bg-[#FFFCF3]">
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
         
         {/* Back Button and Title */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -570,10 +572,10 @@ const BookFieldPage = () => {
         )}
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 lg:items-start">
+
           {/* Left Column - Field Details Card */}
-          <div className="bg-white rounded-[16px] sm:rounded-[20px] p-4 sm:p-5 shadow-sm border border-black/5">
+          <div className="bg-white rounded-[16px] sm:rounded-[20px] p-4 sm:p-5 shadow-sm border border-black/5 h-auto">
             {/* Field Image */}
             <div 
               className="w-full h-[200px] sm:h-[240px] md:h-[263px] rounded-[10px] bg-cover bg-center mb-4 sm:mb-5"
