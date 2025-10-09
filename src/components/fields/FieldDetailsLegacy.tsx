@@ -31,7 +31,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   const [loginModalMessage, setLoginModalMessage] = useState('');
   const [rulesOpen, setRulesOpen] = useState(true);  // Expanded by default
   const [bookingOpen, setBookingOpen] = useState(false);  // Collapsed by default
-  console.log('field', field)
+  console.log(';;field', field)
   const isClaimed = field?.isClaimed || isPreview || false;
   const ownerImg =field?.owner?.image
   // Favorite status and toggle
@@ -378,54 +378,69 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 {/* Slot Duration Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 gap-2">
                   <div className="flex items-center gap-2">
-                    <img src="/field-details/clock.svg" alt="slot duration" className="w-5 h-5" />
-                    <span className="text-dark-green font-medium">Slot Duration</span>
+                    <img src="/field-details/availablity.svg" alt="slot duration" className="w-5 h-5" />
+                    <span className="text-dark-green font-medium ">Availability</span>
                   </div>
-                  <div className="text-[#3A6B22] font-semibold">
+
+                  <button   onClick={isPreview ? undefined : () => {
+                    if (!session) {
+                      router.push('/login');
+                    } else {
+                      router.push(`/fields/book-field?id=${field?._id || field?.id}`);
+                    }
+                  }} className="text-green hover:underline font-semibold">
+                  Find availability time
+                  </button>
+                  {/* <div className="text-[#3A6B22] font-semibold">
                     {field?.minBookingDuration || field?.bookingDuration || '30 min'}
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Rules Collapsible */}
                 <div className="bg-white border border-gray-200 rounded-xl">
                   <button
-                    className="w-full flex items-center justify-between px-4 py-3"
+                    className={`w-full flex items-center justify-between px-4 py-3  w-full ${rulesOpen ? 'border-b' : ''}`}
                     onClick={() => setRulesOpen(!rulesOpen)}
                   >
                     <div className="flex items-center gap-2">
                       <img src="/field-details/rules.svg" alt="rules" className="w-5 h-5" />
-                      <span className="text-dark-green font-medium">Rules</span>
+                      <span className="text-dark-green font-medium "> Rules</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 transition-transform ${rulesOpen ? 'rotate-180' : ''}`} />
                   </button>
 
+                  
+
                   {rulesOpen && (
-                    <div className="px-4 pb-4">
+                    <div className="px-4 pb-4 space-y-2">
+                       <span className="text-dark-green font-[700] text-[24px]  ">Host Rules</span>
+                      
                       {/* Host rules cards */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                        
                         <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#F3F7ED] flex items-center justify-center">
-                            <img src="/field-details/clock.svg" alt="clock" className="w-5 h-5" />
+                          <div className="w-10 h-10 rounded-xl bg-white border flex items-center justify-center">
+                            <img src="/field-details/clock.svg" alt="clock" className="w-6 h-6" />
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Minimum visit length</p>
+                            <p className="text-[16px] font-[700] text-dark-green">Minimum visit length</p>
                             <p className="text-sm font-medium text-dark-green">{field?.minBookingDuration || '30'} min</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#F3F7ED] flex items-center justify-center">
-                            <img src="/field-details/pet.svg" alt="pet" className="w-5 h-5" />
+                          <div className="w-10 h-10 border rounded-xl bg-white flex items-center justify-center">
+                            <img src="/field-details/pet.svg" alt="pet" className="w-6 h-6 " />
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Max dogs per booking</p>
+                            <p className="text-[16px] font-[700] text-dark-green">Max dogs per booking</p>
                             <p className="text-sm font-medium text-dark-green">{field?.maxDogs || 4} Dogs</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Community safety rules list */}
-                      <h4 className="font-semibold text-dark-green mb-2">
-                        {field?.rules ? 'Field Rules' : 'Community safety rules'}
+                      <h4 className="font-[700] text-[24px] text-dark-green mb-2">
+                        {field?.rules ? 'Community safety rules' : 'Community safety rules'}
                       </h4>
                       <div className="space-y-3">
                         {(() => {
@@ -636,7 +651,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
         </div>
         {/* Reviews section - only show for claimed fields */}
         {showReviews && !isPreview && isClaimed && (
-              <div id="reviews" ref={reviewsRef} className="mt-12 lg:mt-16 scroll-mt-32">
+              <div id="reviews" ref={reviewsRef} className="mt-12 lg:mt-16 scroll-mt-32 max-w-2xl">
                 {/* Reviews & Ratings Header */}
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-dark-green">Reviews & Ratings</h2>

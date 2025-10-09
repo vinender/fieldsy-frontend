@@ -160,9 +160,10 @@ class S3Uploader {
     const maxSize = 10 * 1024 * 1024; // 10MB
     const allowedTypes = [
       'image/jpeg',
-      'image/jpg',
+      'image/ ',
       'image/png',
       'image/webp',
+      'image/avif',
       'image/gif',
       'application/pdf',
       'application/msword',
@@ -174,7 +175,7 @@ class S3Uploader {
     }
 
     if (!allowedTypes.includes(file.type)) {
-      throw new Error('File type not supported. Please upload JPG, PNG, PDF, or DOC files.');
+      throw new Error('File type not supported. Please upload JPG, PNG, AVIF, PDF, or DOC files.');
     }
   }
 

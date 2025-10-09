@@ -9,10 +9,10 @@ export function DocumentUploader(props: Partial<FileUploaderProps>) {
       multiple={true}
       maxFiles={5}
       maxSize={10}
-      acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']}
+      acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'application/pdf']}
       uploadText="Upload Documents"
       dropzoneText="Drag and drop here or"
-      supportedFormatsText="Supported format: png, jpg, pdf (Max 10MB) - Images will be converted to WebP"
+      supportedFormatsText="Supported: JPG, PNG, PDF (Max 10MB) - Large images (>20KB) auto-convert to AVIF"
       returnUrls={true}
       showFileList={true}
       {...props}
@@ -47,7 +47,7 @@ export function FieldImageUploader(props: Partial<ImageUploaderProps>) {
             Drag and drop here or <span className="text-[#3A6B22] font-semibold">click to browse</span>
           </p>
           <p className="text-xs text-[#9CA3AF] mt-2">
-            Supported formats: JPG, PNG, WEBP (Max 10MB per image)
+            Supported: JPG, PNG (Max 10MB) - Large images auto-convert to AVIF
           </p>
         </div>
       }

@@ -52,78 +52,39 @@ export interface ImageUploaderProps {
   autoUpload?: boolean
 }
 
-const DEFAULT_ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif']
+const DEFAULT_ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
 const DEFAULT_MAX_SIZE = 10 // MB
 
-// Convert image file to AVIF format (with WebP fallback)
-// Only converts files larger than 20KB - smaller files kept as original PNG
-const convertToAVIF = async (file: File): Promise<File> => {
-  // Skip if already AVIF
-  if (file.type === 'image/avif') {
-    return file;
-  }
-
-  // Skip conversion for small files (< 20KB)
-  // AVIF overhead makes tiny images larger, not smaller
-  const SIZE_THRESHOLD = 20 * 1024; // 20KB
-  if (file.size < SIZE_THRESHOLD) {
-    console.log(`⏭️ Skipping AVIF conversion for small file (${(file.size / 1024).toFixed(2)}KB < 20KB):`, file.name);
-    return file;
-  }
-
+// Convert image file to WebP format
+const convertToWebP = async (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
     const img = new window.Image()
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
-
+    
     img.onload = () => {
       canvas.width = img.width
       canvas.height = img.height
       ctx?.drawImage(img, 0, 0)
-
-      // Try AVIF first (better compression, smaller files)
+      
       canvas.toBlob(
         (blob) => {
           if (blob) {
-            // Check if AVIF conversion actually reduced size
-            if (blob.size >= file.size) {
-              console.log(`⏭️ AVIF (${(blob.size / 1024).toFixed(2)}KB) not smaller than original (${(file.size / 1024).toFixed(2)}KB), keeping original:`, file.name);
-              resolve(file);
-              return;
-            }
-
-            // Create new file with .avif extension
-            const avifFileName = file.name.replace(/\.[^/.]+$/, '.avif')
-            const avifFile = new File([blob], avifFileName, { type: 'image/avif' })
-            const savings = ((1 - blob.size / file.size) * 100).toFixed(1);
-            console.log(`✅ Converted to AVIF: ${avifFileName}, ${(file.size / 1024).toFixed(2)}KB → ${(blob.size / 1024).toFixed(2)}KB (${savings}% smaller)`);
-            resolve(avifFile)
+            // Create new file with .webp extension
+            const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp')
+            const webpFile = new File([blob], webpFileName, { type: 'image/webp' })
+            resolve(webpFile)
           } else {
-            // Fallback to WebP if AVIF not supported by browser
-            console.log('⚠️ AVIF not supported, falling back to WebP')
-            canvas.toBlob(
-              (webpBlob) => {
-                if (webpBlob) {
-                  const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp')
-                  const webpFile = new File([webpBlob], webpFileName, { type: 'image/webp' })
-                  console.log('✅ Converted to WebP fallback:', webpFileName, `${(webpBlob.size / 1024).toFixed(2)}KB`)
-                  resolve(webpFile)
-                } else {
-                  reject(new Error('Failed to convert image'))
-                }
-              },
-              'image/webp',
-              0.85 // Quality: 85% for WebP fallback
-            )
+            reject(new Error('Failed to convert image to WebP'))
           }
         },
-        'image/avif',
-        0.80 // Quality: 80% (AVIF is more efficient, similar visual quality at lower percentage)
+        'image/webp',
+        0.85 // Quality: 85%
       )
     }
-
+    
     img.onerror = () => reject(new Error('Failed to load image'))
-
+    
     // Read the file as data URL
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -279,30 +240,30 @@ export function ImageUploader({
       }
 
       try {
-        // Convert to AVIF format (with WebP fallback)
-        const convertedFile = await convertToAVIF(file)
-
+        // Convert to WebP format
+        const webpFile = await convertToWebP(file)
+        
         const reader = new FileReader()
         const imageId = `${Date.now()}-${Math.random()}`
-
+        
         reader.onload = (e) => {
           const newImage: UploadedImage = {
             id: imageId,
-            name: convertedFile.name,
-            size: `${(convertedFile.size / (1024 * 1024)).toFixed(2)}MB`,
+            name: webpFile.name,
+            size: `${(webpFile.size / (1024 * 1024)).toFixed(2)}MB`,
             preview: e.target?.result as string,
-            file: convertedFile,
+            file: webpFile,
             uploaded: false,
             progress: undefined, // Start with undefined to ensure it shows 0 initially
           }
-
+          
           newImages.push(newImage)
           processedCount++
-
+          
           if (processedCount === files.slice(0, availableSlots).length) {
             const updatedImages = multiple ? [...images, ...newImages] : newImages
             setImages(updatedImages)
-
+            
             if (autoUpload) {
               // Stagger uploads for better UX with slight delay
               newImages.forEach((img, index) => {
@@ -311,10 +272,10 @@ export function ImageUploader({
             }
           }
         }
-
-        reader.readAsDataURL(convertedFile)
+        
+        reader.readAsDataURL(webpFile)
       } catch (conversionError) {
-        console.error(`Failed to convert ${file.name}:`, conversionError)
+        console.error(`Failed to convert ${file.name} to WebP:`, conversionError)
         toast.error(`Failed to process ${file.name}`)
         processedCount++
         
@@ -511,7 +472,7 @@ export function ImageUploader({
                   Drop your images here, or browse
                 </p>
                 <p className="text-sm text-gray-600">
-                  Supports: JPG, PNG, GIF (Max {maxSize}MB) - Auto-converts to AVIF
+                  Supports: JPG, PNG, GIF, WebP (Max {maxSize}MB)
                 </p>
                 {multiple && (
                   <p className="text-xs text-gray-500 mt-2">

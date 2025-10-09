@@ -356,3 +356,9 @@ export default function SavedCards() {
     </UserLayout>
   );
 }
+// Force SSR for this authenticated page - prevents _next/data routing issues
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

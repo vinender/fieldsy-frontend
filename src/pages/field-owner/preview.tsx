@@ -18,12 +18,12 @@ export default function PreviewPage() {
   const { fieldId } = router.query;
 
   // If fieldId is provided in query, fetch that specific field from the list
-  const { data: fields, isLoading: fetchingFields, refetch } = useOwnerFields({
+  const { data: fields, isLoading: fetchingFields, refetch, isFetching: isFetchingFields } = useOwnerFields({
     enabled: !!user && user.role === 'FIELD_OWNER' && !!fieldId,
   });
 
   // Also support legacy behavior - fetch single field if no fieldId in query
-  const { data: legacyField, isLoading: fetchingLegacyField, refetch: refetchLegacy } = useOwnerField({
+  const { data: legacyField, isLoading: fetchingLegacyField, refetch: refetchLegacy, isFetching: isFetchingLegacy } = useOwnerField({
     enabled: !!user && user.role === 'FIELD_OWNER' && !fieldId,
   });
 
@@ -34,10 +34,24 @@ export default function PreviewPage() {
 
   const isLoading = fetchingFields || fetchingLegacyField;
 
+  // Debug: Log field data to verify isSubmitted is being fetched
+  useEffect(() => {
+    if (fieldData) {
+      console.log('📊 Field Data:', {
+        id: fieldData.id,
+        name: fieldData.name,
+        isSubmitted: fieldData.isSubmitted,
+        isActive: fieldData.isActive,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [fieldData]);
+
   // Submit field mutation
   const submitFieldMutation = useSubmitFieldForReview({
     onSuccess: () => {
       toast.success('Field submitted successfully!');
+      // Refetch is handled in mutationFn, data should be fresh now
       setShowThankYou(true);
     }
   });
@@ -61,7 +75,6 @@ export default function PreviewPage() {
   const handleSubmit = async () => {
     if (fieldData?.id) {
       await submitFieldMutation.mutateAsync({ fieldId: fieldData.id });
-      fieldId ? refetch() : refetchLegacy();
     }
   };
 
@@ -165,4 +178,11 @@ export default function PreviewPage() {
       />
     </UserLayout>
   );
+}
+
+// Force SSR for this authenticated page - prevents _next/data routing issues
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
 }

@@ -6,6 +6,7 @@ import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import { TimeInput } from '@/components/ui/time-input';
 import { usePublicSettings } from '@/hooks/usePublicSettings';
 import { useAmenities } from '@/hooks/api/useAmenities';
+import { useFieldOptions } from '@/hooks/api/useFieldOptions';
 import Image from 'next/image';
 
 interface FieldDetailsProps {
@@ -17,8 +18,17 @@ interface FieldDetailsProps {
 export default function FieldDetails({ formData, setFormData, validationErrors = {} }: FieldDetailsProps) {
   const { data: settings } = usePublicSettings();
   const { data: amenities, isLoading: amenitiesLoading } = useAmenities();
+  const { data: fieldOptions, isLoading: optionsLoading } = useFieldOptions();
   const minimumOperatingHours = settings?.minimumFieldOperatingHours || 4;
   const [timeError, setTimeError] = useState('');
+
+  // Extract options from API response
+  const fieldSizeOptions = fieldOptions?.data?.fieldSize || [];
+  const terrainTypeOptions = fieldOptions?.data?.terrainType || [];
+  const fenceTypeOptions = fieldOptions?.data?.fenceType || [];
+  const fenceSizeOptions = fieldOptions?.data?.fenceSize || [];
+  const surfaceTypeOptions = fieldOptions?.data?.surfaceType || [];
+  const openingDaysOptions = fieldOptions?.data?.openingDays || [];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -129,11 +139,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 value={formData.fieldSize}
                 onChange={(value) => handleInputChange({ target: { name: 'fieldSize', value } } as any)}
                 placeholder="Select size"
-                options={[
-                  { value: 'small', label: 'Small (1 acre or less)' },
-                  { value: 'medium', label: 'Medium (1-3 acres)' },
-                  { value: 'large', label: 'Large (3+ acres)' }
-                ]}
+                options={fieldSizeOptions}
               />
               {validationErrors.fieldSize && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.fieldSize}</p>
@@ -150,13 +156,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 value={formData.terrainType}
                 onChange={(value) => handleInputChange({ target: { name: 'terrainType', value } } as any)}
                 placeholder="Select terrain type"
-                options={[
-                  { value: 'soft-grass', label: 'Soft Grass' },
-                  { value: 'walking-path', label: 'Walking Path' },
-                  { value: 'wood-chips', label: 'Wood Chips' },
-                  { value: 'artificial-grass', label: 'Artificial Grass' },
-                  { value: 'mixed-terrain', label: 'Mixed Terrain' },
-                ]}
+                options={terrainTypeOptions}
               />
               {validationErrors.terrainType && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.terrainType}</p>
@@ -172,15 +172,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 value={formData.fenceType}
                 onChange={(value) => handleInputChange({ target: { name: 'fenceType', value } } as any)}
                 placeholder="Select fence type"
-                options={[
-                  { value: 'post-and-wire', label: 'Post and Wire' },
-                  { value: 'wooden-panel', label: 'Wooden Panel' },
-                  { value: 'fully-enclosed-field-fencing', label: 'Fully Enclosed Field Fencing' },
-                  { value: 'metal-rail', label: 'Metal Rail' },
-                  { value: 'mixed-multiple-types', label: 'Mixed/Multiple Types' },
-                  { value: 'no-fence', label: 'No Fence' }
-                  
-                ]}
+                options={fenceTypeOptions}
               />
               {validationErrors.fenceType && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.fenceType}</p>
@@ -196,18 +188,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 value={formData.fenceSize}
                 onChange={(value) => handleInputChange({ target: { name: 'fenceSize', value } } as any)}
                 placeholder="Select fence size"
-                options={[
-                    {value:'under-1-metre',label: 'Under 1 metre (3 ft)'},
-                    {value:'1-2-metres',   label: '1-2 metres (3-6 ft)'},
-                    {value:'2-3-metres',   label: '2-3 metres (6-9 ft)'},
-                    {value:'3-4-metres',   label: '3-4 metres (9-12 ft)'},
-                    {value:'4-5-metres',   label: '4-5 metres (12-15 ft)'},
-                    {value:'5-6-metres',   label: '5-6 metres (15-18 ft)'},
-                    {value:'6-7-metres',label: '6-7 metres (18-21 ft)'},
-                    {value:'7-8-metres',label: '7-8 metres (21-24 ft)'},
-                    {value:'8-9-metres',label: '8-9 metres (24-27 ft)'},
-                    {value:'9-10-metres',label: '9-10 metres (27-30 ft)'},
-                ]}
+                options={fenceSizeOptions}
               />
               {validationErrors.fenceSize && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.fenceSize}</p>
@@ -223,17 +204,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 value={formData.surfaceType}
                 onChange={(value) => handleInputChange({ target: { name: 'surfaceType', value } } as any)}
                 placeholder="Select surface type"
-                options={[
-                  { value: 'grass', label: 'Grass' },
-                  { value: 'gravel', label: 'Gravel' },
-                  { value: 'mixed-terrain', label: 'Mixed Terrain' },
-                  { value: 'meadow', label: 'Meadow' },
-                  { value: 'paved-path', label: 'Paved Path' },
-                  { value: 'flat-with-gentle-slopes', label: 'Flat with Gentle Slopes' },
-                  { value: 'muddy', label: 'Muddy' },
-                  { value: 'other', label: 'Other' }
-                
-                ]}
+                options={surfaceTypeOptions}
               />
               {validationErrors.surfaceType && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.surfaceType}</p>
@@ -298,11 +269,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               value={formData.openingDays}
               onChange={(value) => handleInputChange({ target: { name: 'openingDays', value } } as any)}
               placeholder="Select opening days"
-              options={[
-                { value: 'everyday', label: 'Every day' },
-                { value: 'weekdays', label: 'Weekdays only' },
-                { value: 'weekends', label: 'Weekends only' }
-              ]}
+              options={openingDaysOptions}
             />
             {validationErrors.openingDays && (
               <p className="text-red-500 text-sm mt-1">{validationErrors.openingDays}</p>

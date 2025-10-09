@@ -60,7 +60,7 @@ export default function UploadImages({ formData, setFormData, validationErrors =
         description=""
         uploadText="Click to upload field images"
         dropzoneText="Drag and drop your field images here or"
-        supportedFormatsText="Supported formats: JPG, PNG, WEBP (Max 10MB per file)"
+        supportedFormatsText="Supported: JPG, PNG (Max 10MB) - Large images (>20KB) auto-convert to AVIF"
       />
     </div>
   );

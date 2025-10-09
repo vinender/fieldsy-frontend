@@ -1379,3 +1379,9 @@ const MessagesPage = () => {
 };
 
 export default MessagesPage;
+// Force SSR for this authenticated page - prevents _next/data routing issues
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

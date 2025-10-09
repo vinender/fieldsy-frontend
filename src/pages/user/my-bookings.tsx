@@ -1098,3 +1098,9 @@ const BookingHistoryPage = () => {
 };
 
 export default BookingHistoryPage;
+// Force SSR for this authenticated page - prevents _next/data routing issues
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

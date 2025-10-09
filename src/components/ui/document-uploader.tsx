@@ -24,7 +24,7 @@ export function DocumentUploader({
   // Build accepted types based on props
   const acceptedTypes: string[] = [];
   if (acceptImages) {
-    acceptedTypes.push('image/jpeg', 'image/jpg', 'image/png', 'image/webp');
+    acceptedTypes.push('image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif');
   }
   if (acceptPDFs) {
     acceptedTypes.push('application/pdf');

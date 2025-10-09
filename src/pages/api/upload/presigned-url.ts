@@ -33,6 +33,7 @@ export default async function handler(
       'image/jpg',
       'image/png',
       'image/webp',
+      'image/avif',
       'image/gif',
       'application/pdf',
       'application/msword',
@@ -40,7 +41,7 @@ export default async function handler(
     ];
 
     if (!allowedTypes.includes(fileType)) {
-      return res.status(400).json({ error: 'Invalid file type' });
+      return res.status(400).json({ error: 'Invalid file type. Allowed: JPG, PNG, AVIF, WebP, GIF, PDF, DOC' });
     }
 
     // Generate unique file name

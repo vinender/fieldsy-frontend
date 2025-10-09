@@ -8,6 +8,7 @@ export interface UploadedFile {
   name: string;
   size: string;
   url?: string;
+  preview?: string; // Local preview URL for images
   uploaded: boolean;
   progress?: number;
   error?: string;
@@ -50,49 +51,83 @@ export interface FileUploaderProps {
   onRemove?: (file: UploadedFile) => void;
 }
 
-const DEFAULT_ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+const DEFAULT_ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif', 'application/pdf'];
 const DEFAULT_MAX_SIZE = 10; // MB
 
-// Convert image file to WebP format
-const convertToWebP = async (file: File): Promise<File> => {
+// Convert image file to AVIF format (with WebP fallback)
+// Only converts files larger than 20KB - smaller files kept as original PNG
+const convertToAVIF = async (file: File): Promise<File> => {
   // Only convert image files, not PDFs or other documents
   if (!file.type.startsWith('image/')) {
     return file;
   }
-  
-  // Skip if already WebP
-  if (file.type === 'image/webp') {
+
+  // Skip if already AVIF
+  if (file.type === 'image/avif') {
     return file;
   }
-  
+
+  // Skip conversion for small files (< 20KB)
+  // AVIF overhead makes tiny images larger, not smaller
+  const SIZE_THRESHOLD = 20 * 1024; // 20KB
+  if (file.size < SIZE_THRESHOLD) {
+    console.log(`⏭️ Skipping AVIF conversion for small file (${(file.size / 1024).toFixed(2)}KB < 20KB):`, file.name);
+    return file;
+  }
+
   return new Promise((resolve, reject) => {
     const img = new window.Image()
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
-    
+
     img.onload = () => {
       canvas.width = img.width
       canvas.height = img.height
       ctx?.drawImage(img, 0, 0)
-      
+
+      // Try AVIF first (better compression, smaller files)
       canvas.toBlob(
         (blob) => {
           if (blob) {
-            // Create new file with .webp extension
-            const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp')
-            const webpFile = new File([blob], webpFileName, { type: 'image/webp' })
-            resolve(webpFile)
+            // Check if AVIF conversion actually reduced size
+            if (blob.size >= file.size) {
+              console.log(`⏭️ AVIF (${(blob.size / 1024).toFixed(2)}KB) not smaller than original (${(file.size / 1024).toFixed(2)}KB), keeping original:`, file.name);
+              resolve(file);
+              return;
+            }
+
+            // Create new file with .avif extension
+            const avifFileName = file.name.replace(/\.[^/.]+$/, '.avif')
+            const avifFile = new File([blob], avifFileName, { type: 'image/avif' })
+            const savings = ((1 - blob.size / file.size) * 100).toFixed(1);
+            console.log(`✅ Converted to AVIF: ${avifFileName}, ${(file.size / 1024).toFixed(2)}KB → ${(blob.size / 1024).toFixed(2)}KB (${savings}% smaller)`);
+            resolve(avifFile)
           } else {
-            reject(new Error('Failed to convert image to WebP'))
+            // Fallback to WebP if AVIF not supported by browser
+            console.log('⚠️ AVIF not supported, falling back to WebP')
+            canvas.toBlob(
+              (webpBlob) => {
+                if (webpBlob) {
+                  const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp')
+                  const webpFile = new File([webpBlob], webpFileName, { type: 'image/webp' })
+                  console.log('✅ Converted to WebP fallback:', webpFileName, `${(webpBlob.size / 1024).toFixed(2)}KB`)
+                  resolve(webpFile)
+                } else {
+                  reject(new Error('Failed to convert image'))
+                }
+              },
+              'image/webp',
+              0.85 // Quality: 85% for WebP fallback
+            )
           }
         },
-        'image/webp',
-        0.85 // Quality: 85%
+        'image/avif',
+        0.80 // Quality: 80% (AVIF is more efficient)
       )
     }
-    
+
     img.onerror = () => reject(new Error('Failed to load image'))
-    
+
     // Read the file as data URL
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -202,9 +237,15 @@ export function FileUploader({
 
   const uploadFile = async (file: File) => {
     try {
-      // Convert image files to WebP format
-      const fileToUpload = await convertToWebP(file);
-      
+      // Convert image files to AVIF format
+      const fileToUpload = await convertToAVIF(file);
+
+      // Generate preview URL for images
+      let previewUrl: string | undefined;
+      if (fileToUpload.type.startsWith('image/')) {
+        previewUrl = URL.createObjectURL(fileToUpload);
+      }
+
       const tempFile: UploadedFile = {
         id: `${Date.now()}-${Math.random()}`,
         name: fileToUpload.name,
@@ -212,6 +253,7 @@ export function FileUploader({
         uploaded: false,
         progress: 0,
         file: fileToUpload,
+        preview: previewUrl,
       };
 
       // Add file to list with initial state
@@ -481,11 +523,15 @@ export function FileUploader({
                 )}
               >
                 <div className="flex items-center gap-3 flex-1">
-                  <div className={cn("w-10 h-10 rounded flex items-center justify-center", styles.icon)}>
+                  <div className={cn("w-10 h-10 rounded overflow-hidden flex items-center justify-center", styles.icon)}>
                     {file.error ? (
                       <AlertCircle className={cn("w-5 h-5", styles.iconColor)} />
-                    ) : file.uploaded ? (
-                      <CheckCircle className={cn("w-5 h-5", styles.iconColor)} />
+                    ) : (file.preview || file.url) ? (
+                      <img
+                        src={file.preview || file.url}
+                        alt={file.name}
+                        className="w-full h-full object-cover"
+                      />
                     ) : file.progress && file.progress > 0 ? (
                       <Loader2 className={cn("w-5 h-5 animate-spin", styles.iconColor)} />
                     ) : (

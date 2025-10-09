@@ -36,16 +36,17 @@ export function useSaveFieldProgress(
       return response.data as SaveProgressResponse;
     },
     onSuccess: (result) => {
-      // Invalidate and refetch owner field data
+      // Invalidate and refetch owner field data (both single and list queries)
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
-      
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerFields() });
+
       // Show appropriate message based on whether field was created or updated
       if (result.isNewField) {
         toast.success('Field created and progress saved successfully!');
       } else {
         toast.success('Progress saved successfully!');
       }
-      
+
       if (options?.onSuccess) {
         options.onSuccess(result, {} as SaveProgressData, {} as any);
       }
@@ -83,18 +84,25 @@ export function useSubmitFieldForReview(
   const mutation = useMutation({
     mutationFn: async ({ fieldId }: { fieldId: string | null }) => {
       if (!fieldId) throw new Error('Field ID is required');
-      
+
       const response = await axiosClient.post('/fields/submit-for-review', {
         fieldId,
       });
+
+      // Refetch queries immediately after successful mutation
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: fieldQueryKeys.ownerField() }),
+        queryClient.refetchQueries({ queryKey: fieldQueryKeys.ownerFields() })
+      ]);
+
       return response.data;
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
-      toast.success('Field submitted for review successfully!');
-      
       if (options?.onSuccess) {
         options.onSuccess(result, {} as any, {} as any);
+      } else {
+        // Only show default toast if no custom onSuccess is provided
+        toast.success('Field submitted for review successfully!');
       }
     },
     onError: (error: any) => {
@@ -176,11 +184,12 @@ export function useUpdateField(
       return response.data;
     },
     onSuccess: (result, variables) => {
-      // Invalidate specific field and owner field
+      // Invalidate specific field and owner field queries
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.fieldDetails(variables.id) });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerFields() });
       toast.success('Field updated successfully!');
-      
+
       if (options?.onSuccess) {
         options.onSuccess(result, variables, {} as any);
       }
