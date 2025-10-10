@@ -8,7 +8,12 @@ export interface NearbyFieldsParams {
   limit?: number;
 }
 
-export interface NearbyFieldsResponse {
+export interface PopularFieldsParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface FieldsApiResponse {
   success: boolean;
   data: any[];
   pagination: {
@@ -20,6 +25,9 @@ export interface NearbyFieldsResponse {
     hasPrevPage: boolean;
   };
 }
+
+export type NearbyFieldsResponse = FieldsApiResponse;
+export type PopularFieldsResponse = FieldsApiResponse;
 
 /**
  * Fetch nearby fields based on latitude and longitude
@@ -38,5 +46,22 @@ export async function getNearbyFields(params: NearbyFieldsParams): Promise<Nearb
   });
 
   const response = await axiosClient.get(`/fields/nearby?${queryParams.toString()}`);
+  return response.data;
+}
+
+/**
+ * Fetch popular fields sorted by rating and booking count
+ * @param params - Pagination parameters
+ * @returns Promise with popular fields and pagination
+ */
+export async function getPopularFields(params: PopularFieldsParams = {}): Promise<PopularFieldsResponse> {
+  const { page = 1, limit = 12 } = params;
+
+  const queryParams = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  const response = await axiosClient.get(`/fields/popular?${queryParams.toString()}`);
   return response.data;
 }

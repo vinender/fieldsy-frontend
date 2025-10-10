@@ -1,12 +1,20 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import axiosClient from '@/lib/api/axios-client';
-import { getNearbyFields, NearbyFieldsParams, NearbyFieldsResponse } from '@/lib/api/fields';
+import {
+  getNearbyFields,
+  NearbyFieldsParams,
+  NearbyFieldsResponse,
+  getPopularFields,
+  PopularFieldsParams,
+  PopularFieldsResponse
+} from '@/lib/api/fields';
 
 // Query keys
 export const fieldQueryKeys = {
   all: ['fields'] as const,
   list: (params: any) => ['fields', 'list', params] as const,
   nearby: (params: NearbyFieldsParams) => ['fields', 'nearby', params] as const,
+  popular: (params: PopularFieldsParams) => ['fields', 'popular', params] as const,
   ownerField: () => ['owner-field'] as const,
   ownerFields: () => ['owner-fields'] as const,
   ownerBookings: () => ['owner-bookings'] as const,
@@ -271,6 +279,20 @@ export function useNearbyFields(
     enabled: !!params && !!params.lat && !!params.lng,
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  });
+}
+
+// Hook to fetch popular fields
+export function usePopularFields(
+  params: PopularFieldsParams = {},
+  options?: Omit<UseQueryOptions<PopularFieldsResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: fieldQueryKeys.popular(params),
+    queryFn: () => getPopularFields(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });
 }

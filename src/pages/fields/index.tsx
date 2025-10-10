@@ -156,20 +156,24 @@ export default function SearchResults() {
     enabled: !!currentLocation && !searchValue && !zipCode && !lat && !lng,
   });
 
-  // Use React Query hook to fetch fields
+  // Use React Query hook to fetch fields (fallback/default)
   const {
     data: fieldsData,
     isLoading,
     isError,
     error,
     refetch,
-  } = useFields(queryParams, {
-    enabled: !currentLocation || !!searchValue || !!zipCode || (!!lat && !!lng),
-  });
+  } = useFields(queryParams);
 
   // Determine which data to use
   const shouldUseNearbyFields = !!currentLocation && !searchValue && !zipCode && !lat && !lng;
-  const activeData = shouldUseNearbyFields ? nearbyFieldsData : fieldsData;
+
+  // Check if nearby fields query returned no results
+  const hasNearbyResults = nearbyFieldsData && nearbyFieldsData.data && nearbyFieldsData.data.length > 0;
+  const shouldFallbackToDefault = shouldUseNearbyFields && !isLoadingNearby && !hasNearbyResults;
+
+  // Use nearby fields if available, otherwise fallback to default fields
+  const activeData = shouldUseNearbyFields && hasNearbyResults ? nearbyFieldsData : fieldsData;
   const activeIsLoading = shouldUseNearbyFields ? isLoadingNearby : isLoading;
   const activeIsError = shouldUseNearbyFields ? isErrorNearby : isError;
   const activeError = shouldUseNearbyFields ? errorNearby : error;
@@ -258,9 +262,18 @@ export default function SearchResults() {
 
           {/* Results */}
           <div className="flex-1">
+            {/* Fallback message when no nearby fields found */}
+            {shouldFallbackToDefault && (
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <span className="font-medium">No fields found nearby.</span> Showing all available fields instead.
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
-                {activeIsLoading ? 'Loading...' : shouldUseNearbyFields ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
+                {activeIsLoading ? 'Loading...' : shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
               </h1>
               <div className="relative" ref={sortDropdownRef}>
                 <button 
