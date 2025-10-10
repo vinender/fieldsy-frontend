@@ -11,7 +11,8 @@ import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
 import { PageWithSkeleton } from '@/components/common/PageWithSkeleton';
 import { FieldsListSkeleton } from '@/components/skeletons/PageSkeletons';
 import { useSession } from 'next-auth/react';
-import { useFields, FieldsParams } from '@/hooks/queries/useFieldQueries';
+import { useFields, FieldsParams, useNearbyFields } from '@/hooks/queries/useFieldQueries';
+import { NearbyFieldsParams } from '@/lib/api/fields';
 
 export default function SearchResults() {
   const router = useRouter();
@@ -22,11 +23,29 @@ export default function SearchResults() {
   const [zipCode, setZipCode] = useState('');
   const [lat, setLat] = useState<number | undefined>();
   const [lng, setLng] = useState<number | undefined>();
-  
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Get current location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.log('Error getting location:', error);
+        }
+      );
+    }
+  }, []);
+
   // Parse query parameters on mount and when router.query changes
   useEffect(() => {
     const { search, zipCode: zip, lat: latitude, lng: longitude } = router.query;
-    
+
     if (search) {
       setSearchValue(search as string);
     }
@@ -97,17 +116,17 @@ export default function SearchResults() {
     ...(appliedFilters.amenities.length > 0 && { amenities: appliedFilters.amenities }),
     ...(appliedFilters.rating && appliedFilters.rating !== '' && { minRating: parseFloat(appliedFilters.rating.replace('+', '')) }),
     // Only apply price filter if it's not the full range
-    ...(appliedFilters.priceRange && 
-        (appliedFilters.priceRange[0] !== mockData.filterOptions.priceRange.min || 
-         appliedFilters.priceRange[1] !== mockData.filterOptions.priceRange.max) && { 
-      minPrice: appliedFilters.priceRange[0], 
-      maxPrice: appliedFilters.priceRange[1] 
+    ...(appliedFilters.priceRange &&
+        (appliedFilters.priceRange[0] !== mockData.filterOptions.priceRange.min ||
+         appliedFilters.priceRange[1] !== mockData.filterOptions.priceRange.max) && {
+      minPrice: appliedFilters.priceRange[0],
+      maxPrice: appliedFilters.priceRange[1]
     }),
     // Only apply distance filter if it's not the full range
-    ...(appliedFilters.distanceRange && 
-        (appliedFilters.distanceRange[0] !== mockData.filterOptions.distanceRange.min || 
-         appliedFilters.distanceRange[1] !== mockData.filterOptions.distanceRange.max) && { 
-      maxDistance: appliedFilters.distanceRange[1] 
+    ...(appliedFilters.distanceRange &&
+        (appliedFilters.distanceRange[0] !== mockData.filterOptions.distanceRange.min ||
+         appliedFilters.distanceRange[1] !== mockData.filterOptions.distanceRange.max) && {
+      maxDistance: appliedFilters.distanceRange[1]
     }),
     ...(appliedFilters.date && { date: appliedFilters.date.toISOString() }),
     ...(appliedFilters.availability.length > 0 && { availability: appliedFilters.availability }),
@@ -115,20 +134,52 @@ export default function SearchResults() {
     sortOrder
   };
 
+  // Nearby fields parameters
+  const nearbyParams: NearbyFieldsParams | null = currentLocation
+    ? {
+        lat: currentLocation.lat,
+        lng: currentLocation.lng,
+        radius: 10,
+        page: currentPage,
+        limit: 12,
+      }
+    : null;
+
+  // Use nearby fields API only if current location exists
+  const {
+    data: nearbyFieldsData,
+    isLoading: isLoadingNearby,
+    isError: isErrorNearby,
+    error: errorNearby,
+    refetch: refetchNearby,
+  } = useNearbyFields(nearbyParams, {
+    enabled: !!currentLocation && !searchValue && !zipCode && !lat && !lng,
+  });
+
   // Use React Query hook to fetch fields
-  const { 
-    data: fieldsData, 
-    isLoading, 
-    isError, 
+  const {
+    data: fieldsData,
+    isLoading,
+    isError,
     error,
-    refetch 
-  } = useFields(queryParams);
+    refetch,
+  } = useFields(queryParams, {
+    enabled: !currentLocation || !!searchValue || !!zipCode || (!!lat && !!lng),
+  });
+
+  // Determine which data to use
+  const shouldUseNearbyFields = !!currentLocation && !searchValue && !zipCode && !lat && !lng;
+  const activeData = shouldUseNearbyFields ? nearbyFieldsData : fieldsData;
+  const activeIsLoading = shouldUseNearbyFields ? isLoadingNearby : isLoading;
+  const activeIsError = shouldUseNearbyFields ? isErrorNearby : isError;
+  const activeError = shouldUseNearbyFields ? errorNearby : error;
+  const activeRefetch = shouldUseNearbyFields ? refetchNearby : refetch;
 
   // Extract data from response
-  const fields = fieldsData?.data || [];
-  const totalPages = fieldsData?.pagination?.totalPages || 1;
-  const totalResults = fieldsData?.pagination?.total || 0;
- console.log('fields',fields)
+  const fields = activeData?.data || [];
+  const totalPages = activeData?.pagination?.totalPages || 1;
+  const totalResults = activeData?.pagination?.total || 0;
+  console.log('fields', fields);
   const handleSearch = () => {
     setCurrentPage(1);
     // React Query will automatically refetch with new params
@@ -208,7 +259,9 @@ export default function SearchResults() {
           {/* Results */}
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">{isLoading ? 'Loading...' : `Over ${totalResults} results`}</h1>
+              <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
+                {activeIsLoading ? 'Loading...' : shouldUseNearbyFields ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
+              </h1>
               <div className="relative" ref={sortDropdownRef}>
                 <button 
                   onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
@@ -247,9 +300,9 @@ export default function SearchResults() {
 
             {/* Fields Grid using the refactored FieldCard component */}
             {/* Show skeleton only when loading API data, not during navigation */}
-            {isLoading ? (
+            {activeIsLoading ? (
               <FieldGridSkeleton count={12} />
-            ) : isError ? (
+            ) : activeIsError ? (
               <div className="bg-white rounded-2xl p-8">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -257,9 +310,9 @@ export default function SearchResults() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <p className="text-red-500 font-medium mb-2">{error?.message || 'Failed to fetch fields. Please try again.'}</p>
-                  <button 
-                    onClick={() => refetch()}
+                  <p className="text-red-500 font-medium mb-2">{activeError?.message || 'Failed to fetch fields. Please try again.'}</p>
+                  <button
+                    onClick={() => activeRefetch()}
                     className="text-[#3A6B22] font-medium hover:underline"
                   >
                     Try Again

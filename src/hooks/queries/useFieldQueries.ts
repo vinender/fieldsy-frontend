@@ -1,10 +1,12 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import axiosClient from '@/lib/api/axios-client';
+import { getNearbyFields, NearbyFieldsParams, NearbyFieldsResponse } from '@/lib/api/fields';
 
 // Query keys
 export const fieldQueryKeys = {
   all: ['fields'] as const,
   list: (params: any) => ['fields', 'list', params] as const,
+  nearby: (params: NearbyFieldsParams) => ['fields', 'nearby', params] as const,
   ownerField: () => ['owner-field'] as const,
   ownerFields: () => ['owner-fields'] as const,
   ownerBookings: () => ['owner-bookings'] as const,
@@ -256,4 +258,19 @@ export function useSearchFields(filters: any, options?: Omit<UseQueryOptions<any
     isSuccess: query.isSuccess,
     refetch: query.refetch,
   };
+}
+
+// Hook to fetch nearby fields based on location
+export function useNearbyFields(
+  params: NearbyFieldsParams | null,
+  options?: Omit<UseQueryOptions<NearbyFieldsResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: params ? fieldQueryKeys.nearby(params) : ['fields', 'nearby', 'disabled'],
+    queryFn: () => getNearbyFields(params!),
+    enabled: !!params && !!params.lat && !!params.lng,
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  });
 }
