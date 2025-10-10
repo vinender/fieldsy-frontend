@@ -127,39 +127,39 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
         </button>
 
         {/* Modal Content */}
-        <div className="bg-white rounded-[32px] shadow-[0px_22px_70px_0px_rgba(0,0,0,0.06)] border border-[rgba(25,34,21,0.1)] max-h-[90vh] overflow-y-auto">
-          <div className="p-8 sm:p-10">
+        <div className="bg-white rounded-[32px] shadow-[0px_22px_70px_0px_rgba(0,0,0,0.06)] border border-[rgba(25,34,21,0.1)] flex flex-col max-h-[90vh]">
+          <div className="p-6 sm:p-8 overflow-y-auto scrollbar-hide flex-1">
             {booking ? (
               // Success State with Booking Data
               <>
                 {/* Header Section */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
-                    <div className="w-[60px] h-[60px] rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
+                    <div className="w-[48px] h-[48px] rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
                       {booking.userAvatar ? (
-                        <img 
-                          src={booking.userAvatar} 
+                        <img
+                          src={booking.userAvatar}
                           alt={booking.userName || 'Customer'}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-xl font-bold">
+                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-lg font-bold">
                           {(booking.userName || 'U').charAt(0).toUpperCase()}
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Customer Info */}
-                    <div className="space-y-1">
-                      <h2 className="text-[29px] font-semibold text-[#192215]">
+                    <div className="space-y-0.5">
+                      <h2 className="text-xl font-semibold text-[#192215]">
                         {booking.userName || 'Customer'}
                       </h2>
-                      <p className="text-base text-[#192215] opacity-70">
+                      <p className="text-sm text-[#192215] opacity-70">
                         {booking.userEmail || 'No email provided'}
                       </p>
                       {booking.userPhone && (
-                        <p className="text-sm text-[#192215] opacity-70">
+                        <p className="text-xs text-[#192215] opacity-70">
                           {booking.userPhone}
                         </p>
                       )}
@@ -167,8 +167,8 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                   </div>
 
                   {/* Send Message Button */}
-                  <button 
-                    className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-6 py-4 rounded-full whitespace-nowrap"
+                  <button
+                    className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-5 py-2.5 rounded-full whitespace-nowrap text-sm"
                     onClick={() => {
                       // Add your message functionality here
                       console.log('Send message to user:', booking.id);
@@ -179,10 +179,10 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                 </div>
 
                 {/* Order Details Section */}
-                <div className="space-y-8">
-                  <div className="space-y-2.5">
-                    <h3 className="text-lg font-bold text-[#192215]">Order Details</h3>
-                    <div className="bg-white border border-black/5 rounded-[14px] p-4 space-y-3">
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-[#192215]">Order Details</h3>
+                    <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
                       <DetailRow 
                         label="Order ID" 
                         value={booking.orderId || `#${booking.id?.slice(-6).toUpperCase() || 'N/A'}`} 
@@ -218,9 +218,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
 
                   {/* Field Information */}
                   {booking.fieldName && (
-                    <div className="space-y-2.5">
-                      <h3 className="text-lg font-bold text-[#192215]">Field Information</h3>
-                      <div className="bg-white border border-black/5 rounded-[14px] p-4 space-y-3">
+                    <div className="space-y-2">
+                      <h3 className="text-base font-bold text-[#192215]">Field Information</h3>
+                      <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
                         <DetailRow 
                           label="Field Name" 
                           value={booking.fieldName || 'N/A'} 
@@ -236,9 +236,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                   )}
 
                   {/* Order Summary Section */}
-                  <div className="space-y-2.5">
-                    <h3 className="text-lg font-bold text-[#192215]">Order Summary</h3>
-                    <div className="bg-white border border-black/5 rounded-[14px] p-4 space-y-3">
+                  <div className="space-y-2">
+                    <h3 className="text-base font-bold text-[#192215]">Order Summary</h3>
+                    <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
                       <DetailRow 
                         label="Sub total" 
                         value={`$${fees.subTotal.toFixed(2)}`} 
@@ -265,10 +265,10 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
 
                   {/* Notes if available */}
                   {booking.notes && (
-                    <div className="space-y-2.5">
-                      <h3 className="text-lg font-bold text-[#192215]">Notes</h3>
-                      <div className="bg-white border border-black/5 rounded-[14px] p-4">
-                        <p className="text-[#192215] opacity-70">{booking.notes}</p>
+                    <div className="space-y-2">
+                      <h3 className="text-base font-bold text-[#192215]">Notes</h3>
+                      <div className="bg-white border border-black/5 rounded-[14px] p-3">
+                        <p className="text-sm text-[#192215] opacity-70">{booking.notes}</p>
                       </div>
                     </div>
                   )}
@@ -290,10 +290,10 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
 // Detail Row Component
 const DetailRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div className="flex justify-between items-start">
-    <span className="text-base text-[#192215] opacity-70">
+    <span className="text-sm text-[#192215] opacity-70">
       {label}
     </span>
-    <span className="text-base font-semibold text-[#192215]">
+    <span className="text-sm font-semibold text-[#192215]">
       {value}
     </span>
   </div>

@@ -119,18 +119,21 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
     return <div className="p-6 text-red-500">Failed to load reviews</div>;
   }
 
-  const { reviews, stats, pagination } = reviewsData?.data || { 
-    reviews: [], 
+  const { reviews, stats, pagination } = reviewsData?.data || {
+    reviews: [],
     stats: { averageRating: 0, totalReviews: 0, ratingDistribution: {} },
     pagination: { page: 1, totalPages: 1, total: 0, limit: 10 }
   };
+
+  // Check if current user has already reviewed
+  const hasUserReviewed = reviews.some((review) => review.userId === session?.user?.id);
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-sm">
       {/* Header and Stats */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-4">Reviews</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Overall Rating */}
           <div className="flex items-center gap-4">
@@ -147,10 +150,10 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
           <div className="space-y-2">
             {[5, 4, 3, 2, 1].map((rating) => {
               const count = stats.ratingDistribution[rating] || 0;
-              const percentage = stats.totalReviews > 0 
-                ? (count / stats.totalReviews) * 100 
+              const percentage = stats.totalReviews > 0
+                ? (count / stats.totalReviews) * 100
                 : 0;
-              
+
               return (
                 <div key={rating} className="flex items-center gap-2">
                   <button
@@ -163,7 +166,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
                     <Star size={14} className="fill-current" />
                   </button>
                   <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div 
+                    <div
                       className="bg-yellow-400 h-full transition-all duration-300"
                       style={{ width: `${percentage}%` }}
                     />
@@ -192,7 +195,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
             </select>
           </div>
 
-          {session && (
+          {session && !hasUserReviewed && (
             <Button onClick={() => setShowReviewForm(true)}>
               Write a Review
             </Button>

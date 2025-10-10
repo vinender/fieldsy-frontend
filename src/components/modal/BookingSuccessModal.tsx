@@ -19,7 +19,7 @@ export const BookingSuccessModal = ({ isOpen = true, onClose, onCheckHistory, on
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 lg:-top-12 lg:-right-12 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-[#192215]/10 shadow-[0px_6px_16px_0px_rgba(0,0,0,0.1)] hover:bg-gray-50 transition-colors z-10"
+            className="absolute -top-2  -right-2  w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-[#192215]/10 shadow-[0px_6px_16px_0px_rgba(0,0,0,0.1)] hover:bg-gray-50 transition-colors z-10"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
           </button>

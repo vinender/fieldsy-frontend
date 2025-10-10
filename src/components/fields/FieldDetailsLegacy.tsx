@@ -12,6 +12,8 @@ import FieldMapWrapper from '@/components/common/FieldMapWrapper';
 import { useToggleFavorite, useFavoriteStatus } from '@/hooks/useFavorites';
 import BackButton from '@/components/common/BackButton';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
+import OwnerInformation from '@/components/fields/OwnerInformation';
+import FieldLocation from '@/components/fields/FieldLocation';
 
 interface FieldDetailsLegacyProps {
   field: any;
@@ -185,10 +187,13 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="flex items-center text-sm lg:text-base text-dark-green min-w-0 flex-1">
-                  <img src='/location.svg' className="w-5 h-5 text-[#8FB366] mr-1" />
-                  <span className="truncate">{field?.city ? `${field.city}, ${field.state || field.county}` : 'Location not specified'} • {field?.distance || '0 miles'}</span>
-                </div>
+                <FieldLocation
+                  field={field}
+                  className="flex items-center text-sm lg:text-base text-dark-green min-w-0 flex-1"
+                  iconClassName="w-5 h-5 text-[#8FB366] mr-1"
+                  textClassName="truncate"
+                  showDistance={true}
+                />
                 <div className="flex w-16 sm:w-auto items-center bg-dark-green text-white px-2 py-1 rounded-md flex-shrink-0">
                   <Star className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
                   <span className="text-sm font-semibold">{field?.averageRating?.toFixed(1) || '0.0'}</span>
@@ -221,92 +226,27 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 );
               })}
             </div>
-            <h3 className="font-bold text-lg text-dark-green ">Owner Information</h3>
-            {isClaimed && (
-              <div className="bg-[#F8F1D7] rounded-lg  p-4">
-                
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full">
-                      <img src={ownerImg} className='h-10 w-10 rounded-full object-contain'/>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center">
-                        <span className="font-medium text-[#090F1F] mr-1 truncate">{field?.ownerName || field?.owner?.name || 'Field Owner'}</span>
-                        <img src='/field-details/shield.svg' className="w-5 h-5 fill-green text-[#3A6B22]" />
-                      </div>
-                      <span className="text-xs text-gray-500">Joined on {field?.joinedOn || (field?.owner?.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'March 2025')}</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={isPreview ? undefined : async () => {
-                      if (!session) {
-                        setLoginModalMessage('Please login or sign up to message field owners');
-                        setShowLoginModal(true);
-                        return;
-                      }
-                      
-                      // Create or get conversation and redirect to messages page
-                      const fieldOwnerId = field?.ownerId || field?.owner?._id || field?.owner?.id || field?.userId;
-                      
-                      if (!fieldOwnerId) {
-                        console.error('No field owner ID found');
-                        return;
-                      }
-                      
-                      console.log('Creating conversation with field owner:', fieldOwnerId);
-                      console.log('Field data:', field);
-                      
-                      try {
-                        // Get token from session or localStorage
-                        const token = (session as any)?.accessToken || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
-                        
-                        if (!token) {
-                          console.error('No authentication token found');
-                          setLoginModalMessage('Please login or sign up to message field owners');
-                          setShowLoginModal(true);
-                          return;
-                        }
-                        
-                        const response = await fetch('/api/chat/conversations', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                          },
-                          body: JSON.stringify({
-                            receiverId: fieldOwnerId,
-                            fieldId: field?._id || field?.id
-                          })
-                        });
-                        
-                        if (response.ok) {
-                          const conversation = await response.json();
-                          console.log('Conversation created/retrieved:', conversation);
-                          // Redirect to messages page with conversation ID
-                          router.push(`/user/messages?conversationId=${conversation.id || conversation._id}`);
-                        } else {
-                          const error = await response.json();
-                          console.error('Failed to create conversation:', error);
-                        }
-                      } catch (error) {
-                        console.error('Error creating conversation:', error);
-                      }
-                    }}
-                    className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2 flex-shrink-0 w-full sm:w-auto justify-center hover:bg-[#8FB366]/10 transition-colors"
-                  >
-                   <img src='/msg.svg' className="w-4 h-4 text-[#8FB366] mr-1" />
-                    <span className="text-xs font-semibold text-dark-green">Send a Message</span>
-                  </button>
-                </div>
-              </div>
+
+            {isClaimed && field?.owner && (
+              <OwnerInformation
+                owner={{
+                  id: field?.ownerId || field?.owner?._id || field?.owner?.id || field?.userId,
+                  name: field?.ownerName || field?.owner?.name,
+                  email: field?.owner?.email,
+                  isVerified: field?.owner?.isVerified,
+                  createdAt: field?.joinedOn || field?.owner?.createdAt,
+                  profileImage: ownerImg || field?.owner?.image
+                }}
+                fieldId={field?._id || field?.id}
+                showMessage={!isPreview}
+              />
             )}
             
             {!isClaimed && !isPreview && (
               <div className="flex items-center gap-3">
                 <button 
                   onClick={isPreview ? undefined : () => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
-                  className="flex-1 w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
+                  className="flex-1 w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-[70px] hover:bg-[#2e5519] transition"
                 >
                   Claim This Field
                 </button>
@@ -318,13 +258,13 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                     </button>
                   </DialogTrigger>
                   <DialogContent className="max-w-3xl rounded-2xl p-8 bg-white">
-                    <DialogTitle className="text-2xl md:text-3xl font-bold text-dark-green mb-2">What Does "Claim This Field" Mean?</DialogTitle>
-                    <p className="text-dark-green/80 mb-6">If you're the rightful owner or manager of a field already listed on Fieldsy, "Claim This Field" allows you to take control of the listing. Once claimed and verified, you'll be able to:</p>
+                    <DialogTitle className="text-2xl md:text-[29px] font-[600] text-dark-green mb-2">What Does "Claim This Field" Mean?</DialogTitle>
+                    <p className="text-gray-400 text-[15px] font-[400] mb-6">If you're the rightful owner or manager of a field already listed on Fieldsy, "Claim This Field" allows you to take control of the listing. Once claimed and verified, you'll be able to:</p>
                     <div className="space-y-4">
                       {["Edit field details and photos","Manage bookings and messages","Track earnings from your dashboard","Set availability and pricing"].map((text)=> (
-                        <div key={text} className="flex items-start gap-3">
-                          <CheckCircle className="w-5 h-5 text-green mt-0.5" />
-                          <span className="text-dark-green text-base">{text}</span>
+                        <div key={text} className="flex items-start gap-3  ">
+                          <CheckCircle className="w-8 h-8 text-white fill-light-green rounded-full " />
+                          <span className="text-dark-green text-[500] text-[16px]">{text}</span>
                         </div>
                       ))}
                     </div>

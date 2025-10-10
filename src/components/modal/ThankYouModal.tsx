@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle } from 'lucide-react';
+import Image from 'next/image';
 
 interface ThankYouModalProps {
   isOpen: boolean;
@@ -14,38 +14,34 @@ export default function ThankYouModal({ isOpen, onGoHome, onPreviewListing, onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50"
         onClick={onClose || onGoHome}
       />
-      
+
       {/* Modal */}
       <div className="relative bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center animate-in fade-in zoom-in duration-300">
         {/* Success Icon */}
-        <div className="w-20 h-20 bg-green/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-12 h-12 text-green" />
+        <div className="flex items-center justify-center mx-auto mb-6">
+          <Image
+            src="/field-submit.svg"
+            alt="Success"
+            width={80}
+            height={80}
+            className="object-contain"
+          />
         </div>
-        
+
         {/* Title */}
         <h2 className="text-2xl font-bold text-dark-green mb-3">
-          Thank You!
+          Thank you for sharing your space with Fieldsy!
         </h2>
-        
+
         {/* Message */}
         <p className="text-gray-600 mb-6">
-          Your field has been successfully submitted for review. 
-          We'll notify you via email once it's approved and live on the platform.
+          Your listing has been successfully submitted and is now under review to ensure it meets our platform standards. We'll notify you as soon as it's live and ready for bookings.
         </p>
-        
-        {/* Additional Info */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-600">
-            <strong>What's next?</strong><br />
-            Our team will review your submission within 24-48 hours. 
-            You can track the status in your dashboard.
-          </p>
-        </div>
-        
+
         {/* Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
           <button

@@ -56,7 +56,7 @@ export default function SavedFieldsPage() {
   return (
     <UserLayout requireRole="DOG_OWNER">
       <div className="min-h-screen bg-[#FFFCF3] pt-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-20 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#192215]">Saved Fields</h1>
@@ -109,7 +109,7 @@ export default function SavedFieldsPage() {
           {!isLoading && !error && savedFields.length > 0 && (
             <>
               <div className="w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(280px,400px))] gap-4 md:gap-6 justify-center">
+                <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(280px,400px))] gap-4 md:gap-6">
                   {savedFields.map((field) => (
                     <FieldCard 
                     key={field.id}

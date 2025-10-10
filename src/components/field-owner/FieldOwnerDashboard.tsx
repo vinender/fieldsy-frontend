@@ -165,6 +165,7 @@ export default function AddYourField() {
   const isAddNewMode = router.query.addNew === 'true';
   const isEditMode = router.query.edit === 'true';
   const editFieldId = router.query.fieldId as string | undefined;
+  const stepFromQuery = router.query.step as string | undefined;
 
   // Fetch all fields when in edit mode to get specific field by ID
   const {
@@ -205,6 +206,16 @@ export default function AddYourField() {
     
     return sectionMap[activeSection] || false;
   };
+
+  // Set initial active section from query parameter
+  useEffect(() => {
+    if (stepFromQuery) {
+      const validSteps = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+      if (validSteps.includes(stepFromQuery)) {
+        setActiveSection(stepFromQuery);
+      }
+    }
+  }, [stepFromQuery]);
 
   // Reset form when in add new mode
   useEffect(() => {
@@ -408,8 +419,26 @@ export default function AddYourField() {
   // Use custom save progress mutation hook
   const saveProgressMutation = useSaveFieldProgress({
     onSuccess: (result) => {
-      if (result.fieldId && !fieldId) {
-        setFieldId(result.fieldId);
+      if (result.fieldId) {
+        // Always update fieldId from response
+        if (!fieldId || fieldId !== result.fieldId) {
+          setFieldId(result.fieldId);
+          // Update URL with fieldId for persistence across page refreshes
+          const currentQuery = { ...router.query };
+          if (isAddNewMode) {
+            // When in addNew mode and we get a fieldId, switch to edit mode
+            router.replace({
+              pathname: router.pathname,
+              query: { ...currentQuery, edit: 'true', fieldId: result.fieldId, addNew: undefined }
+            }, undefined, { shallow: true });
+          } else if (!currentQuery.fieldId) {
+            // Add fieldId to URL if not present
+            router.replace({
+              pathname: router.pathname,
+              query: { ...currentQuery, fieldId: result.fieldId }
+            }, undefined, { shallow: true });
+          }
+        }
       }
       // Refetch field data after saving
       refetch();
@@ -524,7 +553,7 @@ export default function AddYourField() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-20">
         {/* Page Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 lg:mb-8">
-          <BackButton size='lg' />
+          {activeSection !== 'field-details' && <BackButton size='lg' />}
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
             Add Your Field
           </h1>

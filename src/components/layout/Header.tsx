@@ -61,32 +61,32 @@ export function Header() {
     // Base navigation for non-authenticated users (now includes Search Fields)
     const baseNav = [
       { name: "Home", href: "/" },
-      { name: "About Us", href: "/about" },
+      { name: "About Us", href: "/why-choose-us" },
       { name: "Search Fields", href: "/fields" },
       { name: "How it works", href: "/how-it-works" },
       { name: "FAQ's", href: "/faqs" },
     ]
-    
+
     // If not authenticated, show base navigation with Search Fields
     if (!isAuthenticated || !currentUser) {
       return baseNav
     }
-    
+
     // For FIELD_OWNER role
     if (currentUser.role === 'FIELD_OWNER') {
       return [
         { name: "Home", href: "/" },
-        { name: "Why Choose Us", href: "/about" },
+        { name: "Why Choose Us", href: "/why-choose-us" },
         { name: "How It Works", href: "/how-it-works" },
-        { name: "Testimonials", href: "/#testimonials" },
+        { name: "Testimonials", href: "/field-owner/testimonials" },
         { name: "FAQ's", href: "/faqs" },
       ]
     }
-    
+
     // For DOG_OWNER role (default authenticated user)
     return [
       { name: "Home", href: "/" },
-      { name: "About Us", href: "/about" },
+      { name: "About Us", href: "/why-choose-us" },
       { name: "Search Fields", href: "/fields" },
       { name: "How it works", href: "/how-it-works" },
       { name: "FAQ's", href: "/faqs" },

@@ -22,7 +22,7 @@ export const DeleteCardConfirmationModal: React.FC<DeleteCardConfirmationModalPr
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 z-50"
+        className="fixed inset-0 bg-black/50 rounded-[32px] z-50"
         onClick={onClose}
       />
       
@@ -40,11 +40,12 @@ export const DeleteCardConfirmationModal: React.FC<DeleteCardConfirmationModalPr
           {/* Content */}
           <div className="text-center mb-6 mt-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Are you sure you want to delete this card?
+              Delete Card?
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed">
               {cardBrand && cardLast4 ? (
-                <>You'll remove the {cardBrand} card ending in {cardLast4} from your account. This action cannot be undone.</>
+                // <>You'll remove the {cardBrand} card ending in {cardLast4} from your account. This action cannot be undone.</>
+                <>Are you sure you want to remove this card? You won’t be able to use it for future bookings.</>
               ) : (
                 <>You'll remove this payment method from your account. This action cannot be undone.</>
               )}

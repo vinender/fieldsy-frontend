@@ -232,9 +232,9 @@ const ClaimFieldPage = () => {
    
 
       {/* Main Content */}
-      <main className="container mx-auto mt-16 md:mt-[100px]  py-4 lg:py-10">
+      <main className="w-full mt-16 md:mt-[100px]  py-4 lg:py-10 px-4 sm:px-6 lg:px-20">
         {/* Back Button and Title */}
-         
+
             <BackButton size="lg" showLabel={true}  label="Back to Field" />
             
         {/* Validation Error Alert */}
@@ -253,7 +253,7 @@ const ClaimFieldPage = () => {
         )}
 
         {/* Form Container */}
-        <div className="grid lg:grid-cols-2">
+        <div className="grid lg:grid-cols-2 border-b">
           {/* Left Column - Personal Information */}
           <div className="bg-white rounded-l-2xl p-6 lg:p-8 ">
             <h3 className="text-xl font-bold text-dark-green mb-2">Personal Information</h3>

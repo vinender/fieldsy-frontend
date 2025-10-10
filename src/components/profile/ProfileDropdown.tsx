@@ -109,9 +109,9 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
               <Image 
                 src={item.icon} 
                 alt={item.label} 
-                width={20} 
-                height={20}
-                className="w-5 h-5"
+                width={50} 
+                height={50}
+                className="w-6 h-6"
               />
             </div>
             <span className="flex-1 text-left text-base font-medium text-[#192215]">{item.label}</span>
@@ -132,7 +132,7 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
               alt="Logout" 
               width={20} 
               height={20}
-              className="w-5 h-5"
+              className="w-7 h-7"
             />
           </div>
           <span className="flex-1 text-left text-base font-medium text-blood-red">Logout</span>

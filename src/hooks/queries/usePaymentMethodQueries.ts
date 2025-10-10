@@ -39,10 +39,11 @@ export const useSetDefaultPaymentMethod = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payment-methods'] });
-      toast.success('Default payment method updated');
+      // Use toast ID to prevent duplicate toasts
+      toast.success('Default payment method updated', { id: 'set-default-card' });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to update default payment method');
+      toast.error(error.response?.data?.error || 'Failed to update default payment method', { id: 'set-default-card-error' });
     },
   });
 };

@@ -111,7 +111,8 @@ export default function SearchResults() {
     limit: 12,
     ...(searchValue && { search: searchValue }),
     ...(zipCode && { zipCode }),
-    ...(lat && lng && { lat, lng }),
+    // Use explicit lat/lng from search, or fallback to current location
+    ...((lat && lng) ? { lat, lng } : (currentLocation && { lat: currentLocation.lat, lng: currentLocation.lng })),
     ...(appliedFilters.size && appliedFilters.size !== 'All' && appliedFilters.size !== '' && { size: appliedFilters.size }),
     ...(appliedFilters.amenities.length > 0 && { amenities: appliedFilters.amenities }),
     ...(appliedFilters.rating && appliedFilters.rating !== '' && { minRating: parseFloat(appliedFilters.rating.replace('+', '')) }),

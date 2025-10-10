@@ -66,9 +66,9 @@ export default function PreviewPage() {
   const handleEdit = () => {
     const editFieldId = fieldData?.id;
     if (editFieldId) {
-      router.push(`/?edit=true&fieldId=${editFieldId}`);
+      router.push(`/?edit=true&fieldId=${editFieldId}&step=booking-rules`);
     } else {
-      router.push('/?edit=true');
+      router.push('/?edit=true&step=booking-rules');
     }
   };
 

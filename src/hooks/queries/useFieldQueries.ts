@@ -220,16 +220,33 @@ export function useFieldOwnerBookings(options?: Omit<UseQueryOptions<any, Error>
 }
 
 // Hook to fetch a specific field by ID
-export function useFieldDetails(fieldId: string, options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>) {
+export function useFieldDetails(
+  fieldId: string,
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'> & { userLocation?: { lat: number; lng: number } | null }
+) {
+  const { userLocation, ...queryOptions } = options || {};
+
   const query = useQuery({
-    queryKey: fieldQueryKeys.fieldDetails(fieldId),
+    queryKey: userLocation
+      ? [...fieldQueryKeys.fieldDetails(fieldId), userLocation]
+      : fieldQueryKeys.fieldDetails(fieldId),
     queryFn: async () => {
-      const response = await axiosClient.get(`/fields/${fieldId}`);
+      // Build URL with lat/lng params if user location is available
+      let url = `/fields/${fieldId}`;
+      if (userLocation) {
+        const params = new URLSearchParams({
+          lat: String(userLocation.lat),
+          lng: String(userLocation.lng)
+        });
+        url = `/fields/${fieldId}?${params.toString()}`;
+      }
+
+      const response = await axiosClient.get(url);
       return response.data;
     },
     enabled: !!fieldId,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    ...options,
+    ...queryOptions,
   });
 
   return {

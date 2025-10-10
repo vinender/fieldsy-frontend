@@ -3,6 +3,9 @@ import { X, Star, Upload, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCreateReview } from '@/hooks/useReviews';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { getUserImage, getUserInitials } from '@/utils/getUserImage';
+import Image from 'next/image';
 
 interface AddReviewModalProps {
   isOpen: boolean;
@@ -13,28 +16,30 @@ interface AddReviewModalProps {
   onReviewAdded?: () => void;
 }
 
-export const AddReviewModal = ({ 
-  isOpen, 
-  onClose, 
+export const AddReviewModal = ({
+  isOpen,
+  onClose,
   fieldId,
   fieldName = "Field",
   bookingId,
-  onReviewAdded 
+  onReviewAdded
 }: AddReviewModalProps) => {
   const { data: session } = useSession();
+  const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [reviewTitle, setReviewTitle] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  
+
   const createReviewMutation = useCreateReview(fieldId, bookingId);
 
-  // User data from session
+  // User data from auth context
   const userData = {
-    name: session?.user?.name || 'User',
-    avatar: session?.user?.image || 'https://i.pravatar.cc/150?img=8',
+    name: user?.name || session?.user?.name || 'User',
+    avatar: getUserImage(user || session?.user),
+    initials: getUserInitials(user || session?.user),
     date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
   };
 
@@ -126,11 +131,22 @@ export const AddReviewModal = ({
             {/* User Info and Rating */}
             <div className="mb-8">
               <div className="flex items-center gap-[13px] mb-4">
-                <img 
-                  src={userData.avatar} 
-                  alt={userData.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
+                {userData.avatar ? (
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                    <Image
+                      src={userData.avatar}
+                      alt={userData.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-green/10 flex items-center justify-center">
+                    <span className="text-green font-semibold text-lg">
+                      {userData.initials}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <h3 className="text-[15px] font-semibold text-[#192215] capitalize">
                     {userData.name}

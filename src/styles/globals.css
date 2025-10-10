@@ -45,6 +45,16 @@ body.sidebar-open {
   height: 100% !important;
 }
 
+/* Hide scrollbar utility class */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 /* Hide all scrollbars when sidebar is open */
 body.sidebar-open::-webkit-scrollbar {
   display: none !important;
@@ -53,6 +63,18 @@ body.sidebar-open::-webkit-scrollbar {
 body.sidebar-open {
   -ms-overflow-style: none !important;  /* IE and Edge */
   scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Hide number input spinner arrows */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Ensure html element also doesn't show scrollbar */

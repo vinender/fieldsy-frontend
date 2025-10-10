@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { ChevronLeft, ChevronDown, ChevronUp, Star, MapPin, Calendar, Check, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, Star, Calendar } from 'lucide-react';
 import BackButton from '@/components/common/BackButton';
 import { Input } from '@/components/ui/input';
 import DatePicker from 'react-datepicker';
@@ -10,10 +10,12 @@ import { useFieldDetails } from '@/hooks';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
 import { format } from 'date-fns';
-import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useRescheduleBooking } from '@/hooks/useBookingApi';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
+import OwnerInformation from '@/components/fields/OwnerInformation';
+import FieldLocation from '@/components/fields/FieldLocation';
+import { getUserLocation } from '@/utils/getUserLocation';
 
 interface TimeSlot {
   time: string;
@@ -42,16 +44,27 @@ const BookFieldPage = () => {
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
   const [rescheduleData, setRescheduleData] = useState<any>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
 
-  // Fetch field details using the hook with optimizations
+  // Get user location on mount
+  useEffect(() => {
+    getUserLocation().then(location => {
+      if (location) {
+        setUserLocation(location);
+      }
+    });
+  }, []);
+
+  // Fetch field details using the hook with optimizations and user location
   const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string, {
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
     refetchOnMount: false, // Don't refetch on mount if cached
-    refetchOnWindowFocus: false // Don't refetch on window focus
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    userLocation: userLocation
   });
   const field = fieldData?.data || fieldData;
   console.log('field',field)
@@ -593,21 +606,22 @@ const BookFieldPage = () => {
                     {field.name}
                   </h2>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">${field.pricePerHour || field.price || 0}</span>
+                    <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">£{field.pricePerHour || field.price || 0}</span>
                     <span className="text-sm sm:text-[16px] text-dark-green/70">
-                      /{field.bookingDuration === '30min' ? '30min' : 'hour'}
+                      /dog/{field.bookingDuration === '30min' ? '30min' : 'hour'}
                     </span>
                   </div>
                 </div>
                 
                 {/* Location and Rating */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
-                  <div className="flex items-center gap-1">
-                    <img src='/location.svg' className="w-4 h-4 sm:w-5 sm:h-5 text-[#3A6B22]" />
-                    <span className="text-sm sm:text-[16px] text-dark-green truncate">
-                      {field.city && field.postalCode ? `${field.city} ${field.postalCode}` : field.address || 'Location not specified'}
-                    </span>
-                  </div>
+                  <FieldLocation
+                    field={field}
+                    className="flex items-center gap-1"
+                    iconClassName="w-4 h-4 sm:w-5 sm:h-5 text-[#3A6B22]"
+                    textClassName="text-sm sm:text-[16px] text-dark-green truncate"
+                    showDistance={true}
+                  />
                   {field.averageRating && (
                     <div className="bg-dark-green w-16 px-1.5 py-1 rounded-md flex items-center gap-0.5">
                       <Star className="w-[18px] h-[18px] text-yellow-400 fill-yellow" />
@@ -619,53 +633,17 @@ const BookFieldPage = () => {
 
               {/* Owner Information */}
               {field.owner && (
-                <div>
-                  <h3 className="text-[18px] font-bold text-dark-green mb-2.5">Owner Information</h3>
-                  <div className="bg-[#F8F1D7] rounded-lg p-2.5 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <img 
-                        src={getUserImage(field.owner)} 
-                        alt={field.owner.name || 'Field Owner'} 
-                        className="w-10 h-10 rounded-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(field.owner)}&background=3A6B22&color=fff&size=200`;
-                        }}
-                      />
-                      <div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[16px] font-medium text-[#090F1F]">
-                            {field.owner.name || field.owner.email || 'Field Owner'}
-                          </span>
-                          {field.owner.isVerified && <Check className="w-4 h-4 text-[#3A6B22]" />}
-                        </div>
-                        <span className="text-[14px] text-[#545662]/70">
-                          Joined {field.owner.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        // Check if user is authenticated
-                        if (!session) {
-                          // Save the intended action in sessionStorage
-                          if (field?.owner?.id) {
-                            sessionStorage.setItem('messageIntentUserId', field.owner.id);
-                            sessionStorage.setItem('messageIntentFieldId', field.id);
-                          }
-                          // Redirect to login with return URL
-                          router.push('/login?redirect=/user/messages');
-                        } else if (field?.owner?.id) {
-                          // Navigate to messages page with the field owner's ID
-                          router.push(`/user/messages?userId=${field.owner.id}`);
-                        }
-                      }}
-                      className="bg-white border border-[#8FB366]/40 rounded-[10px] px-2.5 py-2.5 flex items-center gap-1.5 hover:bg-gray-50 transition-colors"
-                    >
-                      <img src='/msg.svg' className="w-5 h-5" />
-                      <span className="text-[12px] font-semibold text-dark-green">Send a Message</span>
-                    </button>
-                  </div>
-                </div>
+                <OwnerInformation
+                  owner={{
+                    id: field.owner.id || field.owner._id || field.ownerId,
+                    name: field.owner.name,
+                    email: field.owner.email,
+                    isVerified: field.owner.isVerified,
+                    createdAt: field.owner.createdAt,
+                    profileImage: field.owner.image || field.owner.profileImage
+                  }}
+                  fieldId={field.id || field._id}
+                />
               )}
             </div>
           </div>

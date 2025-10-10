@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import BackButton from '@/components/common/BackButton';
-import { Plus, Star, MapPin, Trash2 } from 'lucide-react';
+import { Plus, Star } from 'lucide-react';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
 import dynamic from 'next/dynamic';
 import AddCardModal from '@/components/payment/AddCardModal';
+import { CreditCardDisplay } from '@/components/payment/CreditCardDisplay';
 import { usePaymentMethods, useSetDefaultPaymentMethod, useDeletePaymentMethod } from '@/hooks/queries/usePaymentMethodQueries';
 import { toast } from 'sonner';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
+import FieldLocation from '@/components/fields/FieldLocation';
+import { getUserLocation } from '@/utils/getUserLocation';
 
 // Dynamically import Stripe component to avoid SSR issues
 const StripeCheckout = dynamic(
@@ -24,9 +27,19 @@ const PaymentPage = () => {
   const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const [numberOfDogs, setNumberOfDogs] = useState(2);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
-  
-  // Fetch field details using the hook
-  const { data: fieldData, isLoading, error } = useFieldDetails(field_id as string);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Get user location on mount
+  useEffect(() => {
+    getUserLocation().then(location => {
+      if (location) {
+        setUserLocation(location);
+      }
+    });
+  }, []);
+
+  // Fetch field details using the hook with user location
+  const { data: fieldData, isLoading, error } = useFieldDetails(field_id as string, { userLocation });
   const field = fieldData?.data || fieldData;
   
   // Fetch slot availability
@@ -111,14 +124,17 @@ const PaymentPage = () => {
   const handleSetDefault = async (cardId: string) => {
     try {
       await setDefaultMutation.mutateAsync(cardId);
+      // Also select this card for the current payment
       setSelectedCard(cardId);
+      // Note: No need to manually refetch - invalidateQueries in the mutation hook handles it
     } catch (error) {
       console.error('Error setting default:', error);
+      // Note: Don't show error toast here - the mutation hook already handles it
     }
   };
 
   const handleDeleteCard = async (cardId: string) => {
-    if (!confirm('Are you sure you want to delete this card?')) {
+    if (!confirm('Delete Card?')) {
       return;
     }
     
@@ -188,9 +204,21 @@ const PaymentPage = () => {
           
           {/* Left Column - Credit Cards */}
           <div className="bg-white rounded-[16px] sm:rounded-[22px] p-4 sm:p-6 lg:p-10 h-fit border border-black/6">
-            <h2 className="text-[16px] sm:text-[18px] font-bold text-[#192215] mb-3 sm:mb-4">
-              Credit/Debit card
-            </h2>
+            
+            <div className='flex items-center justify-between mb-3 sm:mb-4'>
+                <h2 className="text-[16px] sm:text-[18px] font-bold text-[#192215]  ">
+                  Credit/Debit card
+                </h2>
+
+                {/* Add New Card Button */}
+                <button 
+                  onClick={() => setShowAddCardModal(true)}
+                  className="flex items-center  text-[#3A6B22] font-bold text-[13px] sm:text-[15px] hover:opacity-80 transition-opacity "
+                >
+                  <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span>Add New Card</span>
+                </button>
+            </div>
 
             <div className="space-y-4">
               {/* Loading State */}
@@ -202,96 +230,13 @@ const PaymentPage = () => {
 
               {/* Saved Cards */}
               {!isLoadingCards && paymentMethods && paymentMethods.map((card) => (
-                <div key={card.id} className="space-y-6">
-                  {/* Card Visual */}
-                  <div className="relative">
-                    {/* Shadow Card Behind */}
-                    <div className="absolute top-10 sm:top-14 left-3 right-3 sm:left-4 sm:right-4 h-[100px] sm:h-[120px] bg-[#D8D8D8] rounded-xl shadow-[0px_4px_24px_0px_rgba(0,0,0,0.2)]" />
-                    
-                    {/* Main Card */}
-                    <div className={`relative h-36 sm:h-44 rounded-xl p-3 sm:p-4 bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden`}>
-                      {/* Card Background Pattern */}
-                      <div className="absolute inset-0 opacity-15">
-                      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'grid\' width=\'10\' height=\'10\' patternUnits=\'userSpaceOnUse\'%3E%3Cpath d=\'M 10 0 L 0 0 0 10\' fill=\'none\' stroke=\'white\' stroke-width=\'0.5\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100\' height=\'100\' fill=\'url(%23grid)\' /%3E%3C/svg%3E')] bg-repeat" />
-                      </div>
-                      
-                      {/* Chip */}
-                      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 w-8 h-6 sm:w-10 sm:h-8 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-md">
-                        <div className="w-full h-full border border-yellow-600/30 rounded-md"></div>
-                      </div>
-                      
-                      {/* Card Logo */}
-                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-                        {getCardBrandIcon(card.brand)}
-                      </div>
-                      
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleDeleteCard(card.id)}
-                        className="absolute top-3 right-14 sm:top-4 sm:right-16 text-white/80 hover:text-white transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      
-                      {/* Card Number */}
-                      <div className="absolute top-1/2 -translate-y-2 sm:-translate-y-4 left-3 right-3 sm:left-4 sm:right-4">
-                        <p className="text-white text-[14px] sm:text-[18px] font-bold tracking-[1px] sm:tracking-[2px] drop-shadow-[0px_1px_2px_rgba(0,0,0,0.24)]">
-                          XXXX  XXXX  XXXX  {card.last4}
-                        </p>
-                      </div>
-                      
-                      {/* Card Holder */}
-                      <div className="absolute bottom-10 sm:bottom-12 left-3 sm:left-4">
-                        <p className="text-white text-[11px] sm:text-[14px] font-semibold uppercase drop-shadow-[0px_0px_1px_rgba(0,0,0,0.4)]">
-                          {card.cardholderName || 'CARD HOLDER'}
-                        </p>
-                      </div>
-                      
-                      {/* Valid Thru */}
-                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4">
-                        <p className="text-white text-[10px] sm:text-[13px] font-medium drop-shadow-[0px_0px_1px_rgba(0,0,0,0.4)]">
-                          Valid thru: {card.expiryMonth?.toString().padStart(2, '0')}/{card.expiryYear}
-                        </p>
-                      </div>
-                      
-                      {/* CVV */}
-                      <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4">
-                        <p className="text-white text-[12px] sm:text-[15px] font-bold drop-shadow-[0px_0px_1px_rgba(0,0,0,0.4)]">
-                          CVV
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Default Card Checkbox and Radio */}
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 sm:gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={selectedCard === card.id}
-                        onChange={() => setSelectedCard(card.id)}
-                        className="w-5 h-5 sm:w-6 sm:h-6 text-green border-gray-300 focus:ring-green"
-                      />
-                      <span className="text-[12px] sm:text-[14px] font-medium text-[#192215]">
-                        Use this card
-                      </span>
-                    </label>
-                    
-                    {!card.isDefault && (
-                      <button
-                        onClick={() => handleSetDefault(card.id)}
-                        className="text-[12px] sm:text-[14px] text-green hover:text-green-hover"
-                      >
-                        Make default
-                      </button>
-                    )}
-                    {card.isDefault && (
-                      <span className="text-[12px] sm:text-[14px] text-gray-500">
-                        Default card
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <CreditCardDisplay
+                  key={card.id}
+                  card={card}
+                  onToggleDefault={() => handleSetDefault(card.id)}
+                  onDelete={() => handleDeleteCard(card.id)}
+                  showCheckbox={true}
+                />
               ))}
 
               {/* No Cards Message */}
@@ -302,14 +247,7 @@ const PaymentPage = () => {
                 </div>
               )}
 
-              {/* Add New Card Button */}
-              <button 
-                onClick={() => setShowAddCardModal(true)}
-                className="flex items-center gap-2 text-[#3A6B22] font-bold text-[13px] sm:text-[15px] hover:opacity-80 transition-opacity pt-3 sm:pt-4"
-              >
-                <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span>Add New Card</span>
-              </button>
+           
             </div>
           </div>
 
@@ -342,12 +280,13 @@ const PaymentPage = () => {
                     
                     {/* Location and Rating */}
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <img src='/location.svg' className="w-4 h-4 sm:w-5 sm:h-5 text-[#3A6B22]" />
-                        <span className="text-sm sm:text-[16px] text-[#192215]">
-                          {field?.city && field?.postalCode ? `${field.city} ${field.postalCode}` : field?.address || 'Location not specified'}
-                        </span>
-                      </div>
+                      <FieldLocation
+                        field={field}
+                        className="flex items-center gap-1"
+                        iconClassName="w-4 h-4 sm:w-5 sm:h-5 text-[#3A6B22]"
+                        textClassName="text-sm sm:text-[16px] text-[#192215]"
+                        showDistance={true}
+                      />
                       {field?.averageRating && (
                         <div className="bg-[#192215] px-1.5 py-1 rounded-md flex items-center gap-0.5 w-fit">
                           <Star className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-yellow" />
@@ -421,10 +360,23 @@ const PaymentPage = () => {
                   </div>
                 </div>
 
-                {/* Pay Now Button */}
+                {/* Recurring Info and Pay Now Button */}
                 {!showStripeCheckout ? (
-                  <div className="flex justify-end mt-4 sm:mt-6">
-                    <button 
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4 sm:mt-6">
+                    {/* Recurring Booking Info */}
+                    {repeatBooking && repeatBooking !== 'none' && (
+                      <div className="flex items-center gap-2 text-sm text-[#192215]">
+                        <svg className="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span className="font-medium">
+                          Recurring: <span className="text-green capitalize">{repeatBooking}</span>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Pay Now Button */}
+                    <button
                       onClick={() => {
                         if (!selectedCard && (!paymentMethods || paymentMethods.length === 0)) {
                           toast.error('Please add a payment method first');

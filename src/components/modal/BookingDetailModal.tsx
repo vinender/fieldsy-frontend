@@ -200,7 +200,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] overflow-y-auto overflow-x-hidden relative animate-in fade-in zoom-in duration-300">
+        <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] flex flex-col overflow-hidden relative animate-in fade-in zoom-in duration-300">
           {/* Close Button and Status Badge */}
           <div className="absolute right-4 top-4 sm:right-6 sm:top-6 lg:right-8 lg:top-8 z-10 flex items-center gap-2 sm:gap-3">
             {fullBooking?.status && (
@@ -215,7 +215,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="p-4 sm:p-6 lg:p-10">
+          <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto scrollbar-hide flex-1">
             {isLoading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3a6b22]"></div>

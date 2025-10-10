@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, 
-  User, 
-  Mail, 
-  Phone, 
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
   Check,
   ChevronDown,
   Upload,
@@ -15,17 +15,19 @@ import { useProfile, useUpdateProfile, useUploadProfileImage, useDeleteProfileIm
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { ProfileSkeleton } from '@/components/skeletons/SkeletonComponents';
+import { DeleteProfileImageModal } from '@/components/modal/DeleteProfileImageModal';
 
 const MyProfilePage = () => {
   const router = useRouter();
   const [isPasswordSidebarOpen, setIsPasswordSidebarOpen] = useState(false);
+  const [showDeleteImageModal, setShowDeleteImageModal] = useState(false);
   
   // Fetch profile data
   const { data: profile, isLoading, error } = useProfile();
   const updateProfileMutation = useUpdateProfile();
   const uploadImageMutation = useUploadProfileImage();
   const deleteImageMutation = useDeleteProfileImage();
-  
+  console.log('profile',profile?.image)
   // Form state
   const [formData, setFormData] = useState({
     fullName: '',
@@ -49,10 +51,19 @@ const MyProfilePage = () => {
   }, [profile]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // For phone number, only allow digits
+    if (field === 'phoneNumber') {
+      const numericValue = value.replace(/\D/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [field]: numericValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleUpdate = async () => {
@@ -97,13 +108,16 @@ const MyProfilePage = () => {
     }
   };
 
-  const handleDeleteImage = async () => {
-    if (confirm('Are you sure you want to delete your profile image?')) {
-      try {
-        await deleteImageMutation.mutateAsync();
-      } catch (error) {
-        // Error handled by mutation
-      }
+  const handleDeleteImage = () => {
+    setShowDeleteImageModal(true);
+  };
+
+  const confirmDeleteImage = async () => {
+    try {
+      await deleteImageMutation.mutateAsync();
+      setShowDeleteImageModal(false);
+    } catch (error) {
+      // Error handled by mutation
     }
   };
 
@@ -134,8 +148,8 @@ const MyProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20">
+    <div className="h-full bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-20">
         {/* Page Title with Back Button */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-10">
           <button 
@@ -154,10 +168,10 @@ const MyProfilePage = () => {
             
             {/* User Info */}
             <div className="flex items-center gap-3 sm:gap-4 mb-4">
-              {profile.image ? (
+              {profile?.image ? (
                 <img 
-                  src={profile.image} 
-                  alt={profile.name || 'User'} 
+                  src={profile?.image} 
+                  alt={profile?.name || 'User'} 
                   className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover flex-shrink-0"
                 />
               ) : (
@@ -211,9 +225,9 @@ const MyProfilePage = () => {
 
             {/* Profile Image Section */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 sm:mb-8">
-              {profile.image ? (
+              {profile?.image ? (
                 <img 
-                  src={profile.image} 
+                  src={profile?.image} 
                   alt={profile.name || 'User'} 
                   className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
                 />
@@ -242,7 +256,7 @@ const MyProfilePage = () => {
                     'Change Profile Image'
                   )}
                 </label>
-                {profile.image && (
+                {profile?.image && (
                   <button
                     onClick={handleDeleteImage}
                     disabled={deleteImageMutation.isPending || uploadImageMutation.isPending}
@@ -310,9 +324,9 @@ const MyProfilePage = () => {
                     placeholder="Enter phone number"
                     className="flex-1 ml-2 sm:ml-3 text-sm sm:text-[15px] border-0 px-0 focus:ring-0"
                   />
-                  {formData.phoneNumber && formData.phoneNumber.trim() !== '' && (
+                  {/* {formData.phoneNumber && formData.phoneNumber.trim() !== '' && (
                     <Check className="w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
-                  )}
+                  )} */}
                 </div>
               </div>
 
@@ -323,6 +337,7 @@ const MyProfilePage = () => {
                 </label>
                 <textarea
                   value={formData.bio}
+                  placeholder='Enter Bio'
                   onChange={(e) => handleInputChange('bio', e.target.value)}
                   className="w-full h-[100px] sm:h-[122px] p-3 sm:p-4 bg-white border border-[#e3e3e3] rounded-[20px] text-sm sm:text-[15px] text-[#192215] leading-relaxed resize-none focus:outline-none focus:border-[#3a6b22] transition-colors"
                 />
@@ -360,10 +375,18 @@ const MyProfilePage = () => {
       </div>
       
       {/* Change Password Sidebar */}
-      <ChangePasswordSidebar 
+      <ChangePasswordSidebar
         isOpen={isPasswordSidebarOpen}
         onClose={() => setIsPasswordSidebarOpen(false)}
         showTriggerButton={false}
+      />
+
+      {/* Delete Profile Image Modal */}
+      <DeleteProfileImageModal
+        isOpen={showDeleteImageModal}
+        onClose={() => setShowDeleteImageModal(false)}
+        onConfirm={confirmDeleteImage}
+        isDeleting={deleteImageMutation.isPending}
       />
     </div>
   );
