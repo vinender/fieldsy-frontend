@@ -530,7 +530,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
           ) : succeeded ? (
             'Payment Successful!'
           ) : (
-            `Pay $${amount.toFixed(2)}`
+            `Pay £${amount.toFixed(2)}`
           )}
         </button>
 

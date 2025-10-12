@@ -575,20 +575,22 @@ export default function AddYourField() {
 
             {/* Action Buttons - Keep original design */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 lg:mt-10">
-              <button
-                onClick={handleBack}
-                className="w-full sm:flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 order-2 sm:order-1"
-              >
-                Back
-              </button>
+              {activeSection !== 'field-details' && (
+                <button
+                  onClick={handleBack}
+                  className="w-full sm:flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 order-2 sm:order-1"
+                >
+                  Back
+                </button>
+              )}
               <button
                 onClick={handleSaveProgress}
                 disabled={isLoading}
-                className="w-full sm:flex-1 py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 order-1 sm:order-2"
+                className={`w-full py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 order-1 ${activeSection === 'field-details' ? '' : 'sm:flex-1 sm:order-2'}`}
               >
-                {isLoading ? 
-                  'Saving...' 
-                  : activeSection === 'booking-rules' 
+                {isLoading ?
+                  'Saving...'
+                  : activeSection === 'booking-rules'
                     ? (isCurrentSectionCompleted() ? 'Update & Preview' : 'Save & Preview')
                     : (isCurrentSectionCompleted() ? 'Update & Next' : 'Save & Next')
                 }

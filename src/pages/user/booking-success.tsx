@@ -94,7 +94,7 @@ const BookingSuccessPage = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Total Paid:</span>
-                      <span className="font-bold text-[#3A6B22] text-lg">${booking.totalPrice?.toFixed(2)}</span>
+                      <span className="font-bold text-[#3A6B22] text-lg">£{booking.totalPrice?.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

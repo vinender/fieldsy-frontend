@@ -272,7 +272,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
           <div className="flex justify-between items-center mb-2.5">
             <h3 className="text-[14px] font-bold text-dark-green">Price</h3>
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-medium text-[#3A6B22]">${tempFilters.priceRange[0]} to ${tempFilters.priceRange[1]}</span>
+              <span className="text-[14px] font-medium text-[#3A6B22]">£{tempFilters.priceRange[0]} to £{tempFilters.priceRange[1]}</span>
               <button onClick={() => toggleSection('price')}>
                 {expandedSections.price ? 
                   <ChevronUp className="w-4 h-4" /> : 
@@ -376,8 +376,8 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                 </div>
               </div>
               <div className="flex justify-between text-[12px] text-dark-green">
-                <span>${tempFilters.priceRange[0]}</span>
-                <span>${tempFilters.priceRange[1]}</span>
+                <span>£{tempFilters.priceRange[0]}</span>
+                <span>£{tempFilters.priceRange[1]}</span>
               </div>
             </div>
           )}

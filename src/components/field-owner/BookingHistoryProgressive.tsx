@@ -70,7 +70,7 @@ const StatsCards = ({ stats }: { stats: any }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-gray-text text-sm">Revenue Today</p>
-            <p className="text-2xl font-bold text-dark-green mt-1">${stats?.revenueToday || 0}</p>
+            <p className="text-2xl font-bold text-dark-green mt-1">£{stats?.revenueToday || 0}</p>
           </div>
           <div className="w-10 h-10 bg-green/10 rounded-full flex items-center justify-center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -169,7 +169,7 @@ const BookingTabs = ({ activeTab, onTabChange, data, isLoading, currentPage, onP
                     </div>
                     <div>
                       <p className="text-gray-text">Amount</p>
-                      <p className="text-dark-green font-medium">${booking.totalAmount}</p>
+                      <p className="text-dark-green font-medium">£{booking.totalAmount}</p>
                     </div>
                   </div>
                 </div>

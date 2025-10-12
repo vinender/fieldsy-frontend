@@ -41,7 +41,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
       let message = 'Booking cancelled successfully.';
 
       if (refundResult && refundResult.success) {
-        message = `Booking cancelled successfully. Refund of €${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
+        message = `Booking cancelled successfully. Refund of £${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
       } else if (data.data?.isRefundEligible) {
         message = 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
       } else {

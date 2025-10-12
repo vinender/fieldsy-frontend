@@ -78,7 +78,6 @@ export function Header() {
         { name: "Home", href: "/" },
         { name: "Why Choose Us", href: "/why-choose-us" },
         { name: "How It Works", href: "/how-it-works" },
-        { name: "Testimonials", href: "/field-owner/testimonials" },
         { name: "FAQ's", href: "/faqs" },
       ]
     }

@@ -136,7 +136,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
         {expandedSections.price && (
           <div className="mt-3">
             <div className="flex justify-between text-[11px] text-gray-500 mb-2">
-              <span>$100 to $110</span>
+              <span>£100 to £110</span>
             </div>
             
             <div className="relative">
@@ -148,8 +148,8 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
             </div>
             
             <div className="flex justify-between text-[10px] text-gray-400 mt-2">
-              <span>$60</span>
-              <span>$300</span>
+              <span>£60</span>
+              <span>£300</span>
             </div>
           </div>
         )}

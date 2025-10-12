@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useCreateContactQuery } from "@/hooks/api/useContactQueries"
 
 interface ContactSupportModalProps {
   isOpen: boolean
@@ -12,31 +13,36 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    query: ""
+    phone: "",
+    subject: "",
+    message: ""
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
+
+  const createQueryMutation = useCreateContactQuery()
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: ""
+      })
+    }
+  }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
-    setSubmitStatus("idle")
 
-    try {
-      // TODO: Implement API call to submit support request
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-
-      setSubmitStatus("success")
-      setTimeout(() => {
-        onClose()
-        setFormData({ name: "", email: "", query: "" })
-        setSubmitStatus("idle")
-      }, 2000)
-    } catch (error) {
-      setSubmitStatus("error")
-    } finally {
-      setIsSubmitting(false)
-    }
+    createQueryMutation.mutate(formData, {
+      onSuccess: () => {
+        setTimeout(() => {
+          onClose()
+        }, 1500)
+      }
+    })
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -63,11 +69,11 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-dark-green font-semibold">
-              Name
+              Name *
             </Label>
             <Input
               id="name"
@@ -77,14 +83,14 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               value={formData.name}
               onChange={handleChange}
               required
-              disabled={isSubmitting}
+              disabled={createQueryMutation.isPending}
             />
           </div>
 
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-dark-green font-semibold">
-              Email
+              Email *
             </Label>
             <Input
               id="email"
@@ -94,41 +100,66 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               value={formData.email}
               onChange={handleChange}
               required
-              disabled={isSubmitting}
+              disabled={createQueryMutation.isPending}
             />
           </div>
 
-          {/* Query Field */}
+          {/* Phone Field */}
           <div className="space-y-2">
-            <Label htmlFor="query" className="text-dark-green font-semibold">
-              Your Query
+            <Label htmlFor="phone" className="text-dark-green font-semibold">
+              Phone (Optional)
             </Label>
-            <textarea
-              id="query"
-              name="query"
-              placeholder="Describe your issue or question..."
-              value={formData.query}
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="Enter your phone number"
+              value={formData.phone}
+              onChange={handleChange}
+              disabled={createQueryMutation.isPending}
+            />
+          </div>
+
+          {/* Subject Field */}
+          <div className="space-y-2">
+            <Label htmlFor="subject" className="text-dark-green font-semibold">
+              Subject *
+            </Label>
+            <Input
+              id="subject"
+              name="subject"
+              type="text"
+              placeholder="Brief description of your query"
+              value={formData.subject}
               onChange={handleChange}
               required
-              disabled={isSubmitting}
+              disabled={createQueryMutation.isPending}
+            />
+          </div>
+
+          {/* Message Field */}
+          <div className="space-y-2">
+            <Label htmlFor="message" className="text-dark-green font-semibold">
+              Message *
+            </Label>
+            <textarea
+              id="message"
+              name="message"
+              placeholder="Describe your issue or question in detail..."
+              value={formData.message}
+              onChange={handleChange}
+              required
+              disabled={createQueryMutation.isPending}
               rows={5}
               className="flex w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-800 shadow-sm transition-all duration-200 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
             />
           </div>
 
-          {/* Status Messages */}
-          {submitStatus === "success" && (
+          {/* Status Message */}
+          {createQueryMutation.isSuccess && (
             <div className="p-4 bg-green/10 border border-green/20 rounded-2xl">
               <p className="text-green text-sm font-medium">
                 Your message has been sent successfully! We'll get back to you soon.
-              </p>
-            </div>
-          )}
-
-          {submitStatus === "error" && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl">
-              <p className="text-red-600 text-sm font-medium">
-                Something went wrong. Please try again.
               </p>
             </div>
           )}
@@ -139,16 +170,16 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               type="button"
               onClick={onClose}
               className="flex-1 px-6 py-3 rounded-full border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-              disabled={isSubmitting}
+              disabled={createQueryMutation.isPending}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="flex-1 px-6 py-3 rounded-full bg-green text-white font-semibold hover:bg-light-green transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSubmitting}
+              disabled={createQueryMutation.isPending}
             >
-              {isSubmitting ? "Sending..." : "Send Message"}
+              {createQueryMutation.isPending ? "Sending..." : "Send Message"}
             </button>
           </div>
         </form>

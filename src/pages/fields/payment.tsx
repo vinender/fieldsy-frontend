@@ -273,7 +273,7 @@ const PaymentPage = () => {
                         {field?.name || 'Field'}
                       </h3>
                       <div className="flex items-baseline gap-1 sm:block sm:text-right">
-                        <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">${pricePerDog}</span>
+                        <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">£{pricePerDog}</span>
                         <span className="text-sm sm:text-[16px] text-[#192215] opacity-70">/dog/{field?.bookingDuration === '30min' ? '30min' : 'hour'}</span>
                       </div>
                     </div>
@@ -341,22 +341,22 @@ const PaymentPage = () => {
                   {/* Price per dog */}
                   <div className="flex justify-between text-sm sm:text-[16px]">
                     <span className="text-[#192215] opacity-70">Price per dog</span>
-                    <span className="font-medium text-[#192215]">${pricePerDog.toFixed(2)}</span>
+                    <span className="font-medium text-[#192215]">£{pricePerDog.toFixed(2)}</span>
                   </div>
-                  
+
                   {/* Number of dogs */}
                   <div className="flex justify-between text-sm sm:text-[16px]">
                     <span className="text-[#192215] opacity-70">Number of dogs</span>
                     <span className="font-medium text-[#192215]">{numberOfDogs}</span>
                   </div>
-                  
+
                   {/* Divider */}
                   <div className="h-px bg-[#E2E2E2]" />
-                  
+
                   {/* Total */}
                   <div className="flex justify-between font-bold">
                     <span className="text-sm sm:text-[16px] text-[#192215]">Total</span>
-                    <span className="text-base sm:text-[18px] text-[#3A6B22]">${total.toFixed(2)}</span>
+                    <span className="text-base sm:text-[18px] text-[#3A6B22]">£{total.toFixed(2)}</span>
                   </div>
                 </div>
 

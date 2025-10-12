@@ -276,7 +276,7 @@ const EarningsHistory: React.FC = () => {
           </div>
           
           {/* Critical Requirements Alert Section - Show when account needs immediate action */}
-          {accountStatus?.data?.hasAccount && accountStatus?.data?.hasCriticalRequirements && (
+          {/* {accountStatus?.data?.hasAccount && accountStatus?.data?.hasCriticalRequirements && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <h3 className="font-semibold text-red-800 mb-2">⚠️ Urgent: Account Action Required</h3>
               <p className="text-sm text-red-700 mb-3">
@@ -321,10 +321,10 @@ const EarningsHistory: React.FC = () => {
                 {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Complete Requirements Now'}
               </button>
             </div>
-          )}
+          )} */}
           
           {/* Eventually Due Requirements - Informational notice */}
-          {accountStatus?.data?.hasAccount && accountStatus?.data?.hasEventualRequirements && !accountStatus?.data?.hasCriticalRequirements && (
+          {/* {accountStatus?.data?.hasAccount && accountStatus?.data?.hasEventualRequirements && !accountStatus?.data?.hasCriticalRequirements && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">ℹ️ Future Requirements</h3>
               <p className="text-sm text-blue-700 mb-3">
@@ -353,7 +353,7 @@ const EarningsHistory: React.FC = () => {
                 {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Complete Future Requirements'}
               </button>
             </div>
-          )}
+          )} */}
 
         </div>
 
