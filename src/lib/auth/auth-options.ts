@@ -257,13 +257,27 @@ export const authOptions: NextAuthOptions = {
           }
 
           const data = await response.json();
-          
+
+          // Check if OTP verification is required
+          if (data.requiresVerification) {
+            console.log('[NextAuth] Social login requires OTP verification, redirecting...');
+            // Store error in sessionStorage to redirect to OTP verification page
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('requiresOtpVerification', 'true');
+              sessionStorage.setItem('otpEmail', data.email);
+              sessionStorage.setItem('otpRole', data.role);
+              sessionStorage.setItem('otpType', 'social-login');
+            }
+            // Reject sign-in to prevent session creation
+            throw new Error('REQUIRES_OTP_VERIFICATION');
+          }
+
           // Store the user data for use in JWT callback
           (user as any).id = data.user.id;
           (user as any).role = data.user.role;
           (user as any).provider = data.user.provider;
           (user as any).accessToken = data.token;
-          
+
           return true; // Allow sign-in
         } catch (error) {
           console.error('Social sign-in error:', error);

@@ -287,8 +287,12 @@ const MyProfilePage = () => {
                     type="text"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    maxLength={50}
                     className="h-12 sm:h-14 text-sm sm:text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                   />
+                  <p className="text-gray-500 text-xs mt-1 text-right">
+                    {formData.fullName.length}/50
+                  </p>
                 </div>
 
                 <div className="flex-1">
@@ -317,13 +321,14 @@ const MyProfilePage = () => {
                     <span className="text-sm sm:text-[15px] text-[#192215]">{formData.countryCode}</span>
                     <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#192215]" />
                   </div>
-                  <Input
+                  <input
                     type="tel"
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                     placeholder="Enter phone number"
-                    className="flex-1 ml-2 sm:ml-3 text-sm sm:text-[15px] border-0 px-0 focus:ring-0"
+                    className="flex-1 ml-2 sm:ml-3 bg-white text-sm sm:text-[15px] border-none outline-none focus:outline-none focus:ring-0 focus:border-none"
                   />
+
                   {/* {formData.phoneNumber && formData.phoneNumber.trim() !== '' && (
                     <Check className="w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
                   )} */}
@@ -339,8 +344,12 @@ const MyProfilePage = () => {
                   value={formData.bio}
                   placeholder='Enter Bio'
                   onChange={(e) => handleInputChange('bio', e.target.value)}
+                  maxLength={2000}
                   className="w-full h-[100px] sm:h-[122px] p-3 sm:p-4 bg-white border border-[#e3e3e3] rounded-[20px] text-sm sm:text-[15px] text-[#192215] leading-relaxed resize-none focus:outline-none focus:border-[#3a6b22] transition-colors"
                 />
+                <p className="text-gray-500 text-xs mt-1 text-right">
+                  {formData.bio.length}/2000
+                </p>
               </div>
 
               {/* Actions */}

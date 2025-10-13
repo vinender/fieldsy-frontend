@@ -16,7 +16,7 @@ export default function RegisterPage() {
         // Extract the role from the error message for a clearer toast
         const roleMatch = error.match(/as a ([^.]+)/);
         const existingRole = roleMatch ? roleMatch[1] : 'different role';
-        toast.error(`An account already exists with this email as a ${existingRole}. Each email can only have one account.`);
+        toast.error(`An account already exists with this email. Each email can only have one account.`);
       } else if (error === 'OAuthAccountNotLinked') {
         toast.error('This email is already registered with a different sign-up method.');
       } else if (error === 'AccessDenied') {
@@ -32,7 +32,7 @@ export default function RegisterPage() {
           if (errorMessage.includes('An account already exists with this email as a')) {
             const roleMatch = errorMessage.match(/as a ([^.]+)/);
             const existingRole = roleMatch ? roleMatch[1] : 'different role';
-            toast.error(`An account already exists with this email as a ${existingRole}. Each email can only have one account.`);
+            toast.error(`An account already exists with this email. Each email can only have one account.`);
           } else {
             toast.error(errorMessage);
           }

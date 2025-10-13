@@ -33,7 +33,7 @@ export default function LoginPage() {
           // Extract the role from the error message for a clearer toast
           const roleMatch = decodedMessage.match(/as a ([^.]+)/);
           const existingRole = roleMatch ? roleMatch[1] : 'different role';
-          toast.error(`An account already exists with this email as a ${existingRole}. Each email can only have one account.`);
+          toast.error(`An account already exists with this email. Each email can only have one account.`);
         } else {
           toast.error(decodedMessage);
         }
@@ -41,7 +41,7 @@ export default function LoginPage() {
         // Fallback: Extract the role from the error message for a clearer toast
         const roleMatch = error.match(/as a ([^.]+)/);
         const existingRole = roleMatch ? roleMatch[1] : 'different role';
-        toast.error(`An account already exists with this email as a ${existingRole}. Each email can only have one account.`);
+        toast.error(`An account already exists with this email. Each email can only have one account.`);
       } else if (error === 'OAuthAccountNotLinked') {
         toast.error('This email is already registered with a different sign-in method.');
       } else if (error === 'AccessDenied') {
@@ -57,7 +57,7 @@ export default function LoginPage() {
           if (errorMessage.includes('An account already exists with this email as a')) {
             const roleMatch = errorMessage.match(/as a ([^.]+)/);
             const existingRole = roleMatch ? roleMatch[1] : 'different role';
-            toast.error(`An account already exists with this email as a ${existingRole}. Each email can only have one account.`);
+            toast.error(`An account already exists with this email. Each email can only have one account.`);
           } else {
             toast.error(errorMessage);
           }
@@ -76,6 +76,23 @@ export default function LoginPage() {
         pathname: router.pathname,
         query: rest
       }, undefined, { shallow: true })
+    }
+
+    // Check if social login requires OTP verification
+    const requiresOtpVerification = sessionStorage.getItem('requiresOtpVerification')
+    const otpEmail = sessionStorage.getItem('otpEmail')
+    const otpRole = sessionStorage.getItem('otpRole')
+    const otpType = sessionStorage.getItem('otpType')
+
+    if (requiresOtpVerification === 'true' && otpEmail && otpType === 'social-login') {
+      // Clear session storage
+      sessionStorage.removeItem('requiresOtpVerification')
+      sessionStorage.removeItem('otpEmail')
+      sessionStorage.removeItem('otpRole')
+      sessionStorage.removeItem('otpType')
+
+      // Redirect to OTP verification page
+      router.push(`/verify-otp?email=${encodeURIComponent(otpEmail)}&role=${otpRole || 'DOG_OWNER'}&from=social-login`)
     }
 
     // Check if there's a return URL stored in sessionStorage

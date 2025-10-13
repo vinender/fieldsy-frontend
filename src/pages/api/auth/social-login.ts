@@ -77,7 +77,7 @@ export default async function handler(
           message: errorMessage,
           details: errorMessage
         });
-      }
+      } 
 
       return res.status(response.status).json(error);
     }
@@ -96,8 +96,25 @@ export default async function handler(
       console.error('[Social Login] Non-JSON success response:', text);
       return res.status(500).json({ error: 'Invalid response format from server' });
     }
-    
-    // Return the backend response
+
+    // Check if OTP verification is required
+    if (data.requiresVerification) {
+      // Set a cookie with email and role for OTP verification
+      res.setHeader('Set-Cookie', [
+        `pendingEmail=${encodeURIComponent(data.data.email)}; Path=/; Max-Age=600; HttpOnly=false; SameSite=Lax`,
+        `pendingRole=${encodeURIComponent(data.data.role)}; Path=/; Max-Age=600; HttpOnly=false; SameSite=Lax`,
+        `socialLoginPending=true; Path=/; Max-Age=600; HttpOnly=false; SameSite=Lax`
+      ]);
+
+      return res.status(200).json({
+        requiresVerification: true,
+        email: data.data.email,
+        role: data.data.role,
+        message: data.message,
+      });
+    }
+
+    // Return the backend response for already verified users
     res.status(200).json({
       user: data.data.user,
       token: data.data.token,

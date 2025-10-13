@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { useVerifyOtp, useResendOtp, useVerifyPasswordResetOtp } from "@/hooks/mutations/useOtpMutations"
+import { useVerifyOtp, useResendOtp, useVerifyPasswordResetOtp, useVerifySocialLoginOtp } from "@/hooks/mutations/useOtpMutations"
 import { signIn } from "next-auth/react"
 
 export default function OTPVerificationForm() {
@@ -16,7 +16,7 @@ export default function OTPVerificationForm() {
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
   const role = searchParams.get("role") || "DOG_OWNER"
-  const from = searchParams.get("from") || "signup" // 'signup', 'login', or 'reset'
+  const from = searchParams.get("from") || "signup" // 'signup', 'login', 'reset', or 'social-login'
 
   // Use appropriate mutation based on the flow
   const verifyOtpMutation = useVerifyOtp({
@@ -60,6 +60,37 @@ export default function OTPVerificationForm() {
 
       // For password reset, redirect to reset password page
       router.push(`/reset-password?email=${encodeURIComponent(email)}&verified=true`)
+    },
+    onError: () => {
+      // Clear OTP fields on error
+      setOtp(["", "", "", "", "", ""])
+      inputRefs.current[0]?.focus()
+    }
+  })
+
+  const verifySocialLoginOtpMutation = useVerifySocialLoginOtp({
+    onSuccess: async (result) => {
+      // For social login flow, log the user in after successful verification
+      if (result.data?.token) {
+        // Store token and user data
+        localStorage.setItem('token', result.data.token)
+        localStorage.setItem('user', JSON.stringify(result.data.user))
+
+        // Use NextAuth to establish session with the token
+        const signInResult = await signIn('credentials', {
+          email: result.data.user.email,
+          token: result.data.token,
+          redirect: false,
+        })
+
+        if (signInResult?.ok) {
+          // Redirect to home or dashboard
+          router.push('/')
+        } else {
+          toast.error('Failed to establish session. Please try logging in.')
+          router.push('/login')
+        }
+      }
     },
     onError: () => {
       // Clear OTP fields on error
@@ -153,6 +184,11 @@ export default function OTPVerificationForm() {
           email,
           otp: code,
         })
+      } else if (from === 'social-login') {
+        await verifySocialLoginOtpMutation.mutateAsync({
+          email,
+          otp: code,
+        })
       } else {
         await verifyOtpMutation.mutateAsync({
           email,
@@ -169,7 +205,13 @@ export default function OTPVerificationForm() {
 
   const handleResend = async () => {
     try {
-      const otpType = from === 'reset' ? 'RESET_PASSWORD' : 'SIGNUP'
+      let otpType: 'SIGNUP' | 'RESET_PASSWORD' | 'EMAIL_VERIFICATION' = 'SIGNUP'
+      if (from === 'reset') {
+        otpType = 'RESET_PASSWORD'
+      } else if (from === 'social-login') {
+        otpType = 'SIGNUP' // Use SIGNUP type for social login OTP as well
+      }
+
       await resendOtpMutation.mutateAsync({
         email,
         type: otpType,
@@ -227,10 +269,12 @@ export default function OTPVerificationForm() {
             {/* Header */}
             <div className="text-left mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                {from === 'reset' ? 'Reset Password Verification' : 'Email Verification'}
+                {from === 'reset' ? 'Reset Password Verification' : from === 'social-login' ? 'Verify Your Email' : 'Email Verification'}
               </h2>
               <p className="text-gray-500">
-                Enter 6-digit OTP sent to {email || 'your registered email'}.
+                {from === 'social-login'
+                  ? `Please verify your email to complete your registration. We've sent a 6-digit code to ${email}.`
+                  : `Enter 6-digit OTP sent to ${email || 'your registered email'}.`}
               </p>
             </div>
 

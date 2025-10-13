@@ -634,7 +634,7 @@ const BookingHistoryPage = () => {
               <div className="space-y-3">
                 <button
                   onClick={() => handleCancelRecurring(false)}
-                  className="w-full px-4 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                  className="w-full px-4 py-3 text-gray-500 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
                 >
                   Cancel at End of Period
                   <span className="block text-xs mt-1 opacity-90">

@@ -70,7 +70,7 @@ export function useRegisterWithOtp(
         // Extract the role from the error message for a clearer toast
         const roleMatch = errorMessage.match(/as a ([^.]+)/);
         const existingRole = roleMatch ? roleMatch[1] : 'different role';
-        toast.error(`An account already exists with this email as a ${existingRole}. Each email can only have one account.`);
+        toast.error(`An account already exists with this email . Each email can only have one account.`);
       } else if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
         toast.error(`Account already exists. Please sign in instead.`);
       } else if (errorMessage.includes('phone number')) {
@@ -345,6 +345,53 @@ export function useResetPasswordWithOtp(
     onError: (error: any) => {
       console.error('Password reset error:', error);
       toast.error(error.response?.data?.message || 'Failed to reset password');
+    },
+    ...options,
+  });
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isPending: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
+  };
+}
+
+// Hook for verifying social login OTP
+export function useVerifySocialLoginOtp(
+  options?: Omit<UseMutationOptions<any, Error, VerifyOtpData>, 'mutationFn'>
+) {
+  const mutation = useMutation({
+    mutationFn: async (data: VerifyOtpData) => {
+      try {
+        const response = await axiosClient.post('/auth/otp/verify-social-login', data);
+        return response.data;
+      } catch (error: any) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Verify social login OTP API error:', error?.response?.status);
+        }
+        return Promise.reject(error);
+      }
+    },
+    onSuccess: (result, variables) => {
+      toast.success('Email verified successfully!');
+      if (options?.onSuccess) {
+        options.onSuccess(result, variables, {} as any);
+      }
+    },
+    onError: (error: any, variables) => {
+      console.error('Social login OTP verification error:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired code';
+      toast.error(errorMessage);
+
+      if (options?.onError) {
+        options.onError(error, variables, {} as any);
+      }
     },
     ...options,
   });

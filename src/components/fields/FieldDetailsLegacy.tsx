@@ -78,6 +78,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
     { label: 'Terrain Type', value: field?.type || 'Soft grass + walking path' },
     { label: 'Surface type', value: field?.surfaceType || 'Flat with gentle slopes' },
     { label: 'Max Dogs', value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : '4 dogs allowed' },
+    { label: 'Opening Days', value: field?.operatingDays?.[0] || field?.openingDays || 'Not specified' },
     { label: 'Opening Hours', value: field?.openingTime && field?.closingTime ? `${field.openingTime} - ${field.closingTime}` : 'Monday to Friday (6:00 AM – 8:00 PM)' },
   ];
 
@@ -130,8 +131,8 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   <button
                     key={index}
                     type="button"
-                    className="aspect-square rounded-lg overflow-hidden group"
-                    onClick={() => { if (!isPreview) { setCurrentImageIndex(index); setLightboxOpen(true); } }}
+                    className="aspect-square rounded-lg overflow-hidden group cursor-pointer"
+                    onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
                     aria-label={`Open image ${index + 1}`}
                   >
                     <img
@@ -168,7 +169,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   </h1>
                   <span className="text-xl lg:text-2xl text-dark-green">•</span>
                   <div className="flex items-baseline">
-                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.price || 0}</span>
+                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.pricePerHour || 0}</span>
                     <span className="text-sm lg:text-base text-gray-500 ml-1">/dog/{field.bookingDuration}</span>
                   </div>
                 </div>
@@ -363,7 +364,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                             <img src="/field-details/clock.svg" alt="clock" className="w-6 h-6" />
                           </div>
                           <div>
-                            <p className="text-[16px] font-[700] text-dark-green">Minimum visit length</p>
+                            <p className="text-[16px] font-[700] text-dark-green">Maximum visit length</p>
                             <p className="text-sm font-medium text-dark-green">{field?.minBookingDuration || '30'} min</p>
                           </div>
                         </div>

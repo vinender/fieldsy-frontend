@@ -4,6 +4,7 @@ import { useOwnerField, useOwnerFields, useSaveFieldProgress } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
 import { FieldOwnerDashboardSkeleton } from '@/components/skeletons/FieldOwnerDashboardSkeleton';
 import BackButton from '@/components/common/BackButton';
+import { useAmenities } from '@/hooks/api/useAmenities';
 
 // Import form components
 import FieldDetails from './forms/FieldDetails';
@@ -117,7 +118,7 @@ export default function AddYourField() {
     openingDays: string;
     startTime: string;
     endTime: string;
-    amenities: Record<string, any>;
+    amenities: string[];
     streetAddress: string;
     apartment: string;
     city: string;
@@ -143,7 +144,7 @@ export default function AddYourField() {
     openingDays: '',
     startTime: '',
     endTime: '',
-    amenities: {},
+    amenities: [],
     streetAddress: '',
     apartment: '',
     city: '',
@@ -184,6 +185,9 @@ export default function AddYourField() {
   } = useOwnerField({
     enabled: !!user && user.role === 'FIELD_OWNER' && !isAddNewMode && !isEditMode,
   });
+
+  // Fetch amenities for mapping names to IDs
+  const { data: amenitiesList } = useAmenities();
 
   // Determine which field data to use
   const fieldData = isEditMode && editFieldId
@@ -233,7 +237,7 @@ export default function AddYourField() {
         openingDays: '',
         startTime: '',
         endTime: '',
-        amenities: {},
+        amenities: [],
         streetAddress: '',
         apartment: '',
         city: '',
@@ -275,10 +279,32 @@ export default function AddYourField() {
         openingDays: fieldData.operatingDays?.[0] || '',
         startTime: fieldData.openingTime || '',
         endTime: fieldData.closingTime || '',
-        amenities: fieldData.amenities?.reduce((acc: any, amenity: string) => {
-          acc[amenity] = true;
-          return acc;
-        }, {}) || {},
+        amenities: (() => {
+          if (!Array.isArray(fieldData.amenities)) return [];
+
+          return fieldData.amenities.map((amenity: any) => {
+            // If amenity is an object with id property, extract the id
+            if (typeof amenity === 'object' && amenity.id) {
+              return amenity.id;
+            }
+
+            // If amenity is a string
+            if (typeof amenity === 'string') {
+              // Check if it's already an ID (UUID format - 24 hex chars)
+              if (amenity.match(/^[0-9a-f]{24}$/i)) {
+                return amenity;
+              }
+
+              // Otherwise, try to map name to ID if amenitiesList is available
+              if (amenitiesList && amenitiesList.length > 0) {
+                const found = amenitiesList.find((a) => a.name === amenity);
+                return found ? found.id : amenity;
+              }
+            }
+
+            return amenity;
+          });
+        })(),
         streetAddress: fieldData.address || '',
         apartment: fieldData.apartment || '',
         city: fieldData.city || '',
@@ -294,7 +320,7 @@ export default function AddYourField() {
         policies: fieldData.cancellationPolicy || ''
       }));
     }
-  }, [fieldData, isAddNewMode, isEditMode, editFieldId]);
+  }, [fieldData, isAddNewMode, isEditMode, editFieldId, amenitiesList]);
 
   // Remove auto-save - only save on button click
 
@@ -550,7 +576,7 @@ export default function AddYourField() {
 
   return (
     <div className="min-h-screen bg-light py-4 sm:py-6 lg:py-8 mt-20 sm:mt-24 lg:mt-32">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Page Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 lg:mb-8">
           {activeSection !== 'field-details' && <BackButton size='lg' />}

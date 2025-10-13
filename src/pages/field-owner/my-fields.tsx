@@ -47,13 +47,13 @@ export default function MyFieldsPage() {
 
   return (
     <UserLayout>
-      <div className="max-w-7xl mx-auto px-4 mt-24 py-8 min-h-screen">
-        
-        <div className="flex justify-between items-center mb-8 mt-4">
-        <BackButton size='lg' label='My Fields' />
+      <div className="w-full mx-auto  px-4 sm:px-6 lg:px-8 xl:px-12 mt-24 py-8 min-h-screen">
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 mt-4">
+        <BackButton showLabel={true} size='lg' label='My Fields' />
           <button
             onClick={handleAddNewField}
-            className="px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity flex items-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
             <span className="text-xl">+</span>
             Add New Field
@@ -77,7 +77,7 @@ export default function MyFieldsPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
             {fields.map((field: FieldData) => (
               <div
                 key={field.id}

@@ -77,14 +77,18 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
 
   console.log('fieldData formData',formData);
 
-  const handleAmenityToggle = (amenity: string) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      amenities: {
-        ...prev.amenities,
-        [amenity]: !prev.amenities[amenity]
-      }
-    }));
+  const handleAmenityToggle = (amenityId: string) => {
+    setFormData((prev: any) => {
+      const currentAmenities = Array.isArray(prev.amenities) ? prev.amenities : [];
+      const isSelected = currentAmenities.includes(amenityId);
+
+      return {
+        ...prev,
+        amenities: isSelected
+          ? currentAmenities.filter((id: string) => id !== amenityId)
+          : [...currentAmenities, amenityId]
+      };
+    });
   };
 
   return (
@@ -122,11 +126,19 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               value={formData.fieldName}
               onChange={handleInputChange}
               placeholder="Enter field name"
+              maxLength={50}
               className={`py-3 font-sans ${validationErrors.fieldName ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />
-            {validationErrors.fieldName && (
-              <p className="text-red-500 text-sm mt-1">{validationErrors.fieldName}</p>
-            )}
+            <div className="flex justify-between items-center mt-1">
+              <div>
+                {validationErrors.fieldName && (
+                  <p className="text-red-500 text-sm">{validationErrors.fieldName}</p>
+                )}
+              </div>
+              <p className="text-gray-500 text-xs">
+                {formData.fieldName.length}/50
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -246,11 +258,19 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
           onChange={handleInputChange}
           placeholder="Write a description here..."
           rows={5}
+          maxLength={2000}
           className={`w-full px-4 py-3 bg-white rounded-2xl border ${validationErrors.description ? 'border-red-500' : 'border-gray-border'} focus:outline-none focus:border-green resize-none font-sans text-gray-input placeholder:text-gray-400`}
         />
-        {validationErrors.description && (
-          <p className="text-red-500 text-sm mt-1">{validationErrors.description}</p>
-        )}
+        <div className="flex justify-between items-center mt-1">
+          <div>
+            {validationErrors.description && (
+              <p className="text-red-500 text-sm">{validationErrors.description}</p>
+            )}
+          </div>
+          <p className="text-gray-500 text-xs">
+            {formData.description.length}/2000
+          </p>
+        </div>
       </div>
 
       {/* Opening Days & Hours */}
@@ -337,49 +357,54 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
           {amenitiesLoading ? (
             <div className="text-gray-500">Loading amenities...</div>
           ) : amenities && amenities.length > 0 ? (
-            amenities.map((amenity) => (
-              <div
-                key={amenity.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => handleAmenityToggle(amenity.name)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleAmenityToggle(amenity.name);
-                  }
-                }}
-                className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer ${
-                  formData.amenities[amenity.name]
-                    ? 'bg-cream border-green'
-                    : 'bg-white border-gray-200 hover:border-green/50'
-                }`}
-                aria-pressed={!!formData.amenities[amenity.name]}
-              >
-                <CustomCheckbox
-                  checked={formData.amenities[amenity.name] || false}
-                  onChange={() => handleAmenityToggle(amenity.name)}
-                />
-                <div className="flex items-center gap-2">
-                  {amenity.icon ? (
-                    <div className="relative w-5 h-5">
-                      <Image
-                        src={amenity.icon}
-                        alt={amenity.name}
-                        height={100}
-                        width={100}
-                        className="object-contain "
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-5 h-5 bg-gray-200 rounded" />
-                  )}
-                  <span className="font-sans text-sm text-dark-green">
-                    {amenity.name}
-                  </span>
+            amenities.map((amenity) => {
+              const currentAmenities = Array.isArray(formData.amenities) ? formData.amenities : [];
+              const isSelected = currentAmenities.includes(amenity.id);
+
+              return (
+                <div
+                  key={amenity.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleAmenityToggle(amenity.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleAmenityToggle(amenity.id);
+                    }
+                  }}
+                  className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer ${
+                    isSelected
+                      ? 'bg-cream border-green'
+                      : 'bg-white border-gray-200 hover:border-green/50'
+                  }`}
+                  aria-pressed={isSelected}
+                >
+                  <CustomCheckbox
+                    checked={isSelected}
+                    onChange={() => handleAmenityToggle(amenity.id)}
+                  />
+                  <div className="flex items-center gap-2">
+                    {amenity.icon ? (
+                      <div className="relative w-5 h-5">
+                        <Image
+                          src={amenity.icon}
+                          alt={amenity.name}
+                          height={100}
+                          width={100}
+                          className="object-contain "
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 bg-gray-200 rounded" />
+                    )}
+                    <span className="font-sans text-sm text-dark-green">
+                      {amenity.label || amenity.name}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="text-gray-500">No amenities available</div>
           )}

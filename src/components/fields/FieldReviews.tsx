@@ -26,6 +26,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
   const [sortBy, setSortBy] = useState<'recent' | 'helpful' | 'rating_high' | 'rating_low'>('recent');
   const [filterRating, setFilterRating] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(1);
+  const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
 
   // Hooks
   const { data: reviewsData, isLoading, error } = useFieldReviews(fieldId, {
@@ -92,6 +93,18 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
       response: responseForm.response,
     });
     setResponseForm({ reviewId: '', response: '' });
+  };
+
+  const toggleReviewExpansion = (reviewId: string) => {
+    setExpandedReviews(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(reviewId)) {
+        newSet.delete(reviewId);
+      } else {
+        newSet.add(reviewId);
+      }
+      return newSet;
+    });
   };
 
   const renderStars = (rating: number, interactive = false, onChange?: (rating: number) => void) => {
@@ -265,8 +278,22 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
             {review.title && (
               <h4 className="font-semibold mb-2">{review.title}</h4>
             )}
-            
-            <p className="text-gray-700 mb-3">{review.comment}</p>
+
+            <div className="mb-3">
+              <p className="text-gray-700">
+                {expandedReviews.has(review.id) || review.comment.length <= 200
+                  ? review.comment
+                  : `${review.comment.substring(0, 200)}...`}
+              </p>
+              {review.comment.length > 200 && (
+                <button
+                  onClick={() => toggleReviewExpansion(review.id)}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-1 hover:underline"
+                >
+                  {expandedReviews.has(review.id) ? 'Read Less' : 'Read More'}
+                </button>
+              )}
+            </div>
 
             {review.images.length > 0 && (
               <div className="flex gap-2 mb-3">
@@ -285,7 +312,21 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
             {review.response && (
               <div className="bg-gray-50 p-3 rounded-lg mt-3">
                 <div className="font-semibold text-sm mb-1">Response from owner</div>
-                <p className="text-sm text-gray-700">{review.response}</p>
+                <div>
+                  <p className="text-sm text-gray-700">
+                    {expandedReviews.has(`${review.id}-response`) || review.response.length <= 150
+                      ? review.response
+                      : `${review.response.substring(0, 150)}...`}
+                  </p>
+                  {review.response.length > 150 && (
+                    <button
+                      onClick={() => toggleReviewExpansion(`${review.id}-response`)}
+                      className="text-blue-600 hover:text-blue-800 text-xs font-medium mt-1 hover:underline"
+                    >
+                      {expandedReviews.has(`${review.id}-response`) ? 'Read Less' : 'Read More'}
+                    </button>
+                  )}
+                </div>
                 {review.respondedAt && (
                   <div className="text-xs text-gray-500 mt-1">
                     {format(new Date(review.respondedAt), 'MMM d, yyyy')}

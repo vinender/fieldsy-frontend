@@ -93,35 +93,37 @@ export default function PreviewPage() {
   };
 
   // Transform field data to match the formData structure expected by FieldPreview
-  const transformFieldToFormData = (fieldData: FieldData) => ({
-    fieldName: fieldData.name || '',
-    fieldSize: fieldData.size || '',
-    terrainType: fieldData.terrainType || '',
-    fenceType: fieldData.fenceType || '',
-    fenceSize: fieldData.fenceSize || '',
-    surfaceType: fieldData.surfaceType || '',
-    maxDogs: fieldData.maxDogs?.toString() || '',
-    description: fieldData.description || '',
-    openingDays: fieldData.operatingDays?.[0] || '',
-    startTime: fieldData.openingTime || '',
-    endTime: fieldData.closingTime || '',
-    amenities: fieldData.amenities?.reduce((acc: any, amenity: string) => {
-      acc[amenity] = true;
-      return acc;
-    }, {}) || {},
-    streetAddress: fieldData.address || '',
-    apartment: (fieldData as any).apartment || '',
-    city: fieldData.city || '',
-    county: fieldData.state || '',
-    postalCode: fieldData.zipCode || '',
-    country: fieldData.country || '',
-    images: fieldData.images || [],
-    pricePerHour: fieldData.price?.toString() || '',
-    bookingDuration: fieldData.bookingDuration || '30min',
-    instantBooking: fieldData.instantBooking || false,
-    rules: fieldData.rules?.[0] || '',
-    policies: fieldData.cancellationPolicy || ''
-  });
+  const transformFieldToFormData = (fieldData: FieldData) => {
+    console.log('Raw fieldData.amenities from API:', fieldData.amenities);
+    return {
+      fieldName: fieldData.name || '',
+      fieldSize: fieldData.size || '',
+      terrainType: fieldData.terrainType || '',
+      fenceType: fieldData.fenceType || '',
+      fenceSize: fieldData.fenceSize || '',
+      surfaceType: fieldData.surfaceType || '',
+      maxDogs: fieldData.maxDogs?.toString() || '',
+      description: fieldData.description || '',
+      openingDays: fieldData.operatingDays?.[0] || '',
+      startTime: fieldData.openingTime || '',
+      endTime: fieldData.closingTime || '',
+      // Keep amenities in their original format from API (array of objects or array of IDs)
+      // Don't transform to object format - FieldPreview will handle the transformation
+      amenities: fieldData.amenities || [],
+      streetAddress: fieldData.address || '',
+      apartment: (fieldData as any).apartment || '',
+      city: fieldData.city || '',
+      county: fieldData.state || '',
+      postalCode: fieldData.zipCode || '',
+      country: fieldData.country || '',
+      images: fieldData.images || [],
+      pricePerHour: fieldData.price?.toString() || '',
+      bookingDuration: fieldData.bookingDuration || '30min',
+      instantBooking: fieldData.instantBooking || false,
+      rules: fieldData.rules?.[0] || '',
+      policies: fieldData.cancellationPolicy || ''
+    };
+  };
 
   const formData = fieldData ? transformFieldToFormData(fieldData) : null;
 

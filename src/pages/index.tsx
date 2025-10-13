@@ -51,6 +51,7 @@ const FAQSectionWithImage = dynamic(
 )
 
 
+
 export default function HomePage() {
   const { user, isLoading } = useAuth();
   // Only use session hook if we're checking for authentication
@@ -60,6 +61,7 @@ export default function HomePage() {
       // Do nothing - we allow unauthenticated access to landing page
     },
   });
+
 
   useEffect(() => {
     // Only track performance in development
@@ -71,6 +73,7 @@ export default function HomePage() {
     }
   }, [isLoading, status])
   
+
   useEffect(() => {
     // Mark the start of page load
     if (process.env.NODE_ENV === 'development') {
@@ -171,6 +174,7 @@ export default function HomePage() {
         <FeaturesSection />
       </LazySection>
 
+
       {/* Platform Section - Lazy loaded with fade animation */}
       <LazySection 
         minHeight="500px"
@@ -191,6 +195,7 @@ export default function HomePage() {
       >
         <PlatformSection />
       </LazySection>
+
 
       {/* Testimonials Section - Lazy loaded with scale animation */}
       <div id="testimonials">
@@ -214,7 +219,7 @@ export default function HomePage() {
         >
           <TestimonialsSection />
         </LazySection>
-      </div>
+      </div>  
 
       {/* FAQ Section - Lazy loaded with slide up animation */}
       <LazySection 

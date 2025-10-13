@@ -6,6 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 interface Amenity {
   id: string;
   name: string;
+  label: string;
   icon: string | null;
   isActive: boolean;
   order: number;

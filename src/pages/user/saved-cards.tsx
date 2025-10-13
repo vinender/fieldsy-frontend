@@ -142,27 +142,27 @@ export default function SavedCards() {
   return (
     <UserLayout requireRole="DOG_OWNER">
       <div className="min-h-screen bg-light xl:mt-32 mt-16 pb-16">
-        <div className="container mx-auto px-20">
+        <div className="w-full max-w-[1400px]  px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Page Title */}
         <div className="flex items-center gap-4 mb-8">
-          <button 
+          <button
             onClick={() => router.back()}
             className="w-12 h-12 bg-cream rounded-full flex items-center justify-center hover:bg-[#e8ddb5] transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-dark-green"/>
             </svg>
           </button>
-          <h1 
-            className="text-3xl font-semibold text-dark-green font-sans"
+          <h1
+            className="text-2xl sm:text-3xl font-semibold text-dark-green font-sans"
           >
             Saved Cards
           </h1>
         </div>
 
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Left Column - Saved Cards */}
-          <div className="w-[408px]">
-            <div className="bg-white rounded-3xl p-10 border border-black/5">
+          <div className="w-full lg:w-[408px] xl:w-[450px] lg:flex-shrink-0">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-black/5">
               <h2 
                 className="text-lg font-bold mb-6"
                 style={{ 
@@ -200,10 +200,10 @@ export default function SavedCards() {
           </div>
 
           {/* Right Column - Add New Card */}
-          <div className="flex-1">
-            <h2 
-              className="text-3xl font-semibold mb-6"
-              style={{ 
+          <div className="flex-1 w-full min-w-0">
+            <h2
+              className="text-2xl sm:text-3xl font-semibold mb-6"
+              style={{
                 color: '#192215',
                 fontFamily: "'DM Sans', sans-serif"
               }}
@@ -211,14 +211,14 @@ export default function SavedCards() {
               Add New Card
             </h2>
 
-            <div className="bg-white rounded-2xl p-8 border border-gray-200">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 w-full">
               <p className="text-gray-600 mb-6">
                 Add a new payment method to your account for faster checkout.
               </p>
               <button
                 onClick={() => setShowAddCardModal(true)}
-                className="px-12 py-3 text-white font-semibold rounded-full hover:opacity-90 transition-opacity"
-                style={{ 
+                className="w-full sm:w-auto px-8 sm:px-12 py-3 text-white font-semibold rounded-full hover:opacity-90 transition-opacity"
+                style={{
                   backgroundColor: '#3A6B22',
                   fontFamily: "'DM Sans', sans-serif"
                 }}

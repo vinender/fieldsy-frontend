@@ -3,6 +3,7 @@ import FieldDetailsScreen from '@/components/fields/FieldDetailsScreen';
 import { Switch } from '@/components/ui/switch';
 import BackButton from '@/components/common/BackButton';
 import { useFieldOptions } from '@/hooks/api/useFieldOptions';
+import { useAmenities } from '@/hooks/api/useAmenities';
 
 interface FieldPreviewProps {
   formData: any;
@@ -17,6 +18,7 @@ interface FieldPreviewProps {
 
 export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, onToggleActive, onBack }: FieldPreviewProps) {
   const { data: fieldOptions } = useFieldOptions();
+  const { data: amenitiesData } = useAmenities();
 
   // Create a lookup map for fast label retrieval
   const labelMap = useMemo(() => {
@@ -27,6 +29,20 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     });
     return map;
   }, [fieldOptions]);
+
+  // Create amenity lookup map
+  const amenityMap = useMemo(() => {
+    if (!amenitiesData) return {};
+    const map: Record<string, string> = {};
+    amenitiesData.forEach((amenity: any) => {
+      map[amenity.id] = amenity.label || amenity.name;
+    });
+    console.log('Amenity Map:', map);
+    return map;
+  }, [amenitiesData]);
+
+  // Debug: Log formData amenities
+  console.log('FormData amenities:', formData?.amenities);
 
   const formatLabel = (value: string) => {
     if (!value) return null;
@@ -41,12 +57,54 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     apartment: formData?.apartment,
     city: formData?.city,
     zipCode: formData?.postalCode,
-    // Map amenities from object format to array format
-    amenities: formData?.amenities 
-      ? Object.entries(formData.amenities)
+    // Map amenities - handle different formats and ALWAYS return string labels
+    amenities: (() => {
+      console.log('🔍 FieldPreview amenities processing:', {
+        formDataAmenities: formData?.amenities,
+        isArray: Array.isArray(formData?.amenities),
+        firstElement: formData?.amenities?.[0],
+        typeofFirstElement: typeof formData?.amenities?.[0]
+      });
+
+      if (!formData?.amenities) return [];
+
+      // If amenities is an array
+      if (Array.isArray(formData.amenities)) {
+        // Check if array contains objects (already enriched from API)
+        if (formData.amenities.length > 0 && typeof formData.amenities[0] === 'object' && formData.amenities[0] !== null) {
+          // Already enriched - extract labels as strings
+          const labels = formData.amenities
+            .map((amenity: any) => {
+              const label = amenity.label || amenity.name || amenity.value;
+              console.log('📝 Extracting label from object:', { amenity, extractedLabel: label });
+              return label;
+            })
+            .filter(Boolean); // Remove undefined/null values
+
+          console.log('✅ Returning labels from objects:', labels);
+          return labels;
+        }
+
+        // Array of strings (IDs or names) - map to labels using amenityMap
+        const mappedLabels = formData.amenities
+          .map((id: string) => {
+            const label = amenityMap[id];
+            console.log('🔑 Mapping ID to label:', { id, label, hasInMap: !!label });
+            return label;
+          })
+          .filter(Boolean); // Remove undefined values
+
+        console.log('✅ Returning mapped labels:', mappedLabels);
+        return mappedLabels;
+      }
+
+      // If amenities is an object (old format)
+      if (typeof formData.amenities === 'object') {
+        console.log('📦 Processing object format amenities');
+        return Object.entries(formData.amenities)
           .filter(([_, isSelected]) => isSelected)
           .map(([key]) => {
-            // Map amenity keys to display labels
+            // Try to get from amenityMap first, fallback to hardcoded labels
             const amenityLabels: Record<string, string> = {
               'secureFencing': 'Secure fencing',
               'waterAccess': 'Water Access',
@@ -62,12 +120,17 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
               'lighting': 'Lighting'
             };
             return amenityLabels[key] || key;
-          })
-      : [],
+          });
+      }
+
+      return [];
+    })(),
     // Map other fields as needed
     state: formData?.county,
     openingTime: formData?.startTime,
     closingTime: formData?.endTime,
+    openingDays: formData?.openingDays,
+    operatingDays: formData?.openingDays ? [formData.openingDays] : [],
     size: formatLabel(formData?.fieldSize),
     fenceType: formatLabel(formData?.fenceType) + (formData?.fenceSize ? ` • ${formatLabel(formData?.fenceSize)}` : ''),
     type: formatLabel(formData?.terrainType),
