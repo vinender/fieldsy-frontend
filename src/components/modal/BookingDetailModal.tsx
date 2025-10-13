@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
-import { 
-  X, 
-  MapPin, 
+import {
+  X,
+  MapPin,
   Star,
-  Shield,
-  Droplets,
-  Home,
-  Trash2,
   CheckCircle,
-  Clock,
-  Trees,
-  Fence,
-  Dog
+  Clock
 } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { AddReviewModal } from './AddReviewModal';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
 import { deslugify } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
+import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -29,15 +24,16 @@ interface BookingDetailsModalProps {
   onReschedule?: (booking: any) => void;
 }
 
-export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  booking, 
-  onReview, 
-  onReviewAdded, 
-  onCancel, 
-  onReschedule 
+export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
+  isOpen,
+  onClose,
+  booking,
+  onReview,
+  onReviewAdded,
+  onCancel,
+  onReschedule
 }) => {
+  const router = useRouter();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const cancellationWindowHours = useCancellationWindow();
   
@@ -120,50 +116,40 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     return '';
   };
 
-  // Get amenities icons
-  const getAmenityIcon = (amenity: string) => {
-    const iconMap: { [key: string]: any } = {
-      'Secure fencing': Shield,
-      'Fencing': Fence,
-      'Water': Droplets,
-      'Water Access': Droplets,
-      'Shelter': Home,
-      'Waste Disposal': Trash2,
-      'Agility Equipment': Dog,
-      'Trees': Trees,
-      'Parking': Home
-    };
-    return iconMap[amenity] || Shield;
-  };
-
-  // Format amenities
+  // Format amenities using the amenities config
   const formatAmenities = () => {
     const field = fullBooking?.field;
     if (!field) return [];
-    
+
     const amenities = [];
     if (field.amenities) {
       // If amenities is a string, split it
-      const amenityList = typeof field.amenities === 'string' 
+      const amenityList = typeof field.amenities === 'string'
         ? field.amenities.split(',').map((a: string) => a.trim())
         : field.amenities;
-      
+
       amenityList.forEach((amenity: string) => {
         amenities.push({
-          icon: getAmenityIcon(amenity),
-          label: amenity
+          iconPath: getAmenityIcon(amenity),
+          label: getAmenityLabel(amenity)
         });
       });
     }
-    
+
     // Add basic amenities if not already present
-    if (field.fencing && !amenities.some(a => a.label.includes('fencing'))) {
-      amenities.push({ icon: Shield, label: 'Secure fencing' });
+    if (field.fencing && !amenities.some(a => a.label.toLowerCase().includes('fencing'))) {
+      amenities.push({
+        iconPath: getAmenityIcon('secure-fencing'),
+        label: getAmenityLabel('secure-fencing')
+      });
     }
-    if (field.waterAccess && !amenities.some(a => a.label.includes('Water'))) {
-      amenities.push({ icon: Droplets, label: 'Water Access' });
+    if (field.waterAccess && !amenities.some(a => a.label.toLowerCase().includes('water'))) {
+      amenities.push({
+        iconPath: getAmenityIcon('water-access'),
+        label: getAmenityLabel('water-access')
+      });
     }
-    
+
     return amenities.slice(0, 4); // Limit to 4 for UI
   };
 
@@ -232,7 +218,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       • {field?.bookingDuration === '30min' ? '30min' : '1hr'}
                     </span>
                     <span className="text-sm sm:text-[16px] font-semibold text-[#3a6b22]">
-                      • ${price}
+                      • £{price}
                     </span>
                   </div>
                   
@@ -274,10 +260,13 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                 {formatAmenities().length > 0 && (
                   <div className="grid grid-cols-2 sm:flex gap-1.5 mb-4 sm:mb-6">
                     {formatAmenities().map((amenity: any, index: number) => {
-                      const Icon = amenity.icon;
                       return (
                         <div key={index} className="flex-1 bg-white border border-black/6 rounded-lg sm:rounded-[14px] px-2 py-1.5 sm:px-3.5 sm:py-2 flex items-center justify-center gap-1 sm:gap-2">
-                          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-green fill-green" />
+                          <img
+                            src={amenity.iconPath}
+                            alt={amenity.label}
+                            className="w-4 h-4 sm:w-5 sm:h-5"
+                          />
                           <span className="text-[11px] sm:text-[14px] font-medium text-[#192215] truncate">
                             {amenity.label}
                           </span>
@@ -318,7 +307,13 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                         </div>
                       </div>
                       
-                      <button className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-[#8fb36666] rounded-[10px] hover:bg-gray-50 transition-colors">
+                      <button
+                        onClick={() => {
+                          onClose();
+                          router.push(`/user/messages?userId=${owner?.id}`);
+                        }}
+                        className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white border border-[#8fb36666] rounded-[10px] hover:bg-gray-50 transition-colors"
+                      >
                         <img src='/msg.svg' className="w-5 h-5 text-[#192215]" />
                         <span className="text-[12px] font-semibold text-[#192215]">Send a Message</span>
                       </button>

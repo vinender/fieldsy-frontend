@@ -28,16 +28,25 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyF
     { id: 'customDate', label: 'Custom Date Range' }
   ];
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (but not on the filter button itself)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+
+      // Check if click is on the filter button or its children
+      const isFilterButton = target.closest('button')?.textContent?.includes('Filter');
+
+      // Only close if clicking outside AND not on the filter button
+      if (dropdownRef.current && !dropdownRef.current.contains(target) && !isFilterButton) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      // Use 'mousedown' with a slight delay to allow the button toggle to work
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 0);
     }
 
     return () => {
@@ -80,20 +89,20 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyF
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full mt-2 bg-white rounded-[20px] shadow-lg border border-gray-200 w-[320px] sm:w-[380px] z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+      className="absolute right-0 top-[calc(100%+8px)] bg-white rounded-[20px] shadow-xl border border-gray-200 min-w-[300px] w-max max-w-[380px] z-50 animate-in fade-in slide-in-from-top-2 duration-200"
     >
       {/* Content */}
-      <div className="p-4 sm:p-5">
+      <div className="p-4">
         {/* Date Range */}
         <div>
-          <h3 className="text-[14px] sm:text-[16px] font-semibold text-[#192215] mb-3">Select Date Range</h3>
+          <h3 className="text-[14px] font-semibold text-[#192215] mb-3">Select Date Range</h3>
           <div className="space-y-1.5">
             {dateRangeOptions.map((option) => (
               <div key={option.id}>
                 <label
-                  className="flex items-center justify-between cursor-pointer p-2.5 sm:p-3 rounded-lg hover:bg-[#f8f1d7] transition-colors"
+                  className="flex w-full items-center justify-between cursor-pointer p-2 rounded-lg hover:bg-[#f8f1d7] transition-colors"
                 >
-                  <span className="text-[13px] sm:text-[14px] text-[#192215]">{option.label}</span>
+                  <span className="text-[13px] text-[#192215]">{option.label}</span>
 
                   <div className="relative">
                     <input
@@ -179,18 +188,18 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyF
       </div>
 
       {/* Footer Actions */}
-      <div className="bg-gray-50 p-3 sm:p-4 border-t border-gray-100 rounded-b-[20px]">
+      <div className="bg-gray-50 p-3 border-t border-gray-100 rounded-b-[20px]">
         <div className="flex gap-2">
           <button
             onClick={handleReset}
-            className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-white border border-gray-300 text-[#192215] rounded-full text-[12px] sm:text-[14px] font-semibold hover:bg-gray-100 transition-colors"
+            className="flex-1 py-2 px-2 bg-white border border-gray-300 text-[#192215] rounded-full text-[12px] font-semibold hover:bg-gray-100 transition-colors whitespace-nowrap"
           >
             Reset
           </button>
           <button
             onClick={handleApply}
             disabled={selectedDateRange === 'customDate' && (!startDate || !endDate)}
-            className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-[#3a6b22] text-white rounded-full text-[12px] sm:text-[14px] font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 py-2 px-2 bg-[#3a6b22] text-white rounded-full text-[12px] font-semibold hover:bg-[#2d5319] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
             Apply Filter
           </button>

@@ -107,8 +107,7 @@ const BookingHistoryPage = () => {
   const [totalBookings, setTotalBookings] = useState(0);
   const [appliedFilters, setAppliedFilters] = useState<any>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  
-  
+
   // Helper function to convert time string to minutes
   const timeToMinutes = (time: string): number => {
     // Handle different time formats
@@ -343,7 +342,7 @@ const BookingHistoryPage = () => {
             startTime: booking.startTime, // Keep raw start time
             endTime: booking.endTime, // Keep raw end time
             dogs: booking.numberOfDogs || 1,
-            recurring: booking.repeatBooking && booking.repeatBooking !== 'none' ? `Recurring ${booking.repeatBooking}` : null,
+            recurring: booking.repeatBooking && booking.repeatBooking.toLowerCase() !== 'none' ? `Recurring ${booking.repeatBooking}` : null,
             status: booking.status.toLowerCase() === 'confirmed' ? 'upcoming' : booking.status.toLowerCase() as any,
             paymentStatus: booking.paymentStatus?.toLowerCase() || 'paid',
             createdAt: booking.createdAt,
@@ -874,8 +873,8 @@ const BookingHistoryPage = () => {
             <button
               onClick={() => setActiveTab('recurring')}
               className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${
-                activeTab === 'recurring' 
-                  ? 'bg-[#8fb366] text-white' 
+                activeTab === 'recurring'
+                  ? 'bg-[#8fb366] text-white'
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
               }`}
             >
@@ -963,7 +962,7 @@ const BookingHistoryPage = () => {
                 <p className="text-gray-600 mb-4">
                   You don't have any recurring bookings set up.
                 </p>
-                <button 
+                <button
                   onClick={() => router.push('/fields')}
                   className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
                 >

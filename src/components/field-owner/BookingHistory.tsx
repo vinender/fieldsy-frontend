@@ -5,25 +5,29 @@ import { BookingHistorySkeleton } from '@/components/skeletons/BookingHistorySke
 import FieldOwnerBookingDetailsModal from '@/components/modal/FieldOwnerBookingDetailsModal';
 import EarningsDashboard from './EarningsDashboard';
 import { Check } from 'lucide-react';
+import { useCancelledBookings } from '@/hooks/queries/useBookingQueries';
 
 // Types are imported from useFieldOwnerBookings hook
 
 export default function BookingHistory() {
   const router = useRouter();
   const [activeView, setActiveView] = useState<'bookings' | 'earnings'>('bookings');
-  const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'previous'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'previous' | 'cancelled'>('today');
   const [currentPage, setCurrentPage] = useState(1);
+  const [cancelledPage, setCancelledPage] = useState(1);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Use React Query hook
-  const { 
-    data, 
-    isLoading, 
-    error, 
+  // Use React Query hook for regular bookings
+  const {
+    data,
+    isLoading,
+    error,
     isError,
-    refetch 
-  } = useFieldOwnerBookings(activeTab, currentPage);
+    refetch
+  } = useFieldOwnerBookings(activeTab === 'cancelled' ? 'today' : activeTab, currentPage, {
+    enabled: activeTab !== 'cancelled'
+  });
 
   // Fetch recent bookings for overview
   const {
@@ -31,9 +35,21 @@ export default function BookingHistory() {
     isLoading: recentLoading
   } = useRecentBookings();
 
+  // Fetch cancelled bookings using React Query
+  const {
+    data: cancelledBookingsData,
+    pagination: cancelledPagination,
+    isLoading: cancelledLoading,
+    refetch: refetchCancelled
+  } = useCancelledBookings(
+    { page: cancelledPage, limit: 16 }, // 16 items for 4x4 grid
+    { enabled: activeTab === 'cancelled' }
+  );
+
   // Reset page when tab changes
   useEffect(() => {
     setCurrentPage(1);
+    setCancelledPage(1);
   }, [activeTab]);
 
   // Refetch data every 30 seconds for today's bookings
@@ -198,13 +214,24 @@ export default function BookingHistory() {
               <span className="hidden sm:inline">Previous Bookings</span>
               <span className="sm:hidden">Previous</span>
             </button>
+            <button
+              onClick={() => setActiveTab('cancelled')}
+              className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${
+                activeTab === 'cancelled'
+                  ? 'bg-light-green text-white'
+                  : 'bg-cream text-dark-green hover:bg-cream/80'
+              }`}
+            >
+              <span className="hidden sm:inline">Cancelled Bookings</span>
+              <span className="sm:hidden">Cancelled</span>
+            </button>
           </div>
         </div>
 
 
         {/* Bookings Grid - Max 4 cards per row */}
         <div>
-          {isLoading ? (
+          {(activeTab === 'cancelled' ? cancelledLoading : isLoading) ? (
             // Skeleton loader for bookings grid
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {[...Array(8)].map((_, index) => (
@@ -246,7 +273,7 @@ export default function BookingHistory() {
                 </div>
               ))}
             </div>
-          ) : isError ? (
+          ) : (activeTab === 'cancelled' ? false : isError) ? (
             <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8">
               <div className="text-center">
                 <div className="w-12 sm:w-16 h-12 sm:h-16 bg-red/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
@@ -265,7 +292,7 @@ export default function BookingHistory() {
                 </button>
               </div>
             </div>
-          ) : bookings.length === 0 ? (
+          ) : (activeTab === 'cancelled' ? (!cancelledBookingsData || cancelledBookingsData.length === 0) : bookings.length === 0) ? (
             <div className="bg-white rounded-xl sm:rounded-2xl p-8 sm:p-10 md:p-12">
               <div className="text-center">
                 <div className="w-16 sm:w-20 h-16 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
@@ -277,10 +304,12 @@ export default function BookingHistory() {
                   No {activeTab} bookings
                 </h3>
                 <p className="text-sm sm:text-base text-dark-green/70 font-sans mb-3 sm:mb-4">
-                  {activeTab === 'today' 
+                  {activeTab === 'today'
                     ? "You don't have any bookings scheduled for today."
                     : activeTab === 'upcoming'
                     ? "You don't have any upcoming bookings."
+                    : activeTab === 'cancelled'
+                    ? "You don't have any cancelled bookings."
                     : "You don't have any previous bookings."}
                 </p>
                 <p className="text-xs sm:text-sm text-gray-500 font-sans">
@@ -290,78 +319,82 @@ export default function BookingHistory() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {bookings.map((booking) => (
-                <div key={booking.id} className="bg-white shadow-md rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-lg transition-shadow">
+              {(activeTab === 'cancelled' ? cancelledBookingsData || [] : bookings).map((booking: any) => {
+                // Cancelled bookings are already formatted by the backend
+                const displayBooking = booking;
+
+                return (
+                <div key={displayBooking.id} className="bg-white shadow-md rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-lg transition-shadow">
                   {/* User Avatar and Name */}
                   <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 border-b border-b-gray-200 pb-3 sm:pb-4">
                     <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {booking.userAvatar ? (
-                        <img 
-                          src={booking.userAvatar} 
-                          alt={booking.userName}
+                      {displayBooking.userAvatar ? (
+                        <img
+                          src={displayBooking.userAvatar}
+                          alt={displayBooking.userName}
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-xs sm:text-sm font-semibold text-gray-600">
-                          {booking.userName.charAt(0)}
+                          {displayBooking.userName.charAt(0)}
                         </span>
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm sm:text-base font-semibold text-dark-green font-sans truncate">
-                        {booking.userName}
+                        {displayBooking.userName}
                       </h3>
-                      <p className="text-[10px] sm:text-xs text-dark-green/70 font-sans">{booking.time}</p>
+                      <p className="text-[10px] sm:text-xs text-dark-green/70 font-sans">{displayBooking.time}</p>
                     </div>
-                  </div>  
-                  
+                  </div>
+
                   {/* Booking Details */}
                   <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-dark-green/70 font-sans">Order ID</span>
-                      <p className="text-xs font-medium text-dark-green font-sans">{booking.orderId}</p>
+                      <p className="text-xs font-medium text-dark-green font-sans">{displayBooking.orderId}</p>
                     </div>
-                    {booking.frequency && (
+                    {displayBooking.frequency && (
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-dark-green/70 font-sans">Recurring</span>
-                        <p className="text-xs font-medium text-dark-green font-sans">{booking.frequency}</p>
+                        <p className="text-xs font-medium text-dark-green font-sans">{displayBooking.frequency}</p>
                       </div>
                     )}
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-dark-green/70 font-sans">Dogs</span>
-                      <p className="text-xs font-medium text-dark-green font-sans">{booking.dogs}</p>
+                      <p className="text-xs font-medium text-dark-green font-sans">{displayBooking.dogs}</p>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                       <span className="text-xs text-dark-green/70 font-sans">Amount</span>
                       <p className="text-sm font-bold text-green font-sans">
-                        {formatCurrency(booking.amount)}
+                        {formatCurrency(displayBooking.amount)}
                       </p>
                     </div>
                   </div>
                   
                   {/* Action Buttons or Status */}
                   <div className="flex gap-2">
-                    {activeTab === 'previous' ? (
+                    {activeTab === 'previous' || activeTab === 'cancelled' ? (
                       <>
                         <div className={`flex-1 py-2 px-3 border rounded-full text-xs font-medium font-sans flex items-center justify-center gap-1.5 ${
-                          booking.status === 'completed' ? 'bg-green/10 text-green' :
-                          booking.status === 'cancelled' ? 'bg-red/10 text-red' :
-                          booking.status === 'refunded' ? 'bg-orange/10 text-orange' :
-                          booking.status === 'confirmed' ? 'bg-white text-green border-green' :
+                          displayBooking.status === 'completed' ? 'bg-green/10 text-green' :
+                          displayBooking.status === 'cancelled' ? 'bg-red/10 text-red' :
+                          displayBooking.status === 'refunded' ? 'bg-orange/10 text-orange' :
+                          displayBooking.status === 'confirmed' ? 'bg-white text-green border-green' :
                           'bg-gray-100 text-gray-600'
                         }`}>
-                          {booking.status === 'completed' && (
+                          {displayBooking.status === 'completed' && (
                             <div className="w-4 h-4 rounded-full bg-green flex items-center justify-center flex-shrink-0">
                               <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                             </div>
                           )}
-                          <span className={booking.status === 'completed' ? 'font-bold' : ''}>
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          <span className={displayBooking.status === 'completed' ? 'font-bold' : ''}>
+                            {displayBooking.status.charAt(0).toUpperCase() + displayBooking.status.slice(1)}
                           </span>
                         </div>
                         <button
-                          onClick={() => handleViewDetails(booking)}
+                          onClick={() => handleViewDetails(displayBooking as Booking)}
                           className="flex-1 py-2 px-3 rounded-full bg-green text-xs text-white font-medium hover:bg-green/90 transition-colors font-sans"
                         >
                           View Details
@@ -371,13 +404,13 @@ export default function BookingHistory() {
                       // Today and Upcoming bookings - show both View Details and Send Message
                       <>
                         <button
-                          onClick={() => handleViewDetails(booking)}
+                          onClick={() => handleViewDetails(displayBooking as Booking)}
                           className="flex-1 py-2 px-3 rounded-full bg-white text-green border border-green text-xs font-medium hover:bg-green/10 transition-colors font-sans"
                         >
                           View Details
                         </button>
                         <button
-                          onClick={() => handleSendMessage(booking.id)}
+                          onClick={() => handleSendMessage(displayBooking.id)}
                           className="flex-1 py-2 px-3 rounded-full bg-green text-xs text-white font-medium hover:bg-green/90 transition-colors font-sans"
                         >
                           Send Message
@@ -386,13 +419,65 @@ export default function BookingHistory() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
         {/* Pagination */}
-        {!isLoading && !isError && bookings.length > 0 && totalPages > 1 && (
+        {activeTab === 'cancelled' ? (
+          // Cancelled bookings pagination
+          !cancelledLoading && cancelledBookingsData && cancelledBookingsData.length > 0 && cancelledPagination && cancelledPagination.totalPages > 1 && (
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-2">
+              <button
+                onClick={() => setCancelledPage(Math.max(1, cancelledPage - 1))}
+                disabled={cancelledPage === 1}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm md:text-base text-dark-green font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cream rounded-full transition-all font-sans"
+              >
+                Previous
+              </button>
+
+              <div className="flex gap-1">
+                {[...Array(Math.min(5, cancelledPagination.totalPages))].map((_, index) => {
+                  let pageNum;
+                  if (cancelledPagination.totalPages <= 5) {
+                    pageNum = index + 1;
+                  } else if (cancelledPage <= 3) {
+                    pageNum = index + 1;
+                  } else if (cancelledPage >= cancelledPagination.totalPages - 2) {
+                    pageNum = cancelledPagination.totalPages - 4 + index;
+                  } else {
+                    pageNum = cancelledPage - 2 + index;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCancelledPage(pageNum)}
+                      className={`w-8 sm:w-10 h-8 sm:h-10 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${
+                        cancelledPage === pageNum
+                          ? 'bg-green text-white'
+                          : 'bg-white text-dark-green hover:bg-cream'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setCancelledPage(Math.min(cancelledPagination.totalPages, cancelledPage + 1))}
+                disabled={cancelledPage === cancelledPagination.totalPages}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm md:text-base text-dark-green font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cream rounded-full transition-all font-sans"
+              >
+                Next
+              </button>
+            </div>
+          )
+        ) : (
+          !isLoading && !isError && bookings.length > 0 && totalPages > 1 && (
           <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-2">
             <button 
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -439,6 +524,7 @@ export default function BookingHistory() {
               Next
             </button>
           </div>
+          )
         )}
         
         {/* Booking Details Modal */}

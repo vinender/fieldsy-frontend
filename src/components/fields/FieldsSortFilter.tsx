@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 
 interface SortConfig {
@@ -21,9 +21,17 @@ export default function FieldsSortFilter({
 }: FieldsSortFilterProps) {
 
   // Track both rating and price sort configurations independently
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
+  // Initialize with current sortBy and sortOrder from props
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => ({
     [sortBy]: sortOrder
-  });
+  }));
+
+  // Update local state when props change (when dropdown reopens)
+  useEffect(() => {
+    setSortConfig({
+      [sortBy]: sortOrder
+    });
+  }, [sortBy, sortOrder]);
 
   const handleSectionToggle = (section: 'rating' | 'price') => {
     const newSortConfig = { ...sortConfig };

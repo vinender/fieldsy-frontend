@@ -31,7 +31,7 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
 }) => {
   const router = useRouter();
   const cancellationWindow = useCancellationWindow();
-
+  console.log('booking',booking)
   const handleProceed = () => {
     // Get booking ID - handle both _id and id properties
     const bookingId = booking._id || (booking as any).id;
@@ -82,7 +82,7 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
             <p>Date: {booking.date}</p>
             <p>Time: {booking.time}</p>
             <p>Dogs: {booking.dogs}</p>
-            <p>Amount: {booking.currency}{booking.price}</p>
+            <p>Amount: £{booking.price}</p>
           </div>
         </div>
 

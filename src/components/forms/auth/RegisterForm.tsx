@@ -12,7 +12,6 @@ import { useResponsiveRouter } from "@/hooks/useResponsiveRouter"
 import { signIn } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select } from "@/components/ui/select"
 import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 import { socialRoleStore } from "@/lib/auth/social-role-store"
 import { useRegisterWithOtp } from "@/hooks/mutations/useOtpMutations"
@@ -23,7 +22,6 @@ const registerSchema = z
   .object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email"),
-    phoneCode: z.string().min(1, "Code required"),
     phoneNumber: z
       .string()
       .min(7, "Phone must be at least 7 digits")
@@ -54,7 +52,6 @@ export default function RegisterForm() {
     () => ({
       fullName: "",
       email: "",
-      phoneCode: "+44",
       phoneNumber: "",
       password: "",
       agreeToTerms: false,
@@ -96,7 +93,7 @@ export default function RegisterForm() {
         email: values.email,
         password: values.password,
         role: values.role,
-        phone: `${values.phoneCode} ${values.phoneNumber}`,
+        phone: `+44 ${values.phoneNumber}`,
       });
     } catch (error) {
       // Error is already handled by the mutation's onError callback
@@ -321,15 +318,9 @@ export default function RegisterForm() {
             <div>
               <Label className="block text-sm font-medium text-gray-700">Phone Number</Label>
                 <div className="flex mt-1">
-                  
-                  <Select
-                    {...register("phoneCode")}
-                    className="px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] rounded-r-none text-gray-input border border-gray-300 border-r-0 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
-                  >
-                    <option value="+44">+44</option>
-                    <option value="+1">+1</option>
-                    <option value="+91">+91</option>
-                  </Select>
+                  <div className="px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] text-gray-input border border-gray-300 border-r-0 flex items-center">
+                    +44
+                  </div>
 
                   <Input
                     type="tel"

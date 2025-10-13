@@ -121,7 +121,7 @@ export const AddReviewModal = ({
             {/* Header */}
             <div className="mb-8">
               <h2 className="text-[29px] font-semibold text-[#192215] mb-2">
-                Share Your Experience
+                Share Your Experiences
               </h2>
               <p className="text-[15px] text-[#8d8d8d] leading-[22px]">
                 Leave a review to help other dog owners choose the perfect field and support trusted hosts.
