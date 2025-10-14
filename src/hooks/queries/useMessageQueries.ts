@@ -7,6 +7,7 @@ export const messageQueryKeys = {
   conversation: (id: string) => ['conversation', id] as const,
   messages: (conversationId: string) => ['messages', conversationId] as const,
   unreadCount: () => ['messages', 'unread-count'] as const,
+  unreadConversationsCount: () => ['messages', 'unread-conversations-count'] as const,
 };
 
 // Types
@@ -170,6 +171,24 @@ export function useUnreadMessagesCount(
     staleTime: 10 * 1000, // 10 seconds
     gcTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
+    ...options,
+  });
+}
+
+// Hook to fetch unread conversations count (conversations with at least one unread message)
+export function useUnreadConversationsCount(
+  options?: Omit<UseQueryOptions<{ success: boolean; unreadConversationsCount: number }, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: messageQueryKeys.unreadConversationsCount(),
+    queryFn: async () => {
+      const response = await axiosClient.get('/chat/unread-conversations-count');
+      return response.data;
+    },
+    staleTime: 10 * 1000, // 10 seconds
+    gcTime: 60 * 1000, // 1 minute
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds
     ...options,
   });
 }

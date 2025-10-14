@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
+import { formatDateDDMMYYYY } from '@/utils/formatters';
 
 // Dynamically import Stripe component to avoid SSR issues
 const StripeCheckout = dynamic(
@@ -326,7 +327,7 @@ const PaymentPage = () => {
                       </div>
                     </div>
                     <div className="text-sm sm:text-[16px] text-[#192215]">
-                      {date ? new Date(date as string).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'No date selected'} • {timeSlot || '8:00AM - 9:00AM'}
+                      {date ? formatDateDDMMYYYY(new Date(date as string)) : 'No date selected'} • {timeSlot || '8:00AM - 9:00AM'}
                     </div>
                   </div>
                 </div>

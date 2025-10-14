@@ -133,6 +133,11 @@ export function useDeleteProfileImage() {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Profile image deleted successfully');
+
+      // Reload the page after a short delay to show the success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || error.message || 'Failed to delete image';
@@ -189,6 +194,11 @@ export function useUploadProfileImage() {
       // Invalidate any other queries that might use user data
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Profile image updated successfully');
+
+      // Reload the page after a short delay to show the success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || error.message || 'Failed to upload image';

@@ -22,7 +22,7 @@ export function Header() {
   const pathname = usePathname()
   const { user, isLoading } = useAuth()
   const { unreadCount } = useNotifications()
-  const { unreadMessagesCount } = useChat()
+  const { unreadMessagesCount, unreadConversationsCount } = useChat()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
@@ -61,7 +61,7 @@ export function Header() {
     // Base navigation for non-authenticated users (now includes Search Fields)
     const baseNav = [
       { name: "Home", href: "/" },
-      { name: "About Us", href: "/why-choose-us" },
+      { name: "About Us", href: "/about" },
       { name: "Search Fields", href: "/fields" },
       { name: "How it works", href: "/how-it-works" },
       { name: "FAQ's", href: "/faqs" },
@@ -76,7 +76,7 @@ export function Header() {
     if (currentUser.role === 'FIELD_OWNER') {
       return [
         { name: "Home", href: "/" },
-        { name: "Why Choose Us", href: "/why-choose-us" },
+        { name: "About Us", href: "/about" },
         { name: "How It Works", href: "/how-it-works" },
         { name: "FAQ's", href: "/faqs" },
       ]
@@ -85,7 +85,7 @@ export function Header() {
     // For DOG_OWNER role (default authenticated user)
     return [
       { name: "Home", href: "/" },
-      { name: "About Us", href: "/why-choose-us" },
+      { name: "About Us", href: "/about" },
       { name: "Search Fields", href: "/fields" },
       { name: "How it works", href: "/how-it-works" },
       { name: "FAQ's", href: "/faqs" },
@@ -437,10 +437,10 @@ export function Header() {
                     >
                       <MessageCircle className="h-5 w-5 text-gray-700" />
                       <span className="text-sm font-medium">Messages</span>
-                      {unreadMessagesCount > 0 && (
+                      {unreadConversationsCount > 0 && (
                         <span className="flex items-center justify-center min-w-[18px] h-4 px-1 bg-blue-500 rounded-full">
                           <span className="text-[10px] text-white font-bold">
-                            {unreadMessagesCount}
+                            {unreadConversationsCount}
                           </span>
                         </span>
                       )}
@@ -546,7 +546,7 @@ export function Header() {
                   
                   {/* Mobile Icons */}
                   <div className="flex items-center justify-around px-4 py-2 border-t border-gray-200">
-                    <button 
+                    <button
                       className="p-2 rounded-full hover:bg-gray-100 relative"
                       onClick={() => {
                         setMobileMenuOpen(false);
@@ -554,10 +554,10 @@ export function Header() {
                       }}
                     >
                       <MessageCircle className="h-5 w-5 text-gray-600" />
-                      {unreadMessagesCount > 0 && (
+                      {unreadConversationsCount > 0 && (
                         <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blue-500 rounded-full shadow-md">
                           <span className="text-[11px] text-white font-bold">
-                            {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                            {unreadConversationsCount > 99 ? '99+' : unreadConversationsCount}
                           </span>
                         </span>
                       )}

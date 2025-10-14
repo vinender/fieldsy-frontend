@@ -65,16 +65,33 @@ body.sidebar-open {
   scrollbar-width: none !important;  /* Firefox */
 }
 
-/* Hide number input spinner arrows */
+/* Hide number input spinner arrows - Apply globally with !important */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+  display: none !important;
 }
 
 input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
+/* Also target inputs with inputmode="numeric" */
+input[inputmode='numeric']::-webkit-inner-spin-button,
+input[inputmode='numeric']::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+  display: none !important;
+}
+
+/* Prevent negative numbers in number inputs with min="0" */
+input[type='number'][min='0']::-webkit-inner-spin-button,
+input[type='number'][min='0']::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+  display: none !important;
 }
 
 /* Ensure html element also doesn't show scrollbar */
@@ -174,9 +191,10 @@ html:has(body.sidebar-open) {
   border-radius: 12px !important;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
   width: auto !important;
-  min-width: 260px !important;
-  max-width: 320px !important;
+  min-width: 280px !important;
+  max-width: 340px !important;
   overflow: hidden !important;
+  padding: 4px !important;
 }
 
 .fieldsy-calendar .react-datepicker__header {
@@ -199,6 +217,13 @@ html:has(body.sidebar-open) {
   justify-content: space-between !important;
   width: 100% !important;
   white-space: nowrap !important;
+  margin-bottom: 4px !important; /* Add spacing between rows */
+}
+
+.fieldsy-calendar .react-datepicker__day-names {
+  margin-bottom: 8px !important; /* Extra space after weekday labels */
+  padding-bottom: 4px !important;
+  border-bottom: 1px solid #F3F4F6 !important;
 }
 
 .fieldsy-calendar .react-datepicker__day-name {
@@ -206,8 +231,8 @@ html:has(body.sidebar-open) {
   font-size: 12px !important;
   font-weight: 500 !important;
   width: calc(100% / 7) !important;
-  min-width: 28px !important;
-  max-width: 36px !important;
+  min-width: 32px !important;
+  max-width: 40px !important;
   line-height: 28px !important;
   text-align: center !important;
   margin: 1px !important;
@@ -216,10 +241,10 @@ html:has(body.sidebar-open) {
 
 .fieldsy-calendar .react-datepicker__day {
   width: calc(100% / 7) !important;
-  min-width: 28px !important;
-  max-width: 36px !important;
-  height: 28px !important;
-  line-height: 28px !important;
+  min-width: 32px !important;
+  max-width: 40px !important;
+  height: 32px !important;
+  line-height: 32px !important;
   margin: 1px !important;
   border-radius: 6px !important;
   color: #192215 !important;
@@ -291,13 +316,15 @@ html:has(body.sidebar-open) {
 }
 
 .fieldsy-calendar .react-datepicker__month {
-  margin: 8px !important;
+  margin: 12px !important;
+  padding: 8px !important;
   display: block !important;
   width: 100% !important;
 }
 
 .fieldsy-calendar .react-datepicker__month-container {
   width: 100% !important;
+  padding: 4px !important;
 }
 
 .react-datepicker-popper {

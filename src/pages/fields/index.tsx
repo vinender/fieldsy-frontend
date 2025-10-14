@@ -88,8 +88,13 @@ export default function SearchResults() {
   
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedFields, setLikedFields] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState('rating');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Sort configuration - supports multiple sort fields
+  const [sortConfig, setSortConfig] = useState<{
+    rating?: 'asc' | 'desc';
+    price?: 'asc' | 'desc';
+  }>({ rating: 'desc' });
+
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
   // Function to handle filter changes
@@ -131,8 +136,11 @@ export default function SearchResults() {
     }),
     ...(appliedFilters.date && { date: appliedFilters.date.toISOString() }),
     ...(appliedFilters.availability.length > 0 && { availability: appliedFilters.availability }),
-    sortBy,
-    sortOrder
+    // Send multiple sort fields if configured
+    ...(Object.keys(sortConfig).length > 0 && {
+      sortBy: Object.keys(sortConfig).join(','),
+      sortOrder: Object.keys(sortConfig).map(key => sortConfig[key as keyof typeof sortConfig]).join(',')
+    })
   };
 
   // Nearby fields parameters
@@ -284,11 +292,16 @@ export default function SearchResults() {
                   <div className="flex items-center gap-2">
                     <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-dark-green" />
                     <span className="text-[13px] md:text-[14px] font-medium text-dark-green">
-                      {sortBy === 'price' && sortOrder === 'asc' ? 'Price: Low to High' : 
-                       sortBy === 'price' && sortOrder === 'desc' ? 'Price: High to Low' :
-                       sortBy === 'rating' && sortOrder === 'asc' ? 'Rating: Low to High' : 
-                       sortBy === 'rating' && sortOrder === 'desc' ? 'Rating: High to Low' : 
-                       'Sort By'}
+                      {(() => {
+                        const sortLabels = [];
+                        if (sortConfig.rating) {
+                          sortLabels.push(`Rating: ${sortConfig.rating === 'asc' ? 'Low to High' : 'High to Low'}`);
+                        }
+                        if (sortConfig.price) {
+                          sortLabels.push(`Price: ${sortConfig.price === 'asc' ? 'Low to High' : 'High to Low'}`);
+                        }
+                        return sortLabels.length > 0 ? sortLabels.join(' & ') : 'Sort By';
+                      })()}
                     </span>
                   </div>
                   <ChevronDown className="w-4 h-4" />
@@ -297,13 +310,10 @@ export default function SearchResults() {
                 {sortDropdownOpen && (
                   <div className="absolute right-0 mt-2 z-20">
                     <FieldsSortFilter
-                      sortBy={sortBy}
-                      sortOrder={sortOrder}
-                      onSortChange={(newSortBy, newSortOrder) => {
-                        setSortBy(newSortBy);
-                        setSortOrder(newSortOrder);
+                      sortConfig={sortConfig}
+                      onSortChange={(newSortConfig) => {
+                        setSortConfig(newSortConfig);
                         setCurrentPage(1); // Reset to first page when sorting changes
-                        setSortDropdownOpen(false);
                       }}
                       onClose={() => setSortDropdownOpen(false)}
                     />

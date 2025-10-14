@@ -19,7 +19,7 @@ import { UserLayout } from '@/components/layout/UserLayout';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useCancelBooking, useRescheduleBooking } from '@/hooks/useBookingApi';
-import { formatAmenities } from '@/utils/formatters';
+import { formatAmenities, formatDateDDMMYYYY } from '@/utils/formatters';
 import { calculateDistance, formatDistance } from '@/utils/location';
 import { toast } from 'sonner';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
@@ -333,11 +333,7 @@ const BookingHistoryPage = () => {
             location: booking.field?.address ? `${booking.field.address}, ${booking.field.city}, ${booking.field.state}` : 'Location',
             distance: distance,
             time: booking.timeSlot || `${booking.startTime} – ${booking.endTime}`,
-            date: new Date(booking.date).toLocaleDateString('en-GB', { 
-              day: 'numeric', 
-              month: 'short', 
-              year: 'numeric' 
-            }),
+            date: formatDateDDMMYYYY(new Date(booking.date)),
             rawDate: booking.date, // Keep raw date for calculations
             startTime: booking.startTime, // Keep raw start time
             endTime: booking.endTime, // Keep raw end time
@@ -594,7 +590,7 @@ const BookingHistoryPage = () => {
               {subscription.nextBillingDate && (
                 <div className="mt-3 p-2 bg-gray-50 rounded-lg">
                   <p className="text-xs text-gray-600">
-                    Next billing: {new Date(subscription.nextBillingDate).toLocaleDateString()}
+                    Next billing: {formatDateDDMMYYYY(new Date(subscription.nextBillingDate))}
                   </p>
                 </div>
               )}
@@ -602,7 +598,7 @@ const BookingHistoryPage = () => {
               {subscription.cancelAtPeriodEnd && (
                 <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
                   <p className="text-xs text-yellow-700">
-                    Will be canceled on {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                    Will be canceled on {formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
                   </p>
                 </div>
               )}
@@ -638,7 +634,7 @@ const BookingHistoryPage = () => {
                 >
                   Cancel at End of Period
                   <span className="block text-xs mt-1 opacity-90">
-                    Keep access until {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                    Keep access until {formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
                   </span>
                 </button>
                 <button

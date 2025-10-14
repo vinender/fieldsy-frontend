@@ -5,7 +5,9 @@ import { useRouter } from 'next/router';
 
 interface ChatContextType {
   unreadMessagesCount: number;
+  unreadConversationsCount: number;
   setUnreadMessagesCount: (count: number) => void;
+  setUnreadConversationsCount: (count: number) => void;
   playMessageSound: () => void;
   incrementUnreadCount: () => void;
   decrementUnreadCount: (count?: number) => void;
@@ -16,6 +18,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [unreadConversationsCount, setUnreadConversationsCount] = useState(0);
   const { socket } = useSocket();
   const { user } = useAuth();
   const router = useRouter();
@@ -55,15 +58,28 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem('authToken');
       if (!token || !user || !shouldLoadChat) return;
 
-      const response = await fetch('/api/chat/unread-count', {
+      // Fetch unread conversations count (number of chats with unread messages)
+      const conversationsResponse = await fetch('/api/chat/unread-conversations-count', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUnreadMessagesCount(data.count || 0);
+      if (conversationsResponse.ok) {
+        const conversationsData = await conversationsResponse.json();
+        setUnreadConversationsCount(conversationsData.unreadConversationsCount || 0);
+      }
+
+      // Also fetch total unread messages count for backward compatibility
+      const messagesResponse = await fetch('/api/chat/unread-count', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (messagesResponse.ok) {
+        const messagesData = await messagesResponse.json();
+        setUnreadMessagesCount(messagesData.count || 0);
       }
     } catch (error) {
       console.error('Error fetching unread count:', error);
@@ -139,10 +155,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ChatContext.Provider 
+    <ChatContext.Provider
       value={{
         unreadMessagesCount,
+        unreadConversationsCount,
         setUnreadMessagesCount,
+        setUnreadConversationsCount,
         playMessageSound,
         incrementUnreadCount,
         decrementUnreadCount,

@@ -41,7 +41,14 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
     <div className="min-h-screen overflow-x-hidden">
       {/* Hero Section - Always loaded immediately as it's above the fold */}
       <AboutHeroSection data={aboutData?.heroSection} loading={false} />
-      
+
+      {/* About Us Label */}
+      <div className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
+        <h1 className="text-[29px] font-semibold text-dark-green mt-5">
+          About us
+        </h1>
+      </div>
+
       {/* Mission Section - Lazy loaded with intersection observer */}
       <LazySection 
         minHeight="400px"

@@ -7,31 +7,25 @@ interface SortConfig {
 }
 
 interface FieldsSortFilterProps {
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
-  onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
+  sortConfig: SortConfig;
+  onSortChange: (sortConfig: SortConfig) => void;
   onClose?: () => void;
 }
 
 export default function FieldsSortFilter({
-  sortBy,
-  sortOrder,
+  sortConfig: initialSortConfig,
   onSortChange,
   onClose
 }: FieldsSortFilterProps) {
 
   // Track both rating and price sort configurations independently
-  // Initialize with current sortBy and sortOrder from props
-  const [sortConfig, setSortConfig] = useState<SortConfig>(() => ({
-    [sortBy]: sortOrder
-  }));
+  const [sortConfig, setSortConfig] = useState<SortConfig>(initialSortConfig);
 
   // Update local state when props change (when dropdown reopens)
+  // This ensures the checkboxes reflect the current state
   useEffect(() => {
-    setSortConfig({
-      [sortBy]: sortOrder
-    });
-  }, [sortBy, sortOrder]);
+    setSortConfig(initialSortConfig);
+  }, [initialSortConfig]);
 
   const handleSectionToggle = (section: 'rating' | 'price') => {
     const newSortConfig = { ...sortConfig };
@@ -39,25 +33,14 @@ export default function FieldsSortFilter({
     if (newSortConfig[section]) {
       // Uncheck this section
       delete newSortConfig[section];
-
-      // If unchecking the current primary sort, clear it or switch to the other one
-      if (sortBy === section) {
-        const otherSection = section === 'rating' ? 'price' : 'rating';
-        if (newSortConfig[otherSection]) {
-          onSortChange(otherSection, newSortConfig[otherSection]!);
-        }
-      }
     } else {
       // Check this section with default 'desc' order
       newSortConfig[section] = 'desc';
-      // Only make it the primary sort if no other section is currently the primary sort
-      // OR if this section is already the primary sort
-      if (sortBy === section || !sortConfig[sortBy as 'rating' | 'price']) {
-        onSortChange(section, 'desc');
-      }
     }
 
     setSortConfig(newSortConfig);
+    // Immediately notify parent of the change
+    onSortChange(newSortConfig);
   };
 
   const handleSortOrderChange = (section: 'rating' | 'price', order: 'asc' | 'desc') => {
@@ -67,8 +50,8 @@ export default function FieldsSortFilter({
     };
     setSortConfig(newSortConfig);
 
-    // Make this the primary sort
-    onSortChange(section, order);
+    // Notify parent of the change
+    onSortChange(newSortConfig);
 
     if (onClose) {
       onClose();

@@ -1,28 +1,30 @@
 import { useState } from "react"
-import { GetStaticProps } from "next"
 import { Search } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { Input } from "@/components/ui/input"
 import { FAQPageList } from "@/components/common/FAQPageList"
 import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
+import { useFAQs } from "@/hooks/queries/useFAQQueries"
 
 export interface FAQItem {
   question: string
   answer: string
 }
 
-interface FAQPageProps {
-  faqs: FAQItem[]
-}
-
-export default function FAQPage({ faqs }: FAQPageProps) {
+export default function FAQPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
-  const filteredFaqs = faqs.filter(faq => 
-    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Fetch FAQs using React Query
+  const { faqs, isLoading, isError } = useFAQs()
+
+  // Filter FAQs based on search query - prioritize question matches
+  const filteredFaqs = searchQuery.trim()
+    ? faqs.filter(faq =>
+        faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : faqs
 
   return (
     <>
@@ -49,16 +51,56 @@ export default function FAQPage({ faqs }: FAQPageProps) {
               </div>
             </div>
 
-            <FAQPageList faqs={filteredFaqs} />
-
-            {/* No results message */}
-            {/* {filteredFaqs.length === 0 && (
+            {/* Loading State */}
+            {isLoading ? (
               <div className="text-center py-12">
-                <p className="text-dark-green/60 text-base xl:text-[18px] font-[400]">
-                  No questions found matching "{searchQuery}". Try a different search term.
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+                <p className="mt-4 text-dark-green/60">Loading FAQs...</p>
+              </div>
+            ) : isError ? (
+              <div className="text-center py-12 bg-red-50 rounded-2xl border border-red-200">
+                <p className="text-red-600 font-semibold text-lg mb-2">
+                  Error loading FAQs
+                </p>
+                <p className="text-red-600/80 text-base">
+                  Please try again later or contact support.
                 </p>
               </div>
-            )} */}
+            ) : (
+              <>
+                {/* Search Results Counter */}
+                {searchQuery.trim() && filteredFaqs.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-dark-green/70 text-sm font-medium">
+                      Found {filteredFaqs.length} {filteredFaqs.length === 1 ? 'question' : 'questions'} matching "{searchQuery}"
+                    </p>
+                  </div>
+                )}
+
+                {/* FAQ List or No Results Message */}
+                {filteredFaqs.length > 0 ? (
+                  <FAQPageList faqs={filteredFaqs} />
+                ) : searchQuery.trim() ? (
+                  <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
+                    <div className="mb-4">
+                      <Search className="w-12 h-12 text-gray-400 mx-auto" />
+                    </div>
+                    <p className="text-dark-green font-semibold text-lg mb-2">
+                      No questions found
+                    </p>
+                    <p className="text-dark-green/60 text-base xl:text-[18px] font-[400]">
+                      No questions found matching "{searchQuery}". Try a different search term.
+                    </p>
+                  </div>
+                ) : faqs.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
+                    <p className="text-dark-green/60 text-base xl:text-[18px] font-[400]">
+                      No FAQs available at the moment.
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            )}
 
             {/* Contact Support */}
             <div className="mt-16 text-center">
@@ -83,34 +125,4 @@ export default function FAQPage({ faqs }: FAQPageProps) {
       />
     </>
   )
-}
-
-export const getStaticProps: GetStaticProps = async () => {
-  try {
-    // Fetch FAQs at build time
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/faqs`)
-    const data = await response.json()
-    
-    const faqs: FAQItem[] = data?.data?.faqs?.map((faq: any) => ({
-      question: faq.question,
-      answer: faq.answer
-    })) || []
-
-    return {
-      props: {
-        faqs,
-      },
-      // Revalidate every 2 hours
-      revalidate: 7200,
-    }
-  } catch (error) {
-    console.error('Error fetching FAQs:', error)
-    return {
-      props: {
-        faqs: [],
-      },
-      // Try again in 60 seconds if there was an error
-      revalidate: 60,
-    }
-  }
 }

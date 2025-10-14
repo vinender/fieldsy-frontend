@@ -73,6 +73,11 @@ const EarningsHistory: React.FC = () => {
       window.history.replaceState({}, document.title, '/field-owner/payouts');
       // Refresh account status
       refetchAccount();
+
+      // Reload the page after a short delay to ensure all data is refreshed
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     }
   }, [router.query, refetchAccount]);
 

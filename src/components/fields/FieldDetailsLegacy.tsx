@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { Star, Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
@@ -14,6 +14,7 @@ import BackButton from '@/components/common/BackButton';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
+import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 
 interface FieldDetailsLegacyProps {
   field: any;
@@ -63,7 +64,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
       setShowLoginModal(true);
       return;
     }
-    
+
     try {
       const result = await toggleFavoriteMutation.mutateAsync();
       setIsLiked(result.isFavorited);
@@ -72,14 +73,64 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
     }
   };
 
+  // Fetch field properties to map slugs to labels
+  const { data: fieldPropertiesData } = useFieldProperties();
+  const fieldProperties = fieldPropertiesData?.data || {};
+
+  // Helper function to get label from slug
+  const getFieldPropertyLabel = (category: string, slug: string) => {
+    if (!slug || !fieldProperties[category]) return slug;
+
+    const option = fieldProperties[category]?.find((opt: any) => opt.value === slug);
+    return option?.label || slug;
+  };
+
+  // Helper to get field type label
+  const getFieldTypeLabel = (type: string) => {
+    if (!type) return 'Not specified';
+    const typeMap: { [key: string]: string } = {
+      'PRIVATE': 'Private',
+      'PUBLIC': 'Public',
+      'TRAINING': 'Training'
+    };
+    return typeMap[type] || type;
+  };
+
   const specifications: { label: string; value: string }[] = [
-    { label: 'Field Size', value: field?.size || 'Not specified' },
-    { label: 'Fence type & size', value: field?.fenceType || '6 ft steel mesh, fully enclosed' },
-    { label: 'Terrain Type', value: field?.type || 'Soft grass + walking path' },
-    { label: 'Surface type', value: field?.surfaceType || 'Flat with gentle slopes' },
-    { label: 'Max Dogs', value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : '4 dogs allowed' },
-    { label: 'Opening Days', value: field?.operatingDays?.[0] || field?.openingDays || 'Not specified' },
-    { label: 'Opening Hours', value: field?.openingTime && field?.closingTime ? `${field.openingTime} - ${field.closingTime}` : 'Monday to Friday (6:00 AM – 8:00 PM)' },
+    {
+      label: 'Field Size',
+      value: field?.size ? getFieldPropertyLabel('fieldSize', field.size) : 'Not specified'
+    },
+    {
+      label: 'Fence type & size',
+      value: field?.fenceType
+        ? `${getFieldPropertyLabel('fenceType', field.fenceType)}${field?.fenceSize ? ' - ' + getFieldPropertyLabel('fenceSize', field.fenceSize) : ''}`
+        : 'Not specified'
+    },
+    {
+      label: 'Terrain Type',
+      value: field?.type ? getFieldTypeLabel(field.type) : 'Not specified'
+    },
+    {
+      label: 'Surface type',
+      value: field?.surfaceType ? getFieldPropertyLabel('surfaceType', field.surfaceType) : 'Not specified'
+    },
+    {
+      label: 'Max Dogs',
+      value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : 'Not specified'
+    },
+    {
+      label: 'Opening Days',
+      value: field?.operatingDays?.[0]
+        ? getFieldPropertyLabel('openingDays', field.operatingDays[0])
+        : 'Not specified'
+    },
+    {
+      label: 'Opening Hours',
+      value: field?.openingTime && field?.closingTime
+        ? `${field.openingTime} - ${field.closingTime}`
+        : 'Not specified'
+    },
   ];
 
   const fieldImages = field?.images && field.images.length > 0 ? field.images : [ 
@@ -127,21 +178,37 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
           <div className="w-full lg:w-[45%] xl:w-[50%] 2xl:w-[45%] lg:flex-shrink-0">
             <div className="h-full flex flex-col space-y-4 lg:sticky lg:top-24">
               <div className="grid grid-cols-2 gap-3 lg:gap-4">
-                {fieldImages?.slice(0, 6).map((img: string, index: number) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className="aspect-square rounded-lg overflow-hidden group cursor-pointer"
-                    onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
-                    aria-label={`Open image ${index + 1}`}
-                  >
-                    <img
-                      src={img}
-                      alt={`Field view ${index + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </button>
-                ))}
+                {fieldImages?.slice(0, 4).map((img: string, index: number) => {
+                  const isLastImage = index === 3;
+                  const hasMoreImages = fieldImages.length > 4;
+                  const showMoreButton = isLastImage && hasMoreImages;
+                  const remainingCount = fieldImages.length - 4;
+
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      className="aspect-square rounded-lg overflow-hidden group cursor-pointer relative"
+                      onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
+                      aria-label={`Open image ${index + 1}`}
+                    >
+                      <img
+                        src={img}
+                        alt={`Field view ${index + 1}`}
+                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                          showMoreButton ? 'brightness-75' : ''
+                        }`}
+                      />
+                      {showMoreButton && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/50 transition-colors">
+                          <span className="text-white text-2xl font-semibold">
+                            +{remainingCount}
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               {isClaimed && (
@@ -203,17 +270,24 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             </div>
 
             <div className="flex flex-wrap gap-2 overflow-x-auto no-scrollbar pb-2">
-              {(field?.amenities || []).map((amenity: string, index: number) => {
+              {(field?.amenities || []).map((amenity: any, index: number) => {
+                // Handle both string and object amenities
+                const amenityStr = typeof amenity === 'string'
+                  ? amenity
+                  : (amenity?.label || amenity?.name || amenity?.value || '');
+
+                if (!amenityStr) return null;
+
                 // Convert amenity to slug format for lookup
-                const amenitySlug = amenity.toLowerCase().replace(/\s+/g, '-');
+                const amenitySlug = amenityStr.toLowerCase().replace(/\s+/g, '-');
                 const iconPath = getAmenityIcon(amenitySlug);
                 const label = getAmenityLabel(amenitySlug);
-                
+
                 return (
                   <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
-                    <img 
-                      src={iconPath} 
-                      alt={label} 
+                    <img
+                      src={iconPath}
+                      alt={label}
                       className="w-4 h-4 mr-2"
                       onError={(e) => {
                         // Fallback to Shield icon if image fails to load

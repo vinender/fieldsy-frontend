@@ -189,7 +189,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    router.push('/');
+    router.push('/user/my-bookings');
   };
 
   const handleCheckHistory = () => {
@@ -199,7 +199,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
 
   const handleGoHome = () => {
     setShowSuccessModal(false);
-    router.push('/');
+    router.push('/user/my-bookings');
   };
 
   if (succeeded && !showSuccessModal) {
@@ -455,7 +455,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    router.push('/');
+    router.push('/user/my-bookings');
   };
 
   const handleCheckHistory = () => {
@@ -465,7 +465,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
 
   const handleGoHome = () => {
     setShowSuccessModal(false);
-    router.push('/');
+    router.push('/user/my-bookings');
   };
 
   const cardStyle = {

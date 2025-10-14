@@ -24,6 +24,7 @@ import GreenSpinner from '@/components/common/GreenSpinner';
 import { useConversations } from '@/hooks/queries/useMessageQueries';
 import { useCreateConversation, useDeleteConversation, useSendMessage } from '@/hooks/mutations/useMessageMutations';
 import { useBlockStatus, useUnblockUser } from '@/hooks/queries/useUserBlockQueries';
+import { formatMessageTimestamp, formatChatListTime } from '@/utils/formatters';
 
 interface User {
   id: string;
@@ -58,6 +59,9 @@ interface Conversation {
   unreadCount: number;
   messages: Message[];
 }
+
+// Message character limit
+const MESSAGE_CHAR_LIMIT = 1000;
 
 // Memoized message component to prevent re-renders
 const MessageItem = memo(({
@@ -960,28 +964,13 @@ const MessagesPage = () => {
     };
   }, []);
 
-  const formatTime = (timestamp: string | Date) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
-    
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  };
+  // Using utility functions for consistent WhatsApp-style formatting
+  const formatTime = useCallback((timestamp: string | Date) => {
+    return formatChatListTime(timestamp);
+  }, []);
 
   const formatMessageTime = useCallback((timestamp: string | Date) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    return formatMessageTimestamp(timestamp);
   }, []);
 
   // Don't render anything if not authenticated after loading
@@ -1051,7 +1040,7 @@ const MessagesPage = () => {
                 <div className="text-center py-12">
                   <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">No conversations yet</h3>
-                  <p className="text-gray-600">Start a conversation with a field owner</p>
+                  <p className="text-gray-600">Start a conversation</p>
                 </div>
               ) : (
                 conversations
@@ -1166,8 +1155,11 @@ const MessagesPage = () => {
                       {/* Options Dropdown */}
                       {showOptions && (
                         <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 min-w-[180px] z-50">
-                          <button 
+                          <button
                             onClick={() => {
+                              if (blockStatusData?.data?.isBlocked) {
+                                return; // Do nothing if already blocked
+                              }
                               const otherUser = getOtherUser(selectedConversation);
                               if (otherUser) {
                                 setUserToBlock({ name: otherUser.name || 'this user', id: otherUser.id });
@@ -1175,9 +1167,14 @@ const MessagesPage = () => {
                               }
                               setShowOptions(false);
                             }}
-                            className="block w-full text-left text-[14px] text-dark-green py-3 px-4 hover:bg-gray-50 transition-colors"
+                            disabled={blockStatusData?.data?.isBlocked}
+                            className={`block w-full text-left text-[14px] py-3 px-4 transition-colors ${
+                              blockStatusData?.data?.isBlocked
+                                ? 'text-gray-400 cursor-not-allowed bg-gray-50'
+                                : 'text-dark-green hover:bg-gray-50 cursor-pointer'
+                            }`}
                           >
-                            Block User
+                            {blockStatusData?.data?.isBlocked ? 'User Already Blocked' : 'Block User'}
                           </button>
                           <button 
                             onClick={() => {
@@ -1285,34 +1282,53 @@ const MessagesPage = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-4">
-                      <Input
-                        type="text"
-                        placeholder="Type your message here…"
-                        value={messageInput}
-                        onChange={(e) => {
-                          setMessageInput(e.target.value);
-                          handleTyping();
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                        className="flex-1 h-12 text-[16px] border-0 shadow-none px-0 focus:border-none focus:outline-none focus:ring-0 rounded-none"
-                      />
-                      <button
-                        onClick={handleSendMessage}
-                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                          messageInput.trim() 
-                            ? 'bg-green hover:bg-green-hover' 
-                            : 'bg-gray-text'
-                        }`}
-                        disabled={!messageInput.trim()}
-                      >
-                        <Send className="w-6 h-6 text-white" />
-                      </button>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-4">
+                        <Input
+                          type="text"
+                          placeholder="Type your message here…"
+                          value={messageInput}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            if (newValue.length <= MESSAGE_CHAR_LIMIT) {
+                              setMessageInput(newValue);
+                              handleTyping();
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendMessage();
+                            }
+                          }}
+                          maxLength={MESSAGE_CHAR_LIMIT}
+                          className="flex-1 h-12 text-[16px] border-0 shadow-none px-0 focus:border-none focus:outline-none focus:ring-0 rounded-none"
+                        />
+                        <button
+                          onClick={handleSendMessage}
+                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                            messageInput.trim()
+                              ? 'bg-green hover:bg-green-hover'
+                              : 'bg-gray-text'
+                          }`}
+                          disabled={!messageInput.trim()}
+                        >
+                          <Send className="w-6 h-6 text-white" />
+                        </button>
+                      </div>
+                      {messageInput.length > 0 && (
+                        <div className="flex justify-end">
+                          <span className={`text-xs ${
+                            messageInput.length >= MESSAGE_CHAR_LIMIT
+                              ? 'text-red-600 font-semibold'
+                              : messageInput.length >= MESSAGE_CHAR_LIMIT * 0.9
+                              ? 'text-orange-600'
+                              : 'text-gray-500'
+                          }`}>
+                            {messageInput.length}/{MESSAGE_CHAR_LIMIT}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1345,10 +1361,8 @@ const MessagesPage = () => {
           setBlockMessage('You have blocked this user. Unblock them to send messages.');
           // Refresh conversations after blocking
           loadConversations();
-          // Check block status again to ensure UI is updated
-          if (userToBlock?.id) {
-            await checkBlockStatus(userToBlock.id);
-          }
+          // Refetch block status to ensure UI is updated
+          await refetchBlockStatus();
         }}
       />
       

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { CheckCircle } from 'lucide-react';
 import { UserLayout } from '@/components/layout/UserLayout';
 import Link from 'next/link';
+import { formatDateDDMMYYYY } from '@/utils/formatters';
 
 const BookingSuccessPage = () => {
   const router = useRouter();
@@ -76,12 +77,7 @@ const BookingSuccessPage = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Date:</span>
                       <span className="font-medium text-[#192215]">
-                        {new Date(booking.date).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
+                        {formatDateDDMMYYYY(new Date(booking.date))}
                       </span>
                     </div>
                     <div className="flex justify-between">

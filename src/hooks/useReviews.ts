@@ -47,14 +47,42 @@ export function useCreateReview(fieldId: string, bookingId?: string) {
     },
     onError: (error: any) => {
       console.log('Review creation error:', error);
-      
+
       // Get error details from axios error structure
       const apiMessage = error?.response?.data?.message || error?.message || '';
+      const errorCode = error?.response?.data?.code;
       const status = error?.response?.status;
-      
-      // Handle specific error cases
+
+      // Handle specific error codes first
+      if (errorCode === 'NO_COMPLETED_BOOKING') {
+        toast.error('You can only review fields you have booked and visited. Please book this field first to leave a review.');
+        return;
+      } else if (errorCode === 'BOOKING_NOT_ENDED') {
+        const bookingEndDateTime = error?.response?.data?.data?.bookingEndDateTime;
+        if (bookingEndDateTime) {
+          const endDate = new Date(bookingEndDateTime);
+          const formattedDate = endDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          });
+          toast.error(`You can only submit a review after your booking ends on ${formattedDate}.`);
+        } else {
+          toast.error('You can only submit a review after your booking has ended.');
+        }
+        return;
+      } else if (errorCode === 'REVIEW_ALREADY_EXISTS') {
+        toast.error('You have already reviewed this field. You can edit your existing review from the reviews section.');
+        return;
+      }
+
+      // Handle status-based errors
       if (status === 409 || apiMessage.toLowerCase().includes('already reviewed')) {
         toast.error('You have already reviewed this field. You can edit your existing review from the reviews section.');
+      } else if (status === 403) {
+        toast.error(apiMessage || 'You do not have permission to review this field.');
       } else if (status === 401) {
         toast.error('Please login to submit a review.');
       } else if (status === 400) {
@@ -72,7 +100,7 @@ export function useCreateReview(fieldId: string, bookingId?: string) {
       } else {
         toast.error(apiMessage || 'Failed to create review. Please try again.');
       }
-      
+
       // Prevent the error from bubbling up as unhandled
       return;
     },

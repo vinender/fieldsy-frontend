@@ -9,10 +9,28 @@ interface PricingAvailabilityProps {
 
 export default function PricingAvailability({ formData, setFormData, validationErrors = {} }: PricingAvailabilityProps) {
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      price: e.target.value
-    }));
+    const value = e.target.value;
+
+    // Allow empty value
+    if (value === '') {
+      setFormData((prev: any) => ({
+        ...prev,
+        price: ''
+      }));
+      return;
+    }
+
+    // Allow decimal numbers with up to 2 decimal places
+    // Pattern: optional digits, optional decimal point, optional up to 2 digits after decimal
+    const priceRegex = /^\d*\.?\d{0,2}$/;
+
+    if (priceRegex.test(value)) {
+      setFormData((prev: any) => ({
+        ...prev,
+        price: value
+      }));
+    }
+    // If pattern doesn't match, ignore the input
   };
 
   const handleDurationChange = (duration: string) => {
@@ -90,6 +108,14 @@ export default function PricingAvailability({ formData, setFormData, validationE
               type="number"
               value={formData.price || ''}
               onChange={handlePriceChange}
+              onKeyDown={(e) => {
+                // Prevent 'e', 'E', '-', and '+' keys
+                if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+') {
+                  e.preventDefault();
+                }
+              }}
+              min="0"
+              step="0.01"
               placeholder="0.00"
               className={`pl-8 pr-40 py-3 font-sans ${validationErrors.price ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
             />

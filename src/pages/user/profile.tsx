@@ -95,15 +95,28 @@ const MyProfilePage = () => {
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size should be less than 5MB');
+      // Validate file type - only allow images
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Please upload only image files (JPEG, PNG, GIF, WebP, or SVG)');
+        event.target.value = ''; // Clear the input
         return;
       }
-      
+
+      // Validate file size
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        event.target.value = ''; // Clear the input
+        return;
+      }
+
       try {
         await uploadImageMutation.mutateAsync(file);
       } catch (error) {
         // Error handled by mutation
+      } finally {
+        // Clear the input to allow uploading the same file again
+        event.target.value = '';
       }
     }
   };
@@ -354,16 +367,17 @@ const MyProfilePage = () => {
 
               {/* Actions */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 sm:pt-6">
-                {profile.provider === 'general' ? (
-                  <button 
+                {profile.provider === 'general' || profile.provider === 'credentials' || !profile.provider ? (
+                  <button
                     onClick={() => setIsPasswordSidebarOpen(true)}
-                    className="text-sm sm:text-base font-semibold text-[#3a6b22] underline hover:opacity-80 transition-opacity text-center sm:text-left">
+                    className="px-6 py-2.5 sm:px-0 sm:py-0 border-2 border-[#3a6b22] sm:border-0 rounded-full sm:rounded-none text-sm sm:text-base font-semibold text-[#3a6b22] sm:underline hover:bg-[#3a6b22] sm:hover:bg-transparent hover:text-white sm:hover:text-[#3a6b22] hover:opacity-80 transition-all text-center sm:text-left"
+                  >
                     Change Password?
                   </button>
                 ) : (
-                  <div className="hidden sm:block" /> // Empty div to maintain justify-between spacing on desktop
+                  <div className="hidden sm:block" />
                 )}
-                <button 
+                <button
                   onClick={handleUpdate}
                   disabled={updateProfileMutation.isPending}
                   className="px-8 sm:px-12 py-3 sm:py-4 bg-[#3a6b22] text-white text-sm sm:text-base font-semibold rounded-full hover:bg-[#2d5319] transition-colors disabled:opacity-50"

@@ -174,6 +174,41 @@ const BookFieldPage = () => {
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 3);
 
+  // Helper function to format time to 12-hour format with AM/PM
+  const formatTimeTo12Hour = (timeStr: string): string => {
+    if (!timeStr) return '';
+
+    // First, try to match 12-hour format with AM/PM (e.g., "12:15AM", "2:30 PM")
+    const time12Match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (time12Match) {
+      // Already in 12-hour format, just ensure consistent formatting
+      let hour = parseInt(time12Match[1]);
+      const minute = time12Match[2];
+      const period = time12Match[3].toUpperCase();
+      return `${hour}:${minute} ${period}`;
+    }
+
+    // Try to match 24-hour format (e.g., "14:30", "02:15")
+    const time24Match = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (time24Match) {
+      let hour = parseInt(time24Match[1]);
+      const minute = time24Match[2];
+      const period = hour >= 12 ? 'PM' : 'AM';
+
+      // Convert to 12-hour format
+      if (hour === 0) {
+        hour = 12; // Midnight
+      } else if (hour > 12) {
+        hour = hour - 12;
+      }
+
+      return `${hour}:${minute} ${period}`;
+    }
+
+    // If no match, return as-is
+    return timeStr;
+  };
+
   // Check if a specific time slot is available
   const checkSlotAvailability = (date: Date | null, hour: number) => {
     if (!date || !field) return true; // Default to available if no date selected
@@ -671,20 +706,35 @@ const BookFieldPage = () => {
                     type="number"
                     value={numberOfDogs}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
+                      const value = e.target.value;
                       const maxAllowed = field.maxDogs || 10;
-                      
-                      // Validate input
-                      if (value < 0) {
-                        setNumberOfDogs('');
-                      } else if (value > maxAllowed) {
-                        setNumberOfDogs(maxAllowed.toString());
-                      } else {
-                        setNumberOfDogs(e.target.value);
+
+                      // Prevent decimal input - only allow integers
+                      if (value === '' || /^\d+$/.test(value)) {
+                        const numValue = parseInt(value) || 0;
+
+                        // Validate input range
+                        if (value === '') {
+                          setNumberOfDogs('');
+                        } else if (numValue < 0) {
+                          setNumberOfDogs('');
+                        } else if (numValue > maxAllowed) {
+                          setNumberOfDogs(maxAllowed.toString());
+                        } else {
+                          setNumberOfDogs(value);
+                        }
+                      }
+                      // If decimal detected, ignore the input
+                    }}
+                    onKeyDown={(e) => {
+                      // Prevent decimal point, minus sign, and 'e' key
+                      if (e.key === '.' || e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+                        e.preventDefault();
                       }
                     }}
                     min="1"
                     max={field.maxDogs || 10}
+                    step="1"
                     placeholder={`Enter number of dogs (1-${field.maxDogs || 10})`}
                     className="h-14 border-[#E3E3E3] focus:border-[#3A6B22] text-[15px]"
                   />
@@ -710,7 +760,7 @@ const BookFieldPage = () => {
                     minDate={minDate}
                     maxDate={maxDate}
                     filterDate={(date) => !isDateDisabled(date)}
-                    dateFormat="yyyy-MM-dd"
+                    dateFormat="dd/MM/yyyy"
                     placeholderText="Select a date"
                     className="h-14 bg-white w-full border-[#E3E3E3] focus:border-[#3A6B22] text-[15px] font-medium cursor-pointer px-4 py-2 border rounded-[70px] focus:outline-none focus:ring-1 focus:ring-[#3A6B22]/20"
                     calendarClassName="fieldsy-calendar"
@@ -723,7 +773,7 @@ const BookFieldPage = () => {
 
               {/* Preferred Time */}
               <div>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-2">
                   <label className="text-[18px] font-semibold text-dark-green block">
                     Preferred Time
                   </label>
@@ -752,13 +802,18 @@ const BookFieldPage = () => {
                     </button>
                   )}
                 </div>
-                
+
                 {/* Show field operating hours if available */}
                 {field?.openingTime && field?.closingTime && (
-                  <p className="text-sm text-gray-600 mb-3">
-                    Field hours: {field.openingTime} - {field.closingTime}
+                  <p className="text-sm text-gray-600 mb-1">
+                    Field hours: {formatTimeTo12Hour(field.openingTime)} - {formatTimeTo12Hour(field.closingTime)}
                   </p>
                 )}
+
+                {/* Time format indicator */}
+                <p className="text-xs text-gray-500 mb-3">
+                  All times shown in 12-hour format (AM/PM)
+                </p>
                 
                 {/* Show message if no time slots available */}
                 {timeSlots.morning.length === 0 && timeSlots.afternoon.length === 0 && timeSlots.evening.length === 0 && (

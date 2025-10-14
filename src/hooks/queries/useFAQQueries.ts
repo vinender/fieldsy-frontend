@@ -43,7 +43,7 @@ export function useFAQs(
   const query = useQuery({
     queryKey: faqQueryKeys.public(),
     queryFn: async () => {
-      const response = await axiosClient.get('/faqs/public');
+      const response = await axiosClient.get('/faqs');
       return response.data as FAQResponse;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes - FAQs don't change often
@@ -82,7 +82,7 @@ export function useGroupedFAQs(
   const query = useQuery({
     queryKey: faqQueryKeys.grouped(),
     queryFn: async () => {
-      const response = await axiosClient.get('/faqs/public');
+      const response = await axiosClient.get('/faqs');
       return response.data as FAQResponse;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes

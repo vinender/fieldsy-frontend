@@ -4,6 +4,7 @@ import { useSocket } from '@/contexts/SocketContext';
 import { useSession } from 'next-auth/react';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { toast } from 'sonner';
+import { formatMessageTimestamp, formatDateDDMMYYYY } from '@/utils/formatters';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -28,6 +29,9 @@ interface Conversation {
   participants: any[];
   messages: Message[];
 }
+
+// Message character limit
+const MESSAGE_CHAR_LIMIT = 1000;
 
 export default function ChatModal({
   isOpen,
@@ -232,15 +236,12 @@ export default function ChatModal({
     }, 100);
   };
 
+  // WhatsApp-style time formatting (HH:mm for messages)
   const formatTime = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
+    return formatMessageTimestamp(date);
   };
 
+  // WhatsApp-style date separator formatting
   const formatDate = (date: string) => {
     const d = new Date(date);
     const today = new Date();
@@ -252,11 +253,7 @@ export default function ChatModal({
     } else if (d.toDateString() === yesterday.toDateString()) {
       return 'Yesterday';
     } else {
-      return d.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-      });
+      return formatDateDDMMYYYY(d);
     }
   };
 
@@ -386,29 +383,48 @@ export default function ChatModal({
 
         {/* Input */}
         <form onSubmit={handleSendMessage} className="bg-white border-t p-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={messageInput}
-              onChange={(e) => {
-                setMessageInput(e.target.value);
-                handleTyping();
-              }}
-              placeholder="Type a message..."
-              className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-green-500"
-              disabled={!isConnected || isSending}
-            />
-            <button
-              type="submit"
-              disabled={!messageInput.trim() || !isConnected || isSending}
-              className={`p-2 rounded-full transition-colors ${
-                messageInput.trim() && isConnected && !isSending
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <Send className="w-5 h-5" />
-            </button>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={messageInput}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  if (newValue.length <= MESSAGE_CHAR_LIMIT) {
+                    setMessageInput(newValue);
+                    handleTyping();
+                  }
+                }}
+                placeholder="Type a message..."
+                maxLength={MESSAGE_CHAR_LIMIT}
+                className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-green-500"
+                disabled={!isConnected || isSending}
+              />
+              <button
+                type="submit"
+                disabled={!messageInput.trim() || !isConnected || isSending}
+                className={`p-2 rounded-full transition-colors ${
+                  messageInput.trim() && isConnected && !isSending
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+            {messageInput.length > 0 && (
+              <div className="flex justify-end px-2">
+                <span className={`text-xs ${
+                  messageInput.length >= MESSAGE_CHAR_LIMIT
+                    ? 'text-red-600 font-semibold'
+                    : messageInput.length >= MESSAGE_CHAR_LIMIT * 0.9
+                    ? 'text-orange-600'
+                    : 'text-gray-500'
+                }`}>
+                  {messageInput.length}/{MESSAGE_CHAR_LIMIT}
+                </span>
+              </div>
+            )}
           </div>
         </form>
       </div>

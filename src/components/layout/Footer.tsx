@@ -1,8 +1,12 @@
 import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useSession } from "next-auth/react"
 
 export function Footer() {
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
+
   return (
     <footer className="bg-dark-green text-white px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
       <div className="mx-auto w-full   py-8 sm:py-10">
@@ -28,10 +32,12 @@ export function Footer() {
             <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Quick Links</h3>
             <ul className="space-y-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li><Link href="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link></li>
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">Why Choose Us</a></li>
               <li><Link href="/how-it-works" className="text-white/80 hover:text-white transition-colors">How It Works</Link></li>
-              <li><Link href="/fields" className="text-white/80 hover:text-white transition-colors">Field Owners</Link></li>
-              <li><a href="#" className="text-white/80 hover:text-white transition-colors">Dog Owners</a></li>
+              {userRole === 'FIELD_OWNER' ? (
+                <li><Link href="/field-owner/dashboard" className="text-white/80 hover:text-white transition-colors">Field Owner</Link></li>
+              ) : (
+                <li><Link href="/fields" className="text-white/80 hover:text-white transition-colors">Dog Owner</Link></li>
+              )}
             </ul>
           </div>
 

@@ -11,19 +11,171 @@ export function formatCurrency(amount: number, currency: string = 'GBP'): string
 }
 
 /**
- * Format date values
+ * Format date values in dd/mm/yyyy format (UK standard)
  */
 export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOptions): string {
+  if (!date) return '';
+
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    ...options
-  };
-  
-  return dateObj.toLocaleDateString('en-GB', defaultOptions);
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatDate:', date);
+    return '';
+  }
+
+  // If custom options provided, use them
+  if (options) {
+    const defaultOptions: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      ...options
+    };
+    return dateObj.toLocaleDateString('en-GB', defaultOptions);
+  }
+
+  // Default to dd/mm/yyyy format
+  return formatDateDDMMYYYY(dateObj);
+}
+
+/**
+ * Format date in dd/mm/yyyy format (UK standard)
+ * e.g., 14/10/2025
+ */
+export function formatDateDDMMYYYY(date: Date | string): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatDateDDMMYYYY:', date);
+    return '';
+  }
+
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const year = dateObj.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Format date with time in dd/mm/yyyy HH:mm format
+ * e.g., 14/10/2025 14:30
+ */
+export function formatDateTimeDDMMYYYY(date: Date | string): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatDateTimeDDMMYYYY:', date);
+    return '';
+  }
+
+  const datePart = formatDateDDMMYYYY(dateObj);
+  const hours = dateObj.getHours().toString().padStart(2, '0');
+  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+
+  return `${datePart} ${hours}:${minutes}`;
+}
+
+/**
+ * Format message timestamp in WhatsApp style
+ * - Today: HH:mm (e.g., "14:30")
+ * - Yesterday: "Yesterday"
+ * - This week: Day name (e.g., "Monday")
+ * - Older: dd/mm/yyyy
+ */
+export function formatMessageTimestamp(date: Date | string): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatMessageTimestamp:', date);
+    return '';
+  }
+
+  const now = new Date();
+
+  // Reset time parts for date comparison
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const messageDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+  const diffTime = today.getTime() - messageDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  // Today - show time only
+  if (diffDays === 0) {
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  // Yesterday
+  if (diffDays === 1) {
+    return 'Yesterday';
+  }
+
+  // Within last 7 days - show day name
+  if (diffDays < 7) {
+    return dateObj.toLocaleDateString('en-GB', { weekday: 'long' });
+  }
+
+  // Older - show dd/mm/yyyy
+  return formatDateDDMMYYYY(dateObj);
+}
+
+/**
+ * Format chat list timestamp (last message time) - WhatsApp style
+ * - Today: HH:mm
+ * - Yesterday: "Yesterday"
+ * - This week: Day name (Mon, Tue, etc.)
+ * - Older: dd/mm/yyyy
+ */
+export function formatChatListTime(date: Date | string): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatChatListTime:', date);
+    return '';
+  }
+
+  const now = new Date();
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const messageDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+  const diffTime = today.getTime() - messageDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  // Today - show time
+  if (diffDays === 0) {
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  // Yesterday
+  if (diffDays === 1) {
+    return 'Yesterday';
+  }
+
+  // Within last 7 days - show short day name
+  if (diffDays < 7) {
+    return dateObj.toLocaleDateString('en-GB', { weekday: 'short' });
+  }
+
+  // Older - show dd/mm/yyyy
+  return formatDateDDMMYYYY(dateObj);
 }
 
 /**
@@ -31,10 +183,22 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
  * e.g., "secureFencing" -> "Secure Fencing"
  * e.g., "wasteDisposal" -> "Waste Disposal"
  * e.g., "cctv" -> "CCTV"
+ *
+ * Also handles amenity objects with label, name, or value properties
  */
-export function formatAmenity(amenity: string): string {
+export function formatAmenity(amenity: string | any): string {
   if (!amenity) return '';
-  
+
+  // If amenity is an object, extract the label, name, or value
+  if (typeof amenity === 'object') {
+    return amenity.label || amenity.name || amenity.value || '';
+  }
+
+  // If amenity is not a string at this point, convert it
+  if (typeof amenity !== 'string') {
+    return String(amenity);
+  }
+
   // Special cases for acronyms
   const acronyms: Record<string, string> = {
     'cctv': 'CCTV',
@@ -47,7 +211,7 @@ export function formatAmenity(amenity: string): string {
     'led': 'LED',
     'usb': 'USB'
   };
-  
+
   // Check if it's a known acronym
   const lowerAmenity = amenity.toLowerCase();
   if (acronyms[lowerAmenity]) {
@@ -81,9 +245,11 @@ export function formatAmenity(amenity: string): string {
 
 /**
  * Format an array of amenities
+ * Handles both string arrays and object arrays
  */
-export function formatAmenities(amenities: string[]): string[] {
-  return amenities.map(formatAmenity);
+export function formatAmenities(amenities: (string | any)[]): string[] {
+  if (!Array.isArray(amenities)) return [];
+  return amenities.map(formatAmenity).filter(Boolean);
 }
 
 /**
@@ -126,9 +292,20 @@ export const amenityLabels: Record<string, string> = {
 
 /**
  * Get formatted amenity label with fallback to auto-formatting
+ * Handles both string amenities and object amenities
  */
-export function getAmenityLabel(amenity: string): string {
-  return amenityLabels[amenity] || formatAmenity(amenity);
+export function getAmenityLabel(amenity: string | any): string {
+  // If amenity is an object, extract the label directly
+  if (typeof amenity === 'object' && amenity) {
+    return amenity.label || amenity.name || amenity.value || '';
+  }
+
+  // If it's a string, look up in the labels map or format it
+  if (typeof amenity === 'string') {
+    return amenityLabels[amenity] || formatAmenity(amenity);
+  }
+
+  return '';
 }
 
 /**

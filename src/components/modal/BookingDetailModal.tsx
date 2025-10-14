@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import { AddReviewModal } from './AddReviewModal';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
-import { deslugify } from '@/utils/formatters';
+import { deslugify, formatDateDDMMYYYY } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 
@@ -100,12 +100,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   
   const isCancellable = canCancelBooking();
 
-  // Format date
-  const formatDate = (date: any) => {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
+  // Format date helper (removed - using utility function)
 
   // Format time slot
   const formatTimeSlot = () => {
@@ -235,7 +230,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       <img src="/bookings/availability.svg" className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
 
                         <span className="text-xs sm:text-[14px] text-[#8d8d8d]">
-                          {formatDate(fullBooking?.date)}
+                          {fullBooking?.date ? formatDateDDMMYYYY(fullBooking.date) : ''}
                         </span>
                       </div>
                     </div>
@@ -302,7 +297,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             )}
                           </div>
                           <span className="text-xs sm:text-[14px] text-[#545662b3]">
-                            Joined on {new Date(owner?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            Joined on {owner?.createdAt ? formatDateDDMMYYYY(owner.createdAt) : formatDateDDMMYYYY(Date.now())}
                           </span>
                         </div>
                       </div>

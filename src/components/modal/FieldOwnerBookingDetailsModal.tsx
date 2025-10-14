@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { formatDateDDMMYYYY } from '@/utils/formatters';
 
 interface Booking {
   id: string;
@@ -59,12 +60,12 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
   // Format date and time
   const formatBookingDateTime = () => {
     if (!booking) return 'N/A';
-    
+
     try {
       if (booking.date) {
         const date = new Date(booking.date);
         const dayName = format(date, 'EEEE');
-        const formattedDate = format(date, 'dd MMM');
+        const formattedDate = formatDateDDMMYYYY(date);
         return `${dayName}, ${formattedDate} · ${booking.time || ''}`;
       }
       return booking.time || 'N/A';
@@ -199,11 +200,11 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                         label="Number of Dogs" 
                         value={`${booking.dogs || 1} Dog${(booking.dogs || 1) > 1 ? 's' : ''}`} 
                       />
-                      <DetailRow 
-                        label="Status" 
+                      <DetailRow
+                        label="Status"
                         value={
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                            booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
                             booking.status === 'completed' ? 'bg-green-100 text-green-700' :
                             booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                             booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
@@ -211,7 +212,7 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                           }`}>
                             {booking.status?.toUpperCase()}
                           </span>
-                        } 
+                        }
                       />
                     </div>
                   </div>
