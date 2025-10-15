@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useOwnerField, useOwnerFields, useSaveFieldProgress } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
 import { FieldOwnerDashboardSkeleton } from '@/components/skeletons/FieldOwnerDashboardSkeleton';
 import BackButton from '@/components/common/BackButton';
 import { useAmenities } from '@/hooks/api/useAmenities';
+import { UnsavedImagesModal } from '@/components/modal/UnsavedImagesModal';
 
 // Import form components
 import FieldDetails from './forms/FieldDetails';
@@ -106,6 +107,11 @@ export default function AddYourField() {
   const [fieldId, setFieldId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Track saved images and unsaved changes
+  const savedImagesRef = useRef<string[]>([]);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
     fieldName: string;
     fieldSize: string;
@@ -265,6 +271,12 @@ export default function AddYourField() {
       const currentFieldId = isEditMode && editFieldId ? editFieldId : fieldData.id;
       setFieldId(currentFieldId);
       console.log('Loading field data for edit:', currentFieldId, fieldData)
+
+      // Store current saved images for comparison
+      const currentImages = fieldData.images || [];
+      savedImagesRef.current = currentImages;
+      console.log('[FieldForm] Saved images ref initialized from DB:', currentImages);
+
       // Pre-populate form data
       setFormData(prev => ({
         ...prev,
@@ -470,6 +482,11 @@ export default function AddYourField() {
       refetch();
       // Clear validation errors on successful save
       setValidationErrors({});
+      // Update saved images ref after successful save
+      if (activeSection === 'upload-images') {
+        savedImagesRef.current = formData.images || [];
+        console.log('[FieldForm] Saved images ref updated after save:', savedImagesRef.current);
+      }
       handleNext();
     },
     onError: (error) => {
@@ -523,7 +540,77 @@ export default function AddYourField() {
     }
   };
 
+  // Check if there are unsaved image changes
+  const hasUnsavedImages = (): boolean => {
+    if (activeSection !== 'upload-images') return false;
+
+    const currentImages = formData.images || [];
+    const savedImages = savedImagesRef.current || [];
+
+    // Check if images have changed (different length or different URLs)
+    if (currentImages.length !== savedImages.length) return true;
+
+    // Check if any URL is different
+    return currentImages.some((url, index) => url !== savedImages[index]);
+  };
+
+  // Delete uploaded images that haven't been saved
+  const deleteUnsavedImages = async () => {
+    const currentImages = formData.images || [];
+    const savedImages = savedImagesRef.current || [];
+
+    console.log('[FieldForm] Delete check - Current images:', currentImages);
+    console.log('[FieldForm] Delete check - Saved images (from DB):', savedImages);
+
+    // Find new images that were uploaded but not saved (exist in current but not in saved)
+    const newImages = currentImages.filter(url => !savedImages.includes(url));
+
+    console.log('[FieldForm] Images to delete (new uploads only):', newImages);
+
+    if (newImages.length === 0) {
+      console.log('[FieldForm] No unsaved images to delete');
+      return;
+    }
+
+    try {
+      console.log(`[FieldForm] Deleting ${newImages.length} newly uploaded unsaved images`);
+
+      const deletePromises = newImages.map(async (fileUrl) => {
+        try {
+          console.log(`[FieldForm] Deleting: ${fileUrl}`);
+          const response = await fetch('/api/upload/delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ fileUrl }),
+          });
+
+          if (!response.ok) {
+            console.error(`[FieldForm] Failed to delete file: ${fileUrl}`);
+          } else {
+            console.log(`[FieldForm] Successfully deleted unsaved image: ${fileUrl}`);
+          }
+        } catch (error) {
+          console.error(`[FieldForm] Error deleting file ${fileUrl}:`, error);
+        }
+      });
+
+      await Promise.all(deletePromises);
+      console.log('[FieldForm] Cleanup completed - only new images deleted');
+    } catch (error) {
+      console.error('[FieldForm] Error during cleanup:', error);
+    }
+  };
+
   const handleBack = () => {
+    // Check for unsaved images
+    if (hasUnsavedImages()) {
+      setPendingNavigation('back');
+      setShowUnsavedModal(true);
+      return;
+    }
+
     const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
     const currentIndex = sections.indexOf(activeSection);
     if (currentIndex > 0) {
@@ -544,6 +631,67 @@ export default function AddYourField() {
         router.push('/field-owner/preview');
       }
     }
+  };
+
+  // Handle sidebar section change with unsaved image check
+  const handleSectionChange = (sectionId: string) => {
+    // Check for unsaved images when leaving upload-images section
+    if (activeSection === 'upload-images' && sectionId !== 'upload-images' && hasUnsavedImages()) {
+      setPendingNavigation(sectionId);
+      setShowUnsavedModal(true);
+      return;
+    }
+
+    setActiveSection(sectionId);
+
+    // On small screens, scroll to form section
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setTimeout(() => {
+        const formElement = document.getElementById('form-content');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  };
+
+  // Modal handlers
+  const handleSaveUnsavedImages = async () => {
+    setShowUnsavedModal(false);
+    // Save the progress first
+    await handleSaveProgress();
+    // Navigation will happen in onSuccess callback via handleNext
+  };
+
+  const handleDiscardUnsavedImages = async () => {
+    setShowUnsavedModal(false);
+
+    // Delete unsaved images
+    await deleteUnsavedImages();
+
+    // Revert to saved images
+    setFormData(prev => ({
+      ...prev,
+      images: savedImagesRef.current
+    }));
+
+    // Proceed with navigation
+    if (pendingNavigation === 'back') {
+      const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+      const currentIndex = sections.indexOf(activeSection);
+      if (currentIndex > 0) {
+        setActiveSection(sections[currentIndex - 1]);
+      }
+    } else if (pendingNavigation) {
+      setActiveSection(pendingNavigation);
+    }
+
+    setPendingNavigation(null);
+  };
+
+  const handleCloseUnsavedModal = () => {
+    setShowUnsavedModal(false);
+    setPendingNavigation(null);
   };
 
   const renderSection = () => {
@@ -590,7 +738,7 @@ export default function AddYourField() {
           {/* Sidebar - Keep on left for large screens */}
           <Sidebar
             activeSection={activeSection}
-            onSectionChange={setActiveSection}
+            onSectionChange={handleSectionChange}
             fieldData={isAddNewMode ? null : fieldData}
             canNavigateTo={canNavigateTo}
           />
@@ -625,6 +773,16 @@ export default function AddYourField() {
           </div>
         </div>
       </div>
+
+      {/* Unsaved Images Modal */}
+      <UnsavedImagesModal
+        isOpen={showUnsavedModal}
+        onClose={handleCloseUnsavedModal}
+        onSave={handleSaveUnsavedImages}
+        onDiscard={handleDiscardUnsavedImages}
+        imageCount={formData.images?.length || 0}
+        hasMinimumImages={(formData.images?.length || 0) >= 4}
+      />
     </div>
   );
 }
