@@ -26,7 +26,7 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
 
   const hasMultipleImages = images.length > 1
 
-  return (
+  return (  
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="max-w-[95vw] sm:max-w-5xl p-0 overflow-hidden  border-none rounded-2xl">
         {/* Custom close button with white background in top right */}

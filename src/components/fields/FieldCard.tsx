@@ -19,7 +19,7 @@ export interface FieldCardProps {
   priceUnit?: string
   rating: number
   image: string
-  amenities?: string[]
+  amenities?: (string | { label: string; value: string })[]
   isLiked?: boolean
   isClaimed?: boolean
   onLike?: (id: string) => void
@@ -196,11 +196,11 @@ export function FieldCard({
 
           <div className="flex flex-wrap gap-1.5 mb-4">
             {amenities.slice(0, showAmenityLimit).map((amenity, idx) => (
-              <span 
-                key={idx} 
+              <span
+                key={idx}
                 className="bg-neutral-100 text-[11px] text-dark-green px-2 py-1 rounded-md leading-[16px]"
               >
-                {getAmenityLabel(amenity)}
+                {typeof amenity === 'string' ? getAmenityLabel(amenity) : amenity.label}
               </span>
             ))}
           </div>

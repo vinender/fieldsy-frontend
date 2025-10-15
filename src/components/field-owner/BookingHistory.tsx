@@ -345,7 +345,13 @@ export default function BookingHistory() {
                       <h3 className="text-sm sm:text-base font-semibold text-dark-green font-sans truncate">
                         {displayBooking.userName}
                       </h3>
-                      <p className="text-[10px] sm:text-xs text-dark-green/70 font-sans">{displayBooking.time}</p>
+                      <p className="text-[10px] sm:text-xs text-dark-green/70 font-sans">
+                        {new Date(displayBooking.date).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })} • {displayBooking.time}
+                      </p>
                     </div>
                   </div>
 

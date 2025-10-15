@@ -20,6 +20,8 @@ interface RescheduleBookingModalProps {
     currency: string;
     dogs: number;
     field?: any;
+    rescheduleCount?: number;
+    recurring?: string | null;
   };
   onConfirm: (bookingId: string, newDate: string, newStartTime: string, newEndTime: string) => void;
 }
@@ -31,8 +33,17 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
 }) => {
   const router = useRouter();
   const cancellationWindow = useCancellationWindow();
+  const rescheduleCount = booking.rescheduleCount || 0;
+  const remainingReschedules = 3 - rescheduleCount;
+  const canReschedule = rescheduleCount < 3;
+
   console.log('booking',booking)
   const handleProceed = () => {
+    // Check if reschedule limit reached
+    if (!canReschedule) {
+      return;
+    }
+
     // Get booking ID - handle both _id and id properties
     const bookingId = booking._id || (booking as any).id;
 
@@ -83,22 +94,68 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
             <p>Time: {booking.time}</p>
             <p>Dogs: {booking.dogs}</p>
             <p>Amount: £{booking.price}</p>
+            {booking.recurring && booking.recurring.toLowerCase() !== 'none' && (
+              <div className="pt-2">
+                <span className="inline-flex items-center px-3 py-1.5 bg-[#f4ffef] border border-[#3a6b221a] rounded-full text-[13px] font-bold text-[#3a6b22]">
+                  {booking.recurring}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Info Message */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-6">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm text-blue-700">
-                <strong>Note:</strong> You'll be redirected to select a new date and time slot. 
-                Rescheduling is free and maintains your original payment. 
-                The same cancellation policy ({cancellationWindow} hours notice) will apply to the new booking time.
-              </p>
+        {/* Reschedule Limit Warning */}
+        {!canReschedule ? (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-red-700 font-semibold mb-2">
+                  Maximum Reschedule Limit Reached
+                </p>
+                <p className="text-sm text-red-600">
+                  You have already rescheduled this booking 3 times, which is the maximum allowed.
+                  If you need to change the booking time, please cancel this booking and create a new one.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Reschedule Count Info */}
+            {rescheduleCount > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-amber-700">
+                      <strong>Reschedules Used:</strong> {rescheduleCount} of 3
+                      {remainingReschedules > 0 && (
+                        <span className="block mt-1">
+                          You have {remainingReschedules} reschedule{remainingReschedules === 1 ? '' : 's'} remaining for this booking.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Info Message */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-6">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> You'll be redirected to select a new date and time slot.
+                    Rescheduling is free and maintains your original payment.
+                    The same cancellation policy ({cancellationWindow} hours notice) will apply to the new booking time.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-3">
@@ -106,14 +163,16 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
             onClick={onClose}
             className="flex-1 py-3 px-4 bg-white border-2 border-gray-200 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {canReschedule ? 'Cancel' : 'Close'}
           </button>
-          <button
-            onClick={handleProceed}
-            className="flex-1 py-3 px-4 bg-[#3a6b22] text-white rounded-full font-semibold hover:bg-[#2d5319] transition-colors"
-          >
-            Select New Time
-          </button>
+          {canReschedule && (
+            <button
+              onClick={handleProceed}
+              className="flex-1 py-3 px-4 bg-[#3a6b22] text-white rounded-full font-semibold hover:bg-[#2d5319] transition-colors"
+            >
+              Select New Time
+            </button>
+          )}
         </div>
       </div>
     </div>

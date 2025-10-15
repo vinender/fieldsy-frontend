@@ -230,7 +230,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       <img src="/bookings/availability.svg" className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
 
                         <span className="text-xs sm:text-[14px] text-[#8d8d8d]">
-                          {fullBooking?.date ? formatDateDDMMYYYY(fullBooking.date) : ''}
+                          {fullBooking?.rawDate ? formatDateDDMMYYYY(fullBooking.rawDate) : fullBooking?.date || ''}
                         </span>
                       </div>
                     </div>
@@ -297,7 +297,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             )}
                           </div>
                           <span className="text-xs sm:text-[14px] text-[#545662b3]">
-                            Joined on {owner?.createdAt ? formatDateDDMMYYYY(owner.createdAt) : formatDateDDMMYYYY(Date.now())}
+                            Joined on {owner?.createdAt ? formatDateDDMMYYYY(new Date(owner.createdAt)) : formatDateDDMMYYYY(new Date())}
                           </span>
                         </div>
                       </div>

@@ -20,6 +20,7 @@ interface Booking {
   fieldName?: string;
   fieldAddress?: string;
   notes?: string;
+  rescheduleCount?: number;
 }
 
 interface FieldOwnerBookingDetailsModalProps {
@@ -74,12 +75,15 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
     }
   };
 
-  // Calculate fees (you may need to adjust based on your business logic)
+  // Calculate fees - field owner perspective
+  // Subtotal = booking amount (what customer paid)
+  // Fieldsy Fee = deducted from subtotal
+  // Total = what field owner receives (subtotal - fee)
   const calculateFees = () => {
-    const subTotal = booking?.amount || 0;
-    const fieldsyFee = subTotal * 0.1; // 10% fee, adjust as needed
-    const total = subTotal + fieldsyFee;
-    
+    const subTotal = booking?.amount || 0; // Booking amount
+    const fieldsyFee = subTotal * 0.1; // 10% fee deducted
+    const total = subTotal - fieldsyFee; // What field owner receives
+
     return {
       subTotal,
       fieldsyFee,
@@ -203,15 +207,23 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                       <DetailRow
                         label="Status"
                         value={
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
-                            booking.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                            booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {booking.status?.toUpperCase()}
-                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
+                              booking.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                              booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {booking.status?.toUpperCase()}
+                            </span>
+                            {/* Rescheduled Badge */}
+                            {booking.rescheduleCount && booking.rescheduleCount > 0 && (
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[#fff4e6] text-[#ff9800] border border-[#ff9800]/20">
+                                RESCHEDULED {booking.rescheduleCount > 1 ? `(${booking.rescheduleCount}x)` : ''}
+                              </span>
+                            )}
+                          </div>
                         }
                       />
                     </div>
@@ -240,25 +252,25 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-[#192215]">Order Summary</h3>
                     <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
-                      <DetailRow 
-                        label="Sub total" 
-                        value={`$${fees.subTotal.toFixed(2)}`} 
+                      <DetailRow
+                        label="Sub total"
+                        value={`£${fees.subTotal.toFixed(2)}`}
                       />
-                      <DetailRow 
-                        label="Fieldsy Fee" 
-                        value={`$${fees.fieldsyFee.toFixed(2)}`} 
+                      <DetailRow
+                        label="Fieldsy Fee"
+                        value={`-£${fees.fieldsyFee.toFixed(2)}`}
                       />
-                      
+
                       {/* Divider */}
                       <div className="h-px bg-gray-300 my-3" />
-                      
+
                       {/* Total */}
                       <div className="flex justify-between items-start">
                         <span className="text-base font-bold text-[#192215]">
-                          Total
+                          Total (You Receive)
                         </span>
                         <span className="text-lg font-bold text-[#3a6b22]">
-                          ${fees.total.toFixed(2)}
+                          £{fees.total.toFixed(2)}
                         </span>
                       </div>
                     </div>

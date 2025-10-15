@@ -52,6 +52,7 @@ interface Booking {
   updatedAt: string;
   field?: any; // Full field data
   averageRating?: number; // Field's average rating
+  rescheduleCount?: number; // Number of times this booking has been rescheduled
 }
 
 // Recurring Booking Interface
@@ -162,7 +163,7 @@ const BookingHistoryPage = () => {
     } else {
       fetchBookings();
     }
-  }, [activeTab, page, session, userLocation]);
+  }, [activeTab, page, session, userLocation, appliedFilters]);
   
   // Get user's current location
   useEffect(() => {
@@ -232,11 +233,11 @@ const BookingHistoryPage = () => {
   const fetchBookings = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Get token from session or localStorage
       let token = (session as any)?.accessToken;
-      
+
       if (!token) {
         const storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
@@ -265,6 +266,16 @@ const BookingHistoryPage = () => {
         params.append('includeFuture', 'true');
       } else {
         params.append('status', 'PENDING');
+      }
+
+      // Add date range filters if applied
+      if (appliedFilters) {
+        if (appliedFilters.dateRange === 'customDate' && appliedFilters.startDate && appliedFilters.endDate) {
+          params.append('startDate', appliedFilters.startDate.toISOString());
+          params.append('endDate', appliedFilters.endDate.toISOString());
+        } else if (appliedFilters.dateRange !== 'customDate') {
+          params.append('dateRange', appliedFilters.dateRange);
+        }
       }
 
       const response = await fetch(
@@ -327,7 +338,7 @@ const BookingHistoryPage = () => {
             name: booking.field?.name || 'Field',
             duration: booking.field?.bookingDuration === '30min' ? '30min' : '1hr',
             price: calculatedPrice || booking.totalPrice || 0,
-            currency: '$',
+            currency: '£',
             image: booking.field?.images?.[0] || '/fields/field-placeholder.jpg',
             features: booking.field?.amenities ? formatAmenities(booking.field.amenities).join(' • ') : booking.field?.description || 'Field description',
             location: booking.field?.address ? `${booking.field.address}, ${booking.field.city}, ${booking.field.state}` : 'Location',
@@ -343,6 +354,7 @@ const BookingHistoryPage = () => {
             paymentStatus: booking.paymentStatus?.toLowerCase() || 'paid',
             createdAt: booking.createdAt,
             updatedAt: booking.updatedAt,
+            rescheduleCount: booking.rescheduleCount || 0, // Include reschedule count for badge display
             // Include field data for modal
             field: booking.field,
             averageRating: booking.field?.averageRating || 0
@@ -391,12 +403,9 @@ const BookingHistoryPage = () => {
 
   const handleApplyFilter = (filters: any) => {
     setAppliedFilters(filters);
-    // You can implement the actual filtering logic here
-    // For now, just close the modal and log the filters
-    console.log('Applied filters:', filters);
     setShowFilter(false);
-    // Refetch bookings with filters
-    fetchBookings();
+    setPage(1); // Reset to first page when applying filters
+    // The useEffect will automatically refetch bookings when appliedFilters changes
   };
 
 
@@ -410,7 +419,7 @@ const BookingHistoryPage = () => {
           let message = 'Booking cancelled successfully.';
           
           if (refundResult && refundResult.success) {
-            message = `Booking cancelled successfully. Refund of $${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
+            message = `Booking cancelled successfully. Refund of £${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
           } else if (data.data.isRefundEligible) {
             message = 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
           } else {
@@ -718,7 +727,7 @@ const BookingHistoryPage = () => {
       />
       
       {/* Content */}
-      <div className="flex-1 border-b pb-10 w-full">
+      <div className="flex-1 pb-10 w-full">
         {/* Title and Price */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2.5">
           <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#192215]">{booking.name}</h3>
@@ -754,12 +763,24 @@ const BookingHistoryPage = () => {
           </div>
         </div>
 
-        {/* Recurring Badge */}
-        {booking.recurring && (
-          <div className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 bg-[#f4ffef] border border-[#3a6b221a] rounded-full">
-            <span className="text-[11px] sm:text-[13px] font-bold text-[#3a6b22]">{booking.recurring}</span>
-          </div>
-        )}
+        {/* Badges */}
+        <div className="flex flex-wrap gap-2">
+          {/* Recurring Badge */}
+          {booking.recurring && (
+            <div className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 bg-[#f4ffef] border border-[#3a6b221a] rounded-full">
+              <span className="text-[11px] sm:text-[13px] font-bold text-[#3a6b22]">{booking.recurring}</span>
+            </div>
+          )}
+
+          {/* Rescheduled Badge */}
+          {booking.rescheduleCount && booking.rescheduleCount > 0 ? (
+            <div className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 bg-[#fff4e6] border border-[#ff9800]/20 rounded-full">
+              <span className="text-[11px] sm:text-[13px] font-bold text-[#ff9800]">
+                Rescheduled {booking.rescheduleCount > 1 ? `(${booking.rescheduleCount}x)` : ''}
+              </span>
+            </div>
+          ): ''}
+        </div>
       </div>
 
       {/* Actions */}
@@ -767,17 +788,29 @@ const BookingHistoryPage = () => {
         {booking.status === 'upcoming' ? (
           <>
             <div className="flex flex-row gap-2">
-              <button 
-                onClick={() => isCancellable ? handleRescheduleClick(booking) : null}
-                disabled={!isCancellable}
-                className={`flex-1 py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${
-                  isCancellable
-                    ? 'bg-[#e8f5ff] border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
-                    : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
-                }`}
-                title={!isCancellable ? `Cannot reschedule within ${cancellationWindow} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}>
-                Reschedule
-              </button>
+              {(() => {
+                const rescheduleCount = booking.rescheduleCount || 0;
+                const canReschedule = isCancellable && rescheduleCount < 3;
+                const rescheduleTitle = !isCancellable
+                  ? `Cannot reschedule within ${cancellationWindow} hours of booking (${getTimeUntilBooking()} hours remaining)`
+                  : rescheduleCount >= 3
+                  ? 'Maximum reschedule limit (3) reached for this booking'
+                  : `Reschedule booking (${rescheduleCount}/3 used)`;
+
+                return (
+                  <button
+                    onClick={() => canReschedule ? handleRescheduleClick(booking) : null}
+                    disabled={!canReschedule}
+                    className={`flex-1 py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${
+                      canReschedule
+                        ? 'bg-[#e8f5ff] border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
+                        : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
+                    }`}
+                    title={rescheduleTitle}>
+                    Reschedule
+                  </button>
+                );
+              })()}
               <button 
                 onClick={() => isCancellable ? handleCancelClick(booking) : null}
                 disabled={!isCancellable}

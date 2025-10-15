@@ -379,19 +379,14 @@ export function FileUploader({
 
   const removeFile = async (index: number) => {
     const file = uploadedFiles[index];
-    
-    // If file was uploaded to S3, delete it
-    if (file.url) {
-      try {
-        await s3Uploader.deleteFile(file.url);
-      } catch (error) {
-        console.error('Error deleting file:', error);
-      }
-    }
-    
+
+    // Don't delete from S3 immediately - just remove from UI
+    // The backend will handle deletion when save/next is clicked
+    // by comparing old images with new images
+
     const newFiles = uploadedFiles.filter((_, i) => i !== index);
     setUploadedFiles(newFiles);
-    
+
     // Notify parent component
     if (onChange) {
       if (returnUrls) {
@@ -401,7 +396,7 @@ export function FileUploader({
         onChange(newFiles);
       }
     }
-    
+
     onRemove?.(file);
   };
 

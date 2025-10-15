@@ -101,6 +101,27 @@ export function formatMessageTimestamp(date: Date | string): string {
     return '';
   }
 
+  // Always show only time (HH:mm) for messages
+  const hours = dateObj.getHours().toString().padStart(2, '0');
+  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+/**
+ * Format date header for chat messages - WhatsApp style
+ * Used for the centered date dividers between message groups
+ */
+export function formatChatDateHeader(date: Date | string): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatChatDateHeader:', date);
+    return '';
+  }
+
   const now = new Date();
 
   // Reset time parts for date comparison
@@ -110,11 +131,9 @@ export function formatMessageTimestamp(date: Date | string): string {
   const diffTime = today.getTime() - messageDate.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  // Today - show time only
+  // Today
   if (diffDays === 0) {
-    const hours = dateObj.getHours().toString().padStart(2, '0');
-    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return 'Today';
   }
 
   // Yesterday
@@ -122,12 +141,13 @@ export function formatMessageTimestamp(date: Date | string): string {
     return 'Yesterday';
   }
 
-  // Within last 7 days - show day name
+  // Within last 7 days - show day name with date
   if (diffDays < 7) {
-    return dateObj.toLocaleDateString('en-GB', { weekday: 'long' });
+    const dayName = dateObj.toLocaleDateString('en-GB', { weekday: 'long' });
+    return `${dayName}`;
   }
 
-  // Older - show dd/mm/yyyy
+  // Older - show formatted date (e.g., "15/10/2024")
   return formatDateDDMMYYYY(dateObj);
 }
 

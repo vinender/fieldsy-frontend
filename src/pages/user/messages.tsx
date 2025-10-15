@@ -24,7 +24,7 @@ import GreenSpinner from '@/components/common/GreenSpinner';
 import { useConversations } from '@/hooks/queries/useMessageQueries';
 import { useCreateConversation, useDeleteConversation, useSendMessage } from '@/hooks/mutations/useMessageMutations';
 import { useBlockStatus, useUnblockUser } from '@/hooks/queries/useUserBlockQueries';
-import { formatMessageTimestamp, formatChatListTime } from '@/utils/formatters';
+import { formatMessageTimestamp, formatChatListTime, formatChatDateHeader } from '@/utils/formatters';
 
 interface User {
   id: string;
@@ -161,6 +161,8 @@ const MessagesPage = () => {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [showConnectionStatus, setShowConnectionStatus] = useState(false);
+  const [floatingDate, setFloatingDate] = useState<string>('');
+  const [showFloatingDate, setShowFloatingDate] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -973,6 +975,68 @@ const MessagesPage = () => {
     return formatMessageTimestamp(timestamp);
   }, []);
 
+  // Group messages by date
+  const groupMessagesByDate = useCallback((messages: Message[]) => {
+    const groups: { [key: string]: Message[] } = {};
+
+    messages.forEach(message => {
+      const dateKey = new Date(message.createdAt).toDateString();
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(message);
+    });
+
+    return groups;
+  }, []);
+
+  // Handle scroll to update sticky date header
+  const handleScroll = useCallback(() => {
+    if (!messagesContainerRef.current) return;
+
+    const container = messagesContainerRef.current;
+    const scrollTop = container.scrollTop;
+    const containerTop = container.getBoundingClientRect().top;
+
+    // Find all date sections
+    const dateSections = container.querySelectorAll('[data-date-section]');
+    let currentDate = '';
+
+    // Find which date section is currently visible at the top of the viewport
+    dateSections.forEach((section) => {
+      const sectionRect = section.getBoundingClientRect();
+      const sectionTop = sectionRect.top - containerTop;
+      const sectionBottom = sectionRect.bottom - containerTop;
+
+      // Check if this section is visible in the viewport
+      // A section is "current" if its top is at or above the sticky header position
+      // and its bottom is below the sticky header position
+      if (sectionTop <= 50 && sectionBottom > 50) {
+        currentDate = (section as HTMLElement).dataset.dateSection || '';
+      }
+    });
+
+    // Always show the sticky date when scrolling
+    if (currentDate) {
+      setFloatingDate(currentDate);
+      setShowFloatingDate(true);
+    }
+  }, []);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    // Initial call to set the date
+    handleScroll();
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll, messages]); // Re-run when messages change
+
   // Don't render anything if not authenticated after loading
   if (status === 'unauthenticated' && !(typeof window !== 'undefined' && localStorage.getItem('authToken'))) {
     return null;
@@ -1208,16 +1272,18 @@ const MessagesPage = () => {
                 </div>
 
                 {/* Messages */}
-                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto bg-gray-lighter p-4 lg:p-6 no-scrollbar">
-                  {/* Today Divider */}
-                  <div className="flex justify-center mb-6">
-                    <span className="bg-cream px-3 py-1 rounded-full text-[13px] font-semibold text-dark-green">
-                      Today
-                    </span>
-                  </div>
+                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto bg-gray-lighter no-scrollbar relative">
+                  {/* Sticky Date Header - WhatsApp style - Always visible */}
+                  {showFloatingDate && floatingDate && (
+                    <div className="sticky top-0 z-20 flex justify-center pt-3 pb-2 bg-transparent pointer-events-none">
+                      <span className="bg-cream/95 backdrop-blur-sm px-4 py-1.5 rounded-full text-[12px] sm:text-[13px] font-semibold text-dark-green shadow-lg">
+                        {floatingDate}
+                      </span>
+                    </div>
+                  )}
 
-                  {/* Message List */}
-                  <div className="space-y-4">
+                  <div className="p-4 lg:p-6">
+                    {/* Message List with Date Sections */}
                     {isLoadingMessages ? (
                       <ChatMessageSkeleton />
                     ) : messages.length === 0 ? (
@@ -1225,31 +1291,52 @@ const MessagesPage = () => {
                         No messages yet. Start a conversation!
                       </div>
                     ) : (
-                      messages.map((message) => (
-                        <MessageItem
-                          key={message.id}
-                          message={message}
-                          isMyMessage={message.senderId === currentUserId}
-                          isNewMessage={newMessageIds.has(message.id)}
-                          formatMessageTime={formatMessageTime}
-                        />
-                      ))
+                      <>
+                        {Object.entries(groupMessagesByDate(messages)).map(([dateKey, dateMessages], index) => (
+                          <div
+                            key={dateKey}
+                            data-date-section={formatChatDateHeader(dateMessages[0].createdAt)}
+                            className="date-section"
+                          >
+                            {/* Date Divider - Inline with messages */}
+                            <div className="flex justify-center mb-4 mt-6 first:mt-0">
+                              <span className="bg-cream px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[12px] sm:text-[13px] font-semibold text-dark-green shadow-sm">
+                                {formatChatDateHeader(dateMessages[0].createdAt)}
+                              </span>
+                            </div>
+
+                            {/* Messages for this date */}
+                            <div className="space-y-4">
+                              {dateMessages.map((message) => (
+                                <MessageItem
+                                  key={message.id}
+                                  message={message}
+                                  isMyMessage={message.senderId === currentUserId}
+                                  isNewMessage={newMessageIds.has(message.id)}
+                                  formatMessageTime={formatMessageTime}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Typing Indicator */}
+                        {otherUserTyping && (
+                          <div className="flex justify-start mt-4">
+                            <div className="bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none px-4 sm:px-6 py-3 sm:py-4">
+                              <div className="flex space-x-1">
+                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
 
-                    {otherUserTyping && (
-                      <div className="flex justify-start">
-                        <div className="bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none px-4 sm:px-6 py-3 sm:py-4">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <div ref={messagesEndRef} />
                   </div>
-                  
-                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Message Input */}

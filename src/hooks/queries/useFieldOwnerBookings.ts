@@ -28,6 +28,7 @@ export interface Booking {
   fieldName?: string;
   fieldAddress?: string;
   notes?: string;
+  rescheduleCount?: number; // Number of times booking has been rescheduled
 }
 
 export interface BookingStats {

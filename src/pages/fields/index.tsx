@@ -364,25 +364,25 @@ export default function SearchResults() {
               <div className="w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-2  xl:grid-cols-3 2xl:grid-cols-3 gap-4 md:gap-6 justify-center">
                   {(fields.length > 0 ? fields : mockData.fields).map((field: any) => (
-                  <FieldCard 
-                    key={field.id} 
+                  <FieldCard
+                    key={field.id}
                     {...(fields.length > 0 ? {
                       id: field.id,
                       name: field.name,
                       price: field.price,
-                      priceUnit: field.bookingDuration === '30min' ? 'dog/30min' : 'dog/hour',
-                      location: field.city ? `${field.city}, ${field.state}` : 'Location',
-                      fullLocation: field.address,
-                      rating: field.averageRating || 0,
+                      priceUnit: field.duration === '30min' ? 'dog/30min' : 'dog/hour',
+                      location: field.locationDisplay || `${field.location?.city}, ${field.location?.state}`,
+                      distance: field.distanceDisplay, // Pre-calculated distance from API
+                      rating: field.rating || 0,
                       amenities: field.amenities || [],
-                      image: field.images?.[0] || '/fields/field1.jpg',
-                      owner: field.owner?.name || 'Field Owner',
+                      image: field.image || '/fields/field1.jpg', // Single image from API
+                      owner: field.owner || 'Field Owner',
                       ownerJoined: 'March 2025',
                       isClaimed: field.isClaimed !== undefined ? field.isClaimed : true,
-                      // Pass location data for distance calculation
+                      // Pass location data for distance calculation (if needed as fallback)
                       fieldLocation: field.location,
-                      latitude: field.latitude,
-                      longitude: field.longitude
+                      latitude: field.location?.lat,
+                      longitude: field.location?.lng
                     } : field)}
                     variant="expanded"
                     isLiked={likedFields.includes(field.id)}

@@ -17,11 +17,11 @@ const ClaimFieldPage = () => {
     email: string;
     phoneNumber: string;
     isLegalOwner: boolean | null;
-  }>({  
+  }>({
     fullName: '',
     email: '',
     phoneNumber: '',
-    isLegalOwner: null
+    isLegalOwner: true
   });
   
   const [phoneCode, setPhoneCode] = useState('+44');
@@ -43,6 +43,53 @@ const ClaimFieldPage = () => {
   }>({});
   const [showValidationError, setShowValidationError] = useState(false);
   const submitClaimMutation = useSubmitFieldClaim();
+
+  // Cleanup function to delete uploaded files from S3
+  const deleteUploadedFiles = async () => {
+    if (uploadedFiles.length === 0) return;
+
+    try {
+      console.log('[ClaimForm] Deleting uploaded files:', uploadedFiles);
+
+      // Call delete API for each uploaded file
+      const deletePromises = uploadedFiles.map(async (fileUrl) => {
+        try {
+          const response = await fetch('/api/upload/delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ fileUrl }),
+          });
+
+          if (!response.ok) {
+            console.error(`[ClaimForm] Failed to delete file: ${fileUrl}`);
+          } else {
+            console.log(`[ClaimForm] Successfully deleted: ${fileUrl}`);
+          }
+        } catch (error) {
+          console.error(`[ClaimForm] Error deleting file ${fileUrl}:`, error);
+        }
+      });
+
+      await Promise.all(deletePromises);
+      console.log('[ClaimForm] Cleanup completed');
+    } catch (error) {
+      console.error('[ClaimForm] Error during cleanup:', error);
+    }
+  };
+
+  // Handle back button click with cleanup
+  const handleBackClick = async () => {
+    await deleteUploadedFiles();
+    router.back();
+  };
+
+  // Handle cancel button click with cleanup
+  const handleCancelClick = async () => {
+    await deleteUploadedFiles();
+    router.push(`/fields/${field_id}`);
+  };
 
   // Validation functions
   const validateEmail = (email: string) => {
@@ -235,7 +282,7 @@ const ClaimFieldPage = () => {
       <main className="w-full mt-16 md:mt-[100px]  py-4 lg:py-10 px-4 sm:px-6 lg:px-20">
         {/* Back Button and Title */}
 
-            <BackButton size="lg" showLabel={true}  label="Back to Field" />
+            <BackButton size="lg" showLabel={true} label="Back to Field" onClick={handleBackClick} />
             
         {/* Validation Error Alert */}
         {showValidationError && (
@@ -436,8 +483,8 @@ const ClaimFieldPage = () => {
 
         {/* Action Buttons */}
         <div className="flex justify-center py-4 bg-white gap-4 ">
-          <button 
-            onClick={() => router.push(`/fields/${field_id}`)}
+          <button
+            onClick={handleCancelClick}
             disabled={submitClaimMutation.isPending}
             className="px-8 py-3 border border-gray-300 rounded-full font-semibold text-dark-green hover:bg-gray-50 transition-colors min-w-[150px] disabled:opacity-50 disabled:cursor-not-allowed"
           >

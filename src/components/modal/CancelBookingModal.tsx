@@ -204,7 +204,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative">
+      <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto no-scrollbar p-4 sm:p-6 relative">
         {/* Loading Overlay */}
         {cancelBookingMutation.isPending && (
           <div className="absolute inset-0 bg-white bg-opacity-90 rounded-xl sm:rounded-2xl flex items-center justify-center z-10">
@@ -348,8 +348,8 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         <div className="mt-3 sm:mt-4 flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-gray-500">
           <Clock className="w-3 h-3 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
           <p>
-            Our ${cancellationWindowHours}-hour advance booking policy: Only bookings made at least ${cancellationWindowHours} hours in advance are eligible for refunds upon cancellation. 
-            If you book less than ${cancellationWindowHours} hours before your scheduled time, the booking is non-refundable.
+            Our {cancellationWindowHours}-hour advance booking policy: Only bookings made at least {cancellationWindowHours} hours in advance are eligible for refunds upon cancellation.
+            If you book less than {cancellationWindowHours} hours before your scheduled time, the booking is non-refundable.
           </p>
         </div>
       </div>
