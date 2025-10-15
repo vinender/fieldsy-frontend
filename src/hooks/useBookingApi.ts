@@ -35,20 +35,22 @@ const cancelBooking = async ({ bookingId, reason }: { bookingId: string; reason?
   return response.data;
 };
 
-const rescheduleBooking = async ({ 
-  bookingId, 
-  date, 
-  startTime, 
-  endTime
-}: { 
-  bookingId: string; 
-  date: string; 
-  startTime: string; 
+const rescheduleBooking = async ({
+  bookingId,
+  date,
+  startTime,
+  endTime,
+  recurring
+}: {
+  bookingId: string;
+  date: string;
+  startTime: string;
   endTime: string;
+  recurring?: string;
 }) => {
   const response = await axiosClient.patch(
     `/bookings/${bookingId}`,
-    { date, startTime, endTime }
+    { date, startTime, endTime, recurring }
   );
   return response.data;
 };

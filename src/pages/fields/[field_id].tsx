@@ -20,10 +20,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
   try {
     // Fetch the most popular/recent fields to pre-build
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/fields?limit=50&sortBy=views&sortOrder=desc`
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/fields?limit=50&sortBy=views&sortOrder=desc`
     );
     const data = await response.json();
-    
+    console.log(';;;fields data',data)
     const paths = data?.data?.map((field: any) => ({
       params: { field_id: field._id || field.id },
     })) || [];
@@ -48,8 +48,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   try {
     // Fetch field details at build time
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/fields/${fieldId}`
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/fields/${fieldId}`
     );
+
+
     
     if (!response.ok) {
       return {
@@ -58,7 +60,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
 
     const data = await response.json();
-
+    
+    console.log(';;;fields data',data)
     return {
       props: {
         fieldId,

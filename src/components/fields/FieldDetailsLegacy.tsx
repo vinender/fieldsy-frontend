@@ -236,7 +236,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   </h1>
                   <span className="text-xl lg:text-2xl text-dark-green">•</span>
                   <div className="flex items-baseline">
-                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.pricePerHour || 0}</span>
+                    <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.pricePerHour || field.price || 0}</span>
                     <span className="text-sm lg:text-base text-gray-500 ml-1">/dog/{field.bookingDuration}</span>
                   </div>
                 </div>
@@ -666,7 +666,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
         </div>
         {/* Reviews section - only show for claimed fields */}
         {showReviews && !isPreview && isClaimed && (
-              <div id="reviews" ref={reviewsRef} className="mt-12 lg:mt-16 scroll-mt-32 max-w-2xl">
+              <div id="reviews" ref={reviewsRef} className={`mt-12 lg:mt-16 scroll-mt-32 ${ showReviews ? 'w-full': 'max-w-2xl'}`}>
                 {/* Reviews & Ratings Header */}
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-dark-green">Reviews & Ratings</h2>

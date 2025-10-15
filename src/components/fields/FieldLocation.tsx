@@ -78,7 +78,7 @@ export default function FieldLocation({
     <div className={className}>
       <img src='/location.svg' className={iconClassName} alt="Location" />
       <span className={textClassName}>
-        {locationText}{distanceText}
+        {field?.address+','} {field.city}{distanceText}
       </span>
     </div>
   );

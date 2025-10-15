@@ -34,7 +34,7 @@ interface TimeSlots {
 const BookFieldPage = () => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { id, mode, bookingId } = router.query;
+  const { id, mode, bookingId, recurring: recurringFromUrl } = router.query;
   const fieldIdToUse = id ; // Support both query parameters
   const isRescheduleMode = mode === 'reschedule';
 
@@ -79,6 +79,16 @@ const BookFieldPage = () => {
       }
     }
   }, [isRescheduleMode]);
+
+  // Separate useEffect to handle recurring pre-selection from URL
+  useEffect(() => {
+    // Wait for router to be ready and check if we have recurring param
+    if (router.isReady && isRescheduleMode && recurringFromUrl) {
+      const recurringValue = recurringFromUrl as string;
+      console.log('[Reschedule] Router ready - Pre-selecting recurring from URL:', recurringValue);
+      setRepeatBooking(recurringValue);
+    }
+  }, [router.isReady, isRescheduleMode, recurringFromUrl]);
   
   // Fetch slot availability for the selected date
   const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined;
@@ -972,30 +982,45 @@ const BookFieldPage = () => {
                 </div>
               </div>
 
-              {/* Repeat Booking - Hidden in reschedule mode */}
-              {!isRescheduleMode && (
+              {/* Repeat Booking - Now shown in reschedule mode too */}
               <div>
-                <h3 className="text-base sm:text-[18px] font-bold text-dark-green mb-2.5">Repeat This Booking?</h3>
+                <h3 className="text-base sm:text-[18px] font-bold text-dark-green mb-2.5">
+                  {isRescheduleMode ? 'Update Recurring Booking?' : 'Repeat This Booking?'}
+                </h3>
                 <p className="text-sm sm:text-[16px] text-[#8D8D8D] mb-3 sm:mb-4">
-                  Need regular access? Set up a weekly or monthly recurring booking.
+                  {isRescheduleMode
+                    ? 'You can change the recurring schedule for this booking.'
+                    : 'Need regular access? Set up a weekly or monthly recurring booking.'}
                 </p>
+                {/* Debug info */}
+                {isRescheduleMode && (
+                  <div className="mb-2 text-xs text-gray-500">
+                    Current selection: {repeatBooking} | From URL: {recurringFromUrl as string || 'none'}
+                  </div>
+                )}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                  {getAvailableRecurringOptions().map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => setRepeatBooking(option)}
-                      className={`w-full py-2 px-3 sm:px-3.5 rounded-[10px] sm:rounded-[14px] text-xs sm:text-[14px] font-medium transition-colors ${
-                        repeatBooking === option
-                          ? 'bg-[#8FB366] text-white'
-                          : 'bg-white text-[#8D8D8D] border border-black/6 hover:bg-gray-50'
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
+                  {getAvailableRecurringOptions().map((option) => {
+                    const isSelected = repeatBooking === option;
+                    console.log(`[Recurring Button] Option: "${option}", RepeatBooking: "${repeatBooking}", Selected: ${isSelected}`);
+                    return (
+                      <button
+                        key={option}
+                        onClick={() => {
+                          console.log('[Recurring] Button clicked, setting to:', option);
+                          setRepeatBooking(option);
+                        }}
+                        className={`w-full py-2 px-3 sm:px-3.5 rounded-[10px] sm:rounded-[14px] text-xs sm:text-[14px] font-medium transition-colors ${
+                          isSelected
+                            ? 'bg-[#8FB366] text-white'
+                            : 'bg-white text-[#8D8D8D] border border-black/6 hover:bg-gray-50'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-              )}
 
               {/* Warning Messages */}
               {selectedDate && !hasAvailableSlots() && (
@@ -1106,7 +1131,8 @@ const BookFieldPage = () => {
                         bookingId: rescheduleData.bookingId,
                         date: formattedDate,
                         startTime,
-                        endTime
+                        endTime,
+                        recurring: repeatBooking
                       },
                       {
                         onSuccess: () => {

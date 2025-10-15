@@ -58,11 +58,13 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
       fieldId: booking.fieldId,
       numberOfDogs: booking.dogs,
       originalDate: booking.rawDate || booking.date,
-      originalTime: booking.time
+      originalTime: booking.time,
+      recurring: booking.recurring || 'None'
     }));
 
-    // Navigate to book-field page in reschedule mode
-    router.push(`/fields/book-field?id=${booking.fieldId}&mode=reschedule&bookingId=${bookingId}`);
+    // Navigate to book-field page in reschedule mode with recurring parameter
+    const recurringValue = booking.recurring || 'None';
+    router.push(`/fields/book-field?id=${booking.fieldId}&mode=reschedule&bookingId=${bookingId}&recurring=${encodeURIComponent(recurringValue)}`);
     onClose();
   };
 
