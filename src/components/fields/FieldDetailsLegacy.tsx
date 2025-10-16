@@ -34,7 +34,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   const [loginModalMessage, setLoginModalMessage] = useState('');
   const [rulesOpen, setRulesOpen] = useState(true);  // Expanded by default
   const [bookingOpen, setBookingOpen] = useState(false);  // Collapsed by default
-  console.log(';;field', field)
+
   const isClaimed = field?.isClaimed || isPreview || false;
   const ownerImg =field?.owner?.image
   // Favorite status and toggle
@@ -263,32 +263,47 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   showDistance={true}
                 />
                 <div className="flex w-16 sm:w-auto items-center bg-dark-green text-white px-2 py-1 rounded-md flex-shrink-0">
-                  <Star className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
+                  <img src='/star.svg' className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
                   <span className="text-sm font-semibold">{field?.averageRating?.toFixed(1) || '0.0'}</span>
                 </div>
               </div>
+
             </div>
 
             <div className="flex flex-wrap gap-2 overflow-x-auto no-scrollbar pb-2">
               {(field?.amenities || []).map((amenity: any, index: number) => {
-                // Handle both string and object amenities
-                const amenityStr = typeof amenity === 'string'
-                  ? amenity
-                  : (amenity?.label || amenity?.name || amenity?.value || '');
+                // Handle both new format (with iconUrl) and legacy format (string)
+                let iconPath: string;
+                let label: string;
 
-                if (!amenityStr) return null;
-
-                // Convert amenity to slug format for lookup
-                const amenitySlug = amenityStr.toLowerCase().replace(/\s+/g, '-');
-                const iconPath = getAmenityIcon(amenitySlug);
-                const label = getAmenityLabel(amenitySlug);
+                if (typeof amenity === 'object' && amenity !== null) {
+                  // New format from database: { label: string, iconUrl: string }
+                  if (amenity.iconUrl && amenity.label) {
+                    iconPath = amenity.iconUrl;
+                    label = amenity.label;
+                  } else {
+                    // Legacy object format
+                    const amenityStr = amenity?.label || amenity?.name || amenity?.value || '';
+                    if (!amenityStr) return null;
+                    const amenitySlug = amenityStr.toLowerCase().replace(/\s+/g, '-');
+                    iconPath = getAmenityIcon(amenitySlug);
+                    label = getAmenityLabel(amenitySlug);
+                  }
+                } else if (typeof amenity === 'string') {
+                  // Legacy string format
+                  const amenitySlug = amenity.toLowerCase().replace(/\s+/g, '-');
+                  iconPath = getAmenityIcon(amenitySlug);
+                  label = getAmenityLabel(amenitySlug);
+                } else {
+                  return null;
+                }
 
                 return (
                   <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
                     <img
                       src={iconPath}
                       alt={label}
-                      className="w-4 h-4 mr-2"
+                      className="w-4 h-4 mr-2 object-contain"
                       onError={(e) => {
                         // Fallback to Shield icon if image fails to load
                         e.currentTarget.style.display = 'none';
@@ -689,13 +704,21 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                             <div className="text-dark-green font-semibold text-sm mb-4">Reviews</div>
                             <div className="flex gap-6">
                               {/* Average score */}
-                              <div className="w-36 bg-black flex flex-col items-center justify-center rounded-xl p-4">
+                              <div className="w-36 bg-black flex flex-col items-left justify-center rounded-xl p-4">
                                 <div className="text-4xl font-bold text-white">{(stats.averageRating || 0).toFixed(1)}</div>
-                                <div className="flex items-center mt-2">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className={`w-4 h-4 mr-1 ${i < Math.round(stats.averageRating || 0) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} />
-                                  ))}
-                                </div>
+                                  <div className="flex items-center mt-2">
+                                    {[...Array(5)].map((_, i) => (
+                                      <img
+                                        key={i}
+                                        src="/star.svg"
+                                        className={`w-4 h-4 mr-1 ${
+                                          i < Math.round(stats.averageRating || 0)
+                                            ? 'fill-[#FFDD57] text-[#FFDD57]'
+                                            : 'text-gray-300'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
                                 <div className="text-xs text-gray-200 mt-2">{stats.totalReviews} Reviews</div>
                               </div>
                               {/* Rating bars */}
@@ -710,7 +733,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                                       <div className="flex-1 bg-gray-200 rounded-full h-2 mx-3 overflow-hidden">
                                         <div className="bg-[#FFDD57] h-full rounded-full" style={{ width: `${percentage}%` }} />
                                       </div>
-                                      <span className="text-sm text-gray-600 w-8 text-right">{count}</span>
+                                      {/* <span className="text-sm text-gray-600 w-8 text-right">{count}</span> */}
                                     </div>
                                   )
                                 })}
@@ -742,7 +765,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                       {reviews.length > 0 ? (
                         <div className="space-y-6 bg-transparent">
                           {reviews.map((review: any, index: number) => (
-                            <div key={review.id || index} className="bg-transparent rounded-xl p-6 border border-gray-200">
+                            <div key={review.id || index} className="bg-transparent rounded-[30px] p-6 border border-gray-200">
                               <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center w-full">
                                   <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 overflow-hidden">
@@ -751,10 +774,16 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                                     ) : null}
                                   </div>
                                   <div className='flex justify-between w-full'>
-                                    <h4 className="font-semibold text-[#090F1F]">{review.user?.name || 'User'}</h4>
+                                    <div className='flex flex-col'>
+                                      <h4 className="font-semibold text-[#090F1F]">{review.user?.name || 'User'}</h4>
+                                      {review.createdAt && (
+                                <div className="text-xs text-gray-500 mt-">{format(new Date(review.createdAt), 'MMM d, yyyy')}</div>
+                              )}
+                                    </div>
+                                    
                                     <div className="flex items-center mt-1">
                                       {[...Array(5)].map((_, i) => (
-                                        <Star 
+                                        <img src='/star.svg' 
                                           key={i} 
                                           className={`w-4 h-4 ${i < Math.floor(review.rating || 0) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} 
                                         />
@@ -764,9 +793,9 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                                 </div>
                               </div>
                               <p className="text-sm text-gray-700 leading-relaxed">{review.comment}</p>
-                              {review.createdAt && (
+                              {/* {review.createdAt && (
                                 <div className="text-xs text-gray-500 mt-2">{format(new Date(review.createdAt), 'MMM d, yyyy')}</div>
-                              )}
+                              )} */}
                             </div>
                           ))}
                         </div>

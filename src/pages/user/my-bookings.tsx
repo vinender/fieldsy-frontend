@@ -62,7 +62,7 @@ interface RecurringBooking {
   fieldName: string;
   fieldAddress: string;
   fieldOwner: string;
-  interval: 'weekly' | 'monthly';
+  interval: 'everyday' | 'weekly' | 'monthly';
   dayOfWeek?: string;
   dayOfMonth?: number;
   timeSlot: string;
@@ -542,14 +542,63 @@ const BookingHistoryPage = () => {
     };
     
     const formatInterval = () => {
-      if (subscription.interval === 'weekly') {
+      if (subscription.interval === 'everyday') {
+        return 'Every Day';
+      } else if (subscription.interval === 'weekly') {
         return `Every ${subscription.dayOfWeek}`;
       } else if (subscription.interval === 'monthly') {
         return `Monthly on day ${subscription.dayOfMonth}`;
       }
       return subscription.interval;
     };
-    
+
+    // Check if immediate cancellation is allowed based on cancellation window
+    const canCancelImmediately = () => {
+      if (!subscription.recentBookings || subscription.recentBookings.length === 0) {
+        return true; // No upcoming bookings, allow cancellation
+      }
+
+      const now = new Date();
+
+      // Find upcoming bookings
+      const upcomingBookings = subscription.recentBookings
+        .filter(b => b.status === 'upcoming' || b.status === 'CONFIRMED')
+        .map(b => {
+          const dateObj = new Date(b.date);
+          return { ...b, dateObj };
+        })
+        .filter(b => b.dateObj > now)
+        .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+
+      if (upcomingBookings.length === 0) {
+        return true; // No upcoming bookings, allow cancellation
+      }
+
+      // Get next upcoming booking
+      const nextBooking = upcomingBookings[0];
+      const bookingDateTime = new Date(nextBooking.dateObj);
+
+      // Parse start time and add to date
+      if (subscription.startTime) {
+        const [time, period] = subscription.startTime.split(/(?=[AP]M)/);
+        const [hours, minutes] = time.split(':').map(Number);
+        let hour = hours;
+
+        if (period === 'PM' && hour !== 12) hour += 12;
+        if (period === 'AM' && hour === 12) hour = 0;
+
+        bookingDateTime.setHours(hour, minutes || 0, 0, 0);
+      }
+
+      // Calculate hours until booking
+      const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      // Allow cancellation only if we're outside the cancellation window
+      return hoursUntilBooking >= cancellationWindow;
+    };
+
+    const isImmediateCancellationAllowed = canCancelImmediately();
+
     return (
       <>
         <div className="bg-white rounded-xl p-4 mb-4 hover:shadow-lg transition-shadow border border-gray-100">
@@ -592,7 +641,7 @@ const BookingHistoryPage = () => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Price</p>
-                  <p className="text-sm font-semibold">£{subscription.totalPrice}/{subscription.interval}</p>
+                  <p className="text-sm font-semibold">£{subscription.totalPrice}/{subscription.interval === 'everyday' ? 'day' : subscription.interval}</p>
                 </div>
               </div>
               
@@ -628,43 +677,81 @@ const BookingHistoryPage = () => {
           )}
         </div>
         
-        {/* Cancel Modal */}
-        {showCancelModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Cancel Recurring Booking</h3>
-              <p className="text-gray-600 mb-6">
-                How would you like to cancel your recurring booking for {subscription.fieldName}?
-              </p>
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleCancelRecurring(false)}
-                  className="w-full px-4 py-3 text-gray-500 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                >
-                  Cancel at End of Period
-                  <span className="block text-xs mt-1 opacity-90">
-                    Keep access until {formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleCancelRecurring(true)}
-                  className="w-full px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                >
-                  Cancel Immediately
-                  <span className="block text-xs mt-1 opacity-90">
-                    Stop all future bookings now
-                  </span>
-                </button>
-                <button
-                  onClick={() => setShowCancelModal(false)}
-                  className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-                >
-                  Keep Subscription
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+       
+       {/* Cancel Modal */}
+       {showCancelModal && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+    onClick={() => setShowCancelModal(false)}
+  >
+    <div
+      className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md mx-4 shadow-2xl animate-fadeIn"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h3 className="text-xl font-semibold text-gray-900 mb-3 border-b pb-2">
+        Cancel Recurring Booking
+      </h3>
+      <p className="text-gray-600 text-sm leading-relaxed mb-6">
+        Choose how you want to cancel your recurring booking for{" "}
+        <span className="font-medium text-gray-800">{subscription.fieldName}</span>.
+      </p>
+
+      <div className="space-y-3">
+        {/* Cancel at End of Period */}
+        <button
+          onClick={() => handleCancelRecurring(false)}
+          className="w-full px-4 py-3 bg-red-500 hover:bg-red-700 text-white font-medium rounded-xl shadow hover:from-yellow-500 hover:to-yellow-600 active:scale-[0.98] transition-all"
+        >
+          Cancel at End of Period
+          <span className="block text-xs mt-1 text-yellow-50/90">
+            Keep access until{" "}
+            {subscription.nextBillingDate
+              ? formatDateDDMMYYYY(new Date(subscription.nextBillingDate))
+              : formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
+          </span>
+        </button>
+
+        {/* Cancel Immediately */}
+        <button
+          onClick={() => handleCancelRecurring(true)}
+          disabled={!isImmediateCancellationAllowed}
+          className={`w-full px-4 py-3 font-medium rounded-xl shadow transition-all active:scale-[0.98] ${
+            isImmediateCancellationAllowed
+              ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
+              : "bg-gray-200 text-gray-700 border border-gray-300 cursor-not-allowed"
+          }`}
+          title={
+            !isImmediateCancellationAllowed
+              ? `Cannot cancel immediately — next booking is within ${cancellationWindow}h cancellation window`
+              : ""
+          }
+        >
+          Cancel Immediately
+          <span
+            className={`block text-xs mt-1 ${
+              isImmediateCancellationAllowed ? "text-red-50/90" : "text-gray-800/90"
+            }`}
+          >
+            {isImmediateCancellationAllowed
+              ? "Stop all future bookings now"
+              : `Next booking is within ${cancellationWindow}h cancellation window`}
+          </span>
+        </button>
+
+        {/* Keep Subscription */}
+        <button
+          onClick={() => setShowCancelModal(false)}
+          className="w-full px-4 py-2 bg-gray-100 text-green font-medium rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all border border-green"
+        >
+          {`I don't want to cancel`}
+
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
       </>
     );
   };
@@ -719,18 +806,24 @@ const BookingHistoryPage = () => {
     
     return (
     <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-start sm:items-center bg-light py-4 sm:py-6 border-b border-gray-200 last:border-0">
-      {/* Image */}
-      <img 
-        src={booking.image} 
+      {/* Image - Clickable */}
+      <img
+        src={booking.image}
         alt={booking.name}
-        className="w-full sm:w-[174px] h-[200px] sm:h-[140px] rounded-[20px] object-cover flex-shrink-0"
+        onClick={() => router.push(`/fields/${booking.fieldId}`)}
+        className="w-full sm:w-[174px] h-[200px] sm:h-[140px] rounded-[20px] object-cover flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
       />
-      
+
       {/* Content */}
       <div className="flex-1 pb-10 w-full">
         {/* Title and Price */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2.5">
-          <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#192215]">{booking.name}</h3>
+          <h3
+            onClick={() => router.push(`/fields/${booking.fieldId}`)}
+            className="text-[18px] sm:text-[20px] font-semibold text-[#192215] cursor-pointer hover:text-[#3a6b22] transition-colors"
+          >
+            {booking.name}
+          </h3>
           <div className="flex items-center gap-2">
             <span className="text-[14px] sm:text-[16px] font-semibold text-[#192215]">• {booking.duration}</span>
             <span className="text-[14px] sm:text-[16px] font-semibold text-[#3a6b22]">• {booking.currency}{booking.price}</span>

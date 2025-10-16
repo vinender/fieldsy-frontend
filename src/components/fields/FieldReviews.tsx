@@ -176,7 +176,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
                     }`}
                   >
                     <span>{rating}</span>
-                    <Star size={14} className="fill-current" />
+                    <img src='/star.svg' size={14} className="fill-current" />
                   </button>
                   <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div

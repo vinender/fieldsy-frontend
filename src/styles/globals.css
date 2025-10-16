@@ -6,11 +6,15 @@
 [data-sonner-toaster] {
   position: fixed !important;
   z-index: 99999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
 }
 
 [data-sonner-toast] {
   z-index: 99999 !important;
   font-family: inherit !important;
+  margin-bottom: 12px !important;
 }
 
 /* Custom Scrollbar Styles for Notification Sidebar */

@@ -99,12 +99,12 @@ export default function MyFieldsPage() {
                   <div className="absolute top-3 right-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        field.isActive
+                        field.isClaimed
                           ? 'bg-green text-white'
-                          : 'bg-gray-200 text-gray-600'
+                          : 'bg-yellow-500 text-white'
                       }`}
                     >
-                      {field.isActive ? 'Active' : 'Inactive'}
+                      {field.isClaimed ? 'Approved' : 'Pending'}
                     </span>
                   </div>
                 </div>

@@ -151,7 +151,7 @@ export function FieldCard({
         <div className={padding}>
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1 pr-2">
-              <h3 className="text-[15px] font-bold text-dark-green leading-[20px]">{name}</h3>
+              <h3 className="text-[15px] h-10  font-bold text-dark-green leading-[20px]">{name}</h3>
               <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {owner}</p>
             </div>
             <div className="text-right">
@@ -189,7 +189,7 @@ export function FieldCard({
               </span>
             </div>
             <div className="bg-dark-green rounded-md px-1.5 py-1 flex items-center gap-0.5">
-              <Star className="w-3.5 h-3.5 fill-yellow text-yellow" fill="white" />
+              <img src='/star.svg' className="w-3.5 h-3.5 fill-yellow text-yellow" fill="white" />
               <span className="text-[12px] font-semibold text-white">{rating}</span>
             </div>
           </div>

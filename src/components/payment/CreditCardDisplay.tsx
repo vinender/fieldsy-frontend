@@ -92,17 +92,17 @@ export function CreditCardDisplay({
             onClick={onToggleDefault}
           >
             {/* Custom Square Checkbox */}
-            <div className="relative">
+            <div className="relative flex gap-2 items-center">
               <input
                 type="radio"
                 checked={card.isDefault}
                 onChange={onToggleDefault}
                 className="sr-only peer"
               />
-              <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-all ${
+              <div className={`w-5 h-5 sm:w-[24px] sm:h-[24px] rounded border-2 flex items-center justify-center transition-all ${
                 card.isDefault
                   ? 'bg-green border-green'
-                  : 'bg-white border-gray-300'
+                  : 'bg-white border-gray-500'
               }`}>
                 {card.isDefault && (
                   <svg
@@ -118,32 +118,23 @@ export function CreditCardDisplay({
                   </svg>
                 )}
               </div>
-            </div>
-          </label>
-
-          {/* Default Status Label - Updates based on card.isDefault */}
+               {/* Default Status Label - Updates based on card.isDefault */}
           <div>
             {card.isDefault ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green/10 text-[11px] sm:text-[13px] font-medium text-green">
-                <svg
-                  className="w-3 h-3 sm:w-3.5 sm:h-3.5"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full  text-[11px] sm:text-[14px] font-[500] text-dark-green">
+               
                 Default card
               </span>
             ) : (
-              <span className="text-[11px] sm:text-[13px] font-medium text-gray-text">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full  text-[11px] sm:text-[14px] font-[500] text-dark-green">
                 Make default
               </span>
             )}
           </div>
+            </div>
+          </label>
+
+          
         </div>
       )}
     </div>

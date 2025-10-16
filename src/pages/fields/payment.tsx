@@ -290,7 +290,7 @@ const PaymentPage = () => {
                       />
                       {field?.averageRating && (
                         <div className="bg-[#192215] px-1.5 py-1 rounded-md flex items-center gap-0.5 w-fit">
-                          <Star className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-yellow" />
+                          <img src='/star.svg' className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-yellow" />
                           <span className="text-white text-xs sm:text-[14px] font-semibold">{field.averageRating.toFixed(1)}</span>
                         </div>
                       )}

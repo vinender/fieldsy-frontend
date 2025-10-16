@@ -68,14 +68,14 @@ export const AddReviewModal = ({
       setReviewText('');
       setReviewTitle('');
       setImages([]);
-      
+
       // Call callback if provided
       if (onReviewAdded) {
         onReviewAdded();
       }
-      
+
       onClose();
-      toast.success('Thank you for your review!');
+      // Toast notification is handled by useReviews hook's onSuccess callback
     } catch (error: any) {
       // Error is handled by the mutation's onError callback
       // Just log it and keep the modal open
@@ -168,7 +168,7 @@ export const AddReviewModal = ({
                     onMouseLeave={handleStarLeave}
                     className="transition-transform hover:scale-110"
                   >
-                    <Star 
+                    <img src='/star.svg' 
                       className={`w-10 h-10 transition-colors ${
                         starIndex <= (hoveredRating || rating)
                           ? 'text-yellow fill-yellow'

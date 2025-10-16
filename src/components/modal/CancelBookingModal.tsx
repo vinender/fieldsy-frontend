@@ -5,6 +5,22 @@ import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { useCancelBooking } from '@/hooks/mutations/useBookingMutations';
 import { toast } from 'sonner';
 
+// Format date to DD/MM/YYYY
+const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Return original if invalid
+
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    return dateString;
+  }
+};
+
 interface CancelBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,11 +28,14 @@ interface CancelBookingModalProps {
     _id: string;
     name: string;
     date: string;
-    time: string;
+    time?: string; // Time slot from my-bookings
+    timeSlot?: string; // Time slot from booking details API
     rawDate?: string; // Raw ISO date for calculations
     startTime?: string; // Raw start time (e.g., "8:00AM")
-    price: number;
-    currency: string;
+    endTime?: string; // Raw end time (e.g., "9:00AM")
+    price?: number; // Optional - from my-bookings
+    totalPrice?: number; // Optional - from booking details API
+    currency?: string; // Optional - might not be in API response
     createdAt: string;
   };
   onConfirm?: (bookingId: string, reason: string) => void;
@@ -32,6 +51,21 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
 }) => {
   const [reason, setReason] = useState('');
   const cancellationWindowHours = useCancellationWindow();
+
+  // Extract time slot from booking data
+  const getTimeSlot = () => {
+    if (booking?.time) return booking.time;
+    if (booking?.timeSlot) return booking.timeSlot;
+    if (booking?.startTime && booking?.endTime) {
+      return `${booking.startTime} - ${booking.endTime}`;
+    }
+    return 'N/A';
+  };
+
+  // Extract currency symbol
+  const getCurrency = () => {
+    return booking?.currency || '£';
+  };
 
   // Use cancel booking mutation
   const cancelBookingMutation = useCancelBooking({
@@ -144,7 +178,8 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
       let startTimeStr = booking.startTime;
       if (!startTimeStr) {
         // Extract from time slot (e.g., "8:00AM - 9:00AM" -> "8:00AM")
-        const match = booking.time.match(/(\d+:\d+\s*(?:AM|PM))/i);
+        const timeSlot = booking.time || booking.timeSlot || '';
+        const match = timeSlot.match(/(\d+:\d+\s*(?:AM|PM))/i);
         if (match) {
           startTimeStr = match[1];
         }
@@ -232,17 +267,16 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
           <h3 className="font-semibold text-sm sm:text-base text-[#192215] mb-2">{booking.name}</h3>
           <div className="space-y-1 text-xs sm:text-sm text-gray-600">
-            <p>Date: {booking.date}</p>
-            <p>Time: {booking.time}</p>
-            <p>Amount: {booking.currency}{booking.price}</p>
+            <p>Date: {formatDate(booking.rawDate || booking.date)}</p>
+            <p>Time: {getTimeSlot()}</p>
+            <p>Amount: {getCurrency()}{((booking.totalPrice || booking.price) || 0).toFixed(2)}</p>
           </div>
         </div>
 
         <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
           <h3 className="font-semibold text-sm sm:text-base text-[#192215] mb-2">Booked On</h3>
           <div className="space-y-1 text-xs sm:text-sm text-gray-600">
-            <p>Date: {booking.createdAt.split('T')[0]}</p>
-          
+            <p>{formatDate(booking.createdAt)}</p>
           </div>
         </div>
 

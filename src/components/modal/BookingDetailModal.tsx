@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { AddReviewModal } from './AddReviewModal';
+import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
 import { deslugify, formatDateDDMMYYYY } from '@/utils/formatters';
@@ -35,17 +36,21 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
 }) => {
   const router = useRouter();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const cancellationWindowHours = useCancellationWindow();
   
   // Fetch detailed booking data
   const { data: bookingDetails, isLoading } = useBookingDetails(
-    booking?._id || booking?.id, 
+    booking?._id || booking?.id,
     { enabled: isOpen && !!(booking?._id || booking?.id) }
   );
-  
+
+
   // Use fetched data if available, otherwise fall back to passed booking
-  const fullBooking = bookingDetails?.data || bookingDetails?.booking || booking;
-  console.log('fullBooking', bookingDetails);
+  // API returns { success: true, data: {...booking...} }
+  const fullBooking = bookingDetails?.data || booking;
+  console.log('fullBooking from API:', fullBooking);
   // Calculate if booking can be cancelled (using dynamic cancellation window from settings)
   const canCancelBooking = () => {
     if (!fullBooking || fullBooking.status !== 'CONFIRMED') return false;
@@ -111,46 +116,49 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     return '';
   };
 
-  // Format amenities using the amenities config
+  // Format amenities - directly map over the amenities array
   const formatAmenities = () => {
     const field = fullBooking?.field;
-    if (!field) return [];
 
-    const amenities = [];
-    if (field.amenities) {
-      // If amenities is a string, split it
-      const amenityList = typeof field.amenities === 'string'
-        ? field.amenities.split(',').map((a: string) => a.trim())
-        : field.amenities;
+    console.log('formatAmenities - field:', field);
+    console.log('formatAmenities - amenities:', field?.amenities);
 
-      amenityList.forEach((amenity: string) => {
-        amenities.push({
-          iconPath: getAmenityIcon(amenity),
-          label: getAmenityLabel(amenity)
-        });
-      });
+    // Return empty array if no field or amenities
+    if (!field?.amenities || !Array.isArray(field.amenities) || field.amenities.length === 0) {
+      console.log('formatAmenities - returning empty array');
+      return [];
     }
 
-    // Add basic amenities if not already present
-    if (field.fencing && !amenities.some(a => a.label.toLowerCase().includes('fencing'))) {
-      amenities.push({
-        iconPath: getAmenityIcon('secure-fencing'),
-        label: getAmenityLabel('secure-fencing')
-      });
-    }
-    if (field.waterAccess && !amenities.some(a => a.label.toLowerCase().includes('water'))) {
-      amenities.push({
-        iconPath: getAmenityIcon('water-access'),
-        label: getAmenityLabel('water-access')
-      });
+    // If amenities have iconUrl and label (from database), use them directly
+    const firstAmenity = field.amenities[0];
+    console.log('formatAmenities - firstAmenity:', firstAmenity);
+
+    if (typeof firstAmenity === 'object' && firstAmenity !== null && 'iconUrl' in firstAmenity && 'label' in firstAmenity) {
+      console.log('formatAmenities - using database format with iconUrl');
+      const formatted = field.amenities
+        .filter((amenity: any) => amenity.label && amenity.iconUrl)
+        .map((amenity: any) => ({
+          iconPath: amenity.iconUrl,
+          label: amenity.label
+        }))
+        .slice(0, 4);
+      console.log('formatAmenities - formatted:', formatted);
+      return formatted;
     }
 
-    return amenities.slice(0, 4); // Limit to 4 for UI
+    // Legacy fallback: if amenities are strings, use config
+    console.log('formatAmenities - using legacy format');
+    return field.amenities
+      .slice(0, 4)
+      .map((amenity: any) => ({
+        iconPath: getAmenityIcon(amenity),
+        label: getAmenityLabel(amenity)
+      }));
   };
 
   const getStatusBadge = (status: string) => {
     const statusStyles: Record<string, string> = {
-      COMPLETED: 'bg-green-100 text-green-700 border-green-200',
+      COMPLETED: 'bg-green/20 text-green font-[700] text-[14px] border-green',
       CANCELLED: 'bg-blood-red-100 text-blood-red border-blood-red',
       REFUNDED: 'bg-yellow-100 text-yellow-700 border-yellow-200',
       CONFIRMED: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -171,6 +179,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const field = fullBooking?.field || {};
   const owner = field?.owner || fullBooking?.owner || {};
 
+  console.log(';;amenites',field)
+
   return (
     <>
       {/* Overlay */}
@@ -182,18 +192,13 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] flex flex-col overflow-hidden relative animate-in fade-in zoom-in duration-300">
-          {/* Close Button and Status Badge */}
-          <div className="absolute right-4 top-4 sm:right-6 sm:top-6 lg:right-8 lg:top-8 z-10 flex items-center gap-2 sm:gap-3">
-            {fullBooking?.status && (
-              <div>{getStatusBadge(fullBooking.status)}</div>
-            )}
-            <button
-              onClick={onClose}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-[#19221519] hover:bg-gray-50 transition-colors"
-            >
-              <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
-            </button>
-          </div>
+          {/* Close Button - Fixed Position */}
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 sm:right-6 sm:top-6 lg:right-8 lg:top-8 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-[#19221519] hover:bg-gray-50 transition-colors"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
+          </button>
 
           {/* Content */}
           <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto scrollbar-hide flex-1">
@@ -203,8 +208,15 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
               </div>
             ) : (
               <>
+                {/* Status Badge - Scrollable */}
+                <div className="flex justify-end mb-2 sm:mb-3 pr-10 sm:pr-12">
+                  {fullBooking?.status && (
+                    <div>{getStatusBadge(fullBooking.status)}</div>
+                  )}
+                </div>
+
                 {/* Header */}
-                <div className="mb-4 sm:mb-6 pr-16 sm:pr-20">
+                <div className="mb-4 sm:mb-6">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <h2 className="text-xl sm:text-2xl lg:text-[29px] font-semibold text-[#192215]">
                       {field?.name || 'Field'}
@@ -230,21 +242,21 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       <img src="/bookings/availability.svg" className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
 
                         <span className="text-xs sm:text-[14px] text-[#8d8d8d]">
-                          {fullBooking?.rawDate ? formatDateDDMMYYYY(fullBooking.rawDate) : fullBooking?.date || ''}
+                          {fullBooking?.rawDate ? formatDateDDMMYYYY(new Date(fullBooking.rawDate)) : fullBooking?.date ? formatDateDDMMYYYY(new Date(fullBooking.date)) : ''}
                         </span>
                       </div>
                     </div>
                     
                     {field?.averageRating > 0 ? (
                       <div className="flex items-center gap-1 bg-[#192215] px-1.5 py-1 rounded w-fit">
-                        <Star className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-yellow fill-yellow" />
+                        <img src='/star.svg' className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-yellow fill-yellow" />
                         <span className="text-xs sm:text-[14px] font-semibold text-white">
                           {field.averageRating.toFixed(1)}
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1 bg-gray-200 px-1.5 py-1 rounded w-fit">
-                        <Star className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-gray-400" />
+                        <img src='/star.svg' className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-gray-400" />
                         <span className="text-xs sm:text-[14px] font-semibold text-gray-600">No ratings</span>
                       </div>
                     )}
@@ -260,7 +272,11 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                           <img
                             src={amenity.iconPath}
                             alt={amenity.label}
-                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            className="w-4 h-4 sm:w-5 sm:h-5  object-contain"
+                            onError={(e) => {
+                              // Fallback to default icon if S3 image fails to load
+                              e.currentTarget.src = '/field-details/shield.svg';
+                            }}
                           />
                           <span className="text-[11px] sm:text-[14px] font-medium text-[#192215] truncate">
                             {amenity.label}
@@ -293,7 +309,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                               {owner?.name || 'Field Owner'}
                             </span>
                             {owner?.emailVerified && (
-                              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-[#3a6b22] fill-[#3a6b22]" />
+                              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-[#3a6b22] " />
                             )}
                           </div>
                           <span className="text-xs sm:text-[14px] text-[#545662b3]">
@@ -319,22 +335,35 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                 {/* Images Gallery */}
                 {field?.images && field.images.length > 0 && (
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
-                    <div className="col-span-2 row-span-2">
-                      <img 
-                        src={field.images[0]} 
+                    <div
+                      className="col-span-2 row-span-2 cursor-pointer"
+                      onClick={() => {
+                        setLightboxIndex(0);
+                        setLightboxOpen(true);
+                      }}
+                    >
+                      <img
+                        src={field.images[0]}
                         alt="Field view 1"
-                        className="w-full h-[120px] sm:h-[180px] lg:h-[248px] rounded-[10px] object-cover"
+                        className="w-full h-[120px] sm:h-[180px] lg:h-[248px] rounded-[10px] object-cover hover:opacity-90 transition-opacity"
                       />
                     </div>
                     {field.images.slice(1, 5).map((image: string, index: number) => (
-                    <div key={index} className="relative">
-                      <img 
-                        src={image} 
+                    <div
+                      key={index}
+                      className="relative cursor-pointer"
+                      onClick={() => {
+                        setLightboxIndex(index + 1);
+                        setLightboxOpen(true);
+                      }}
+                    >
+                      <img
+                        src={image}
                         alt={`Field view ${index + 2}`}
-                        className="w-full h-[58px] sm:h-[86px] lg:h-[118px] rounded-[10px] object-cover"
+                        className="w-full h-[58px] sm:h-[86px] lg:h-[118px] rounded-[10px] object-cover hover:opacity-90 transition-opacity"
                       />
                       {index === 3 && field?.images?.length > 5 && (
-                        <div className="absolute inset-0 bg-black/60 rounded-[10px] flex items-center justify-center">
+                        <div className="absolute inset-0 bg-black/60 rounded-[10px] flex items-center justify-center hover:bg-black/50 transition-colors">
                           <span className="text-white text-xs sm:text-[16px] font-bold">
                             +{field?.images?.length - 5}
                           </span>
@@ -514,7 +543,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
       </div>
       
       {/* Add Review Modal */}
-      <AddReviewModal 
+      <AddReviewModal
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
         fieldId={fullBooking?.fieldId || field?.id || ''}
@@ -526,6 +555,16 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
           }
         }}
       />
+
+      {/* Image Lightbox */}
+      {field?.images && field.images.length > 0 && (
+        <ImageLightbox
+          images={field.images}
+          open={lightboxOpen}
+          initialIndex={lightboxIndex}
+          onOpenChange={setLightboxOpen}
+        />
+      )}
     </>
   );
 };

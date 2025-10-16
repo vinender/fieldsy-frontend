@@ -18,6 +18,7 @@ interface FieldLocationProps {
   showDistance?: boolean;
 }
 
+
 export default function FieldLocation({
   field,
   className = 'flex items-center gap-1',
@@ -51,6 +52,7 @@ export default function FieldLocation({
     return 'Location not specified';
   };
 
+
   // Format distance text
   const formatDistance = (): string => {
     if (!showDistance) return '';
@@ -71,6 +73,7 @@ export default function FieldLocation({
     return '';
   };
 
+  
   const locationText = formatAddress();
   const distanceText = formatDistance();
 

@@ -110,7 +110,7 @@ export function TestimonialsSection() {
                   {/* <div className="text-6xl leading-none" style={{ color: '#8FB653' }}>"</div> */}
                   <div className="flex gap-1 mt-1 sm:mt-2">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <Star 
+                      <img src='/star.svg' 
                         key={star} 
                         className="w-4 h-4 sm:w-5 sm:h-5 fill-current text-yellow"
                       />

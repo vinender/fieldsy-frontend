@@ -15,8 +15,8 @@ interface FieldDetailsDisplayProps {
   headerContent?: React.ReactNode;
 }
 
-export default function FieldDetailsDisplay({ 
-  field, 
+export default function FieldDetailsDisplay({
+  field,
   isPreview = false,
   showReviews = true,
   showOwnerInfo = true,
@@ -183,7 +183,7 @@ export default function FieldDetailsDisplay({
                   <span>{field?.city ? `${field.city}, ${field.state || field.county}` : 'Location not specified'} • {field?.distance || '0 miles'}</span>
                 </div>
                 <div className="flex items-center bg-dark-green text-white px-2 py-1 rounded-md">
-                  <Star className="w-4 h-4 fill-yellow text-yellow mr-1" />
+                  <img src='/star.svg' className="w-4 h-4 fill-yellow text-yellow mr-1" />
                   <span className="text-sm font-semibold">{field?.rating || 4.5}</span>
                 </div>
               </div>
@@ -191,17 +191,49 @@ export default function FieldDetailsDisplay({
 
             {/* Amenities */}
             <div className="flex flex-wrap gap-2">
-              {(field?.amenities || []).map((amenity: string, index: number) => {
-                const formattedAmenity = getAmenityLabel(amenity);
-                const iconPath = amenityIconPaths[formattedAmenity] || amenityIconPaths[amenity];
+              {(field?.amenities || []).map((amenity: any, index: number) => {
+                // Handle both new format (with iconUrl) and legacy format (string)
+                let iconPath: string;
+                let label: string;
+
+                if (typeof amenity === 'object' && amenity !== null) {
+                  // New format from database: { label: string, iconUrl: string }
+                  if (amenity.iconUrl && amenity.label) {
+                    iconPath = amenity.iconUrl;
+                    label = amenity.label;
+                  } else {
+                    // Legacy object format
+                    const amenityStr = amenity?.label || amenity?.name || amenity?.value || '';
+                    if (!amenityStr) return null;
+                    const formattedAmenity = getAmenityLabel(amenityStr);
+                    iconPath = amenityIconPaths[formattedAmenity] || amenityIconPaths[amenityStr] || '';
+                    label = formattedAmenity;
+                  }
+                } else if (typeof amenity === 'string') {
+                  // Legacy string format
+                  const formattedAmenity = getAmenityLabel(amenity);
+                  iconPath = amenityIconPaths[formattedAmenity] || amenityIconPaths[amenity] || '';
+                  label = formattedAmenity;
+                } else {
+                  return null;
+                }
+
                 return (
                   <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
                     {iconPath ? (
-                      <img src={iconPath} alt={formattedAmenity} className="w-4 h-4 mr-2" />
-                    ) : (
-                      <Shield className="w-4 h-4 text-[#3A6B22] mr-2" />
-                    )}
-                    <span className="text-sm text-dark-green">{formattedAmenity}</span>
+                      <img
+                        src={iconPath}
+                        alt={label}
+                        className="w-4 h-4 mr-2 object-contain"
+                        onError={(e) => {
+                          // Fallback to Shield icon if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <Shield className={`w-4 h-4 text-[#3A6B22] mr-2 ${iconPath ? 'hidden' : ''}`} />
+                    <span className="text-sm text-dark-green">{label}</span>
                   </div>
                 );
               })}
@@ -363,7 +395,7 @@ export default function FieldDetailsDisplay({
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex">
                             {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-4 h-4 ${i < Math.floor(review.rating) ? 'fill-yellow text-yellow' : 'text-gray-300'}`} />
+                              <img src='/star.svg' key={i} className={`w-4 h-4 ${i < Math.floor(review.rating) ? 'fill-yellow text-yellow' : 'text-gray-300'}`} />
                             ))}
                           </div>
                           <span className="text-xs text-gray-500">{review.date}</span>

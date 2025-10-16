@@ -8,6 +8,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme="light"
       className="toaster group"
       position="top-right"
+      gap={12}
+      offset="20px"
       style={
         {
           "--normal-bg": "#ffffff",
