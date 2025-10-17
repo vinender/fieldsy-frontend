@@ -7,7 +7,7 @@
 export const PUBLIC_ROUTES = [
   '/',
   '/login',
-  '/register',
+  '/sign-up',
   '/forgot-password',
   '/reset-password',
   '/verify-otp',

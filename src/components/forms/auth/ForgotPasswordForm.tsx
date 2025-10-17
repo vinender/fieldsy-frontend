@@ -45,9 +45,18 @@ export default function ForgotPasswordForm() {
       await requestPasswordResetMutation.mutateAsync({
         email: values.email
       })
-    } catch (error) {
+    } catch (error: any) {
       // Error is already handled by the mutation's onError callback
-      console.log('Password reset request error handled by mutation hook')
+      // Suppress the error to prevent Next.js error overlay
+      const statusCode = error?.statusCode || error?.response?.status;
+
+      // Log only unexpected errors in development
+      if (process.env.NODE_ENV === 'development' && statusCode !== 404) {
+        console.log('Password reset error:', error);
+      }
+
+      // Don't rethrow - error is already shown in toast by mutation hook
+      return;
     }
   }
 

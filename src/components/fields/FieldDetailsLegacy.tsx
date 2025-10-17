@@ -34,6 +34,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   const [loginModalMessage, setLoginModalMessage] = useState('');
   const [rulesOpen, setRulesOpen] = useState(true);  // Expanded by default
   const [bookingOpen, setBookingOpen] = useState(false);  // Collapsed by default
+  const [showFullDescription, setShowFullDescription] = useState(false);  // For description truncation
 
   const isClaimed = field?.isClaimed || isPreview || false;
   const ownerImg =field?.owner?.image
@@ -366,10 +367,42 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
             <div>
               <h3 className="font-bold text-lg text-dark-green mb-2">Description</h3>
               <p className="text-dark-green leading-relaxed break-words">
-                {field?.description || "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups."}
-                {field?.description && field.description.length > 200 && (
-                  <button className="text-[#3A6B22] font-bold underline ml-1">Show more</button>
-                )}
+                {(() => {
+                  const description = field?.description || "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups.";
+                  const shouldTruncate = description.length > 100;
+
+                  if (!shouldTruncate) {
+                    return description;
+                  }
+
+                  if (showFullDescription) {
+                    return (
+                      <>
+                        {description}
+                        {' '}
+                        <button
+                          onClick={() => setShowFullDescription(false)}
+                          className="text-[#3A6B22] font-semibold underline hover:opacity-80 transition-opacity"
+                        >
+                          Show less
+                        </button>
+                      </>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {description.substring(0, 100)}...
+                      {' '}
+                      <button
+                        onClick={() => setShowFullDescription(true)}
+                        className="text-[#3A6B22] font-semibold underline hover:opacity-80 transition-opacity"
+                      >
+                        Show more
+                      </button>
+                    </>
+                  );
+                })()}
               </p>
             </div>
 

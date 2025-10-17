@@ -4,7 +4,7 @@ import Image from 'next/image';
 interface ThankYouModalProps {
   isOpen: boolean;
   onGoHome: () => void;
-  onPreviewListing: () => void;
+  onPreviewListing?: () => void;
   onClose?: () => void;
 }
 
@@ -43,18 +43,12 @@ export default function ThankYouModal({ isOpen, onGoHome, onPreviewListing, onCl
         </p>
 
         {/* Actions */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+        <div className="flex justify-center">
           <button
             onClick={onGoHome}
-            className="w-full py-3 rounded-full bg-green text-white font-semibold transition-opacity hover:opacity-90"
+            className="w-full max-w-xs py-3 rounded-full bg-green text-white font-semibold transition-opacity hover:opacity-90"
           >
             Go to Home
-          </button>
-          <button
-            onClick={onPreviewListing}
-            className="w-full py-3 rounded-full border-2 border-green text-green font-semibold transition-colors hover:bg-gray-50"
-          >
-            Preview My Listing
           </button>
         </div>
       </div>

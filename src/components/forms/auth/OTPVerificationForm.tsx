@@ -131,11 +131,6 @@ export default function OTPVerificationForm() {
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
     }
-
-    // Auto-submit if all fields are filled
-    if (value && index === 5 && newOtp.every(digit => digit)) {
-      handleVerify(newOtp.join(""))
-    }
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
@@ -147,24 +142,20 @@ export default function OTPVerificationForm() {
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
     const pastedData = e.clipboardData.getData("text").slice(0, 6)
-    
+
     if (/^\d+$/.test(pastedData)) {
       const newOtp = [...otp]
       pastedData.split("").forEach((digit, index) => {
         if (index < 6) newOtp[index] = digit
       })
       setOtp(newOtp)
-      
+
       // Focus the next empty field or last field
       const nextEmptyIndex = newOtp.findIndex(digit => !digit)
       if (nextEmptyIndex !== -1) {
         inputRefs.current[nextEmptyIndex]?.focus()
       } else {
         inputRefs.current[5]?.focus()
-        // Auto-submit if all fields are filled
-        if (newOtp.every(digit => digit)) {
-          handleVerify(newOtp.join(""))
-        }
       }
     }
   }
@@ -338,7 +329,7 @@ export default function OTPVerificationForm() {
                   Change your email? <span className="text-green">Back to Login</span>
                 </Link>
               ) : (
-                <Link href="/register" className="inline-flex text-[16px] font-[600] items-center gap-2 text-gray-600 hover:text-gray-800">
+                <Link href="/sign-up" className="inline-flex text-[16px] font-[600] items-center gap-2 text-gray-600 hover:text-gray-800">
                   Change your email? <span className="text-green">Back to Sign Up</span>
                 </Link>
               )}

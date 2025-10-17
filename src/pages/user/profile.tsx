@@ -182,13 +182,28 @@ const MyProfilePage = () => {
             {/* User Info */}
             <div className="flex items-center gap-3 sm:gap-4 mb-4">
               {profile?.image ? (
-                <img 
-                  src={profile?.image} 
-                  alt={profile?.name || 'User'} 
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover flex-shrink-0"
-                />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0 overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={profile.image}
+                    alt={profile?.name || 'User'}
+                    className="w-full h-full rounded-full object-cover absolute inset-0"
+                    onError={(e) => {
+                      // Hide broken image
+                      e.currentTarget.style.display = 'none';
+                      // Show fallback initial
+                      const parent = e.currentTarget.parentElement;
+                      if (parent && !parent.querySelector('.fallback-initial')) {
+                        const initial = document.createElement('span');
+                        initial.className = 'fallback-initial text-white text-lg sm:text-xl font-semibold relative z-10';
+                        initial.textContent = profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase() || 'U';
+                        parent.appendChild(initial);
+                      }
+                    }}
+                  />
+                </div>
               ) : (
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0">
                   <span className="text-white text-lg sm:text-xl font-semibold">
                     {profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase()}
                   </span>
@@ -239,13 +254,28 @@ const MyProfilePage = () => {
             {/* Profile Image Section */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 sm:mb-8">
               {profile?.image ? (
-                <img 
-                  src={profile?.image} 
-                  alt={profile.name || 'User'} 
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
-                />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0 overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={profile.image}
+                    alt={profile.name || 'User'}
+                    className="w-full h-full rounded-full object-cover absolute inset-0"
+                    onError={(e) => {
+                      // Hide broken image
+                      e.currentTarget.style.display = 'none';
+                      // Show fallback initial
+                      const parent = e.currentTarget.parentElement;
+                      if (parent && !parent.querySelector('.fallback-initial')) {
+                        const initial = document.createElement('span');
+                        initial.className = 'fallback-initial text-white text-xl sm:text-2xl font-semibold relative z-10';
+                        initial.textContent = profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase() || 'U';
+                        parent.appendChild(initial);
+                      }
+                    }}
+                  />
+                </div>
               ) : (
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0">
                   <span className="text-white text-xl sm:text-2xl font-semibold">
                     {profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase()}
                   </span>

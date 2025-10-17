@@ -175,6 +175,7 @@ export default function PreviewPage() {
         isLoading={submitFieldMutation.isPending}
         isSubmitted={!!fieldData?.isSubmitted}
         isActive={!!fieldData?.isActive}
+        isClaimed={!!fieldData?.isClaimed}
         onToggleActive={handleToggleActive}
         onBack={fieldId ? handleBackToList : undefined}
       />

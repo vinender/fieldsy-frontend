@@ -203,6 +203,9 @@ export default function AddYourField() {
   const fetchingField = isEditMode ? fetchingAllFields : fetchingSingleField;
   const refetch = isEditMode ? refetchAllFields : refetchSingleField;
 
+  // Check if this is first-time field owner (no existing fields)
+  const isFirstTimeFieldOwner = !fieldData && !isAddNewMode && !isEditMode;
+
   // Check if current section has been completed
   const isCurrentSectionCompleted = () => {
     if (!fieldData) return false;
@@ -727,7 +730,7 @@ export default function AddYourField() {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Page Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 lg:mb-8">
-          {activeSection !== 'field-details' && <BackButton size='lg' />}
+          {activeSection !== 'field-details' && !isFirstTimeFieldOwner && <BackButton size='lg' />}
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
             Add Your Field
           </h1>
@@ -749,7 +752,7 @@ export default function AddYourField() {
 
             {/* Action Buttons - Keep original design */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 lg:mt-10">
-              {activeSection !== 'field-details' && (
+              {activeSection !== 'field-details' && !isFirstTimeFieldOwner && (
                 <button
                   onClick={handleBack}
                   className="w-full sm:flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 order-2 sm:order-1"
@@ -760,7 +763,7 @@ export default function AddYourField() {
               <button
                 onClick={handleSaveProgress}
                 disabled={isLoading}
-                className={`w-full py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 order-1 ${activeSection === 'field-details' ? '' : 'sm:flex-1 sm:order-2'}`}
+                className={`w-full py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 order-1 ${(activeSection === 'field-details' || isFirstTimeFieldOwner) ? '' : 'sm:flex-1 sm:order-2'}`}
               >
                 {isLoading ?
                   'Saving...'

@@ -12,11 +12,12 @@ interface FieldPreviewProps {
   isLoading?: boolean;
   isSubmitted?: boolean;
   isActive?: boolean;
+  isClaimed?: boolean;
   onToggleActive?: () => void;
   onBack?: () => void;
 }
 
-export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, onToggleActive, onBack }: FieldPreviewProps) {
+export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, isClaimed = false, onToggleActive, onBack }: FieldPreviewProps) {
   const { data: fieldOptions } = useFieldOptions();
   const { data: amenitiesData } = useAmenities();
 
@@ -161,9 +162,13 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
           Edit
         </button>
         {isSubmitted ? (
-          <div className="flex items-center bg-cream border border-green gap-2 rounded-[70px] px-[20px] py-[16px]">
+          <div className={`flex items-center bg-cream border border-green gap-2 rounded-[70px] px-[20px] py-[16px] ${!isClaimed ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <span className="text-[16px] font-[700] w-[110px] text-green">{isActive ? 'Enabled' : 'Disable Field'}</span>
-            <Switch checked={!!isActive} onCheckedChange={() => onToggleActive?.()} />
+            <Switch
+              checked={!!isActive}
+              onCheckedChange={() => isClaimed && onToggleActive?.()}
+              disabled={!isClaimed}
+            />
           </div>
         ) : (
           <button

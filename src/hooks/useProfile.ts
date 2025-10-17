@@ -69,6 +69,8 @@ export function useUpdateProfile() {
         try {
           const user = JSON.parse(currentUser);
           localStorage.setItem('currentUser', JSON.stringify({ ...user, ...data }));
+          // Dispatch custom event to notify AuthContext in the same tab
+          window.dispatchEvent(new Event('authTokenChanged'));
         } catch (e) {
           console.error('Failed to update stored user:', e);
         }
@@ -88,7 +90,7 @@ export function useChangePassword() {
 
   return useMutation({
     mutationFn: async (passwordData: ChangePasswordData) => {
-      const response = await axiosClient.post('/users/change-password', passwordData);
+      const response = await axiosClient.patch('/users/change-password', passwordData);
       return response.data;
     },
     onSuccess: () => {
@@ -114,7 +116,7 @@ export function useDeleteProfileImage() {
 
       // Update profile to remove image URL using axios
       const response = await axiosClient.patch(`/users/${session.user.id}`, { image: null });
-      
+
       // Update local storage as well
       const currentUser = localStorage.getItem('currentUser');
       if (currentUser) {
@@ -122,6 +124,8 @@ export function useDeleteProfileImage() {
           const user = JSON.parse(currentUser);
           delete user.image;
           localStorage.setItem('currentUser', JSON.stringify(user));
+          // Dispatch custom event to notify AuthContext in the same tab
+          window.dispatchEvent(new Event('authTokenChanged'));
         } catch (e) {
           console.error('Failed to update stored user:', e);
         }
@@ -134,10 +138,7 @@ export function useDeleteProfileImage() {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Profile image deleted successfully');
 
-      // Reload the page after a short delay to show the success message
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // No need to reload - AuthContext will update via custom event
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || error.message || 'Failed to delete image';
@@ -182,6 +183,8 @@ export function useUploadProfileImage() {
         try {
           const user = JSON.parse(currentUser);
           localStorage.setItem('currentUser', JSON.stringify({ ...user, image: fileUrl }));
+          // Dispatch custom event to notify AuthContext in the same tab
+          window.dispatchEvent(new Event('authTokenChanged'));
         } catch (e) {
           console.error('Failed to update stored user image:', e);
         }
@@ -195,10 +198,7 @@ export function useUploadProfileImage() {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Profile image updated successfully');
 
-      // Reload the page after a short delay to show the success message
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // No need to reload - AuthContext will update via custom event
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || error.message || 'Failed to upload image';

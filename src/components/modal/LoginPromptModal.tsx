@@ -23,7 +23,7 @@ export function LoginPromptModal({
 
   const handleSignup = () => {
     onClose();
-    router.push('/register');
+    router.push('/sign-up');
   };
 
   return (

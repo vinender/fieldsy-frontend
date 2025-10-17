@@ -28,9 +28,15 @@ export function Header() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
-  
+  const [mounted, setMounted] = useState(false)
+
   // Check if we're on the landing page
   const isLandingPage = pathname === "/"
+
+  // Prevent hydration errors by only rendering auth-dependent content after mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -174,7 +180,14 @@ export function Header() {
           
           {/* Right side items */}
           <div className="hidden xl:flex xl:items-center xl:space-x-4">
-            {isAuthenticated ? (
+            {!mounted ? (
+              // Show skeleton/placeholder during SSR to prevent hydration mismatch
+              <>
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+              </>
+            ) : isAuthenticated ? (
               <>
                 {/* Message Icon with Badge */}
                 <button onClick={() => router.push('/user/messages')}
@@ -219,23 +232,40 @@ export function Header() {
                 
                 {/* Profile Dropdown */}
                 <div className="relative">
-                  <button 
+                  <button
                     data-profile-button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                     aria-label="User menu"
                   >
-                    <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white relative">
-                      <Image
-                        src={getUserImage(currentUser)}
-                        alt={currentUser?.name || "Profile"}
-                        fill
-                        className="object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
-                        }}
-                      />
-                    </div>
+                    {getUserImage(currentUser) ? (
+                      <div className="h-10 w-10 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white overflow-hidden relative">
+                        <Image
+                          src={getUserImage(currentUser) || ''}
+                          alt={currentUser?.name || "Profile"}
+                          fill
+                          className="object-cover"
+                          onError={(e) => {
+                            // Hide the failed image
+                            e.currentTarget.style.display = 'none';
+                            // Show the fallback initial in the parent div which already has solid background
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              const initial = document.createElement('span');
+                              initial.className = 'text-white text-sm font-semibold relative z-10';
+                              initial.textContent = getUserInitials(currentUser);
+                              parent.appendChild(initial);
+                            }
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white">
+                        <span className="text-white text-sm font-semibold">
+                          {getUserInitials(currentUser)}
+                        </span>
+                      </div>
+                    )}
                   </button>
                   
                   {/* Dropdown Menu */}
@@ -273,8 +303,8 @@ export function Header() {
                     Login
                   </button>
                 </ResponsiveLink>
-                <ResponsiveLink href="/register">
-                  <button 
+                <ResponsiveLink href="/sign-up">
+                  <button
                     className="inline-flex items-center justify-center px-4 sm:px-6 xl:px-[28px] py-2 sm:py-3 xl:py-[16px] text-sm sm:text-base text-white font-medium rounded-full transition-colors bg-dark-green hover:bg-green"
                   >
                     Sign Up
@@ -286,7 +316,14 @@ export function Header() {
           
           {/* Mobile and tablet menu items */}
           <div className="flex items-center gap-2 xl:hidden">
-            {isAuthenticated ? (
+            {!mounted ? (
+              // Show skeleton/placeholder during SSR to prevent hydration mismatch
+              <>
+                <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+                <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+                <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+              </>
+            ) : isAuthenticated ? (
               <>
                 {/* Message Icon - visible on sm and up */}
                 <button 
@@ -331,22 +368,39 @@ export function Header() {
                 </button>
                 
                 {/* Profile Icon as Menu Button */}
-                <button 
+                <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                   aria-label="User menu"
                 >
-                  <div className="h-9 w-9 rounded-full bg-gray-300 overflow-hidden ring-2 ring-white relative">
-                    <Image
-                      src={getUserImage(currentUser)}
-                      alt={currentUser?.name || "Profile"}
-                      fill
-                      className="object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
-                      }}
-                    />
-                  </div>
+                  {getUserImage(currentUser) ? (
+                    <div className="h-9 w-9 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white overflow-hidden relative">
+                      <Image
+                        src={getUserImage(currentUser) || ''}
+                        alt={currentUser?.name || "Profile"}
+                        fill
+                        className="object-cover"
+                        onError={(e) => {
+                          // Hide the failed image
+                          e.currentTarget.style.display = 'none';
+                          // Show the fallback initial
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            const initial = document.createElement('span');
+                            initial.className = 'text-white text-xs font-semibold relative z-10';
+                            initial.textContent = getUserInitials(currentUser);
+                            parent.appendChild(initial);
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white">
+                      <span className="text-white text-xs font-semibold">
+                        {getUserInitials(currentUser)}
+                      </span>
+                    </div>
+                  )}
                 </button>
               </>
             ) : (
@@ -359,8 +413,8 @@ export function Header() {
                     Login
                   </button>
                 </ResponsiveLink>
-                <ResponsiveLink href="/register">
-                  <button 
+                <ResponsiveLink href="/sign-up">
+                  <button
                     className="inline-flex items-center justify-center px-3 py-1.5 text-xs text-white font-medium rounded-full transition-colors bg-dark-green hover:bg-light-green"
                   >
                     Sign Up
@@ -604,7 +658,7 @@ export function Header() {
                       Login
                     </Link>
                     <Link
-                      href="/register"
+                      href="/sign-up"
                       className="block w-full text-center px-4 py-2 bg-dark-green text-white rounded-full text-sm font-medium hover:bg-light-green transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >

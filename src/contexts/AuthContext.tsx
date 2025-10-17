@@ -73,13 +73,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Update optimistic user state when localStorage changes
         if (storedUser && newToken) {
           try {
-            setOptimisticUser(JSON.parse(storedUser) as User);
+            const parsedUser = JSON.parse(storedUser) as User;
+            setOptimisticUser(parsedUser);
+            // Also immediately update the user state for instant UI updates
+            setUser(parsedUser);
           } catch (error) {
             console.error('[AuthContext] Failed to parse stored user:', error);
             setOptimisticUser(null);
+            setUser(null);
           }
         } else {
           setOptimisticUser(null);
+          setUser(null);
         }
       };
 

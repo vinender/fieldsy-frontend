@@ -126,8 +126,16 @@ export function useVerifyOtp(
     onError: (error: any, variables) => {
       console.error('OTP verification error:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired code';
-      toast.error(errorMessage);
-      
+
+      // Show specific error messages for common OTP errors
+      if (errorMessage.toLowerCase().includes('expired')) {
+        toast.error('OTP has expired. Please request a new one.');
+      } else if (errorMessage.toLowerCase().includes('invalid')) {
+        toast.error('Invalid OTP. Please check and try again.');
+      } else {
+        toast.error(errorMessage);
+      }
+
       if (options?.onError) {
         options.onError(error, variables, {} as any);
       }
@@ -259,19 +267,34 @@ export function useRequestPasswordReset(
         const response = await axiosClient.post('/auth/otp/forgot-password', data);
         return response.data;
       } catch (error: any) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Password reset API error:', error?.response?.status);
+        // Extract error details for better handling
+        const statusCode = error?.response?.status;
+        const errorMessage = error?.response?.data?.message;
+
+        // Log only unexpected errors in development
+        if (process.env.NODE_ENV === 'development' && statusCode !== 404) {
+          console.log('Password reset API error:', statusCode, errorMessage);
         }
-        return Promise.reject(error);
+
+        // Throw a formatted error that React Query can handle
+        throw {
+          statusCode,
+          message: errorMessage || error.message || 'Failed to send reset code',
+          originalError: error
+        };
       }
     },
     onSuccess: () => {
       toast.success('Password reset code sent! Check your email.');
     },
     onError: (error: any) => {
-      console.error('Password reset request error:', error);
-      const statusCode = error.response?.status;
-      const errorMessage = error.response?.data?.message;
+      const statusCode = error.statusCode || error.response?.status;
+      const errorMessage = error.message || error.response?.data?.message;
+
+      // Only log unexpected errors to console
+      if (statusCode !== 404 && process.env.NODE_ENV === 'development') {
+        console.error('Password reset request error:', error);
+      }
 
       if (statusCode === 404) {
         toast.error('Email address not registered. Please sign up first.');
@@ -311,8 +334,28 @@ export function useVerifyPasswordResetOtp(
         return Promise.reject(error);
       }
     },
-    onError: (error: any) => {
+    onSuccess: (result, variables) => {
+      toast.success('OTP verified successfully!');
+      if (options?.onSuccess) {
+        options.onSuccess(result, variables, {} as any);
+      }
+    },
+    onError: (error: any, variables) => {
       console.error('Reset OTP verification error:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired OTP';
+
+      // Show specific error messages for common OTP errors
+      if (errorMessage.toLowerCase().includes('expired')) {
+        toast.error('OTP has expired. Please request a new one.');
+      } else if (errorMessage.toLowerCase().includes('invalid')) {
+        toast.error('Invalid OTP. Please check and try again.');
+      } else {
+        toast.error(errorMessage);
+      }
+
+      if (options?.onError) {
+        options.onError(error, variables, {} as any);
+      }
     },
     ...options,
   });
@@ -394,7 +437,15 @@ export function useVerifySocialLoginOtp(
     onError: (error: any, variables) => {
       console.error('Social login OTP verification error:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired code';
-      toast.error(errorMessage);
+
+      // Show specific error messages for common OTP errors
+      if (errorMessage.toLowerCase().includes('expired')) {
+        toast.error('OTP has expired. Please request a new one.');
+      } else if (errorMessage.toLowerCase().includes('invalid')) {
+        toast.error('Invalid OTP. Please check and try again.');
+      } else {
+        toast.error(errorMessage);
+      }
 
       if (options?.onError) {
         options.onError(error, variables, {} as any);

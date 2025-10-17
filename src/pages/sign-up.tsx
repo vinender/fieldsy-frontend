@@ -3,7 +3,7 @@ import { useRouter } from "next/router"
 import { toast } from "sonner"
 import RegisterForm from "@/components/forms/auth/RegisterForm"
 
-export default function RegisterPage() {
+export default function SignUpPage() {
   const router = useRouter()
 
   useEffect(() => {
@@ -56,4 +56,3 @@ export default function RegisterPage() {
 
   return <RegisterForm />
 }
-

@@ -6,7 +6,7 @@ import { getToken } from "next-auth/jwt";
 const PUBLIC_PATHS = new Set([
   "/",
   "/login",
-  "/register",
+  "/sign-up",
   "/forgot-password",
   "/reset-password",
   "/verify-otp",

@@ -61,7 +61,8 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
       ]
 
   const displayInitial = getUserInitials(user)
-
+  const userImageUrl = getUserImage(user)
+console.log('user',user);
   if (!isOpen) return null
 
   return (
@@ -75,17 +76,37 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
       {/* User Profile Section */}
       <div className="p-6 pb-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-xl font-semibold">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src={getUserImage(user)} 
-              alt={user?.name || "Profile"} 
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = `https://ui-avatars.com/api/?name=${displayInitial}&background=3A6B22&color=fff&size=200`;
-              }}
-            />
-          </div>
+          {userImageUrl ? (
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-[#3A6B22] flex items-center justify-center relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={userImageUrl}
+                alt={user?.name || "Profile"}
+                className="w-full h-full object-cover absolute inset-0"
+                onError={(e) => {
+                  // Hide the failed image
+                  e.currentTarget.style.display = 'none';
+                  // Show the fallback initial - parent already has solid background
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    // Check if initial span already exists
+                    if (!parent.querySelector('.fallback-initial')) {
+                      const initial = document.createElement('span');
+                      initial.className = 'fallback-initial w-full h-full flex items-center justify-center text-white text-xl font-semibold relative z-10';
+                      initial.textContent = displayInitial;
+                      parent.appendChild(initial);
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-[#3A6B22] flex items-center justify-center">
+              <span className="text-white text-xl font-semibold">
+                {displayInitial}
+              </span>
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <h3 className="text-xl font-semibold text-[#192215] truncate">{user?.name || "User"}</h3>
             <p className="text-sm text-[#8d8d8d] truncate">{user?.email || ""}</p>

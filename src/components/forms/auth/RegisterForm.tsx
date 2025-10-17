@@ -73,6 +73,17 @@ export default function RegisterForm() {
   })
 
   const selectedRole = watch("role")
+  const [isPhoneFocused, setIsPhoneFocused] = useState(false)
+
+  // Watch all form fields to determine if form is complete
+  const fullName = watch("fullName")
+  const email = watch("email")
+  const phoneNumber = watch("phoneNumber")
+  const password = watch("password")
+  const agreeToTerms = watch("agreeToTerms")
+
+  // Check if all required fields are filled
+  const isFormComplete = fullName && email && phoneNumber && password && agreeToTerms
   
   // Use the OTP registration mutation hook
   const registerWithOtpMutation = useRegisterWithOtp({
@@ -317,17 +328,41 @@ export default function RegisterForm() {
             {/* Phone */}
             <div>
               <Label className="block text-sm font-medium text-gray-700">Phone Number</Label>
-                <div className="flex mt-1">
-                  <div className="px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] text-gray-input border border-gray-300 border-r-0 flex items-center">
+                <div
+                  className={`flex mt-1 rounded-[76px] transition-all ${
+                    isPhoneFocused
+                      ? 'ring-1 ring-green/20'
+                      : ''
+                  }`}
+                >
+                  <div className={`px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] text-gray-input border border-gray-300 border-r-0 flex items-center transition-colors ${
+                    isPhoneFocused
+                      ? 'border-green'
+                      : ''
+                  }`}>
                     +44
                   </div>
 
                   <Input
                     type="tel"
                     placeholder="Enter phone number"
-                    {...register("phoneNumber")}
-                    className="flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-r-[76px] rounded-l-none border border-gray-300 border-l-0 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
+                    {...register("phoneNumber", {
+                      onChange: (e) => {
+                        // Only allow numeric input
+                        const value = e.target.value.replace(/\D/g, '');
+                        e.target.value = value;
+                      }
+                    })}
+                    onFocus={() => setIsPhoneFocused(true)}
+                    onBlur={() => setIsPhoneFocused(false)}
+                    className={`flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-r-[76px] rounded-l-none border border-gray-300 border-l-0 focus:outline-none shadow-none hover:border-gray-300 autofill:bg-white transition-colors ${
+                      isPhoneFocused
+                        ? 'border-green'
+                        : ''
+                    }`}
                     autoComplete="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
                 <div className="h-5">
@@ -374,7 +409,11 @@ export default function RegisterForm() {
               </div>
             </div>
 
-            <button type="submit" disabled={registerWithOtpMutation.isLoading} className="w-full py-2.5 md:py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 bg-green">
+            <button
+              type="submit"
+              disabled={!isFormComplete || registerWithOtpMutation.isLoading}
+              className="w-full py-2.5 md:py-3 rounded-full text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed bg-green"
+            >
               {registerWithOtpMutation.isLoading ? "Creating account..." : "Sign Up"}
             </button>
 
