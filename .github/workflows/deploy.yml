@@ -1,0 +1,185 @@
+name: Frontend CI/CD
+
+# Repository: vinenderindiit/fieldsy-frontend
+# Deploy to: /var/www/fieldsy/frontend on EC2
+
+on:
+  push:
+    branches: [ main, production ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '20.x'
+  DEPLOY_PATH: /var/www/fieldsy/frontend
+
+jobs:
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy
+          cp -r .next deploy/
+          cp -r public deploy/
+          cp -r node_modules deploy/
+          cp package*.json deploy/
+          cp next.config.* deploy/
+          cp .env.example deploy/.env.example 2>/dev/null || true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: deploy/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to EC2
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./deploy
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Stop frontend service
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            sudo systemctl stop fieldsy-frontend || true
+          EOF
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            if [ -d "${{ env.DEPLOY_PATH }}" ]; then
+              sudo cp -r ${{ env.DEPLOY_PATH }} ${{ env.DEPLOY_PATH }}.backup.$(date +%Y%m%d_%H%M%S)
+              cd $(dirname ${{ env.DEPLOY_PATH }})
+              ls -t | grep "frontend.backup" | tail -n +4 | xargs -r sudo rm -rf
+            fi
+            sudo mkdir -p ${{ env.DEPLOY_PATH }}
+          EOF
+
+          rsync -avz --delete \
+            --exclude='.next/cache' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./deploy/ \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ env.DEPLOY_PATH }}/
+
+      - name: Set up environment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+
+            if [ ! -f .env ]; then
+              if [ -f /var/www/fieldsy/.env.frontend ]; then
+                sudo cp /var/www/fieldsy/.env.frontend .env
+              fi
+            fi
+
+            sudo chown -R ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} ${{ env.DEPLOY_PATH }}
+            sudo chmod -R 755 ${{ env.DEPLOY_PATH }}
+            mkdir -p .next/cache
+          EOF
+
+      - name: Start frontend service
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            sudo systemctl start fieldsy-frontend
+            sudo systemctl status fieldsy-frontend
+          EOF
+
+      - name: Health check
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            sleep 15
+
+            if sudo systemctl is-active --quiet fieldsy-frontend; then
+              echo "✅ Frontend service is running"
+
+              if curl -f http://localhost:3000 2>/dev/null; then
+                echo "✅ Frontend health check passed"
+              else
+                echo "⚠️  Frontend health check failed, but service is running"
+              fi
+            else
+              echo "❌ Frontend service failed to start"
+              sudo journalctl -u fieldsy-frontend -n 50
+              exit 1
+            fi
+          EOF
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            BACKUP=$(ls -t $(dirname ${{ env.DEPLOY_PATH }}) | grep "frontend.backup" | head -n 1)
+            if [ -n "$BACKUP" ]; then
+              echo "Rolling back to $BACKUP"
+              sudo systemctl stop fieldsy-frontend
+              sudo rm -rf ${{ env.DEPLOY_PATH }}
+              sudo cp -r $(dirname ${{ env.DEPLOY_PATH }})/$BACKUP ${{ env.DEPLOY_PATH }}
+              sudo systemctl start fieldsy-frontend
+              echo "✅ Rollback completed"
+            fi
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            find /var/www/fieldsy/frontend.backup.* -name "node_modules" -type d -exec sudo rm -rf {} + 2>/dev/null || true
+            find /var/www/fieldsy/frontend.backup.* -name ".next" -type d -exec sudo rm -rf {} + 2>/dev/null || true
+          EOF
+
+  notify:
+    name: Notify Deployment Status
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Send notification
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ Frontend deployment successful"
+          else
+            echo "❌ Frontend deployment failed"
+          fi
