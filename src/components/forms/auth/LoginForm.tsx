@@ -227,17 +227,16 @@ export function LoginForm() {
             </div>
           </div>
 
-          {/* Divider */}
-            <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-                <span className="px-4 text-gray-600 bg-transparent">
-                Or continue with email
-              </span>
-            </div>
-          </div>
+        {/* Divider */}
+        <div className="flex items-center my-8">
+          <div className="flex-1 border-t border-gray-300"></div>
+          <span className="mx-4 text-gray-600 text-sm whitespace-nowrap">
+            Or continue with email
+          </span>
+          <div className="flex-1 border-t border-gray-300"></div>
+        </div>
+
+
 
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

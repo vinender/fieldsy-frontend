@@ -270,7 +270,14 @@ export function useRequestPasswordReset(
     },
     onError: (error: any) => {
       console.error('Password reset request error:', error);
-      toast.error(error.response?.data?.message || 'Failed to send reset code');
+      const statusCode = error.response?.status;
+      const errorMessage = error.response?.data?.message;
+
+      if (statusCode === 404) {
+        toast.error('Email address not registered. Please sign up first.');
+      } else {
+        toast.error(errorMessage || 'Failed to send reset code');
+      }
     },
     ...options,
   });

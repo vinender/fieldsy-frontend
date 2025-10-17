@@ -137,7 +137,7 @@ export default function ForgotPasswordForm() {
 
             {/* Back to login */}
             <div className="mt-8 text-[15px] font-[600] text-center">
-              <Link href="/login" className="inline-flex text-gray-700 items-center gap-2  hover:underline">
+              <Link href="/login" className="inline-flex text-gray-700 items-center gap-2   hover:text-gray-800">
                 {/* <ArrowLeft className="w-4 h-4" /> */}
                 Remember your password? <span className="text-green">Back to Login</span>
               </Link>
