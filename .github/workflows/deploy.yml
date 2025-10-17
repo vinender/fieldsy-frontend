@@ -35,7 +35,17 @@ jobs:
         run: npx prisma generate
 
       - name: Build Next.js application
-        run: npm run build
+        run: |
+          npm run build
+
+          # Verify build was successful
+          if [ ! -d ".next" ]; then
+            echo "ERROR: Build failed - .next directory not created!"
+            exit 1
+          fi
+
+          echo "✅ Build successful - .next directory created"
+          ls -la .next/
         env:
           NODE_OPTIONS: '--max-old-space-size=4096'
           NEXT_TELEMETRY_DISABLED: 1
@@ -49,9 +59,17 @@ jobs:
           cp -r .next deploy/
           cp -r public deploy/
           cp -r node_modules deploy/
+          cp -r prisma deploy/ 2>/dev/null || true
           cp package*.json deploy/
-          cp next.config.* deploy/
+          cp next.config.* deploy/ 2>/dev/null || true
+          cp tsconfig.json deploy/ 2>/dev/null || true
           cp .env.example deploy/.env.example 2>/dev/null || true
+
+          # Verify .next directory exists
+          if [ ! -d "deploy/.next" ]; then
+            echo "ERROR: .next directory not found in deploy package!"
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
