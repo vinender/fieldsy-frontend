@@ -80,10 +80,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Stop frontend service
+      - name: Stop frontend with PM2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            sudo systemctl stop fieldsy-frontend || true
+            pm2 stop fieldsy-frontend || true
           EOF
 
       - name: Deploy to EC2
@@ -119,11 +119,11 @@ jobs:
             mkdir -p .next/cache
           EOF
 
-      - name: Start frontend service
+      - name: Start frontend with PM2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            sudo systemctl start fieldsy-frontend
-            sudo systemctl status fieldsy-frontend
+            pm2 restart fieldsy-frontend || pm2 start /var/www/fieldsy/ecosystem.config.js --only fieldsy-frontend
+            pm2 save
           EOF
 
       - name: Health check
@@ -131,8 +131,9 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             sleep 15
 
-            if sudo systemctl is-active --quiet fieldsy-frontend; then
-              echo "✅ Frontend service is running"
+            # Check if process is running in PM2
+            if pm2 describe fieldsy-frontend | grep -q "online"; then
+              echo "✅ Frontend service is running in PM2"
 
               if curl -f http://localhost:3000 2>/dev/null; then
                 echo "✅ Frontend health check passed"
@@ -141,7 +142,7 @@ jobs:
               fi
             else
               echo "❌ Frontend service failed to start"
-              sudo journalctl -u fieldsy-frontend -n 50
+              pm2 logs fieldsy-frontend --lines 50 --nostream
               exit 1
             fi
           EOF
@@ -153,10 +154,11 @@ jobs:
             BACKUP=$(ls -t $(dirname ${{ env.DEPLOY_PATH }}) | grep "frontend.backup" | head -n 1)
             if [ -n "$BACKUP" ]; then
               echo "Rolling back to $BACKUP"
-              sudo systemctl stop fieldsy-frontend
+              pm2 stop fieldsy-frontend || true
               sudo rm -rf ${{ env.DEPLOY_PATH }}
               sudo cp -r $(dirname ${{ env.DEPLOY_PATH }})/$BACKUP ${{ env.DEPLOY_PATH }}
-              sudo systemctl start fieldsy-frontend
+              pm2 restart fieldsy-frontend || pm2 start /var/www/fieldsy/ecosystem.config.js --only fieldsy-frontend
+              pm2 save
               echo "✅ Rollback completed"
             fi
           EOF
