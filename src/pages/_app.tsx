@@ -36,6 +36,7 @@ const ReactQueryDevtools = dynamic(
 const noLayoutPaths = [
   '/login',
   '/register',
+  '/sign-up',
   '/forgot-password',
   '/reset-password',
   '/verify-otp',

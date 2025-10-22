@@ -71,6 +71,8 @@ jobs:
             exit 1
           fi
 
+          echo "✅ Deployment package created successfully"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
