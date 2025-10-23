@@ -28,13 +28,18 @@ export default function HowItWorksPage() {
   const showLandownerSection = !user || user.role !== 'DOG_OWNER'
   return (
     <div className="min-h-screen overflow-x-hidden">
+      {/* Hero Section - Always shown for all users */}
+      <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-cream">
+        <div className="w-full">
+          {/* Hero Section - Always loaded immediately */}
+          <HowItWorksHeroSection />
+        </div>
+      </section>
+
       {/* Section 1: For Dog Owners */}
       {showDogOwnerSection && (
         <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-cream">
           <div className="w-full">
-            {/* Hero Section - Always loaded immediately */}
-            <HowItWorksHeroSection />
-
             {/* For Dog Owners - Lazy loaded */}
             <LazySection
               minHeight="400px"

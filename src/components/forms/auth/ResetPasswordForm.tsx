@@ -130,38 +130,26 @@ export default function ResetPasswordForm() {
     }
   }
 
-  const dogImages = [
-    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1581888227599-779811939961?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop",
-  ]
-
   return (
     <div className="h-[100svh] overflow-hidden flex" style={{ background: 'linear-gradient(179deg, #FFFCF3 0.83%, #F9F0D7 61.62%)' }}>
-      {/* Left - Image Grid */}
-      <div className="hidden lg:block w-1/2 h-full">
-        <div className="relative w-full h-full">
-          <div className="grid grid-cols-3 gap-2 p-4 w-full h-full">
-            {dogImages.map((src, idx) => (
-              <div key={idx} className="relative overflow-hidden rounded-lg">
-                <Image src={src} alt={`Dog ${idx + 1}`} fill className="object-cover" />
-              </div>
-            ))}
-          </div>
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/0" />
-            <div className="absolute bottom-0 left-0 right-0 h-[700px] bg-gradient-to-t from-white/100 to-transparent" />
-          </div>
-          <div className="absolute bottom-8 left-8 right-8 z-10">
-            <h2 className="font-[800] text-[32px] leading-[58px] mb-3 text-green">Create New Password</h2>
-            <p className="text-dark-green/40 font-[400] text-[16px] leading-[24px]">
-            Generate a strong and unique password for your account to enhance security measures and protect from unauthorized access.
+      {/* Left - Background Image (Same as Login) */}
+      <div className="hidden lg:block relative w-[50%] h-screen">
+        <Image
+          src="/login/loginbg.jpg"
+          alt="Reset Password Background"
+          fill
+          className="object-cover"
+          priority
+        />
+
+        <div className="absolute bottom-0 pb-20 left-0 text-left w-full flex items-center p-6">
+          <div className="w-full max-w-full text-left">
+            <h1 className="text-3xl md:text-4xl font-bold text-green">
+              Fieldsy Makes Dog Walking Easy
+            </h1>
+            <p className="text-gray-text text-[16px] leading-[24px] font-[400] mt-2">
+              Find secure fields nearby, book in seconds, and give your dog the
+              off-lead freedom they deserve—all with peace of mind.
             </p>
           </div>
         </div>
