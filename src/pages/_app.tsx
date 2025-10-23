@@ -47,7 +47,7 @@ export default function App({
   Component,
   pageProps: { session, ...pageProps },
 }: AppProps) {
-  const router = useRouter()
+  const router = useRouter();
   const [queryClient] = useState(
     () =>
       new QueryClient({
