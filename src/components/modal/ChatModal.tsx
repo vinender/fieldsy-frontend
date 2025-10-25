@@ -189,23 +189,31 @@ export default function ChatModal({
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!messageInput.trim() || !conversation || isSending) return;
-    
+
     const messageContent = messageInput.trim();
     setMessageInput('');
     setIsSending(true);
-    
+
     try {
+      // Send message via socket - the message is saved to DB on the backend
       const newMessage = await sendMessage(conversation.id, messageContent, userId);
-      
+
+      // The message will be broadcast via socket and received in the 'new-message' listener
+      // But we also add it optimistically for immediate feedback
       if (newMessage) {
-        setMessages(prev => [...prev, newMessage]);
-        scrollToBottom();
+        // Check if message already exists (from socket broadcast)
+        const messageExists = messages.some(msg => msg.id === newMessage.id);
+        if (!messageExists) {
+          setMessages(prev => [...prev, newMessage]);
+          scrollToBottom();
+        }
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
-      toast.error(error.response?.data?.message || 'Failed to send message');
+      const errorMessage = error.message || error.response?.data?.message || 'Failed to send message';
+      toast.error(errorMessage);
       setMessageInput(messageContent); // Restore message on error
     } finally {
       setIsSending(false);

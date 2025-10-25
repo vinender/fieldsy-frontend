@@ -2,7 +2,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import io, { Socket } from 'socket.io-client'
-import { useSendMessage } from '@/hooks/mutations/useMessageMutations'
 
 interface SocketContextType {
   socket: Socket | null
@@ -27,7 +26,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const router = useRouter()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  const sendMessageMutation = useSendMessage()
   
   // Check if we're on a public page where socket isn't needed
   const isPublicPage = router.pathname === '/' && status !== 'authenticated'
@@ -83,19 +81,37 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [session, status, shouldConnect]) // Depend on session, status and shouldConnect
 
   const sendMessage = useCallback(async (conversationId: string, content: string, receiverId: string) => {
-    try {
-      const result = await sendMessageMutation.mutateAsync({
+    return new Promise((resolve, reject) => {
+      if (!socket || !isConnected) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      // Generate a correlation ID for tracking this specific message
+      const correlationId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+      // Set a timeout for the acknowledgment
+      const timeout = setTimeout(() => {
+        reject(new Error('Message send timeout'));
+      }, 10000); // 10 second timeout
+
+      // Send message via socket with acknowledgment callback
+      socket.emit('send-message', {
         conversationId,
         content,
-        receiverId
-      })
-      return result
-    } catch (error: any) {
-      console.error('Error sending message:', error)
-      // Re-throw the error so the component can handle it
-      throw error
-    }
-  }, [sendMessageMutation])
+        receiverId,
+        correlationId
+      }, (response: any) => {
+        clearTimeout(timeout);
+
+        if (response.success) {
+          resolve(response.message);
+        } else {
+          reject(new Error(response.error || 'Failed to send message'));
+        }
+      });
+    });
+  }, [socket, isConnected])
 
   const markAsRead = useCallback((messageIds: string[]) => {
     if (socket) {
