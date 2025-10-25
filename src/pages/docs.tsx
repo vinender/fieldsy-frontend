@@ -79,8 +79,33 @@ class SocketService {
     }
   }
 
-  emit(event: string, data?: any) {
-    this.socket?.emit(event, data);
+  emit(event: string, data?: any, callback?: Function) {
+    if (callback) {
+      this.socket?.emit(event, data, callback);
+    } else {
+      this.socket?.emit(event, data);
+    }
+  }
+
+  // Helper method for sending messages with acknowledgment
+  sendMessage(
+    conversationId: string,
+    content: string,
+    receiverId: string,
+    callback?: (response: any) => void
+  ) {
+    const correlationId = \`msg-\${Date.now()}-\${Math.random().toString(36).substring(2, 11)}\`;
+
+    this.emit('send-message', {
+      conversationId,
+      content,
+      receiverId,
+      correlationId
+    }, (response: any) => {
+      if (callback) {
+        callback(response);
+      }
+    });
   }
 
   isConnected(): boolean {
@@ -206,17 +231,38 @@ const response = await axios.get(
   }
 }`,
 
-  sendMessage: `// POST /api/chat/send
-const token = await AsyncStorage.getItem('token');
-const response = await axios.post(
-  'https://api.fieldsy.com/api/chat/send',
-  {
-    conversationId: 'conversationId',
-    receiverId: 'receiverId',
-    content: 'Your message here'
-  },
-  { headers: { Authorization: 'Bearer ' + token } }
-);`,
+  sendMessage: `// Send message via Socket.IO (NOT REST API)
+// Option 1: Using the helper method
+SocketService.sendMessage(
+  conversationId,
+  'Your message here',
+  receiverId,
+  (response) => {
+    if (response.success) {
+      console.log('✅ Message sent:', response.message);
+      // Message is saved to database on backend
+      // Message is broadcast to all conversation participants
+    } else {
+      console.error('❌ Failed to send:', response.error);
+    }
+  }
+);
+
+// Option 2: Direct socket emit with manual correlation ID
+const correlationId = \`msg-\${Date.now()}-\${Math.random().toString(36).substring(2, 11)}\`;
+
+SocketService.emit('send-message', {
+  conversationId: conversationId,
+  receiverId: receiverId,
+  content: 'Your message here',
+  correlationId: correlationId
+}, (response) => {
+  if (response.success) {
+    console.log('✅ Message sent:', response.message);
+  } else {
+    console.error('❌ Failed:', response.error);
+  }
+});`,
 
   receiveMessage: `useEffect(() => {
   SocketService.on('new-message', (message) => {
@@ -332,21 +378,29 @@ export default function ChatScreen({ route }) {
     );
   };
 
-  const sendMessage = async () => {
+  const sendMessage = () => {
     if (!inputText.trim()) return;
 
-    const token = await AsyncStorage.getItem('token');
-    await axios.post(
-      'https://api.fieldsy.com/api/chat/send',
-      {
-        conversationId,
-        receiverId,
-        content: inputText
-      },
-      { headers: { Authorization: 'Bearer ' + token } }
+    const messageContent = inputText;
+    setInputText(''); // Clear input immediately
+
+    // Send via Socket.IO with acknowledgment
+    SocketService.sendMessage(
+      conversationId,
+      messageContent,
+      receiverId,
+      (response) => {
+        if (response.success) {
+          console.log('✅ Message sent successfully');
+          // Message will be received via 'new-message' event
+        } else {
+          console.error('❌ Failed to send message:', response.error);
+          // Restore message on error
+          setInputText(messageContent);
+        }
+      }
     );
 
-    setInputText('');
     SocketService.emit('stop-typing', { conversationId, receiverId });
   };
 
@@ -655,7 +709,16 @@ export default function SocketDocsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">2. Send Message (REST API)</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">2. Send Message (Socket.IO)</h3>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                    <div className="flex items-start gap-2">
+                      <span className="bg-green-600 text-white text-xs px-2 py-1 rounded font-medium mt-0.5">NEW</span>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Messages are now sent via Socket.IO, not REST API</p>
+                        <p className="text-xs text-gray-600 mt-1">The backend saves the message to database and broadcasts it to all participants in real-time</p>
+                      </div>
+                    </div>
+                  </div>
                   <CodeBlock
                     code={CODE_SNIPPETS.sendMessage}
                     id="send-message"
@@ -745,16 +808,34 @@ export default function SocketDocsPage() {
                       <td className="py-3 px-4">Notification object</td>
                     </tr>
                     <tr>
+                      <td className="py-3 px-4"><code className="text-blue-600 bg-blue-50 px-2 py-1 rounded">send-message</code></td>
+                      <td className="py-3 px-4"><span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">emit</span></td>
+                      <td className="py-3 px-4">Send a message (saves to DB & broadcasts)</td>
+                      <td className="py-3 px-4">conversationId, content, receiverId, correlationId</td>
+                    </tr>
+                    <tr>
                       <td className="py-3 px-4"><code className="text-blue-600 bg-blue-50 px-2 py-1 rounded">new-message</code></td>
                       <td className="py-3 px-4"><span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">auto</span></td>
-                      <td className="py-3 px-4">New message in conversation</td>
+                      <td className="py-3 px-4">New message in conversation (broadcast)</td>
                       <td className="py-3 px-4">Message object</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4"><code className="text-blue-600 bg-blue-50 px-2 py-1 rounded">join-conversation</code></td>
+                      <td className="py-3 px-4"><span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">emit</span></td>
+                      <td className="py-3 px-4">Join a conversation room</td>
+                      <td className="py-3 px-4">conversationId</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4"><code className="text-blue-600 bg-blue-50 px-2 py-1 rounded">mark-as-read</code></td>
+                      <td className="py-3 px-4"><span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">emit</span></td>
+                      <td className="py-3 px-4">Mark messages as read</td>
+                      <td className="py-3 px-4">messageIds[]</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4"><code className="text-blue-600 bg-blue-50 px-2 py-1 rounded">typing</code></td>
                       <td className="py-3 px-4"><span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">emit</span></td>
                       <td className="py-3 px-4">User started typing</td>
-                      <td className="py-3 px-4">conversationId, receiverId</td>
+                      <td className="py-3 px-4">conversationId, isTyping: true</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4"><code className="text-blue-600 bg-blue-50 px-2 py-1 rounded">user-typing</code></td>
