@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { useResponsiveRouter } from "@/hooks/useResponsiveRouter"
 import { signIn } from "next-auth/react"
-import { useAuth } from "@/hooks/auth/useAuth"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -30,8 +29,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [pendingProvider, setPendingProvider] = useState<'google' | 'apple' | null>(null)
-  const { login } = useAuth()
-  
+
   // Use mutation for storing pending role
   const storePendingRoleMutation = useStorePendingRole()
 
@@ -48,20 +46,24 @@ export function LoginForm() {
     onSuccess: async (result, variables) => {
       // Store token and user data
       if (result.data?.token) {
-        localStorage.setItem('token', result.data.token);
-        localStorage.setItem('user', JSON.stringify(result.data.user));
+        localStorage.setItem('authToken', result.data.token);
+        localStorage.setItem('currentUser', JSON.stringify(result.data.user));
       }
 
       // Login successful, use NextAuth for session management
-      // The role will be automatically retrieved from the database
-      await login({
+      const signInResult = await signIn('credentials', {
         email: variables.email,
-        password: variables.password,
+        token: result.data.token,
+        redirect: false,
       });
 
-      // Redirect based on callback URL
-      const callbackUrl = router.query.callbackUrl as string || '/';
-      router.push(callbackUrl);
+      if (signInResult?.ok) {
+        // Redirect based on callback URL
+        const callbackUrl = router.query.callbackUrl as string || '/';
+        router.push(callbackUrl);
+      } else {
+        toast.error('Session creation failed. Please try again.');
+      }
     }
     // NOTE: We intentionally DON'T override onError here
     // The mutation hook already handles error toast display

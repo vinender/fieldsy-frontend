@@ -24,8 +24,11 @@ const registerSchema = z
     email: z.string().email("Please enter a valid email"),
     phoneNumber: z
       .string()
-      .min(7, "Phone must be at least 7 digits")
-      .regex(/^[0-9\s+()-]+$/, "Only digits and +()- allowed"),
+      .optional()
+      .refine((val) => {
+        if (!val || val.trim() === "") return true;
+        return val.length >= 7 && /^[0-9\s+()-]+$/.test(val);
+      }, "Phone must be at least 7 digits and only contain digits and +()- characters"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -82,8 +85,8 @@ export default function RegisterForm() {
   const password = watch("password")
   const agreeToTerms = watch("agreeToTerms")
 
-  // Check if all required fields are filled
-  const isFormComplete = fullName && email && phoneNumber && password && agreeToTerms
+  // Check if all required fields are filled (phoneNumber is optional)
+  const isFormComplete = fullName && email && password && agreeToTerms
   
   // Use the OTP registration mutation hook
   const registerWithOtpMutation = useRegisterWithOtp({
@@ -104,7 +107,7 @@ export default function RegisterForm() {
         email: values.email,
         password: values.password,
         role: values.role,
-        phone: `+44 ${values.phoneNumber}`,
+        phone: values.phoneNumber ? `+44 ${values.phoneNumber}` : undefined,
       });
     } catch (error) {
       // Error is already handled by the mutation's onError callback
@@ -198,8 +201,8 @@ export default function RegisterForm() {
     </div>
 
       {/* Right - Register Form */}
-      <div className="w-full lg:w-1/2 h-full">
-        <div className="h-full flex items-center justify-center px-6 md:px-8 lg:px-16 py-4 md:py-6 lg:py-8">
+      <div className="w-full lg:w-1/2 h-full ">
+        <div className={`h-full flex items-center justify-center px-6 md:px-8 lg:px-16 py-8 md:py-12 lg:py-16 ${registerWithOtpMutation.isLoading ? 'cursor-wait' : ''}`}>
           <div className="w-full max-w-md">
             <Link href="/">
             <div className="text-left mb-3">
@@ -218,42 +221,42 @@ export default function RegisterForm() {
           {/* Social Login - Original Design */}
           <div className="mb-3 hidden lg:block">
             <div className="w-full flex items-center justify-between p-1 rounded-[70px] text-white font-medium bg-light-green">
-              <button 
+              <button
                 type="button"
-                className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
-                disabled={isGoogleLoading || isSubmitting}
+                className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity disabled:cursor-not-allowed"
+                disabled={isGoogleLoading || isSubmitting || registerWithOtpMutation.isLoading}
                 onClick={() => {
                   setPendingProvider('google')
                   setShowRoleModal(true)
                 }}
               >
-                <Image src="/login/google.png" alt="Google" width={40} height={40} className={`w-10 h-10 object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
+                <Image src="/login/google.png" alt="Google" width={40} height={40} className={`w-10 h-10 object-contain ${isGoogleLoading || registerWithOtpMutation.isLoading ? 'opacity-50' : ''}`} />
               </button>
               <span className="text-center flex-1 text-sm">Sign up with</span>
-              <button 
+              <button
                 type="button"
-                className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity"
-                disabled={isAppleLoading || isSubmitting}
+                className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity disabled:cursor-not-allowed"
+                disabled={isAppleLoading || isSubmitting || registerWithOtpMutation.isLoading}
                 onClick={() => {
                   setPendingProvider('apple')
                   setShowRoleModal(true)
                 }}
               >
-                <Image src="/login/apple.png" alt="Apple" width={40} height={40} className={`w-10 h-10 object-contain ${isAppleLoading ? 'opacity-50' : ''}`} />
+                <Image src="/login/apple.png" alt="Apple" width={40} height={40} className={`w-10 h-10 object-contain ${isAppleLoading || registerWithOtpMutation.isLoading ? 'opacity-50' : ''}`} />
               </button>
             </div>
           </div>
 
          {/* Divider */}
-         <div className="flex items-center my-8">
-          <div className="flex-1 border-t border-gray-300"></div>
-          <span className="mx-4 text-gray-600 text-sm whitespace-nowrap">
-            Or continue with email
-          </span>
-          <div className="flex-1 border-t border-gray-300"></div>
-        </div>
+          <div className="flex items-center my-8">
+              <div className="flex-1 border-t border-gray-300"></div>
+                <span className="mx-4 text-gray-600 text-sm whitespace-nowrap">
+                  Or continue with email
+                </span>
+              <div className="flex-1 border-t border-gray-300"></div>
+          </div>  
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-0 lg:space-y-3">
+          <form onSubmit={handleSubmit(onSubmit)} className={`space-y-0 ${registerWithOtpMutation.isLoading ? 'pointer-events-none opacity-70' : ''}`}>
             {/* Role */}
             <div className="my-6">
               <label className="block text-sm font-medium text-gray-900 mb-1">Select Role</label>
@@ -297,7 +300,7 @@ export default function RegisterForm() {
 
             {/* Full Name */}
             <div>
-              <Label className="text-gray-700 text-sm">Full Name</Label>
+              <Label className="text-gray-700 text-sm">Full Name <span className="text-red-500">*</span></Label>
               <Input
                 type="text"
                 placeholder="Enter full name"
@@ -312,7 +315,7 @@ export default function RegisterForm() {
 
             {/* Email */}
             <div>
-              <Label className="text-gray-700 text-sm">Email Address</Label>
+              <Label className="text-gray-700 text-sm">Email Address <span className="text-red-500">*</span></Label>
               <Input
                 type="email"
                 placeholder="Enter email address"
@@ -323,23 +326,24 @@ export default function RegisterForm() {
               <div className="h-5">
                 {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
               </div>
-            </div>
+            </div>  
+
 
             {/* Phone */}
             <div>
-              <Label className="block text-sm font-medium text-gray-700">Phone Number</Label>
+              <Label className="block text-sm font-medium text-gray-700">Phone Number (Optional)</Label>
                 <div
                   className={`flex mt-1 rounded-[76px] transition-all ${
                     isPhoneFocused
                       ? 'ring-1 ring-green/20'
                       : ''
                   }`}
-                >
+                 >
                   <div className={`px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] text-gray-input border border-gray-300 border-r-0 flex items-center transition-colors ${
                     isPhoneFocused
                       ? 'border-green'
                       : ''
-                  }`}>
+                    }`}>
                     +44
                   </div>
 
@@ -372,7 +376,7 @@ export default function RegisterForm() {
 
             {/* Password */}
             <div>
-              <Label className="text-gray-700 text-sm">Password</Label>
+              <Label className="text-gray-700 text-sm">Password <span className="text-red-500">*</span></Label>
               <div className="relative mt-1">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -417,7 +421,7 @@ export default function RegisterForm() {
               {registerWithOtpMutation.isLoading ? "Creating account..." : "Sign Up"}
             </button>
 
-            <p className="text-center text-gray-600 text-sm">
+            <p className="text-center text-gray-600 pt-2 text-sm">
               Already have an account? {" "}
               <Link href="/login" className="font-medium hover:underline text-green">Login</Link>
             </p>

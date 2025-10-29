@@ -212,23 +212,6 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 })}
               </div>
 
-              {/* <h3 className="font-bold text-lg text-dark-green ">Other Details</h3> */}
-
-
-            {!isClaimed && (
-              <FieldMapWrapper
-                address={field?.address || field?.streetAddress}
-                city={field?.city}
-                state={field?.state || field?.county}
-                zipCode={field?.zipCode || field?.postalCode}
-                fieldName={field?.name || field?.fieldName || 'Field Location'}
-                latitude={field?.latitude}
-                longitude={field?.longitude}
-                height="300px"
-                className=""
-              />
-            )}
-
               {isClaimed && (
                 <FieldMapWrapper
                   address={field?.address || field?.streetAddress}
@@ -435,7 +418,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
               </div>
             </div>
 
-            {/* <h3 className="font-bold text-lg text-dark-green ">Other Details</h3>
+            <h3 className="font-bold text-lg text-dark-green ">Other Details</h3>
 
 
             {!isClaimed && (
@@ -450,7 +433,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                 height="300px"
                 className=""
               />
-            )} */}
+            )}
 
             {/* Other details and actions - Only show for claimed fields */}
             {isClaimed && (

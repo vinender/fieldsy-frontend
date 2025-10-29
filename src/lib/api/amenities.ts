@@ -14,6 +14,7 @@ export interface AmenitiesResponse {
   data: Amenity[];
 }
 
+
 // Get backend URL from environment or use default
 const getBackendUrl = () => {
   const env = process.env.NEXT_PUBLIC_BACKEND_URL;
