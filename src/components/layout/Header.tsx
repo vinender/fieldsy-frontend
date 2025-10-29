@@ -542,7 +542,7 @@ export function Header() {
                 ))}
                 
                 {/* Show user-specific navigation items if authenticated */}
-                {isAuthenticated && userNavigation && (
+                {mounted && isAuthenticated && userNavigation && (
                   <>
                     <div className="px-2 py-2 mt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       My Account
@@ -566,9 +566,9 @@ export function Header() {
                 )}
               </nav>
             </div>
-            
+
             <div className="flex-shrink-0 border-t border-gray-200">
-              {isAuthenticated ? (
+              {mounted && isAuthenticated ? (
                 <div className="space-y-1">
                   {/* User profile section */}
                   <div className="flex items-center p-4">
