@@ -34,9 +34,9 @@ const StripeRedirectPage = () => {
     }
 
     const isMobile = type === 'mobile';
-    alert(JSON.stringify(window));
+    // alert(JSON.stringify(window));
 
-    
+
     if (isMobile) {
       // Mobile redirect: Use deep link
       const deepLink = `com.fieldsy.app:///(field-owner)/manage-payouts?status=${status}`;
