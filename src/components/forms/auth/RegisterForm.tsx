@@ -368,6 +368,7 @@ export default function RegisterForm() {
                     inputMode="numeric"
                     pattern="[0-9]*"
                   />
+                  
                 </div>
                 <div className="h-5">
                   {errors.phoneNumber && <p className="text-xs text-red-600 mt-1">{errors.phoneNumber.message}</p>}

@@ -14,6 +14,7 @@ import { FieldsListSkeleton } from '@/components/skeletons/PageSkeletons';
 import { useSession } from 'next-auth/react';
 import { useFields, FieldsParams, useNearbyFields } from '@/hooks/queries/useFieldQueries';
 import { NearbyFieldsParams } from '@/lib/api/fields';
+import { GreenSpinner } from '@/components/common/GreenSpinner';
 
 export default function SearchResults() {
   const router = useRouter();
@@ -324,9 +325,9 @@ export default function SearchResults() {
             </div>
 
             {/* Fields Grid using the refactored FieldCard component */}
-            {/* Show skeleton only when loading API data, not during navigation */}
+            {/* Show full-screen spinner when loading to block all interactions */}
             {activeIsLoading ? (
-              <FieldGridSkeleton count={12} />
+              <GreenSpinner size="full-screen" />
             ) : activeIsError ? (
               <div className="bg-white rounded-2xl p-8">
                 <div className="text-center">

@@ -7,8 +7,8 @@ interface PageWithSkeletonProps {
   className?: string;
 }
 
-export const PageWithSkeleton: React.FC<PageWithSkeletonProps> = ({ 
-  children, 
+export const PageWithSkeleton: React.FC<PageWithSkeletonProps> = ({
+  children,
   skeleton,
   className = ""
 }) => {
@@ -16,7 +16,7 @@ export const PageWithSkeleton: React.FC<PageWithSkeletonProps> = ({
 
   if (isNavigating && skeleton) {
     return (
-      <div className={`animate-pulse ${className}`}>
+      <div className={`animate-pulse cursor-wait pointer-events-none ${className}`}>
         {skeleton}
       </div>
     );

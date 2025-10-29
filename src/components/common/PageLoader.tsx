@@ -1,11 +1,22 @@
 import React from 'react';
 
 export default function PageLoader() {
-  
-  
+  // Prevent any clicks from going through
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
-    <div className="min-h-screen bg-light-cream flex items-center justify-center">
-      <div className="text-center">
+    <div
+      className="min-h-screen bg-light-cream flex items-center justify-center cursor-wait"
+      onClick={handleClick}
+      onMouseDown={handleClick}
+      onMouseUp={handleClick}
+      onTouchStart={handleClick}
+      onTouchEnd={handleClick}
+    >
+      <div className="text-center pointer-events-none select-none">
         <div className="relative">
           {/* Logo or brand icon */}
           <div className="w-20 h-20 mx-auto mb-4 relative">
