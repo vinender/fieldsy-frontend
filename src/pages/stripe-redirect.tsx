@@ -133,7 +133,7 @@ const StripeRedirectPage = () => {
               </p>
               <button
                 onClick={handleManualRedirect}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 mb-4 w-full justify-center"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-green border-green bg-green/50 font-medium rounded-md bg-green-600 hover:bg-green-700 mb-4 w-full justify-center"
               >
                 Open Fieldsy App
               </button>

@@ -24,6 +24,8 @@ const getBackendUrl = () => {
   return 'http://localhost:5000/api';
 };
 
+
+
 export const amenitiesApi = {
   // Get all active amenities
   getActiveAmenities: async (): Promise<AmenitiesResponse> => {

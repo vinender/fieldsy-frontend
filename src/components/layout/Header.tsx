@@ -479,7 +479,7 @@ export function Header() {
             
             <div className="flex-1 h-0 pb-4 overflow-y-auto">
               {/* Show Messages and Notifications on mobile only (below sm screens) */}
-              {isAuthenticated && (
+              {mounted && isAuthenticated && (
                 <div className="sm:hidden px-4 py-3 border-b border-gray-200">
                   <div className="flex gap-3">
                     <button
@@ -519,7 +519,7 @@ export function Header() {
                   </div>
                 </div>
               )}
-              
+
               {/* Navigation - Show different nav items based on auth state */}
               <nav className="mt-4 px-2 space-y-1">
                 <div className="px-2 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
