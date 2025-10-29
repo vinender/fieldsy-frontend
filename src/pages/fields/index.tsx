@@ -14,7 +14,7 @@ import { FieldsListSkeleton } from '@/components/skeletons/PageSkeletons';
 import { useSession } from 'next-auth/react';
 import { useFields, FieldsParams, useNearbyFields } from '@/hooks/queries/useFieldQueries';
 import { NearbyFieldsParams } from '@/lib/api/fields';
-import { GreenSpinner } from '@/components/common/GreenSpinner';
+import  GreenSpinner  from '@/components/common/GreenSpinner';
 
 export default function SearchResults() {
   const router = useRouter();
