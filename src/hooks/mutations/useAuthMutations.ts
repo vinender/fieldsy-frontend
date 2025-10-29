@@ -19,6 +19,7 @@ export interface RegisterData {
 export interface UpdateRoleData {
   role: string;
   userId?: string;
+  email?: string;
 }
 
 export interface SocialLoginData {
@@ -114,6 +115,8 @@ export function useRegister(
 }
 
 // Hook for updating user role
+// NOTE: This is primarily for admin use or manual role updates
+// OAuth role updates are handled automatically during the social login flow
 export function useUpdateRole(
   options?: Omit<UseMutationOptions<any, Error, UpdateRoleData>, 'mutationFn'>
 ) {
@@ -121,21 +124,27 @@ export function useUpdateRole(
 
   const mutation = useMutation({
     mutationFn: async (data: UpdateRoleData) => {
+      // Validate required fields before making the request
+      if (!data.email || !data.role) {
+        throw new Error('Email and role are required for role update');
+      }
+
       const response = await axiosClient.patch('/auth/update-role', data);
       return response.data;
     },
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser() });
-      toast.success('Role updated successfully!');
-      
+
+      // Only show toast if explicitly requested via options
       if (options?.onSuccess) {
         options.onSuccess(result, variables, {} as any);
       }
     },
     onError: (error: any, variables) => {
       console.error('Update role error:', error);
-      toast.error(error.response?.data?.message || 'Failed to update role. Please try again.');
-      
+
+      // Only show error toast if explicitly requested via options
+      // This prevents duplicate toasts during OAuth flows
       if (options?.onError) {
         options.onError(error, variables, {} as any);
       }

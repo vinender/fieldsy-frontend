@@ -22,7 +22,9 @@ export default function FieldDetailsDisplay({
   showOwnerInfo = true,
   showClaimField = true,
   headerContent
+
 }: FieldDetailsDisplayProps) {
+
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -48,7 +50,7 @@ export default function FieldDetailsDisplay({
     'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop'
-  ];
+  ];  
 
   const mapImage = '/field-details/map.svg';
 

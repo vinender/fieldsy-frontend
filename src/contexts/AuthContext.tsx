@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useCurrentUser, useUpdateRole } from '@/hooks';
+import { useCurrentUser } from '@/hooks';
 
 interface User {
   id: string;
@@ -114,9 +114,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refetchUserQuery();
   };
 
-  // Use custom hook for updating role
-  const updateRoleMutation = useUpdateRole();
-
   const [user, setUser] = useState<User | null>(optimisticUser);
   const [isLoading, setIsLoading] = useState(() => {
     // If we have optimistic user data, we're not loading
@@ -162,34 +159,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userData, status, userLoading, authToken, optimisticUser]);
 
-  // Handle OAuth role update
+  // Clean up pending role after successful authentication
+  // Note: Role updates for OAuth are handled during the social login flow,
+  // so we just need to clean up the localStorage flag here
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.email && user) {
+    if (status === 'authenticated' && user) {
       const pendingRole = localStorage.getItem('pendingUserRole');
-      
-      if (pendingRole && (pendingRole === 'DOG_OWNER' || pendingRole === 'FIELD_OWNER')) {
-        if (user.role !== pendingRole) {
-          console.log('[AuthContext] Updating role from', user.role, 'to', pendingRole);
-          
-          updateRoleMutation.mutateAsync({ 
-            role: pendingRole,
-            userId: user.id
-          })
-            .then(async () => {
-              console.log('[AuthContext] Role updated successfully');
-              localStorage.removeItem('pendingUserRole');
-              await refetchUser();
-            })
-            .catch((error) => {
-              console.error('[AuthContext] Error updating role:', error);
-              localStorage.removeItem('pendingUserRole');
-            });
-        } else {
-          localStorage.removeItem('pendingUserRole');
-        }
+
+      if (pendingRole) {
+        console.log('[AuthContext] User authenticated, clearing pendingUserRole from localStorage');
+        // Remove the pending role flag since authentication is complete
+        // The role was already set during the OAuth flow
+        localStorage.removeItem('pendingUserRole');
       }
     }
-  }, [status, session, user, refetchUser, updateRoleMutation]);
+  }, [status, user]);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, refetchUser }}>

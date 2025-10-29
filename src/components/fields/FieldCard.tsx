@@ -9,6 +9,7 @@ import { useLocation } from "@/contexts/LocationContext"
 import { calculateDistance, formatDistance, getFieldCoordinates } from "@/utils/location"
 import { getAmenityLabel } from "@/utils/formatters"
 import { getImageUrl } from "@/utils/imageUrl"
+import { LazyImage } from "@/components/common/LazyImage"
 
 export interface FieldCardProps {
   id: string
@@ -162,21 +163,22 @@ export function FieldCard({
 
           <div className="relative mb-4 ">
             <div className={imageHeight + " w-full"}>
-              <img 
-                src={getImageUrl(image)} 
-                alt={name} 
+              <LazyImage
+                src={getImageUrl(image)}
+                alt={name}
                 className={`w-full h-full object-cover ${imageRoundness}`}
+                placeholder="/placeholder-field.jpg"
               />
             </div>
-            <button 
+            <button
               onClick={handleToggleFavorite}
               disabled={toggleFavoriteMutation.isPending}
               className="absolute top-2 right-2 bg-white/90 backdrop-blur-md rounded-full w-9 h-9 flex items-center justify-center shadow-md disabled:opacity-50"
             >
               {isLiked ? (
-                <img src="/field-details/saved-heart.svg" alt="Saved" className="w-5 h-5" />
+                <img src="/field-details/saved-heart.svg" alt="Saved" className="w-5 h-5" loading="lazy" />
               ) : (
-                <img src="/field-details/gray-heart.svg" alt="Save" className="w-5 h-5" />
+                <img src="/field-details/gray-heart.svg" alt="Save" className="w-5 h-5" loading="lazy" />
               )}
             </button>
           </div>
@@ -249,22 +251,22 @@ export function FieldCard({
       </div>
 
       <div className={`relative ${imageHeight} mx-3 mb-3 ${imageRoundness} overflow-hidden`}>
-        <Image 
-          src={getImageUrl(image)} 
+        <LazyImage
+          src={getImageUrl(image)}
           alt={name}
-          fill
-          className="object-cover"
+          className="w-full h-full object-cover"
+          placeholder="/placeholder-field.jpg"
         />
-        
+
         <button
           onClick={handleToggleFavorite}
           disabled={toggleFavoriteMutation.isPending}
           className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md disabled:opacity-50"
         >
           {isLiked ? (
-            <img src="/field-details/saved-heart.svg" alt="Saved" className="w-4 h-4" />
+            <img src="/field-details/saved-heart.svg" alt="Saved" className="w-4 h-4" loading="lazy" />
           ) : (
-            <img src="/field-details/gray-heart.svg" alt="Save" className="w-4 h-4" />
+            <img src="/field-details/gray-heart.svg" alt="Save" className="w-4 h-4" loading="lazy" />
           )}
         </button>
 

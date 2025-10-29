@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, SortDesc, Filter } from 'lucide-react';
 import { FieldCard } from '@/components/fields/FieldCard';
+import { LazyFieldCard } from '@/components/fields/LazyFieldCard';
 import FieldsSortFilter from '@/components/fields/FieldsSortFilter';
 import FieldsFilter, { FilterState } from '@/components/fields/FieldsFilter';
 import { FieldSearchInput } from '@/components/ui/field-search-input';
@@ -113,7 +114,7 @@ export default function SearchResults() {
   // Build query parameters for React Query - use applied filters
   const queryParams: FieldsParams = {
     page: currentPage,
-    limit: 12,
+    limit: 9,
     ...(searchValue && { search: searchValue }),
     ...(zipCode && { zipCode }),
     // Use explicit lat/lng from search, or fallback to current location
@@ -150,7 +151,7 @@ export default function SearchResults() {
         lng: currentLocation.lng,
         radius: 10,
         page: currentPage,
-        limit: 12,
+        limit: 9,
       }
     : null;
 
@@ -363,9 +364,10 @@ export default function SearchResults() {
             ) : (
               <div className="w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-2  xl:grid-cols-3 2xl:grid-cols-3 gap-4 md:gap-6 justify-center">
-                  {(fields.length > 0 ? fields : mockData.fields).map((field: any) => (
-                  <FieldCard
+                  {(fields.length > 0 ? fields : mockData.fields).map((field: any, index: number) => (
+                  <LazyFieldCard
                     key={field.id}
+                    index={index}
                     {...(fields.length > 0 ? {
                       id: field.id,
                       name: field.name,
@@ -400,7 +402,7 @@ export default function SearchResults() {
             {!isLoading && !isError && fields.length > 0 && totalPages > 1 && (
               <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6 lg:mt-8">
                 <span className="text-[12px] md:text-[14px] text-dark-green">
-                  Showing {((currentPage - 1) * 12) + 1}-{Math.min(currentPage * 12, totalResults)} of {totalResults}
+                  Showing {((currentPage - 1) * 9) + 1}-{Math.min(currentPage * 9, totalResults)} of {totalResults}
                 </span>
                 <div className="flex gap-1 flex-wrap justify-center">
                   {currentPage > 1 && (

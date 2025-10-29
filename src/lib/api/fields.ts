@@ -35,7 +35,7 @@ export type PopularFieldsResponse = FieldsApiResponse;
  * @returns Promise with nearby fields and pagination
  */
 export async function getNearbyFields(params: NearbyFieldsParams): Promise<NearbyFieldsResponse> {
-  const { lat, lng, radius = 10, page = 1, limit = 12 } = params;
+  const { lat, lng, radius = 10, page = 1, limit = 9 } = params;
 
   const queryParams = new URLSearchParams({
     lat: String(lat),
@@ -55,7 +55,7 @@ export async function getNearbyFields(params: NearbyFieldsParams): Promise<Nearb
  * @returns Promise with popular fields and pagination
  */
 export async function getPopularFields(params: PopularFieldsParams = {}): Promise<PopularFieldsResponse> {
-  const { page = 1, limit = 12 } = params;
+  const { page = 1, limit = 9 } = params;
 
   const queryParams = new URLSearchParams({
     page: String(page),

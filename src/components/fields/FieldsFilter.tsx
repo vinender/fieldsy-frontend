@@ -50,7 +50,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
 
   // Fetch amenities using React Query
   const { data: amenitiesList = [], isLoading: loadingAmenities } = useAmenities(true);
-
+console.log(';; amenetieslist',amenitiesList)
   // Handle animation timing and body scroll lock
   useEffect(() => {
     if (isOpen) {
