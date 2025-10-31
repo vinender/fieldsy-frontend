@@ -43,10 +43,11 @@ export function AddressAutocomplete({
 
   const onLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
     setAutocomplete(autocompleteInstance);
-    
+
     // Configure autocomplete to get detailed address components
+    // Restrict to UK only (ISO 3166-1 Alpha-2 code: 'gb')
     autocompleteInstance.setOptions({
-      componentRestrictions: { country: ['gb', 'ie', 'us'] }, // UK, Ireland, US
+      componentRestrictions: { country: 'gb' }, // UK only
       types: ['address'], // Only show address results
       fields: ['address_components', 'formatted_address', 'geometry']
     });

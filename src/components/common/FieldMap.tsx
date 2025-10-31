@@ -21,6 +21,14 @@ const defaultCenter = {
   lng: -0.1278 // Default to London
 };
 
+// UK geographical bounds - restricts map to UK only
+const UK_BOUNDS = {
+  north: 60.85,  // North of Shetland Islands
+  south: 49.87,  // South of Scilly Isles
+  west: -8.65,   // West of Ireland border
+  east: 1.76     // East of England coast
+};
+
 const mapOptions = {
   disableDefaultUI: false,
   zoomControl: true,
@@ -29,6 +37,12 @@ const mapOptions = {
   streetViewControl: false,
   rotateControl: false,
   fullscreenControl: true,
+  restriction: {
+    latLngBounds: UK_BOUNDS,
+    strictBounds: true  // Prevents panning outside UK bounds
+  },
+  minZoom: 5,  // Minimum zoom to keep UK in view
+  maxZoom: 20, // Maximum zoom for street level detail
   styles: [
     {
       featureType: "poi",
@@ -83,8 +97,14 @@ export default function FieldMap({
       }
 
       const geocoder = new window.google.maps.Geocoder();
-      
-      geocoder.geocode({ address: fullAddress }, (results, status) => {
+
+      // Restrict geocoding results to UK only
+      geocoder.geocode({
+        address: fullAddress,
+        componentRestrictions: {
+          country: 'GB'  // ISO 3166-1 Alpha-2 code for United Kingdom
+        }
+      }, (results, status) => {
         if (status === 'OK' && results && results[0]) {
           const location = results[0].geometry.location;
           setCenter({

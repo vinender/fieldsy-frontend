@@ -16,6 +16,7 @@ import { useSession } from 'next-auth/react';
 import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
+import { useMaxAdvanceBookingDays } from '@/hooks/usePublicSettings';
 
 interface TimeSlot {
   time: string;
@@ -37,6 +38,9 @@ const BookFieldPage = () => {
   const { id, mode, bookingId, recurring: recurringFromUrl } = router.query;
   const fieldIdToUse = id ; // Support both query parameters
   const isRescheduleMode = mode === 'reschedule';
+
+  // Get max advance booking days from system settings
+  const maxAdvanceBookingDays = useMaxAdvanceBookingDays();
 
   const [numberOfDogs, setNumberOfDogs] = useState('1');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Start with null
@@ -66,8 +70,11 @@ const BookFieldPage = () => {
     refetchOnWindowFocus: false, // Don't refetch on window focus
     userLocation: userLocation
   });
+  
   const field = fieldData?.data || fieldData;
-  console.log('field',field)
+  console.log(';; field',field);
+
+
   // Load reschedule data from localStorage if in reschedule mode
   useEffect(() => {
     if (isRescheduleMode) {
@@ -79,6 +86,7 @@ const BookFieldPage = () => {
       }
     }
   }, [isRescheduleMode]);
+
 
   // Separate useEffect to handle recurring pre-selection from URL
   useEffect(() => {
@@ -179,10 +187,10 @@ const BookFieldPage = () => {
     }
   }, [field]); // Only run when field data changes
 
-  // Calculate min date (today) and max date (e.g., 3 months from now)
+  // Calculate min date (today) and max date based on system settings
   const minDate = new Date();
   const maxDate = new Date();
-  maxDate.setMonth(maxDate.getMonth() + 3);
+  maxDate.setDate(maxDate.getDate() + maxAdvanceBookingDays);
 
   // Helper function to format time to 12-hour format with AM/PM
   const formatTimeTo12Hour = (timeStr: string): string => {

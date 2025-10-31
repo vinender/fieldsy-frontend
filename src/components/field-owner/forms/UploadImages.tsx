@@ -32,6 +32,10 @@ export default function UploadImages({ formData, setFormData, validationErrors =
     }));
   };
 
+  const imageCount = formData.images?.length || 0;
+  const remainingImages = Math.max(0, 4 - imageCount);
+  const hasMinimumImages = imageCount >= 4;
+
   return (
     <div className="space-y-8">
       <div>
@@ -41,6 +45,32 @@ export default function UploadImages({ formData, setFormData, validationErrors =
         <p className="text-base text-gray-text font-sans">
           Upload photos of your field to showcase its features to potential customers. High-quality images help attract more bookings.
         </p>
+
+        {/* Image count indicator */}
+        <div className={`mt-4 p-4 rounded-lg border-2 ${hasMinimumImages ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500'}`}>
+          <div className="flex items-center gap-2">
+            {hasMinimumImages ? (
+              <>
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-green-700 font-semibold">
+                  {imageCount} image{imageCount !== 1 ? 's' : ''} uploaded - You can proceed!
+                </span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-yellow-700 font-semibold">
+                  {imageCount} of 4 minimum images uploaded - Please upload {remainingImages} more image{remainingImages !== 1 ? 's' : ''}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
         {validationErrors.images && (
           <p className="text-red-500 text-sm mt-2">{validationErrors.images}</p>
         )}

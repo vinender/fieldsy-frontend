@@ -3,6 +3,7 @@ import axios from 'axios';
 
 interface PublicSettings {
   cancellationWindowHours: number;
+  maxAdvanceBookingDays: number;
   maxBookingsPerUser: number;
   siteName: string;
   siteUrl: string;
@@ -31,4 +32,10 @@ export const usePublicSettings = () => {
 export const useCancellationWindow = () => {
   const { data: settings } = usePublicSettings();
   return settings?.cancellationWindowHours || 24; // Default to 24 hours if not loaded
+};
+
+// Helper hook to get max advance booking days
+export const useMaxAdvanceBookingDays = () => {
+  const { data: settings } = usePublicSettings();
+  return settings?.maxAdvanceBookingDays || 30; // Default to 30 days if not loaded
 };

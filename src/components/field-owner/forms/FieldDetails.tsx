@@ -429,6 +429,17 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               placeholder="42 Meadowcroft Lane"
               className={`w-full px-4 py-3 bg-white rounded-2xl border ${validationErrors.streetAddress ? 'border-red-500' : 'border-gray-border'} focus:outline-none focus:border-green font-sans text-gray-input placeholder:text-gray-400`}
               onAddressSelect={(components) => {
+                // Validate that the address is in the UK
+                const isUK = components.country === 'United Kingdom' ||
+                             components.country === 'UK' ||
+                             components.country === 'GB' ||
+                             components.country === 'Great Britain';
+
+                if (!isUK) {
+                  alert('Please select a UK address only. This platform currently only supports UK locations.');
+                  return;
+                }
+
                 setFormData((prev: any) => ({
                   ...prev,
                   streetAddress: components.streetAddress,

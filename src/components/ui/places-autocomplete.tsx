@@ -35,10 +35,11 @@ export function PlacesAutocomplete({
 
   const onLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
     setAutocomplete(autocompleteInstance);
-    
+
     // Configure autocomplete options
+    // Restrict to UK only (ISO 3166-1 Alpha-2 code: 'gb')
     autocompleteInstance.setOptions({
-      componentRestrictions: { country: ['gb', 'ie'] }, // Restrict to UK and Ireland
+      componentRestrictions: { country: 'gb' }, // Restrict to UK only
       types: ['geocode', 'establishment'], // Include both addresses and places
     });
   };
@@ -62,13 +63,16 @@ export function PlacesAutocomplete({
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          
-          // Reverse geocode to get address
+
+          // Reverse geocode to get address (UK only)
           const geocoder = new google.maps.Geocoder();
           const response = await geocoder.geocode({
-            location: { lat: latitude, lng: longitude }
+            location: { lat: latitude, lng: longitude },
+            componentRestrictions: {
+              country: 'GB'  // Restrict to UK only
+            }
           });
-          
+
           if (response.results[0]) {
             const place = response.results[0];
             setInputValue(place.formatted_address);

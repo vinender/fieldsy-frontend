@@ -43,7 +43,9 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
+
 export default function RegisterForm() {
+
   const router = useResponsiveRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
@@ -62,6 +64,7 @@ export default function RegisterForm() {
     }),
     []
   )
+
 
   const {
     register,
@@ -118,7 +121,7 @@ export default function RegisterForm() {
 
   // Handle role selection from modal for social login
   async function handleSocialRoleSelection(role: 'DOG_OWNER' | 'FIELD_OWNER') {
-    console.log('role selected', role)
+    console.log('role selected', role);
     if (!pendingProvider) return;
     
     const isGoogle = pendingProvider === 'google';

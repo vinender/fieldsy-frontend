@@ -364,7 +364,9 @@ export default function AddYourField() {
         
       case 'upload-images':
         if (!formData.images || formData.images.length === 0) {
-          errors.images = 'Please upload at least one image of your field';
+          errors.images = 'Please upload at least 4 images of your field';
+        } else if (formData.images.length < 4) {
+          errors.images = `Please upload ${4 - formData.images.length} more image${4 - formData.images.length > 1 ? 's' : ''} (minimum 4 required)`;
         }
         break;
         
@@ -762,14 +764,16 @@ export default function AddYourField() {
               )}
               <button
                 onClick={handleSaveProgress}
-                disabled={isLoading}
-                className={`w-full py-3 rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 order-1 ${(activeSection === 'field-details' || isFirstTimeFieldOwner) ? '' : 'sm:flex-1 sm:order-2'}`}
+                disabled={isLoading || (activeSection === 'upload-images' && (formData.images?.length || 0) < 4)}
+                className={`w-full py-3 rounded-full font-semibold font-sans transition-opacity order-1 ${(activeSection === 'field-details' || isFirstTimeFieldOwner) ? '' : 'sm:flex-1 sm:order-2'} ${(isLoading || (activeSection === 'upload-images' && (formData.images?.length || 0) < 4)) ? 'bg-gray-400 cursor-not-allowed opacity-60' : 'bg-green text-white hover:opacity-90'}`}
               >
                 {isLoading ?
                   'Saving...'
-                  : activeSection === 'booking-rules'
-                    ? (isCurrentSectionCompleted() ? 'Update & Preview' : 'Save & Preview')
-                    : (isCurrentSectionCompleted() ? 'Update & Next' : 'Save & Next')
+                  : activeSection === 'upload-images' && (formData.images?.length || 0) < 4
+                    ? `Upload ${4 - (formData.images?.length || 0)} More Image${4 - (formData.images?.length || 0) > 1 ? 's' : ''}`
+                    : activeSection === 'booking-rules'
+                      ? (isCurrentSectionCompleted() ? 'Update & Preview' : 'Save & Preview')
+                      : (isCurrentSectionCompleted() ? 'Update & Next' : 'Save & Next')
                 }
               </button>
             </div>
