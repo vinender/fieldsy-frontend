@@ -23,7 +23,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/fields?limit=50&sortBy=views&sortOrder=desc`
     );
     const data = await response.json();
-    console.log(';;;fields data',data)
+    console.log(';;;fields data',data);
     const paths = data?.data?.map((field: any) => ({
       params: { field_id: field._id || field.id },
     })) || [];

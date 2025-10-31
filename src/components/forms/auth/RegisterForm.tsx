@@ -18,7 +18,7 @@ import { useRegisterWithOtp } from "@/hooks/mutations/useOtpMutations"
 import { useStorePendingRole } from "@/hooks/mutations/useAuthMutations"
 
 
-const registerSchema = z
+const registerSchema = z  
   .object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email"),

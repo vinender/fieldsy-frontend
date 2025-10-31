@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { ArrowLeft, Bell, Check, Trash2, CheckCheck } from 'lucide-react'
+import { ArrowLeft, Bell, Check, CheckCheck } from 'lucide-react'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/router'
@@ -14,23 +14,27 @@ interface NotificationsSidebarProps {
 
 export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: NotificationsSidebarProps) {
   const [isOpen, setIsOpen] = useState(isOpenProp)
+  const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
   const { data: session } = useSession()
-  const { 
-    notifications, 
-    unreadCount, 
-    loading, 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification,
-    clearAll 
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
   } = useNotifications();
 
 console.log('notification',notifications);
-  
+
   // Get user role from session
   const userRole = (session as any)?.user?.role || 'USER'
   const isFieldOwner = userRole === 'FIELD_OWNER'
+
+  // Handle client-side mounting to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
 
   useEffect(() => {
@@ -88,10 +92,6 @@ console.log('notification',notifications);
 
   const handleMarkAsRead = async (id: string) => {
     await markAsRead(id)
-  }
-
-  const handleDelete = async (id: string) => {
-    await deleteNotification(id)
   }
 
   const handleNotificationClick = async (notification: any) => {
@@ -298,23 +298,6 @@ console.log('notification',notifications);
     }
   }
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'booking_received':
-        return '📅'
-      case 'booking_confirmed':
-        return '✅'
-      case 'field_approved':
-        return '🎉'
-      case 'payment_received':
-        return '💰'
-      case 'review_posted':
-        return '⭐'
-      default:
-        return '🔔'
-    }
-  }
-
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'booking_received':
@@ -365,7 +348,7 @@ console.log('notification',notifications);
                 )}
               </div>
             </div>
-            {notifications.length > 0 && (
+            {isMounted && notifications.length > 0 && (
               <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                 {unreadCount > 0 && (
                   <button
@@ -399,13 +382,13 @@ console.log('notification',notifications);
         <div className="h-px bg-gray-200" />
 
         {/* Content */}
-        <div 
+        <div
           className="h-[calc(100%-140px)] overflow-y-auto overflow-x-hidden notification-scrollbar"
           onWheel={(e) => {
             // Prevent scroll from propagating to the body
             e.stopPropagation();
           }}>
-          {loading ? (
+          {!isMounted || loading ? (
             <div className="text-center text-gray-600 mt-10">Loading notifications...</div>
           ) : notifications?.length === 0 ? (
             <div className="text-center mt-10">
