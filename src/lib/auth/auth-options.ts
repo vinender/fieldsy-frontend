@@ -189,52 +189,76 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile, credentials }) {
       // Handle social login with role
       if (account?.provider === 'google' || account?.provider === 'apple') {
+        console.log('==================== APPLE/GOOGLE SIGN-IN START ====================');
+        console.log('[NextAuth] Provider:', account.provider);
+        console.log('[NextAuth] User Email:', user.email);
+        console.log('[NextAuth] User Name:', user.name);
+        console.log('[NextAuth] User Image:', user.image);
+        console.log('[NextAuth] Provider Account ID:', account.providerAccountId);
+        console.log('[NextAuth] Account Object:', JSON.stringify(account, null, 2));
+        console.log('================================================================');
+
         try {
           // Try to get the pending role for this social login
           let role = 'DOG_OWNER'; // Default role
-          
+
           try {
             const roleResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/store-pending-role?email=${encodeURIComponent(user.email || '')}`);
+            console.log('[NextAuth] Role fetch response status:', roleResponse.status);
             if (roleResponse.ok) {
               const roleData = await roleResponse.json();
               if (roleData.role) {
                 role = roleData.role;
-                console.log('[NextAuth] Retrieved pending role:', role, 'for email:', user.email);
+                console.log('[NextAuth] ✅ Retrieved pending role:', role, 'for email:', user.email);
+              } else {
+                console.log('[NextAuth] ⚠️ No role found in response, using default:', role);
               }
+            } else {
+              console.log('[NextAuth] ⚠️ Role fetch failed with status:', roleResponse.status);
             }
           } catch (error) {
-            console.log('[NextAuth] Could not retrieve pending role:', error);
+            console.log('[NextAuth] ❌ Could not retrieve pending role:', error);
           }
-          
+
+          console.log('[NextAuth] Calling social-login API with payload:');
+          const payload = {
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            provider: account.provider,
+            providerId: account.providerAccountId,
+            role,
+          };
+          console.log(JSON.stringify(payload, null, 2));
+
           const response = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/social-login`, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              provider: account.provider,
-              providerId: account.providerAccountId,
-              role, // Pass the role from pending storage
-            }),
+            body: JSON.stringify(payload),
           });
-          
+
+          console.log('[NextAuth] Social-login API response status:', response.status);
+
           if (!response.ok) {
+            console.log('[NextAuth] ❌ Social-login API failed with status:', response.status);
             // Try to get error message
             let errorMessage = 'Social login failed';
             let errorDetails = '';
             const contentType = response.headers.get('content-type');
+            console.log('[NextAuth] Error response content-type:', contentType);
+
             if (contentType && contentType.includes('application/json')) {
               try {
                 const errorData = await response.json();
+                console.log('[NextAuth] Error response data:', JSON.stringify(errorData, null, 2));
                 errorMessage = errorData.message || errorData.error || errorMessage;
                 errorDetails = errorData.details || errorData.message || '';
 
                 // Check for duplicate account error
                 if (errorData.error === 'DUPLICATE_ACCOUNT' || errorDetails.includes('An account already exists with this email as a')) {
-                  console.error('[NextAuth] Duplicate account error:', errorDetails);
+                  console.error('[NextAuth] ❌ Duplicate account error:', errorDetails);
                   // Store the error message in sessionStorage for the error page to retrieve
                   if (typeof window !== 'undefined') {
                     sessionStorage.setItem('authError', errorDetails);
@@ -246,17 +270,23 @@ export const authOptions: NextAuthOptions = {
                 if (e instanceof Error && e.message === 'DUPLICATE_ACCOUNT') {
                   throw e; // Re-throw our custom error
                 }
+                console.log('[NextAuth] ❌ Failed to parse error as JSON, getting text');
                 errorMessage = await response.text();
+                console.log('[NextAuth] Error message text:', errorMessage);
               }
             } else {
               errorMessage = await response.text();
+              console.log('[NextAuth] ❌ Non-JSON error:', errorMessage);
             }
-            console.error('Social login failed:', errorMessage);
+            console.error('[NextAuth] ❌ Social login failed with message:', errorMessage);
+            console.log('==================== APPLE/GOOGLE SIGN-IN FAILED ====================');
 
             return false;
           }
 
+          console.log('[NextAuth] ✅ Social-login API successful, parsing response...');
           const data = await response.json();
+          console.log('[NextAuth] Response data:', JSON.stringify(data, null, 2));
 
           // Check if OTP verification is required
           if (data.requiresVerification) {

@@ -96,29 +96,43 @@ export function LoginForm() {
 
   // Handle role selection from modal
   async function handleRoleSelection(role: 'DOG_OWNER' | 'FIELD_OWNER') {
-    if (!pendingProvider) return;
-    
+    console.log('==================== ROLE SELECTION START ====================');
+    console.log('[LoginForm] Provider:', pendingProvider);
+    console.log('[LoginForm] Selected role:', role);
+    console.log('============================================================');
+
+    if (!pendingProvider) {
+      console.log('[LoginForm] ❌ No pending provider set');
+      return;
+    }
+
     const isGoogle = pendingProvider === 'google';
     if (isGoogle) {
       setIsGoogleLoading(true);
     } else {
       setIsAppleLoading(true);
     }
-    
+
     try {
       // Store the role in both localStorage (for client) and server storage
       localStorage.setItem('pendingUserRole', role);
-      console.log('[LoginForm] Stored role in localStorage:', role);
-      
+      console.log('[LoginForm] ✅ Stored role in localStorage:', role);
+
       // Store on server for NextAuth callback to retrieve
       await storePendingRoleMutation.mutateAsync({ role });
-      console.log('[LoginForm] Stored role on server:', role);
-      
+      console.log('[LoginForm] ✅ Stored role on server:', role);
+
       // Call the social login
-      await signIn(pendingProvider, { 
+      console.log('[LoginForm] 🚀 Calling signIn for provider:', pendingProvider);
+      const result = await signIn(pendingProvider, {
         callbackUrl: '/',
       });
+      console.log('[LoginForm] SignIn result:', result);
     } catch (error: any) {
+      console.error('[LoginForm] ❌ Error during sign in:', error);
+      console.error('[LoginForm] Error message:', error?.message);
+      console.error('[LoginForm] Error stack:', error?.stack);
+
       if (error?.message?.includes('OAuthAccountNotLinked')) {
         toast.error('This email is already registered with a different method');
       } else if (error?.message?.includes('Configuration')) {
@@ -127,10 +141,12 @@ export function LoginForm() {
         toast.error(`${pendingProvider === 'google' ? 'Google' : 'Apple'} login failed. Please try again.`);
       }
     } finally {
+      console.log('[LoginForm] Cleaning up...');
       setShowRoleModal(false);
       setPendingProvider(null);
       setIsGoogleLoading(false);
       setIsAppleLoading(false);
+      console.log('==================== ROLE SELECTION END ====================');
     }
   }
 
