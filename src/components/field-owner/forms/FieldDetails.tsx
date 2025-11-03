@@ -127,7 +127,8 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               onChange={handleInputChange}
               placeholder="Enter field name"
               maxLength={50}
-              className={`py-3 font-sans ${validationErrors.fieldName ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
+              className={`py-3 ${validationErrors.fieldName ? 'border-red-500' : ''}`}
+              aria-invalid={!!validationErrors.fieldName}
             />
             <div className="flex justify-between items-center mt-1">
               <div>
@@ -233,7 +234,8 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 value={formData.maxDogs}
                 onChange={handleInputChange}
                 placeholder="Enter max number of dogs allowed"
-                className={`py-3 appearance-none font-sans ${validationErrors.maxDogs ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
+                className={`py-3 appearance-none ${validationErrors.maxDogs ? 'border-red-500' : ''}`}
+                aria-invalid={!!validationErrors.maxDogs}
               />
               {validationErrors.maxDogs && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.maxDogs}</p>
@@ -259,7 +261,8 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
           placeholder="Write a description here..."
           rows={5}
           maxLength={2000}
-          className={`w-full px-4 py-3 bg-white rounded-2xl border ${validationErrors.description ? 'border-red-500' : 'border-gray-border'} focus:outline-none focus:border-green resize-none font-sans text-gray-input placeholder:text-gray-400`}
+          className={`w-full px-4 py-3 bg-white rounded-2xl border ${validationErrors.description ? 'border-red-500' : 'border-gray-300'} hover:border-gray-400 focus:outline-none focus:border-green focus:ring-1 focus:ring-green/20 resize-none font-sans text-gray-input placeholder:text-gray-400 shadow-sm transition-all duration-200`}
+          aria-invalid={!!validationErrors.description}
         />
         <div className="flex justify-between items-center mt-1">
           <div>
@@ -427,7 +430,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               value={formData.streetAddress}
               onChange={handleInputChange}
               placeholder="42 Meadowcroft Lane"
-              className={`w-full px-4 py-3 bg-white rounded-2xl border ${validationErrors.streetAddress ? 'border-red-500' : 'border-gray-border'} focus:outline-none focus:border-green font-sans text-gray-input placeholder:text-gray-400`}
+              className={`w-full px-4 py-3 bg-white rounded-3xl border ${validationErrors.streetAddress ? 'border-red-500' : 'border-gray-300'} hover:border-gray-400 focus:outline-none focus:border-green focus:ring-1 focus:ring-green/20 font-sans text-gray-input placeholder:text-gray-400 shadow-sm transition-all duration-200`}
               onAddressSelect={(components) => {
                 // Validate that the address is in the UK
                 const isUK = components.country === 'United Kingdom' ||
@@ -486,7 +489,8 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               value={formData.city}
               onChange={handleInputChange}
               placeholder="Guildford"
-              className={`py-3 text-gray-input font-sans ${validationErrors.city ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
+              className={`py-3 ${validationErrors.city ? 'border-red-500' : ''}`}
+              aria-invalid={!!validationErrors.city}
             />
             {validationErrors.city && (
               <p className="text-red-500 text-sm mt-1">{validationErrors.city}</p>
@@ -502,7 +506,8 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               value={formData.county}
               onChange={handleInputChange}
               placeholder="Surrey"
-              className={`py-3 text-gray-input font-sans ${validationErrors.county ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
+              className={`py-3 ${validationErrors.county ? 'border-red-500' : ''}`}
+              aria-invalid={!!validationErrors.county}
             />
             {validationErrors.county && (
               <p className="text-red-500 text-sm mt-1">{validationErrors.county}</p>
@@ -518,7 +523,8 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               value={formData.postalCode}
               onChange={handleInputChange}
               placeholder="GU1 1AA"
-              className={`py-3 text-gray-input font-sans ${validationErrors.postalCode ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
+              className={`py-3 ${validationErrors.postalCode ? 'border-red-500' : ''}`}
+              aria-invalid={!!validationErrors.postalCode}
             />
             {validationErrors.postalCode && (
               <p className="text-red-500 text-sm mt-1">{validationErrors.postalCode}</p>

@@ -1,13 +1,17 @@
+import { useState } from "react"
 import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
+import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
 
 export function Footer() {
   const { data: session } = useSession();
   const userRole = session?.user?.role;
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   return (
+    <>
     <footer className="bg-dark-green text-white px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
       <div className="mx-auto w-full   py-8 sm:py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
@@ -48,6 +52,14 @@ export function Footer() {
               <li><Link href="/faqs" className="text-white/80 hover:text-white transition-colors">FAQ&apos;s</Link></li>
               <li><Link href="/terms-conditions" className="text-white/80 hover:text-white transition-colors">Terms & Conditions</Link></li>
               <li><Link href="/privacy-policy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li>
+                <button
+                  onClick={() => setIsContactModalOpen(true)}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  Contact Us
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -85,5 +97,12 @@ export function Footer() {
         </div>
       </div>
     </footer>
+
+    {/* Contact Support Modal */}
+    <ContactSupportModal
+      isOpen={isContactModalOpen}
+      onClose={() => setIsContactModalOpen(false)}
+    />
+    </>
   )
 } 

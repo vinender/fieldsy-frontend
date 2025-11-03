@@ -234,7 +234,7 @@ export function useDeleteField(
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.all });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
       toast.success('Field deleted successfully!');
-      
+
       if (options?.onSuccess) {
         options.onSuccess(result, fieldId, {} as any);
       }
@@ -242,7 +242,56 @@ export function useDeleteField(
     onError: (error: any, fieldId) => {
       console.error('Error deleting field:', error);
       toast.error(error.response?.data?.message || 'Failed to delete field. Please try again.');
-      
+
+      if (options?.onError) {
+        options.onError(error, fieldId, {} as any);
+      }
+    },
+    ...options,
+  });
+
+  return {
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isPending: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
+  };
+}
+
+// Hook to toggle field status (enable/disable)
+export function useToggleFieldStatus(
+  options?: Omit<UseMutationOptions<any, Error, string>, 'mutationFn'>
+) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (fieldId: string) => {
+      const response = await axiosClient.patch(`/fields/${fieldId}/toggle-status`);
+      return response.data;
+    },
+    onSuccess: (result, fieldId) => {
+      // Invalidate field queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerFields() });
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.fieldDetails(fieldId) });
+
+      // Show success message from backend
+      toast.success(result.message || 'Field status updated successfully!');
+
+      if (options?.onSuccess) {
+        options.onSuccess(result, fieldId, {} as any);
+      }
+    },
+    onError: (error: any, fieldId) => {
+      console.error('Error toggling field status:', error);
+      toast.error(error.response?.data?.message || 'Failed to update field status. Please try again.');
+
       if (options?.onError) {
         options.onError(error, fieldId, {} as any);
       }

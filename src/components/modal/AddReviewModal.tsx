@@ -28,7 +28,6 @@ export const AddReviewModal = ({
   const { data: session } = useSession();
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [reviewTitle, setReviewTitle] = useState('');
   const [images, setImages] = useState<string[]>([]);
@@ -86,14 +85,6 @@ export const AddReviewModal = ({
 
   const handleStarClick = (starIndex: number) => {
     setRating(starIndex);
-  };
-
-  const handleStarHover = (starIndex: number) => {
-    setHoveredRating(starIndex);
-  };
-
-  const handleStarLeave = () => {
-    setHoveredRating(0);
   };
 
   if (!isOpen) return null;
@@ -164,16 +155,19 @@ export const AddReviewModal = ({
                   <button
                     key={starIndex}
                     onClick={() => handleStarClick(starIndex)}
-                    onMouseEnter={() => handleStarHover(starIndex)}
-                    onMouseLeave={handleStarLeave}
                     className="transition-transform hover:scale-110"
+                    type="button"
                   >
-                    <img src='/star.svg' 
+                    <Star
                       className={`w-10 h-10 transition-colors ${
-                        starIndex <= (hoveredRating || rating)
-                          ? 'text-yellow fill-yellow'
-                          : 'text-gray-300 fill-none '
+                        starIndex <= rating
+                          ? 'fill-none text-gray-300'
+                          : 'fill-none text-gray-300'
                       }`}
+                      style={{
+                        fill: starIndex <= rating ? '#FFBD00' : 'none',
+                        color: starIndex <= rating ? '#FFBD00' : undefined
+                      }}
                     />
                   </button>
                 ))}

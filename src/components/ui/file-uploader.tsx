@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { s3Uploader, UploadProgress } from '@/utils/s3Upload';
+import GreenSpinner from '@/components/common/GreenSpinner';
 
 export interface UploadedFile {
   id: string;
@@ -528,7 +529,7 @@ export function FileUploader({
                         className="w-full h-full object-cover"
                       />
                     ) : file.progress && file.progress > 0 ? (
-                      <Loader2 className={cn("w-5 h-5 animate-spin", styles.iconColor)} />
+                      <GreenSpinner size="small" />
                     ) : (
                       <span className="text-lg">📄</span>
                     )}

@@ -70,10 +70,10 @@ export default function PricingAvailability({ formData, setFormData, validationE
             <button
               type="button"
               onClick={() => handleDurationChange('30min')}
-              className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all ${
+              className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all shadow-sm ${
                 formData.bookingDuration === '30min'
                   ? 'bg-light-green text-white'
-                  : 'bg-white border border-gray-border text-gray-text hover:border-light-green'
+                  : 'bg-white border border-gray-300 text-gray-text hover:border-gray-400'
               }`}
             >
               30 Minutes
@@ -81,10 +81,10 @@ export default function PricingAvailability({ formData, setFormData, validationE
             <button
               type="button"
               onClick={() => handleDurationChange('1hour')}
-              className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all ${
+              className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all shadow-sm ${
                 formData.bookingDuration === '1hour'
                   ? 'bg-light-green text-white'
-                  : 'bg-white border border-gray-border text-gray-text hover:border-light-green'
+                  : 'bg-white border border-gray-300 text-gray-text hover:border-gray-400'
               }`}
             >
               1 Hour
@@ -117,7 +117,8 @@ export default function PricingAvailability({ formData, setFormData, validationE
               min="0"
               step="0.01"
               placeholder="0.00"
-              className={`pl-8 pr-40 py-3 font-sans ${validationErrors.price ? 'border-red-500' : 'border-gray-border'} focus:border-green`}
+              className={`pl-8 pr-40 py-3 ${validationErrors.price ? 'border-red-500' : ''}`}
+              aria-invalid={!!validationErrors.price}
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <div className="h-6 w-px bg-gray-text" />

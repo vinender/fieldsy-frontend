@@ -89,7 +89,6 @@ export function CreditCardDisplay({
           {/* Selection Checkbox - Checking makes this card default */}
           <label
             className="flex items-center gap-2 sm:gap-3 cursor-pointer"
-            onClick={onToggleDefault}
           >
             {/* Custom Square Checkbox */}
             <div className="relative flex gap-2 items-center">

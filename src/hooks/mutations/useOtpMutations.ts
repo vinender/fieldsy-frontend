@@ -19,7 +19,7 @@ export interface VerifyOtpData {
 
 export interface ResendOtpData {
   email: string;
-  type: 'SIGNUP' | 'RESET_PASSWORD' | 'EMAIL_VERIFICATION';
+  type: 'SIGNUP' | 'RESET_PASSWORD' | 'EMAIL_VERIFICATION' | 'SOCIAL_LOGIN';
 }
 
 export interface LoginWithOtpCheckData {

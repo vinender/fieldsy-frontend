@@ -362,7 +362,7 @@ const MyProfilePage = () => {
                 <div className="flex items-center h-12 sm:h-14 px-3 sm:px-4 bg-white border border-[#e3e3e3] rounded-full">
                   <div className="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-3 border-r border-[#8d8d8d]">
                     <span className="text-sm sm:text-[15px] text-[#192215]">{formData.countryCode}</span>
-                    <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#192215]" />
+                    {/* <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#192215]" /> */}
                   </div>
                   <input
                     type="tel"
@@ -426,7 +426,7 @@ const MyProfilePage = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Change Password Sidebar */}
       <ChangePasswordSidebar
         isOpen={isPasswordSidebarOpen}

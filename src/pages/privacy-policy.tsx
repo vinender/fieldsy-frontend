@@ -94,8 +94,8 @@ const PrivacyPolicy = () => {
     {
       title: "11. Contact Us",
       content: `For any questions, contact us at:
-📧 fieldsyz@gmail.com
-📍 Camden Town, London NW1 0LT, United Kingdom`
+                📧 fieldsyz@gmail.com
+                📍 Camden Town, London NW1 0LT, United Kingdom`
     }
   ];
 

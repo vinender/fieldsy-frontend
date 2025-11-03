@@ -53,13 +53,13 @@ export const BookingSuccessModal = ({ isOpen = true, onClose, onCheckHistory, on
                   onClick={onCheckHistory}
                   className="w-full sm:flex-1 h-12 sm:h-14 px-4 sm:px-6 border-2 border-[#3A6B22] text-[#3A6B22] rounded-full font-bold text-[14px] sm:text-[16px] hover:bg-[#3A6B22] hover:text-white transition-colors"
                 >
-                  View My Bookings
+                 Check Booking History
                 </button>
                 <button
                   onClick={onGoHome}
                   className="w-full sm:flex-1 h-12 sm:h-14 px-4 sm:px-6 bg-[#3A6B22] text-white rounded-full font-bold text-[14px] sm:text-[16px] hover:bg-[#2D5A1B] transition-colors"
                 >
-                  View My Bookings
+                 Go To Home
                 </button>
               </div>
             </div>

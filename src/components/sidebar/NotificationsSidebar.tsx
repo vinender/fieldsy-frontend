@@ -233,6 +233,7 @@ console.log('notification',notifications);
         break
 
       case 'field_approved':
+        
       case 'FIELD_APPROVED':
         // Field owner specific - go to their field or dashboard
         if (data?.fieldId) {

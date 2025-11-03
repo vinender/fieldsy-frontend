@@ -1,20 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { UserLayout } from '@/components/layout/UserLayout';
-import { useOwnerFields } from '@/hooks';
+import { useOwnerFields, useToggleFieldStatus } from '@/hooks';
 import { FieldData } from '@/hooks/queries/useFieldQueries';
-import { Eye, Edit } from 'lucide-react';
+import { Eye, Edit, Power, Loader2 } from 'lucide-react';
 import  BackButton  from '@/components/common/BackButton';
 
 export default function MyFieldsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [togglingFieldId, setTogglingFieldId] = useState<string | null>(null);
 
   // Fetch all fields owned by the user
   const { data: fields, isLoading: fetchingFields, refetch, error, isError } = useOwnerFields({
     enabled: !!user && user.role === 'FIELD_OWNER',
   });
+
+  // Toggle field status mutation
+  const toggleFieldStatusMutation = useToggleFieldStatus();
 
   useEffect(() => {
     // Redirect if not a field owner
@@ -33,6 +37,16 @@ export default function MyFieldsPage() {
 
   const handleEditField = (fieldId: string) => {
     router.push(`/?edit=true&fieldId=${fieldId}`);
+  };
+
+  const handleToggleStatus = async (fieldId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTogglingFieldId(fieldId);
+    try {
+      await toggleFieldStatusMutation.mutateAsync(fieldId);
+    } finally {
+      setTogglingFieldId(null);
+    }
   };
 
   if (fetchingFields) {
@@ -96,7 +110,7 @@ export default function MyFieldsPage() {
                       <span className="text-gray-400">No image</span>
                     </div>
                   )}
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-3 right-3 flex flex-col gap-2">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         field.isClaimed
@@ -106,6 +120,17 @@ export default function MyFieldsPage() {
                     >
                       {field.isClaimed ? 'Approved' : 'Pending'}
                     </span>
+                    {field.isClaimed && (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          field.isActive
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-500 text-white'
+                        }`}
+                      >
+                        {field.isActive ? 'Active' : 'Disabled'}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="p-4">
@@ -118,6 +143,22 @@ export default function MyFieldsPage() {
                       ${field.price || field.pricePerDay}/hour
                     </span>
                     <div className="flex gap-2">
+                      <button
+                        onClick={(e) => handleToggleStatus(field.id, e)}
+                        disabled={togglingFieldId === field.id}
+                        className={`p-2 rounded-full transition-all ${
+                          field.isActive
+                            ? 'text-green hover:bg-green hover:text-white'
+                            : 'text-gray-400 hover:bg-gray-400 hover:text-white'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        title={field.isActive ? 'Disable Field' : 'Enable Field'}
+                      >
+                        {togglingFieldId === field.id ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Power className="w-5 h-5" />
+                        )}
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

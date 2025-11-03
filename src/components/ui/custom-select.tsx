@@ -54,11 +54,11 @@ export function CustomSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-4 py-3 rounded-full bg-white border-2 border-gray-300
+        className={`w-full px-4 py-3 rounded-full bg-white border border-gray-300
           focus:outline-none focus:border-green font-sans text-left flex items-center justify-between
-          transition-colors hover:border-green/50 ${className}`}
+          transition-colors hover:border-gray-400 shadow-sm ${className}`}
       >
-        <span className={value ? 'text-gray-input' : 'text-gray-200'}>
+        <span className={value ? 'text-gray-input' : 'text-placeholder-gray'}>
           {displayText}
         </span>
         <ChevronDown 

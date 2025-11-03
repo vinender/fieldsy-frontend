@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
+import { X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useCheckRefundEligibility } from '@/hooks/useBookingApi';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { useCancelBooking } from '@/hooks/mutations/useBookingMutations';
 import { toast } from 'sonner';
+import GreenSpinner from '@/components/common/GreenSpinner';
 
 // Format date to DD/MM/YYYY
 const formatDate = (dateString: string): string => {
@@ -244,7 +245,9 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         {cancelBookingMutation.isPending && (
           <div className="absolute inset-0 bg-white bg-opacity-90 rounded-xl sm:rounded-2xl flex items-center justify-center z-10">
             <div className="text-center">
-              <Loader2 className="w-12 h-12 animate-spin text-[#3a6b22] mx-auto mb-3" />
+              <div className="flex justify-center mb-3">
+                <GreenSpinner size="large" />
+              </div>
               <p className="text-sm sm:text-base font-semibold text-[#192215]">Cancelling your booking...</p>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">Please wait</p>
             </div>
@@ -302,7 +305,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         {/* Refund Eligibility Status */}
         {checkingEligibility ? (
           <div className="flex items-center justify-center py-3 sm:py-4">
-            <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-[#3a6b22]"></div>
+            <GreenSpinner size="medium" />
           </div>
         ) : (
           <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${
@@ -369,7 +372,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           >
             {cancelBookingMutation.isPending ? (
               <>
-                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                <GreenSpinner size="small" />
                 <span>Cancelling...</span>
               </>
             ) : (

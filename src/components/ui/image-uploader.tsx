@@ -1,10 +1,11 @@
 "use client"
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Upload, AlertCircle, Check, Loader2, Image as ImageIcon } from 'lucide-react'
+import { X, Upload, AlertCircle, Check, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDirectUpload } from '@/hooks/mutations/useUploadMutations'
 import { toast } from 'sonner'
+import GreenSpinner from '@/components/common/GreenSpinner'
 
 export interface UploadedImage {
   id: string | number
@@ -558,8 +559,8 @@ export function ImageUploader({
                 {/* Upload Progress Overlay */}
                 {!image.uploaded && !image.error && (
                   <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-4">
-                    <div className="relative mb-3">
-                      <Loader2 className="w-10 h-10 text-white animate-spin" />
+                    <div className="relative mb-3 flex items-center justify-center">
+                      <GreenSpinner size="medium" className="!border-gray-200 !border-t-white" />
                       {image.progress !== undefined && image.progress > 0 && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="text-white text-xs font-bold">{Math.round(image.progress)}</span>

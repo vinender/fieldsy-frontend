@@ -142,9 +142,9 @@ export function TimeInput({
         disabled={disabled}
         className={`
           w-full px-4 py-3 pr-12 text-left bg-white border rounded-full
-          transition-all duration-200 font-sans text-[15px]
-          ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:border-light-green'}
-          ${isOpen ? 'border-green ring-1 ring-green/20' : 'border-gray-border'}
+          transition-all duration-200 font-sans text-[15px] shadow-sm
+          ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:border-gray-400'}
+          ${isOpen ? 'border-green ring-1 ring-green/20' : 'border-gray-300'}
           ${!displayValue ? 'text-gray-400' : 'text-dark-green font-medium'}
         `}
       >
