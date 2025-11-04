@@ -6,6 +6,7 @@ import mockData from '@/data/mock-data.json';
 import { getAmenityLabel } from '@/utils/formatters';
 import Image from 'next/image';
 import { useAmenities } from '@/hooks/queries/useAmenities';
+import { usePriceRange } from '@/hooks/queries/useFieldQueries';
 
 export interface FilterState {
   size: string;
@@ -32,12 +33,20 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
   onResetFilters,
   initialFilters 
 }) => {
-  // Default filter values
+  // Fetch amenities and price range using React Query
+  const { data: amenitiesList = [], isLoading: loadingAmenities } = useAmenities(true);
+  const { data: priceRangeData, isLoading: loadingPriceRange } = usePriceRange();
+
+  // Extract min and max price from API or use fallback from mockData
+  const minPrice = priceRangeData?.data?.minPrice ?? mockData.filterOptions.priceRange.min;
+  const maxPrice = priceRangeData?.data?.maxPrice ?? mockData.filterOptions.priceRange.max;
+
+  // Default filter values - use dynamic price range
   const defaultFilters: FilterState = {
     size: '',
     amenities: [],
     rating: '',
-    priceRange: [mockData.filterOptions.priceRange.min, mockData.filterOptions.priceRange.max],
+    priceRange: [minPrice, maxPrice],
     distanceRange: [mockData.filterOptions.distanceRange.min, mockData.filterOptions.distanceRange.max],
     date: undefined,
     availability: []
@@ -48,9 +57,6 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
   const [shouldRender, setShouldRender] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Fetch amenities using React Query
-  const { data: amenitiesList = [], isLoading: loadingAmenities } = useAmenities(true);
-console.log(';; amenetieslist',amenitiesList)
   // Handle animation timing and body scroll lock
   useEffect(() => {
     if (isOpen) {
@@ -101,6 +107,16 @@ console.log(';; amenetieslist',amenitiesList)
     }
   }, [initialFilters]);
 
+  // Update price range when API data loads
+  useEffect(() => {
+    if (priceRangeData?.data && !initialFilters) {
+      setTempFilters(prev => ({
+        ...prev,
+        priceRange: [priceRangeData.data.minPrice, priceRangeData.data.maxPrice]
+      }));
+    }
+  }, [priceRangeData, initialFilters]);
+
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -113,8 +129,8 @@ console.log(';; amenetieslist',amenitiesList)
       tempFilters.size !== '' ||
       tempFilters.amenities.length > 0 ||
       tempFilters.rating !== '' ||
-      tempFilters.priceRange[0] !== mockData.filterOptions.priceRange.min ||
-      tempFilters.priceRange[1] !== mockData.filterOptions.priceRange.max ||
+      tempFilters.priceRange[0] !== minPrice ||
+      tempFilters.priceRange[1] !== maxPrice ||
       tempFilters.distanceRange[0] !== mockData.filterOptions.distanceRange.min ||
       tempFilters.distanceRange[1] !== mockData.filterOptions.distanceRange.max ||
       tempFilters.date !== undefined ||
@@ -267,15 +283,15 @@ console.log(';; amenetieslist',amenitiesList)
 
         <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
 
-        {/* Price */}
-        <div className="mb-5">
+         {/* Price */}
+         <div className="mb-5">
           <div className="flex justify-between items-center mb-2.5">
             <h3 className="text-[14px] font-bold text-dark-green">Price</h3>
             <div className="flex items-center gap-2">
               <span className="text-[14px] font-medium text-[#3A6B22]">£{tempFilters.priceRange[0]} to £{tempFilters.priceRange[1]}</span>
               <button onClick={() => toggleSection('price')}>
-                {expandedSections.price ? 
-                  <ChevronUp className="w-4 h-4" /> : 
+                {expandedSections.price ?
+                  <ChevronUp className="w-4 h-4" /> :
                   <ChevronDown className="w-4 h-4" />
                 }
               </button>
@@ -339,14 +355,14 @@ console.log(';; amenetieslist',amenitiesList)
                   <div
                     className="range-slider-track"
                     style={{
-                      left: `${((tempFilters.priceRange[0] - mockData.filterOptions.priceRange.min) / (mockData.filterOptions.priceRange.max - mockData.filterOptions.priceRange.min)) * 100}%`,
-                      right: `${100 - ((tempFilters.priceRange[1] - mockData.filterOptions.priceRange.min) / (mockData.filterOptions.priceRange.max - mockData.filterOptions.priceRange.min)) * 100}%`
+                      left: `${maxPrice > minPrice ? ((tempFilters.priceRange[0] - minPrice) / (maxPrice - minPrice)) * 100 : 0}%`,
+                      right: `${maxPrice > minPrice ? 100 - ((tempFilters.priceRange[1] - minPrice) / (maxPrice - minPrice)) * 100 : 0}%`
                     }}
                   />
                   <input
                     type="range"
-                    min={mockData.filterOptions.priceRange.min}
-                    max={mockData.filterOptions.priceRange.max}
+                    min={minPrice}
+                    max={maxPrice}
                     value={tempFilters.priceRange[0]}
                     onChange={(e) => {
                       const newMin = parseInt(e.target.value);
@@ -360,8 +376,8 @@ console.log(';; amenetieslist',amenitiesList)
                   />
                   <input
                     type="range"
-                    min={mockData.filterOptions.priceRange.min}
-                    max={mockData.filterOptions.priceRange.max}
+                    min={minPrice}
+                    max={maxPrice}
                     value={tempFilters.priceRange[1]}
                     onChange={(e) => {
                       const newMax = parseInt(e.target.value);
@@ -376,16 +392,17 @@ console.log(';; amenetieslist',amenitiesList)
                 </div>
               </div>
               <div className="flex justify-between text-[12px] text-dark-green">
-                <span>£{tempFilters.priceRange[0]}</span>
-                <span>£{tempFilters.priceRange[1]}</span>
+                <span>£{minPrice}</span>
+                <span>£{maxPrice}</span>
               </div>
             </div>
           )}
         </div>  
+        {/* END OF CORRECTED SECTION */}
 
         <div className="h-1.5 bg-[#F9F9F9] w-full mb-5" />
 
-        {/* Distance */}
+        {/* Distance (Unchanged from original) */}
         <div className="mb-5">
           <div className="flex justify-between items-center mb-2.5">
             <h3 className="text-[14px] font-bold text-dark-green">Distance away</h3>

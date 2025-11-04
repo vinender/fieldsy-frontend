@@ -12,9 +12,10 @@ import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
 import { PageWithSkeleton } from '@/components/common/PageWithSkeleton';
 import { FieldsListSkeleton } from '@/components/skeletons/PageSkeletons';
 import { useSession } from 'next-auth/react';
-import { useFields, FieldsParams, useNearbyFields } from '@/hooks/queries/useFieldQueries';
+import { useFields, FieldsParams, useNearbyFields, usePriceRange } from '@/hooks/queries/useFieldQueries';
 import { NearbyFieldsParams } from '@/lib/api/fields';
 import  GreenSpinner  from '@/components/common/GreenSpinner';
+
 
 export default function SearchResults() {
   const router = useRouter();
@@ -26,6 +27,12 @@ export default function SearchResults() {
   const [lat, setLat] = useState<number | undefined>();
   const [lng, setLng] = useState<number | undefined>();
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  
+  const { data: priceRangeData, isLoading: loadingPriceRange } = usePriceRange();
+
+  // Extract min and max price from API or use fallback from mockData
+  const minPrice = priceRangeData?.data?.minPrice ?? mockData.filterOptions.priceRange.min;
+  const maxPrice = priceRangeData?.data?.maxPrice ?? mockData.filterOptions.priceRange.max;
 
   // Get current location on mount
   useEffect(() => {
@@ -79,7 +86,7 @@ export default function SearchResults() {
     size: '',
     amenities: [],
     rating: '',
-    priceRange: [mockData.filterOptions.priceRange.min, mockData.filterOptions.priceRange.max],
+    priceRange: [minPrice, maxPrice],
     distanceRange: [mockData.filterOptions.distanceRange.min, mockData.filterOptions.distanceRange.max],
     date: undefined,
     availability: []
@@ -87,7 +94,17 @@ export default function SearchResults() {
 
   // Applied filter state (for API)
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters);
-  
+
+  // Update appliedFilters when price range data loads
+  useEffect(() => {
+    if (priceRangeData?.data) {
+      setAppliedFilters(prev => ({
+        ...prev,
+        priceRange: [priceRangeData.data.minPrice, priceRangeData.data.maxPrice]
+      }));
+    }
+  }, [priceRangeData]);
+
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedFields, setLikedFields] = useState<string[]>([]);
 
@@ -125,8 +142,8 @@ export default function SearchResults() {
     ...(appliedFilters.rating && appliedFilters.rating !== '' && { minRating: parseFloat(appliedFilters.rating.replace('+', '')) }),
     // Only apply price filter if it's not the full range
     ...(appliedFilters.priceRange &&
-        (appliedFilters.priceRange[0] !== mockData.filterOptions.priceRange.min ||
-         appliedFilters.priceRange[1] !== mockData.filterOptions.priceRange.max) && {
+        (appliedFilters.priceRange[0] !== minPrice ||
+         appliedFilters.priceRange[1] !== maxPrice) && {
       minPrice: appliedFilters.priceRange[0],
       maxPrice: appliedFilters.priceRange[1]
     }),

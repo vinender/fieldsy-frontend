@@ -313,3 +313,28 @@ export function usePopularFields(
     ...options,
   });
 }
+
+// Price range query
+export interface PriceRangeResponse {
+  success: boolean;
+  status: string;
+  data: {
+    minPrice: number;
+    maxPrice: number;
+  };
+}
+
+export function usePriceRange(
+  options?: Omit<UseQueryOptions<PriceRangeResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: ['fields', 'price-range'],
+    queryFn: async () => {
+      const { data } = await axiosClient.get<PriceRangeResponse>('/fields/price-range');
+      return data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes - prices don't change frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    ...options,
+  });
+}
