@@ -207,7 +207,9 @@ const EarningsHistory: React.FC = () => {
                         </h2>
                       )}
                       <p className="text-base sm:text-lg text-gray-500 max-w-2xl">
-                        {accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
+                        {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
+                          ? 'Your bank account is connected and ready to receive payments. Payouts are processed automatically and securely.'
+                          : accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
                           ? 'Your account needs additional information to start receiving payments.'
                           : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
                           ? 'Your linked account is currently unable to accept customer payments.'

@@ -66,6 +66,10 @@ export default function LoginPage() {
         }
       } else if (error === 'Configuration') {
         toast.error('Social login is not configured yet.');
+      } else if (error.startsWith('AccessDenied:')) {
+        // Extract the actual error message from the error string
+        const actualMessage = error.substring('AccessDenied:'.length);
+        toast.error(actualMessage || 'Sign in failed. Please try again.');
       } else {
         toast.error('Sign in failed. Please try again.');
       }

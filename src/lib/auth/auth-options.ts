@@ -281,7 +281,8 @@ export const authOptions: NextAuthOptions = {
             console.error('[NextAuth] ❌ Social login failed with message:', errorMessage);
             console.log('==================== APPLE/GOOGLE SIGN-IN FAILED ====================');
 
-            return false;
+            // Throw AccessDenied error with the message
+            throw new Error(`AccessDenied:${errorMessage}`);
           }
 
           console.log('[NextAuth] ✅ Social-login API successful, parsing response...');
@@ -311,7 +312,11 @@ export const authOptions: NextAuthOptions = {
           return true; // Allow sign-in
         } catch (error) {
           console.error('Social sign-in error:', error);
-          return false;
+          // Re-throw the error so NextAuth can handle it properly
+          if (error instanceof Error) {
+            throw error;
+          }
+          throw new Error('Social login failed. Please try again.');
         }
       }
       return true;
