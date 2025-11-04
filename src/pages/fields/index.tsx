@@ -118,6 +118,7 @@ export default function SearchResults() {
 
   // Function to handle filter changes
   const handleApplyFilters = (filters: FilterState) => {
+    console.log('Applying filters:', filters);
     setAppliedFilters(filters);
     setCurrentPage(1); // Reset to first page
     setFiltersOpen(false); // Close mobile filters
@@ -158,9 +159,12 @@ export default function SearchResults() {
     // Send multiple sort fields if configured
     ...(Object.keys(sortConfig).length > 0 && {
       sortBy: Object.keys(sortConfig).join(','),
-      sortOrder: Object.keys(sortConfig).map(key => sortConfig[key as keyof typeof sortConfig]).join(',')
+      sortOrder: Object.keys(sortConfig).map(key => sortConfig[key as keyof typeof sortConfig]).join(',') as 'asc' | 'desc'
     })
   };
+
+  console.log('Query Params:', queryParams);
+  console.log('Applied Filters:', appliedFilters);
 
   // Nearby fields parameters
   const nearbyParams: NearbyFieldsParams | null = currentLocation
@@ -193,8 +197,23 @@ export default function SearchResults() {
     refetch,
   } = useFields(queryParams);
 
-  // Determine which data to use
-  const shouldUseNearbyFields = !!currentLocation && !searchValue && !zipCode && !lat && !lng;
+  // Check if any filters are applied (not default values)
+  const hasActiveFilters =
+    (appliedFilters.size && appliedFilters.size !== '' && appliedFilters.size !== 'All') ||
+    appliedFilters.amenities.length > 0 ||
+    (appliedFilters.rating && appliedFilters.rating !== '') ||
+    (appliedFilters.priceRange[0] !== minPrice || appliedFilters.priceRange[1] !== maxPrice) ||
+    (appliedFilters.distanceRange[0] !== mockData.filterOptions.distanceRange.min ||
+     appliedFilters.distanceRange[1] !== mockData.filterOptions.distanceRange.max) ||
+    appliedFilters.date !== undefined ||
+    appliedFilters.availability.length > 0;
+
+  console.log('Has Active Filters:', hasActiveFilters);
+
+  // Determine which data to use - don't use nearby fields if filters are applied
+  const shouldUseNearbyFields = !!currentLocation && !searchValue && !zipCode && !lat && !lng && !hasActiveFilters;
+
+  console.log('Should Use Nearby Fields:', shouldUseNearbyFields);
 
   // Check if nearby fields query returned no results
   const hasNearbyResults = nearbyFieldsData && nearbyFieldsData.data && nearbyFieldsData.data.length > 0;

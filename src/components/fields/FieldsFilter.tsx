@@ -165,7 +165,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
       `}>
         <div className={`
           lg:w-[280px] min-[1400px]:w-[375px] lg:bg-white lg:rounded-[22px] lg:border lg:border-black/[0.06]
-          fixed lg:relative right-0 top-0 h-full w-[85%] max-w-[375px] bg-white overflow-y-auto
+          fixed lg:relative right-0 top-0 h-full lg:h-auto w-[85%] max-w-[375px] bg-white overflow-y-auto
           transform transition-transform duration-300 ease-in-out
           ${isAnimating ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
           p-6

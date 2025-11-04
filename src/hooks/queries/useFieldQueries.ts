@@ -133,8 +133,13 @@ export function useFields(
         }
       });
 
+      const url = `/fields/active?${queryParams.toString()}`;
+      console.log('Fetching fields with URL:', url);
+      console.log('Params:', params);
+
       // Use /fields/active to get only active and submitted fields
-      const response = await axiosClient.get(`/fields/active?${queryParams.toString()}`);
+      const response = await axiosClient.get(url);
+      console.log('Fields API Response:', response.data);
       return response.data as FieldsResponse;
     },
     staleTime: 30 * 1000, // 30 seconds
