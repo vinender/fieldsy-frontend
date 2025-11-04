@@ -26,6 +26,7 @@ interface FieldsFilterProps {
   initialFilters?: FilterState;
 }
 
+
 const FieldsFilter: React.FC<FieldsFilterProps> = ({ 
   isOpen, 
   onClose, 
