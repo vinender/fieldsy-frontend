@@ -198,7 +198,10 @@ export function useUploadProfileImage() {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success('Profile image updated successfully');
 
-      // No need to reload - AuthContext will update via custom event
+      // Reload page to ensure all components show the new image
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000); // Wait 1 second to show the toast message
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || error.message || 'Failed to upload image';

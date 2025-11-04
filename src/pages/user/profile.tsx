@@ -328,6 +328,7 @@ const MyProfilePage = () => {
                   </label>
                   <Input
                     type="text"
+                    placeholder='Enter Name'
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
                     maxLength={50}
