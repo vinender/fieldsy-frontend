@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useSkeleton } from '@/contexts/SkeletonContext';
+import { useNavigationLoader } from '@/contexts/NavigationLoaderContext';
 
 interface ResponsiveLinkProps extends Omit<React.ComponentProps<typeof Link>, 'onClick'> {
   children: React.ReactNode;
@@ -9,21 +9,22 @@ interface ResponsiveLinkProps extends Omit<React.ComponentProps<typeof Link>, 'o
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
-export const ResponsiveLink: React.FC<ResponsiveLinkProps> = ({ 
-  children, 
-  href, 
+export const ResponsiveLink: React.FC<ResponsiveLinkProps> = ({
+  children,
+  href,
   className,
   onClick,
-  ...props 
+  ...props
 }) => {
   const router = useRouter();
-  const { startNavigation } = useSkeleton();
+  const { startNavigation } = useNavigationLoader();
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const targetUrl = typeof href === 'string' ? href : href.pathname || '';
-    
+
+    // Trigger navigation loader for internal navigation
     if (targetUrl !== router.asPath && !targetUrl.startsWith('#') && !targetUrl.startsWith('http')) {
-      startNavigation(targetUrl);
+      startNavigation();
     }
 
     if (onClick) {
@@ -32,8 +33,8 @@ export const ResponsiveLink: React.FC<ResponsiveLinkProps> = ({
   };
 
   return (
-    <Link 
-      href={href} 
+    <Link
+      href={href}
       {...props}
       onClick={handleClick}
       className={className}

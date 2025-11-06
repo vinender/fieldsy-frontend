@@ -9,12 +9,9 @@ import { UserLayout } from '@/components/layout/UserLayout';
 import mockData from '@/data/mock-data.json';
 import { useRouter } from 'next/router';
 import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
-import { PageWithSkeleton } from '@/components/common/PageWithSkeleton';
-import { FieldsListSkeleton } from '@/components/skeletons/PageSkeletons';
 import { useSession } from 'next-auth/react';
 import { useFields, FieldsParams, useNearbyFields, usePriceRange } from '@/hooks/queries/useFieldQueries';
 import { NearbyFieldsParams } from '@/lib/api/fields';
-import  GreenSpinner  from '@/components/common/GreenSpinner';
 
 
 export default function SearchResults() {
@@ -268,8 +265,7 @@ export default function SearchResults() {
 
   return (
     <UserLayout>
-      <PageWithSkeleton skeleton={<FieldsListSkeleton />}>
-        <div className="min-h-screen bg-[#FFFCF3] w-full">
+      <div className="min-h-screen bg-[#FFFCF3] w-full">
       {/* Search Bar - Sticky below header */}
       <div className="bg-light-cream my-10 sticky top-[80px] md:top-[120px] z-30 px-4 sm:px-6 lg:px-20 py-4">
         <FieldSearchInput
@@ -361,9 +357,9 @@ export default function SearchResults() {
             </div>
 
             {/* Fields Grid using the refactored FieldCard component */}
-            {/* Show full-screen spinner when loading to block all interactions */}
+            {/* Show skeleton when loading API data */}
             {activeIsLoading ? (
-              <GreenSpinner size="full-screen" />
+              <FieldGridSkeleton count={9} />
             ) : activeIsError ? (
               <div className="bg-white rounded-2xl p-8">
                 <div className="text-center">
@@ -513,7 +509,6 @@ export default function SearchResults() {
         </div>
       </div>
     </div>
-      </PageWithSkeleton>
     </UserLayout>
   );
 }

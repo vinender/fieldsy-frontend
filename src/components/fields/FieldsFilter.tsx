@@ -99,7 +99,8 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
     rating: true,
     date: true,
     availability: true
-  });
+  }); 
+  
 
   // Update temp filters when initial filters change
   useEffect(() => {

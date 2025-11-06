@@ -14,7 +14,6 @@ import { SocketProvider } from "@/contexts/SocketContext"
 import { LocationProvider } from "@/contexts/LocationContext"
 import { ChatProvider } from "@/contexts/ChatContext"
 import { MessageSocketProvider } from "@/contexts/MessageSocketContext"
-import { SkeletonProvider } from "@/contexts/SkeletonContext"
 import { NavigationLoaderProvider } from "@/contexts/NavigationLoaderContext"
 import { SessionMonitor } from "@/components/auth/SessionMonitor"
 import NavigationLoader from "@/components/common/NavigationLoader"
@@ -92,43 +91,41 @@ export default function App({
             <NotificationProvider>
               <SocketProvider>
                 <ChatProvider>
-                  <SkeletonProvider>
-                    <NavigationLoaderProvider>
-                      <SessionMonitor />
-                      <NavigationLoader />
-                      <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
-                        <div className="min-h-screen flex flex-col overflow-x-hidden">
-                          {!hideLayout && <Header />}
-                          <main className="flex-grow overflow-x-hidden">
-                            {isMessagesPage ? (
-                              <MessageSocketProvider>
-                                <Component {...pageProps} />
-                              </MessageSocketProvider>
-                            ) : (
+                  <NavigationLoaderProvider>
+                    <SessionMonitor />
+                    <NavigationLoader />
+                    <div className={`${dmSans.variable} font-sans antialiased overflow-x-hidden`}>
+                      <div className="min-h-screen flex flex-col overflow-x-hidden">
+                        {!hideLayout && <Header />}
+                        <main className="flex-grow overflow-x-hidden">
+                          {isMessagesPage ? (
+                            <MessageSocketProvider>
                               <Component {...pageProps} />
-                            )}
-                          </main>
-                          {!hideLayout && <Footer />}
-                        </div>
-                        <Toaster
-                          position="top-right"
-                          toastOptions={{
-                            duration: 4000,
-                            style: {
-                              background: '#ffffff',
-                              color: '#000000',
-                              border: '1px solid #e5e5e5',
-                              borderRadius: '8px',
-                              padding: '16px',
-                              fontSize: '14px',
-                              zIndex: 9999,
-                            },
-                          }}
-                          richColors
-                        />
-                    </div>
-                    </NavigationLoaderProvider>
-                  </SkeletonProvider>
+                            </MessageSocketProvider>
+                          ) : (
+                            <Component {...pageProps} />
+                          )}
+                        </main>
+                        {!hideLayout && <Footer />}
+                      </div>
+                      <Toaster
+                        position="top-right"
+                        toastOptions={{
+                          duration: 4000,
+                          style: {
+                            background: '#ffffff',
+                            color: '#000000',
+                            border: '1px solid #e5e5e5',
+                            borderRadius: '8px',
+                            padding: '16px',
+                            fontSize: '14px',
+                            zIndex: 9999,
+                          },
+                        }}
+                        richColors
+                      />
+                  </div>
+                  </NavigationLoaderProvider>
                 </ChatProvider>
               </SocketProvider>
             </NotificationProvider>

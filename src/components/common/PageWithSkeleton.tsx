@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { useSkeleton } from '@/contexts/SkeletonContext';
+import { useNavigationLoader } from '@/contexts/NavigationLoaderContext';
 
 interface PageWithSkeletonProps {
   children: ReactNode;
@@ -12,15 +12,16 @@ export const PageWithSkeleton: React.FC<PageWithSkeletonProps> = ({
   skeleton,
   className = ""
 }) => {
-  const { isNavigating } = useSkeleton();
+  const { isPageTransitioning } = useNavigationLoader();
 
-  if (isNavigating && skeleton) {
-    return (
-      <div className={`animate-pulse cursor-wait pointer-events-none ${className}`}>
-        {skeleton}
-      </div>
-    );
-  }
+  // Only show skeleton during page transitions if provided
+  // if (isPageTransitioning && skeleton) {
+  //   return (
+  //     <div className={`animate-pulse cursor-wait pointer-events-none ${className}`}>
+  //       {skeleton}
+  //     </div>
+  //   );
+  // }
 
   return <>{children}</>;
 };
