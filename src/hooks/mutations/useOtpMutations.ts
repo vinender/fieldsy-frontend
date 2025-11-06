@@ -125,6 +125,7 @@ export function useVerifyOtp(
     },
     onError: (error: any, variables) => {
       console.error('OTP verification error:', error);
+      console.log('Error response data:', error?.response?.data);
       const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired code';
 
       // Show specific error messages for common OTP errors
@@ -342,6 +343,7 @@ export function useVerifyPasswordResetOtp(
     },
     onError: (error: any, variables) => {
       console.error('Reset OTP verification error:', error);
+      console.log('Error response data:', error?.response?.data);
       const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired OTP';
 
       // Show specific error messages for common OTP errors
@@ -436,6 +438,7 @@ export function useVerifySocialLoginOtp(
     },
     onError: (error: any, variables) => {
       console.error('Social login OTP verification error:', error);
+      console.log('Error response data:', error?.response?.data);
       const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired code';
 
       // Show specific error messages for common OTP errors

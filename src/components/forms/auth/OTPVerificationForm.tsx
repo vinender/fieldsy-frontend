@@ -162,7 +162,7 @@ export default function OTPVerificationForm() {
 
   const handleVerify = async (otpCode?: string) => {
     const code = otpCode || otp.join("")
-    
+
     if (code.length !== 6) {
       toast.error("Please enter all 6 digits")
       return
@@ -189,8 +189,14 @@ export default function OTPVerificationForm() {
       }
     } catch (error: any) {
       // Error is already handled by the mutation's onError callback which shows toast
-      // Just catch it here to prevent unhandled promise rejection
-      console.log('OTP verification error handled by mutation hook')
+      // But let's also explicitly show toast here as a fallback
+      console.log('OTP verification error caught in handleVerify:', error);
+      console.log('Error response:', error?.response?.data);
+
+      // Explicitly show toast as fallback (mutation hook should already show it)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Invalid or expired OTP';
+      console.log('Showing toast with message:', errorMessage);
+      toast.error(errorMessage);
     }
   }
 

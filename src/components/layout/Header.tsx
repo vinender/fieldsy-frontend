@@ -238,34 +238,14 @@ export function Header() {
                     className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                     aria-label="User menu"
                   >
-                    {getUserImage(currentUser) ? (
-                      <div className="h-10 w-10 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white overflow-hidden relative">
-                        <Image
-                          src={getUserImage(currentUser) || ''}
-                          alt={currentUser?.name || "Profile"}
-                          fill
-                          className="object-cover"
-                          onError={(e) => {
-                            // Hide the failed image
-                            e.currentTarget.style.display = 'none';
-                            // Show the fallback initial in the parent div which already has solid background
-                            const parent = e.currentTarget.parentElement;
-                            if (parent) {
-                              const initial = document.createElement('span');
-                              initial.className = 'text-white text-sm font-semibold relative z-10';
-                              initial.textContent = getUserInitials(currentUser);
-                              parent.appendChild(initial);
-                            }
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white">
-                        <span className="text-white text-sm font-semibold">
-                          {getUserInitials(currentUser)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="h-10 w-10 rounded-full ring-2 ring-white overflow-hidden relative">
+                      <Image
+                        src={getUserImage(currentUser) || ''}
+                        alt={currentUser?.name || "Profile"}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   </button>
                   
                   {/* Dropdown Menu */}

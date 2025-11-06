@@ -212,6 +212,41 @@ export const useTransactionDetails = (transactionId: string) => {
   });
 };
 
+// Get held payouts waiting for Stripe account connection
+export const useHeldPayouts = () => {
+  const { data: session } = useSession();
+
+  return useQuery({
+    queryKey: ['held-payouts'],
+    queryFn: async () => {
+      const token = (session as any)?.accessToken ||
+                   (typeof window !== 'undefined' && localStorage.getItem('authToken'));
+
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch(
+        `${API_URL}/earnings/held-payouts`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch held payouts');
+      }
+
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!session || !!(typeof window !== 'undefined' && localStorage.getItem('authToken')),
+  });
+};
+
 // Helper function to format currency
 export const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-US', {

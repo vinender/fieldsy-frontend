@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 interface PublicSettings {
+  defaultCommissionRate: number;
   cancellationWindowHours: number;
   maxAdvanceBookingDays: number;
   maxBookingsPerUser: number;
@@ -38,4 +39,11 @@ export const useCancellationWindow = () => {
 export const useMaxAdvanceBookingDays = () => {
   const { data: settings } = usePublicSettings();
   return settings?.maxAdvanceBookingDays || 30; // Default to 30 days if not loaded
+};
+
+// Helper hook to get platform commission rate (as decimal, e.g., 20 -> 0.20)
+export const usePlatformCommissionRate = () => {
+  const { data: settings } = usePublicSettings();
+  const commissionPercentage = settings?.defaultCommissionRate || 20; // Default to 20% if not loaded
+  return commissionPercentage / 100; // Convert to decimal (e.g., 20 -> 0.20)
 };

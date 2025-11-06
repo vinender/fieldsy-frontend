@@ -73,19 +73,16 @@ export default function OwnerInformation({
       router.push(`/user/messages?userId=${owner.id}`);
     }
   };
-
+   console.log(';; owner', owner);
   return (
     <div className={className}>
       <h3 className="text-[18px] font-bold text-dark-green mb-2.5">Owner Information</h3>
       <div className="bg-[#F8F1D7] rounded-lg p-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <img
-            src={getUserImage(owner)}
+            src={getUserImage(owner) || ''}
             alt={owner.name || 'Field Owner'}
             className="w-10 h-10 rounded-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(owner)}&background=3A6B22&color=fff&size=200`;
-            }}
           />
           <div>
             <div className="flex items-center gap-1">

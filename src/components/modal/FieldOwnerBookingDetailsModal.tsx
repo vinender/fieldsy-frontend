@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { formatDateDDMMYYYY } from '@/utils/formatters';
+import { usePlatformCommissionRate } from '@/hooks/usePublicSettings';
 
 interface Booking {
   id: string;
@@ -29,12 +30,13 @@ interface FieldOwnerBookingDetailsModalProps {
   booking: Booking | null;
 }
 
-const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps> = ({ 
-  isOpen, 
+const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps> = ({
+  isOpen,
   onClose,
   booking
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const commissionRate = usePlatformCommissionRate(); // Get dynamic commission rate from admin settings
 
   useEffect(() => {
     if (isOpen) {
@@ -77,11 +79,11 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
 
   // Calculate fees - field owner perspective
   // Subtotal = booking amount (what customer paid)
-  // Fieldsy Fee = deducted from subtotal
+  // Fieldsy Fee = deducted from subtotal based on admin-defined commission rate
   // Total = what field owner receives (subtotal - fee)
   const calculateFees = () => {
     const subTotal = booking?.amount || 0; // Booking amount
-    const fieldsyFee = subTotal * 0.1; // 10% fee deducted
+    const fieldsyFee = subTotal * commissionRate; // Commission rate from admin settings (e.g., 20% = 0.20)
     const total = subTotal - fieldsyFee; // What field owner receives
 
     return {

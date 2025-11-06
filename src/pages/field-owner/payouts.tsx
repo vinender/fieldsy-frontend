@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { 
-  useEarningsHistory, 
-  useEarningsSummary, 
-  formatCurrency, 
+import {
+  useEarningsHistory,
+  useEarningsSummary,
+  useHeldPayouts,
+  formatCurrency,
   formatTransactionDate,
-  type Transaction 
+  type Transaction
 } from '@/hooks/usePayouts';
 import {
   useStripeAccountStatus,
@@ -25,10 +26,10 @@ const EarningsHistory: React.FC = () => {
   const itemsPerPage = 10;
 
   // Fetch data using React Query hooks
-  const { 
-    data: earningsData, 
-    isLoading: isLoadingHistory, 
-    error: historyError 
+  const {
+    data: earningsData,
+    isLoading: isLoadingHistory,
+    error: historyError
   } = useEarningsHistory({
     page: currentPage,
     limit: itemsPerPage,
@@ -36,7 +37,7 @@ const EarningsHistory: React.FC = () => {
   });
 
   // Get overall stats without filters for the count badges
-  const { 
+  const {
     data: overallStats
   } = useEarningsHistory({
     page: 1,
@@ -51,10 +52,13 @@ const EarningsHistory: React.FC = () => {
     })
   });
 
-  const { 
-    data: summaryData, 
-    isLoading: isLoadingSummary 
+  const {
+    data: summaryData,
+    isLoading: isLoadingSummary
   } = useEarningsSummary('all');
+
+  // ✅ Get held payouts data
+  const { data: heldPayoutsData } = useHeldPayouts();
 
   // Stripe Connect hooks
   const { data: accountStatus, refetch: refetchAccount } = useStripeAccountStatus();
@@ -363,6 +367,67 @@ const EarningsHistory: React.FC = () => {
           )} */}
 
         </div>
+
+        {/* Pending/Held Payouts Alert - Show when user has held payouts */}
+        {heldPayoutsData?.data?.totalHeldAmount > 0 && (
+          <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-6 mb-6 shadow-md">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-amber-900 mb-1">
+                    💰 Pending Payments Awaiting Release
+                  </h3>
+                  <p className="text-amber-800 mb-2">
+                    {heldPayoutsData.data.actionMessage}
+                  </p>
+                  <div className="flex flex-wrap gap-4 mt-3">
+                    <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
+                      <p className="text-xs text-amber-700 font-medium">Total Pending</p>
+                      <p className="text-xl font-bold text-amber-900">
+                        {formatCurrency(heldPayoutsData.data.totalHeldAmount)}
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
+                      <p className="text-xs text-amber-700 font-medium">Bookings On Hold</p>
+                      <p className="text-xl font-bold text-amber-900">
+                        {heldPayoutsData.data.heldBookingsCount}
+                      </p>
+                    </div>
+                    {heldPayoutsData.data.heldByReason?.noStripeAccount?.count > 0 && (
+                      <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
+                        <p className="text-xs text-amber-700 font-medium">Awaiting Bank Setup</p>
+                        <p className="text-xl font-bold text-amber-900">
+                          {formatCurrency(heldPayoutsData.data.heldByReason.noStripeAccount.amount)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {heldPayoutsData.data.requiresAction && (
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={handleConnectBank}
+                    disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
+                    className="bg-amber-600 hover:bg-amber-700 transition-colors text-white font-bold px-6 py-3 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg animate-pulse"
+                  >
+                    {isConnecting || createAccount.isPending || getOnboardingLink.isPending
+                      ? 'Connecting...'
+                      : !accountStatus?.data?.hasAccount
+                      ? 'Connect Bank to Release Funds'
+                      : 'Complete Setup to Release Funds'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Status Filter Tabs - Only show when bank is connected */}
         {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && (

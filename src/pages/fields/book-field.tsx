@@ -689,13 +689,14 @@ const BookFieldPage = () => {
                     textClassName="text-sm sm:text-[16px] text-dark-green truncate"
                     showDistance={true}
                   />
-                  {field.averageRating && (
+                  {/* {field.averageRating && ( */}
                     <div className="bg-dark-green w-16 flex justify-between px-2 py-1 rounded-md flex items-center ">
                       <img src='/star.svg' className="w-[20px] h-[20px] text-yellow-400  fill-yellow" />
                       <span className="text-white text-[14px] font-semibold">{field.averageRating.toFixed(1)}</span>
                     </div>
-                  )}
+                  {/* )} */}
                 </div>
+                
               </div>  
 
               {/* Owner Information */}
