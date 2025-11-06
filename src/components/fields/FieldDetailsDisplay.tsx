@@ -3,7 +3,7 @@ import { MapPin, Star, Shield, Heart, ChevronDown, BadgeCheck, CheckCircle } fro
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/router';
-import { getAmenityLabel } from '@/utils/formatters';
+import { getAmenityLabel, formatOpeningHours } from '@/utils/formatters';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 
 interface FieldDetailsDisplayProps {
@@ -34,13 +34,24 @@ export default function FieldDetailsDisplay({
 
   const isClaimed = !isPreview && (field?.isActive || false);
 
+  // Format opening hours with AM/PM
+  const formattedOpeningHours = field?.openingTime && field?.closingTime
+    ? formatOpeningHours(field.openingTime, field.closingTime)
+    : 'Monday to Friday (6:00 AM – 8:00 PM)';
+
+  console.log('Opening Hours Debug:', {
+    openingTime: field?.openingTime,
+    closingTime: field?.closingTime,
+    formatted: formattedOpeningHours
+  });
+
   const specifications: { label: string; value: string }[] = [
     { label: 'Field Size', value: field?.size || 'Not specified' },
     { label: 'Fence type & size', value: field?.fenceType || '6 ft steel mesh, fully enclosed' },
     { label: 'Terrain Type', value: field?.type || 'Soft grass + walking path' },
     { label: 'Surface type', value: field?.surfaceType || 'Flat with gentle slopes' },
     { label: 'Max Dogs', value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : '4 dogs allowed' },
-    { label: 'Opening Hours', value: field?.openingTime && field?.closingTime ? `${field.openingTime} - ${field.closingTime}` : 'Monday to Friday (6:00 AM – 8:00 PM)' },
+    { label: 'Opening Hours', value: formattedOpeningHours },
   ];
 
   const fieldImages = field?.images && field.images.length > 0 ? getImageUrls(field.images) : [ 

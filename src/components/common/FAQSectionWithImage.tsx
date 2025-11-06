@@ -43,7 +43,7 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
             {/* Dog Image */}
             <div className="absolute inset-0 p-10 sm:p-16 lg:p-20 flex items-center justify-center">
               <img 
-                src="/faq/dog.png"
+                src="/faq/dog.webp"
                 alt="Happy dog"
                 className="w-full h-full object-contain"
               />

@@ -12,7 +12,7 @@ export  function HowItWorksSection() {
       title: "Find Fields Near You",
       description: "Easily find trusted, private dog walking fields near you using GPS or postcode search. No more crowded parks—just peaceful, secure spaces tailored for your dog's freedom.",
       image: "/dog.mp4",
-      thumbnail: "/how-it-works/dog.png"
+      thumbnail: "/how-it-works/dog.webp"
     },
     { 
       icon: "/how-it-works/icon2.png",

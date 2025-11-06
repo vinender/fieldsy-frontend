@@ -11,7 +11,7 @@ export function HeroSection() {
   useEffect(() => {
     // Preload the high-resolution image
     const img = new window.Image();
-    img.src = '/green-field-high-res.png';
+    img.src = '/green-field-high-res.webp';
     img.onload = () => {
       // Add a small delay to ensure smooth transition
       setTimeout(() => {
@@ -62,7 +62,7 @@ export function HeroSection() {
       <div 
         className={`absolute inset-0 z-0 transition-opacity duration-700 ${highResLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          backgroundImage: `url('/green-field-high-res.png')`,
+          backgroundImage: `url('/green-field-high-res.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -108,7 +108,7 @@ export function HeroSection() {
           {/* Dog Image - Positioned absolutely */}
           <div className="hidden xl:block absolute -top-[160px] xl:left-[40%] 2xl:left-[20%]  z-30  ">
             <Image
-              src="/dog.png"
+              src="/dog.webp"
               alt="Happy Golden Retriever"
               width={288}
               height={288}

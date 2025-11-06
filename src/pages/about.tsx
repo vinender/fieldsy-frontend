@@ -5,6 +5,7 @@ import { LazySection } from "@/components/common/LazySection"
 import { Skeleton } from "@/components/ui/skeleton"
 import axiosClient from "@/lib/api/axios-client"
 
+
 // Lazy load sections that are below the fold
 const AboutMissionSection = dynamic(
   () => import("@/components/about/AboutMissionSection").then(mod => ({ default: mod.AboutMissionSection })),
@@ -37,17 +38,22 @@ interface AboutPageProps {
 
 
 export default function AboutPage({ aboutData }: AboutPageProps) {
+
+
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden pt-20">
+
+     
+
       {/* Hero Section - Always loaded immediately as it's above the fold */}
       <AboutHeroSection data={aboutData?.heroSection} loading={false} />
 
       {/* About Us Label */}
-      <div className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
+      {/* <div className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
         <h1 className="text-[29px] font-semibold text-dark-green mt-5">
           About us
         </h1>
-      </div>
+      </div> */}
 
       {/* Mission Section - Lazy loaded with intersection observer */}
       <LazySection 
@@ -55,7 +61,7 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
         threshold={0.1}
         rootMargin="100px"
       >
-        <AboutMissionSection data={aboutData?.missionSection} loading={false} />
+        <AboutMissionSection data={aboutData?.missionSection} loading={false} />  
       </LazySection>
 
       {/* Who We Are Section - Lazy loaded */}
@@ -100,7 +106,7 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
 export const getStaticProps: GetStaticProps = async () => {
   try {
     // Fetch about page data at build time
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/about-page`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/about-page`)
     const aboutData = await response.json()
 
     return {

@@ -336,7 +336,7 @@ export function getAmenityLabel(amenity: string | any): string {
  */
 export function deslugify(text: string): string {
   if (!text) return '';
-  
+
   return text
     // Replace hyphens and underscores with spaces
     .replace(/[-_]/g, ' ')
@@ -344,4 +344,73 @@ export function deslugify(text: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase())
     // Trim any extra spaces
     .trim();
+}
+
+/**
+ * Format time string to 12-hour format with AM/PM
+ * Accepts formats: "HH:mm", "HH:mm:ss", or ISO datetime string
+ * e.g., "09:00" -> "9:00 AM"
+ * e.g., "13:30" -> "1:30 PM"
+ * e.g., "00:00" -> "12:00 AM"
+ * e.g., "12:00" -> "12:00 PM"
+ */
+export function formatTimeTo12Hour(time: string): string {
+  if (!time) return '';
+
+  try {
+    // Extract time part if it's a full datetime string
+    let timeString = time;
+    if (time.includes('T') || time.includes(' ')) {
+      // Handle ISO datetime or datetime with space
+      const date = new Date(time);
+      if (!isNaN(date.getTime())) {
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      } else {
+        // Extract time portion manually if Date parsing fails
+        timeString = time.split(/[T ]/)[1] || time;
+      }
+    }
+
+    // Parse HH:mm or HH:mm:ss format
+    const parts = timeString.split(':');
+    if (parts.length < 2) return time; // Return original if not valid format
+
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+
+    // Validate hours and minutes
+    if (isNaN(hours) || hours < 0 || hours > 23) return time;
+    if (isNaN(parseInt(minutes, 10)) || parseInt(minutes, 10) < 0 || parseInt(minutes, 10) > 59) return time;
+
+    // Determine AM/PM
+    const period = hours >= 12 ? 'PM' : 'AM';
+
+    // Convert to 12-hour format
+    if (hours === 0) {
+      hours = 12; // Midnight case
+    } else if (hours > 12) {
+      hours = hours - 12;
+    }
+
+    return `${hours}:${minutes} ${period}`;
+  } catch (error) {
+    console.error('Error formatting time:', time, error);
+    return time; // Return original on error
+  }
+}
+
+/**
+ * Format opening hours range with AM/PM
+ * e.g., "09:00 - 17:00" -> "9:00 AM - 5:00 PM"
+ * e.g., "06:00-20:00" -> "6:00 AM - 8:00 PM"
+ */
+export function formatOpeningHours(openingTime: string, closingTime: string): string {
+  if (!openingTime || !closingTime) return '';
+
+  const formattedOpening = formatTimeTo12Hour(openingTime);
+  const formattedClosing = formatTimeTo12Hour(closingTime);
+
+  return `${formattedOpening} - ${formattedClosing}`;
 }
