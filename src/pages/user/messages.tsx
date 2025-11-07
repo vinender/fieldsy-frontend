@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { ListSkeleton, ChatMessageSkeleton } from '@/components/skeletons/SkeletonComponents';
 import Spinner from '@/components/ui/Spinner';
-import Spinner from '@/components/ui/Spinner';
+
 import { useConversations } from '@/hooks/queries/useMessageQueries';
 import { useCreateConversation, useDeleteConversation, useSendMessage } from '@/hooks/mutations/useMessageMutations';
 import { useBlockStatus, useUnblockUser } from '@/hooks/queries/useUserBlockQueries';
