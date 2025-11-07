@@ -16,6 +16,7 @@ import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 
+
 interface FieldDetailsLegacyProps {
   field: any;
   isPreview?: boolean;
@@ -90,6 +91,15 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   const getFieldTypeLabel = (type: string) => {
     if (!type) return 'Not specified';
     const typeMap: { [key: string]: string } = {
+      'soft-grass': 'Soft Grass',
+      'walking-path': 'Walking Path',
+      'wood-chips': 'Wood Chips',
+      'artificial-grass': 'Artificial Grass',
+      'mixed-terrain': 'Mixed Terrain',
+      'post-and-wire': 'Post and Wire',
+      'wooden-panel': 'Wooden Panel',
+      'fully-enclosed-field-fencing': 'Fully Enclosed Field Fencing',
+      'metal-rail': 'Metal Rail',
       'PRIVATE': 'Private',
       'PUBLIC': 'Public',
       'TRAINING': 'Training'
@@ -110,7 +120,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
     },
     {
       label: 'Terrain Type',
-      value: field?.type ? getFieldTypeLabel(field.type) : 'Not specified'
+      value: field?.type ? getFieldTypeLabel(field.terrainType) : 'Not specified'
     },
     {
       label: 'Surface type',
