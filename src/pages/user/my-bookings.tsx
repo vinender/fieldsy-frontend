@@ -158,9 +158,12 @@ const BookingHistoryPage = () => {
   }, [activeTab]);
 
   useEffect(() => {
+    console.log('[MyBookings] useEffect triggered - activeTab:', activeTab);
     if (activeTab === 'recurring') {
+      console.log('[MyBookings] Calling fetchRecurringBookings...');
       fetchRecurringBookings();
     } else {
+      console.log('[MyBookings] Calling fetchBookings...');
       fetchBookings();
     }
   }, [activeTab, page, session, userLocation, appliedFilters]);
@@ -184,13 +187,14 @@ const BookingHistoryPage = () => {
   }, []);
 
   const fetchRecurringBookings = async () => {
+    console.log('[RecurringBookings] Starting fetch...');
     setLoading(true);
     setError(null);
-    
+
     try {
       // Get token from session or localStorage
       let token = (session as any)?.accessToken;
-      
+
       if (!token) {
         const storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
@@ -198,13 +202,15 @@ const BookingHistoryPage = () => {
           token = user.token;
         }
       }
-      
+
       if (!token) {
+        console.log('[RecurringBookings] No token found');
         setError('Please login to view bookings');
         setLoading(false);
         return;
       }
-      
+
+      console.log('[RecurringBookings] Fetching from API...');
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/my-recurring`,
         {
@@ -214,19 +220,23 @@ const BookingHistoryPage = () => {
           }
         }
       );
-      
+
       if (response.ok) {
         const data = await response.json();
+        console.log('[RecurringBookings] API Response:', data);
+        console.log('[RecurringBookings] Setting recurring bookings:', data.data?.length || 0, 'items');
         setRecurringBookings(data.data || []);
       } else {
         const errorData = await response.json();
+        console.log('[RecurringBookings] API Error:', errorData);
         setError(errorData.message || 'Failed to fetch recurring bookings');
       }
     } catch (err) {
+      console.error('[RecurringBookings] Fetch error:', err);
       setError('Failed to fetch recurring bookings');
-      console.error('Error fetching recurring bookings:', err);
     } finally {
       setLoading(false);
+      console.log('[RecurringBookings] Fetch complete');
     }
   };
   
@@ -1048,54 +1058,57 @@ const BookingHistoryPage = () => {
                 Try Again
               </button>
             </div>
+          ) : activeTab === 'recurring' ? (
+            (() => {
+              console.log('[MyBookings] Rendering recurring tab - recurringBookings.length:', recurringBookings.length);
+              return recurringBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">
+                    No recurring bookings
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You don't have any recurring bookings set up.
+                  </p>
+                  <button
+                    onClick={() => router.push('/fields')}
+                    className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
+                  >
+                    Find Fields
+                  </button>
+                </div>
+              ) : (
+                recurringBookings.map((subscription) => (
+                  <RecurringBookingCard key={subscription.id} subscription={subscription} />
+                ))
+              );
+            })()
           ) : displayBookings.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">
                 No {activeTab} bookings
               </h3>
               <p className="text-gray-600 mb-4">
-                {activeTab === 'upcoming' 
+                {activeTab === 'upcoming'
                   ? "You don't have any upcoming bookings."
                   : "You don't have any previous bookings."}
               </p>
-              <button 
+              <button
                 onClick={() => router.push('/fields')}
                 className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
               >
-                Find Fields
+                Browse Fields
               </button>
             </div>
-          ) : activeTab === 'recurring' ? (
-            recurringBookings.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">
-                  No recurring bookings
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  You don't have any recurring bookings set up.
-                </p>
-                <button
-                  onClick={() => router.push('/fields')}
-                  className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
-                >
-                  Find Fields
-                </button>
-              </div>
-            ) : (
-              recurringBookings.map((subscription) => (
-                <RecurringBookingCard key={subscription.id} subscription={subscription} />
-              ))
-            )
           ) : (
             displayBookings.map((booking) => (
               <BookingCard key={booking._id} booking={booking} />

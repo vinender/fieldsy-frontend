@@ -31,6 +31,7 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
 
           {/* Right Section - Dog Image with Background */}
           <div className="relative rounded-3xl overflow-hidden h-[400px] lg:h-[600px] xl:h-[700px] lg:self-start">
+           
             {/* Background Image */}
             <div className="absolute inset-0">
               <img 
@@ -48,7 +49,9 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
                 className="w-full h-full object-contain"
               />
             </div>
+
           </div>
+          
         </div>
       </div>
     </section>
