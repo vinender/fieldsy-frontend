@@ -13,7 +13,7 @@ import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
 import { deslugify, formatDateDDMMYYYY } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
-import GreenSpinner from '@/components/common/GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 
 interface BookingDetailsModalProps {
@@ -205,7 +205,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
           <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto scrollbar-hide flex-1">
             {isLoading ? (
               <div className="flex justify-center items-center py-12">
-                <GreenSpinner size="medium" />
+                <Spinner size="md" />
               </div>
             ) : (
               <>

@@ -1,6 +1,6 @@
 import React from 'react';
-import GreenSpinner from './GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 
 export default function PageLoader() {
-  return <GreenSpinner size="full-screen" />;
+  return <Spinner size="full-screen" />;
 }

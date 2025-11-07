@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import GreenSpinner from '../common/GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 
 interface UserLayoutProps {
   children: React.ReactNode;
@@ -71,7 +71,7 @@ export function UserLayout({ children, requireRole }: UserLayoutProps) {
   if (isLoading || status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
-       <GreenSpinner/>
+       <Spinner size="md" />
       </div>
     );
   }

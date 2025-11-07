@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Spinner from '@/components/ui/Spinner';
 
 /**
  * Stripe Redirect Bridge Page
@@ -73,7 +74,7 @@ const StripeRedirectPage = () => {
           {redirecting ? (
             <>
               <div className="mb-6">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto"></div>
+                <Spinner size="xl" className="mx-auto" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 Redirecting to Fieldsy

@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import { ComponentType, useEffect } from 'react';
-import GreenSpinner from '@/components/common/GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 
 /**
  * Helper function to create dynamic imports with consistent loading state
@@ -16,7 +16,7 @@ export function createDynamicComponent<P = {}>(
     ssr: options?.ssr ?? true,
     loading: options?.loading || (() => (
       <div className="flex justify-center items-center min-h-[200px]">
-        <GreenSpinner size="medium" />
+        <Spinner size="md" />
       </div>
     )),
   });

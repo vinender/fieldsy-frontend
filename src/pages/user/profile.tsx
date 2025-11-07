@@ -6,9 +6,9 @@ import {
   Phone,
   Check,
   ChevronDown,
-  Upload,
-  Loader2
+  Upload
 } from 'lucide-react';
+import Spinner from '@/components/ui/Spinner';
 import ChangePasswordSidebar from '@/components/sidebar/ChangePasswordSidebar';
 import { Input } from '@/components/ui/input';
 import { useProfile, useUpdateProfile, useUploadProfileImage, useDeleteProfileImage } from '@/hooks/useProfile';
@@ -292,7 +292,7 @@ const MyProfilePage = () => {
                   />
                   {uploadImageMutation.isPending ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Spinner size="sm" />
                       Uploading...
                     </span>
                   ) : (
@@ -307,7 +307,7 @@ const MyProfilePage = () => {
                   >
                     {deleteImageMutation.isPending ? (
                       <span className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Spinner size="sm" />
                         Deleting...
                       </span>
                     ) : (
@@ -415,7 +415,7 @@ const MyProfilePage = () => {
                 >
                   {updateProfileMutation.isPending ? (
                     <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Spinner size="sm" />
                       Updating...
                     </span>
                   ) : (

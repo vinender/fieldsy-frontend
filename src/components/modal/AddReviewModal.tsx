@@ -1,6 +1,7 @@
-//add review modal 
+//add review modal
 import React, { useState } from 'react';
-import { X, Star, Upload, Loader2 } from 'lucide-react';
+import { X, Star, Upload } from 'lucide-react';
+import Spinner from '@/components/ui/Spinner';
 import { useSession } from 'next-auth/react';
 import { useCreateReview } from '@/hooks/useReviews';
 import { toast } from 'sonner';

@@ -1,5 +1,5 @@
 import { Suspense, ReactNode } from 'react';
-import GreenSpinner from './GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 
 interface SuspenseWrapperProps {
   children: ReactNode;
@@ -18,7 +18,7 @@ export function SuspenseWrapper({
 }: SuspenseWrapperProps) {
   const defaultFallback = (
     <div className="flex justify-center items-center min-h-[200px]">
-      <GreenSpinner size="large" />
+      <Spinner size="lg" />
     </div>
   );
 

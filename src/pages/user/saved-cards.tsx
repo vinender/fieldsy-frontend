@@ -8,6 +8,7 @@ import { UserLayout } from '@/components/layout/UserLayout';
 import AddCardModal from '@/components/payment/AddCardModal';
 import { CreditCardDisplay } from '@/components/payment/CreditCardDisplay';
 import { DeleteCardConfirmationModal } from '@/components/modal/DeleteCardConfirmationModal';
+import Spinner from '@/components/ui/Spinner';
 
 
 
@@ -176,7 +177,7 @@ export default function SavedCards() {
               <div className="space-y-8">
                 {loading ? (
                   <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
+                    <Spinner size="lg" className="mx-auto" />
                     <p className="mt-2 text-gray-600">Loading saved cards...</p>
                   </div>
                 ) : cards.length === 0 ? (

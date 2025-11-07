@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ChevronLeft, AlertCircle } from 'lucide-react';
+import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import { Input } from '@/components/ui/input';
 import mockData from '@/data/mock-data.json';
@@ -498,7 +499,7 @@ const ClaimFieldPage = () => {
           >
             {submitClaimMutation.isPending ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Spinner size="sm" />
                 Submitting...
               </>
             ) : (

@@ -4,7 +4,8 @@ import { useRouter } from 'next/router';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useOwnerFields, useToggleFieldStatus } from '@/hooks';
 import { FieldData } from '@/hooks/queries/useFieldQueries';
-import { Eye, Edit, Power, Loader2 } from 'lucide-react';
+import { Eye, Edit, Power } from 'lucide-react';
+import Spinner from '@/components/ui/Spinner';
 import  BackButton  from '@/components/common/BackButton';
 
 export default function MyFieldsPage() {
@@ -154,7 +155,7 @@ export default function MyFieldsPage() {
                         title={field.isActive ? 'Disable Field' : 'Enable Field'}
                       >
                         {togglingFieldId === field.id ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <Spinner size="sm" />
                         ) : (
                           <Power className="w-5 h-5" />
                         )}

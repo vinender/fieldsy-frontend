@@ -4,7 +4,7 @@ import { useCheckRefundEligibility } from '@/hooks/useBookingApi';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { useCancelBooking } from '@/hooks/mutations/useBookingMutations';
 import { toast } from 'sonner';
-import GreenSpinner from '@/components/common/GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 
 // Format date to DD/MM/YYYY
 const formatDate = (dateString: string): string => {
@@ -246,7 +246,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           <div className="absolute inset-0 bg-white bg-opacity-90 rounded-xl sm:rounded-2xl flex items-center justify-center z-10">
             <div className="text-center">
               <div className="flex justify-center mb-3">
-                <GreenSpinner size="large" />
+                <Spinner size="lg" />
               </div>
               <p className="text-sm sm:text-base font-semibold text-[#192215]">Cancelling your booking...</p>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">Please wait</p>
@@ -305,7 +305,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         {/* Refund Eligibility Status */}
         {checkingEligibility ? (
           <div className="flex items-center justify-center py-3 sm:py-4">
-            <GreenSpinner size="medium" />
+            <Spinner size="md" />
           </div>
         ) : (
           <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${
@@ -372,7 +372,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           >
             {cancelBookingMutation.isPending ? (
               <>
-                <GreenSpinner size="small" />
+                <Spinner size="sm" />
                 <span>Cancelling...</span>
               </>
             ) : (

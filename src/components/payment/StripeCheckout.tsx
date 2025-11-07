@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { BookingSuccessModal } from '../modal/BookingSuccessModal';
 import { toast } from 'sonner';
-import GreenSpinner from '@/components/common/GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 
 interface CheckoutFormProps {
   amount: number;
@@ -211,7 +211,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
         </div>
         <div className="text-center">
           <div className="mx-auto flex justify-center">
-            <GreenSpinner size="medium" />
+            <Spinner size="md" />
           </div>
           <p className="mt-2 text-sm text-gray-600">Processing your booking...</p>
         </div>
@@ -224,7 +224,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
       <div className="space-y-6">
         <div className="text-center">
           <div className="mx-auto flex justify-center">
-            <GreenSpinner size="medium" />
+            <Spinner size="md" />
           </div>
           <p className="mt-2 text-sm text-gray-600">Processing payment with saved card...</p>
         </div>
@@ -526,7 +526,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
         >
           {processing ? (
             <span className="flex items-center justify-center gap-2">
-              <GreenSpinner size="small" className="!border-gray-200 !border-t-white" />
+              <Spinner size="sm" className="!border-gray-200 !border-t-white" />
               Processing...
             </span>
           ) : succeeded ? (
@@ -561,7 +561,7 @@ const StripeCheckout: React.FC<StripeCheckoutProps> = (props) => {
   if (status === 'loading') {
     return (
       <div className="flex justify-center items-center py-8">
-        <GreenSpinner size="medium" />
+        <Spinner size="md" />
       </div>
     );
   }

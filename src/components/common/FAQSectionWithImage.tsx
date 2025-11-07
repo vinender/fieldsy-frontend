@@ -38,7 +38,7 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
                 alt="Background"
                 className="w-full h-full object-cover"
               />
-            </div>
+            </div>  
             
             {/* Dog Image */}
             <div className="absolute inset-0 p-10 sm:p-16 lg:p-20 flex items-center justify-center">

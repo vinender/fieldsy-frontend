@@ -10,6 +10,7 @@ import AddCardModal from '@/components/payment/AddCardModal';
 import { CreditCardDisplay } from '@/components/payment/CreditCardDisplay';
 import { usePaymentMethods, useSetDefaultPaymentMethod, useDeletePaymentMethod } from '@/hooks/queries/usePaymentMethodQueries';
 import { toast } from 'sonner';
+import Spinner from '@/components/ui/Spinner';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
@@ -225,7 +226,7 @@ const PaymentPage = () => {
               {/* Loading State */}
               {isLoadingCards && (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
+                  <Spinner size="lg" />
                 </div>
               )}
 

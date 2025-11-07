@@ -20,7 +20,8 @@ import styles from '@/styles/messages.module.css';
 import { toast } from 'sonner';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { ListSkeleton, ChatMessageSkeleton } from '@/components/skeletons/SkeletonComponents';
-import GreenSpinner from '@/components/common/GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/Spinner';
 import { useConversations } from '@/hooks/queries/useMessageQueries';
 import { useCreateConversation, useDeleteConversation, useSendMessage } from '@/hooks/mutations/useMessageMutations';
 import { useBlockStatus, useUnblockUser } from '@/hooks/queries/useUserBlockQueries';
@@ -1047,7 +1048,7 @@ const MessagesPage = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-light">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+          <Spinner size="lg" />
           <p className="mt-4 text-gray-600">Loading messages...</p>
         </div>
       </div>

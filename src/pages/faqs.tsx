@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { FAQPageList } from "@/components/common/FAQPageList"
 import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
 import { useFAQs } from "@/hooks/queries/useFAQQueries"
+import Spinner from "@/components/ui/Spinner"
 
 export interface FAQItem {
   question: string
@@ -54,7 +55,7 @@ export default function FAQPage() {
             {/* Loading State */}
             {isLoading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+                <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-dark-green/60">Loading FAQs...</p>
               </div>
             ) : isError ? (

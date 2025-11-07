@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { ChevronDown, ChevronUp, Star, Calendar } from 'lucide-react';
 import BackButton from '@/components/common/BackButton';
+import Spinner from '@/components/ui/Spinner';
 import { Input } from '@/components/ui/input';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -696,7 +697,7 @@ const BookFieldPage = () => {
                     </div>
                   {/* )} */}
                 </div>
-                
+
               </div>  
 
               {/* Owner Information */}
@@ -818,10 +819,7 @@ const BookFieldPage = () => {
                     >
                       {isRefetchingSlots ? (
                         <>
-                          <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
+                          <Spinner size="xs" />
                           <span>Refreshing...</span>
                         </>
                       ) : (
@@ -865,10 +863,7 @@ const BookFieldPage = () => {
                   {isRefetchingSlots && (
                     <div className="absolute inset-0 flex items-center justify-center z-10">
                       <div className="bg-white rounded-lg px-4 py-2 shadow-lg flex items-center gap-2">
-                        <svg className="animate-spin h-4 w-4 text-[#3A6B22]" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
+                        <Spinner size="sm" />
                         <span className="text-sm text-[#3A6B22]">Updating availability...</span>
                       </div>
                     </div>

@@ -6,7 +6,7 @@ import { useResponsiveRouter } from '@/hooks/useResponsiveRouter';
 import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
 import { detectPostcodeInQuery, getPostcodeDisplay } from '@/utils/postcode';
-import GreenSpinner from '@/components/common/GreenSpinner';
+import Spinner from '@/components/ui/Spinner';
 
 interface RecentSearch {
   id: string;
@@ -311,7 +311,7 @@ export function FieldSearchInput({
           {isLoadingSuggestions && (
             <div className="px-4 sm:px-5 py-6 sm:py-8 text-center">
               <div className="inline-flex items-center gap-2 text-dark-green/70">
-                <GreenSpinner size="small" />
+                <Spinner size="sm" />
                 <span className="text-xs sm:text-sm">Searching fields...</span>
               </div>
             </div>
