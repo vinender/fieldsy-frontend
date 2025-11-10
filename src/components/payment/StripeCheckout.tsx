@@ -22,6 +22,7 @@ interface CheckoutFormProps {
   paymentMethodId?: string | null; // Add saved payment method
   onSuccess?: () => void;
   onError?: (error: string) => void;
+  onProcessingChange?: (isProcessing: boolean) => void; // Callback for processing state
 }
 
 // Component for saved card payment (doesn't need Stripe Elements)
@@ -34,7 +35,8 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   repeatBooking,
   paymentMethodId,
   onSuccess,
-  onError
+  onError,
+  onProcessingChange
 }) => {
   const router = useRouter();
   const { data: session } = useSession();
@@ -48,6 +50,11 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   // Use useRef to track if we've already initiated payment for this specific booking
   const paymentInitiatedRef = useRef(false);
   const bookingKeyRef = useRef(`${fieldId}_${date}_${timeSlot}_${paymentMethodId}`);
+
+  // Notify parent of processing state changes
+  useEffect(() => {
+    onProcessingChange?.(processing);
+  }, [processing, onProcessingChange]);
 
   useEffect(() => {
     const currentBookingKey = `${fieldId}_${date}_${timeSlot}_${paymentMethodId}`;
@@ -261,7 +268,8 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   timeSlot,
   repeatBooking,
   onSuccess,
-  onError
+  onError,
+  onProcessingChange
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -278,6 +286,11 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   // Use useRef to track if we've already initiated payment for this specific booking
   const paymentInitiatedRef = useRef(false);
   const bookingKeyRef = useRef(`${fieldId}_${date}_${timeSlot}_new_card`);
+
+  // Notify parent of processing state changes
+  useEffect(() => {
+    onProcessingChange?.(processing);
+  }, [processing, onProcessingChange]);
 
   useEffect(() => {
     const currentBookingKey = `${fieldId}_${date}_${timeSlot}_new_card`;

@@ -7,17 +7,52 @@ interface BookingRulesProps {
 }
 
 export default function BookingRules({ formData, setFormData, validationErrors = {} }: BookingRulesProps) {
+  // Helper function to add full stops to lines that don't already have punctuation
+  const addFullStopsToLines = (text: string): string => {
+    const lines = text.split('\n');
+    const processedLines = lines.map((line, index) => {
+      // Don't process the last line (current line being typed)
+      if (index === lines.length - 1) {
+        return line;
+      }
+
+      // Trim to check if line has content
+      const trimmedLine = line.trim();
+
+      // If line is empty or only whitespace, keep it as is
+      if (trimmedLine === '') {
+        return line;
+      }
+
+      // Check if line already ends with punctuation (., !, ?)
+      const endsWithPunctuation = /[.!?]$/.test(trimmedLine);
+
+      // If no punctuation, add a full stop
+      if (!endsWithPunctuation) {
+        return line + '.';
+      }
+
+      return line;
+    });
+
+    return processedLines.join('\n');
+  };
+
   const handleRulesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const processedValue = addFullStopsToLines(e.target.value);
+
     setFormData((prev: any) => ({
       ...prev,
-      rules: e.target.value
+      rules: processedValue
     }));
   };
 
   const handlePoliciesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const processedValue = addFullStopsToLines(e.target.value);
+
     setFormData((prev: any) => ({
       ...prev,
-      policies: e.target.value
+      policies: processedValue
     }));
   };
 

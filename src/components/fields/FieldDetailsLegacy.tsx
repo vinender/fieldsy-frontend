@@ -130,7 +130,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
       label: 'Max Dogs',
       value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : 'Not specified'
     },
-    {
+    { 
       label: 'Opening Days',
       value: field?.operatingDays?.[0]
         ? getFieldPropertyLabel('openingDays', field.operatingDays[0])
