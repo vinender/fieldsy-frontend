@@ -109,6 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     enabled: (status === 'authenticated') || !!authToken,
   });
 
+  console.log(';; userData', userData)
+
   // Wrap refetch to match the expected type
   const refetchUser = () => {
     refetchUserQuery();
@@ -124,12 +126,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (userData) {
       const newUser = {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        image: userData.image || userData.avatar,
-        role: userData.role as 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN',
-        provider: userData.provider,
+        id: userData?.id,
+        email: userData?.email,
+        name: userData?.name,
+        image: userData?.image || userData?.googleImage || userData?.avatar,
+        role: userData?.role as 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN',
+        provider: userData?.provider,
       };
 
       setUser(newUser);

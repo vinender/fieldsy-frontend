@@ -18,6 +18,7 @@ interface UserWithImage {
 
 export const getUserImage = (user: UserWithImage | null | undefined): string | null => {
   // Check if user object exists
+  console.log(';; userhasImage', user)
   if (!user) {
     return null;
   }
