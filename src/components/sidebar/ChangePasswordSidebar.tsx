@@ -181,9 +181,11 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
                   value={formData.oldPassword}
                   onChange={(e) => handleInputChange('oldPassword', e.target.value)}
                   placeholder="Enter old password"
+                  autoComplete="new-password"
                   className="h-14 pr-12 text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                 />
                 <button
+                  type="button"
                   onClick={() => togglePasswordVisibility('old')}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8d8d8d] hover:text-[#192215] transition-colors"
                 >
@@ -207,9 +209,11 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
                   value={formData.newPassword}
                   onChange={(e) => handleInputChange('newPassword', e.target.value)}
                   placeholder="Enter new password"
+                  autoComplete="new-password"
                   className="h-14 pr-12 text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                 />
                 <button
+                  type="button"
                   onClick={() => togglePasswordVisibility('new')}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8d8d8d] hover:text-[#192215] transition-colors"
                 >
@@ -233,9 +237,11 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   placeholder="Confirm new password"
+                  autoComplete="new-password"
                   className="h-14 pr-12 text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                 />
                 <button
+                  type="button"
                   onClick={() => togglePasswordVisibility('confirm')}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8d8d8d] hover:text-[#192215] transition-colors"
                 >

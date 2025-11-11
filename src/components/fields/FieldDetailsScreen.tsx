@@ -6,7 +6,7 @@ import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleto
 interface FieldDetailsScreenProps {
   field?: any;
   fieldId?: string;
-  isPreview?: boolean;
+  isSubmitted?: boolean;
   showReviews?: boolean;
   showOwnerInfo?: boolean;
   showClaimField?: boolean;
@@ -17,7 +17,7 @@ interface FieldDetailsScreenProps {
 export default function FieldDetailsScreen({
   field: providedField,
   fieldId,
-  isPreview = false,
+  isSubmitted = false,
   showReviews,
   showOwnerInfo,
   showClaimField,
@@ -52,14 +52,14 @@ export default function FieldDetailsScreen({
     );
   }
 
-  const resolvedShowReviews = typeof showReviews === 'boolean' ? showReviews : !isPreview;
-  const resolvedShowOwnerInfo = typeof showOwnerInfo === 'boolean' ? showOwnerInfo : !isPreview;
-  const resolvedShowClaimField = typeof showClaimField === 'boolean' ? showClaimField : !isPreview;
+  const resolvedShowReviews = typeof showReviews === 'boolean' ? showReviews : !isSubmitted;
+  const resolvedShowOwnerInfo = typeof showOwnerInfo === 'boolean' ? showOwnerInfo : !isSubmitted;
+  const resolvedShowClaimField = typeof showClaimField === 'boolean' ? showClaimField : !isSubmitted;
 
   return (
     <FieldDetailsLegacy 
       field={field}
-      isPreview={isPreview}
+      isSubmitted={isSubmitted}
       headerContent={headerContent}
       showReviews={resolvedShowReviews}
     />

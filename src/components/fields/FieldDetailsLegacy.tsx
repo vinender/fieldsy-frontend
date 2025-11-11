@@ -19,12 +19,12 @@ import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 
 interface FieldDetailsLegacyProps {
   field: any;
-  isPreview?: boolean;
+  isSubmitted?: boolean;
   headerContent?: React.ReactNode;
   showReviews?: boolean;
 }
 
-export default function FieldDetailsLegacy({ field, isPreview = false, headerContent, showReviews = true }: FieldDetailsLegacyProps) {
+export default function FieldDetailsLegacy({ field, isSubmitted = false, headerContent, showReviews = true }: FieldDetailsLegacyProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const reviewsRef = useRef<HTMLDivElement>(null);
@@ -37,7 +37,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   const [bookingOpen, setBookingOpen] = useState(false);  // Collapsed by default
   const [showFullDescription, setShowFullDescription] = useState(false);  // For description truncation
 
-  const isClaimed = field?.isClaimed || isPreview || false;
+  const isClaimed = field?.isClaimed || isSubmitted || false;
   const ownerImg =field?.owner?.image
   // Favorite status and toggle
   const fieldId = field?.id || field?._id;
@@ -60,7 +60,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
   }, [field?.id]); // Run when field data is loaded
   
   const handleToggleFavorite = async () => {
-    if (isPreview) return; // Disabled in preview mode
+    if (isSubmitted) return; // Disabled in preview mode
     if (!session) {
       setLoginModalMessage('Please login or sign up to save your favorite fields');
       setShowLoginModal(true);
@@ -173,7 +173,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
         )}
 
         {/* Back Button with Claim Field label for unclaimed fields */}
-        {!isClaimed && !isPreview && (
+        {!isClaimed && !isSubmitted && (
           <div className="px-4 lg:px-20 pb-4">
             <BackButton 
               label="Claim Field" 
@@ -252,7 +252,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   </div>
                 </div>
                 <button 
-                  onClick={isPreview ? undefined : handleToggleFavorite}
+                  onClick={isSubmitted ? undefined : handleToggleFavorite}
                   disabled={toggleFavoriteMutation.isPending}
                   className="mt-2 w-10 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200 disabled:opacity-50 flex-shrink-0"
                 >
@@ -339,14 +339,14 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                   profileImage: ownerImg || field?.owner?.image
                 }}
                 fieldId={field?._id || field?.id}
-                showMessage={!isPreview}
+                showMessage={!isSubmitted}
               />
             )}
             
-            {!isClaimed && !isPreview && (
+            {!isClaimed && !isSubmitted && (
               <div className="flex items-center gap-3">
                 <button 
-                  onClick={isPreview ? undefined : () => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
+                  onClick={isSubmitted ? undefined : () => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
                   className="flex-1 w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-[70px] hover:bg-[#2e5519] transition"
                 >
                   Claim This Field
@@ -455,7 +455,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                     <span className="text-dark-green font-medium ">Availability</span>
                   </div>
 
-                  <button   onClick={isPreview ? undefined : () => {
+                  <button   onClick={isSubmitted ? undefined : () => {
                     if (!session) {
                       router.push('/login');
                     } else {
@@ -701,10 +701,10 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
               </div>
             )}
 
-            {isClaimed && !isPreview && (
+            {isClaimed && !isSubmitted && (
               <div className="space-y-3">
                 <button 
-                  onClick={isPreview ? undefined : () => {
+                  onClick={isSubmitted ? undefined : () => {
                     if (!session) {
                       router.push('/login');
                     } else {
@@ -723,7 +723,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
           
         </div>
         {/* Reviews section - only show for claimed fields */}
-        {showReviews && !isPreview && isClaimed && (
+        {showReviews && !isSubmitted && isClaimed && (
               <div id="reviews" ref={reviewsRef} className={`mt-12 lg:mt-16 scroll-mt-32 ${ showReviews ? 'w-full': 'max-w-2xl'}`}>
                 {/* Reviews & Ratings Header */}
                 <div className="mb-6">
@@ -789,7 +789,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                             <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
                             <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
                             <button 
-                              onClick={isPreview ? undefined : () => {
+                              onClick={isSubmitted ? undefined : () => {
                                 if (!session) {
                                   router.push('/login');
                                 } else {
@@ -847,7 +847,7 @@ export default function FieldDetailsLegacy({ field, isPreview = false, headerCon
                           <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
                           <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
                           <button 
-                            onClick={isPreview ? undefined : () => {
+                            onClick={isSubmitted ? undefined : () => {
                               if (!session) {
                                 router.push('/login');
                               } else {

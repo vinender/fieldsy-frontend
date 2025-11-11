@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Clock, 
-  Calendar, 
+import Image from 'next/image';
+import {
+  ArrowLeft,
+  MapPin,
+  Clock,
+  Calendar,
   Dog,
   Filter,
   ChevronDown,
@@ -817,12 +818,19 @@ const BookingHistoryPage = () => {
     return (
     <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-start sm:items-center bg-light py-4 sm:py-6 border-b border-gray-200 last:border-0">
       {/* Image - Clickable */}
-      <img
-        src={booking.image}
-        alt={booking.name}
+      <div
         onClick={() => router.push(`/fields/${booking.fieldId}`)}
-        className="w-full sm:w-[174px] h-[200px] sm:h-[140px] rounded-[20px] object-cover flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-      />
+        className="relative w-full sm:w-[174px] h-[200px] sm:h-[140px] rounded-[20px] flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"
+      >
+        <Image
+          src={booking.image}
+          alt={booking.name}
+          fill
+          priority
+          sizes="(max-width: 640px) 100vw, 174px"
+          className="object-cover"
+        />
+      </div>
 
       {/* Content */}
       <div className="flex-1 pb-10 w-full">

@@ -15,6 +15,7 @@ interface NotificationsSidebarProps {
 export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: NotificationsSidebarProps) {
   const [isOpen, setIsOpen] = useState(isOpenProp)
   const [isMounted, setIsMounted] = useState(false)
+  const [hasMarkedAsRead, setHasMarkedAsRead] = useState(false)
   const router = useRouter()
   const { data: session } = useSession()
   const {
@@ -39,7 +40,21 @@ console.log('notification',notifications);
 
   useEffect(() => {
     setIsOpen(isOpenProp)
-  }, [isOpenProp]);
+
+    // Mark all notifications as read when sidebar opens
+    if (isOpenProp && !hasMarkedAsRead && notifications.length > 0) {
+      const unreadNotifications = notifications.filter(n => !n.read);
+      if (unreadNotifications.length > 0) {
+        markAllAsRead();
+        setHasMarkedAsRead(true);
+      }
+    }
+
+    // Reset hasMarkedAsRead when sidebar closes
+    if (!isOpenProp) {
+      setHasMarkedAsRead(false);
+    }
+  }, [isOpenProp, notifications, hasMarkedAsRead, markAllAsRead]);
 
 
   // Prevent body scroll when sidebar is open

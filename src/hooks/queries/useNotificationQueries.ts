@@ -42,12 +42,15 @@ export interface NotificationCountResponse {
 export function useNotifications(
   page: number = 1,
   limit: number = 10,
-  options?: Omit<UseQueryOptions<NotificationResponse, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<NotificationResponse, Error>, 'queryKey' | 'queryFn'> & { markAsRead?: boolean }
 ) {
+  const markAsRead = options?.markAsRead ?? false;
+
   return useQuery({
     queryKey: notificationQueryKeys.list(page),
     queryFn: async () => {
-      const response = await axiosClient.get(`/notifications?page=${page}&limit=${limit}`);
+      const markAsReadParam = markAsRead ? '&markAsRead=true' : '';
+      const response = await axiosClient.get(`/notifications?page=${page}&limit=${limit}${markAsReadParam}`);
       return response.data as NotificationResponse;
     },
     staleTime: 30 * 1000, // 30 seconds
