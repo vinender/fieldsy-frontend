@@ -141,7 +141,7 @@ export default function MyFieldsPage() {
                   </p>
                   <div className="flex justify-between items-center mt-4">
                     <span className="text-green font-bold text-lg">
-                      ${field.price || field.pricePerDay}/hour
+                      £{field.price || field.pricePerDay}/hour
                     </span>
                     <div className="flex gap-2">
                       <button

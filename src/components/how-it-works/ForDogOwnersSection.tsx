@@ -12,7 +12,7 @@ export function ForDogOwnersSection() {
         </h2>
         <button 
         onClick={()=>router.push('/fields')}
-          className="px-[60px]  py-[10px] rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors"
+        className="px-[60px]  py-[10px] rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors"
         >
           Find & Book Field
         </button>

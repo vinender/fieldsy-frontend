@@ -3,6 +3,7 @@ import FieldDetailsLegacy from '@/components/fields/FieldDetailsLegacy';
 import { useFieldDetails } from '@/hooks';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
 
+
 interface FieldDetailsScreenProps {
   field?: any;
   fieldId?: string;
@@ -13,6 +14,7 @@ interface FieldDetailsScreenProps {
   headerContent?: React.ReactNode;
   initialData?: any;
 }
+
 
 export default function FieldDetailsScreen({
   field: providedField,

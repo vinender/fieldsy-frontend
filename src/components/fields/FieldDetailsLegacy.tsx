@@ -153,6 +153,11 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
     'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop'
   ];
 
+  const defaultDescription = "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups.";
+  const descriptionText = field?.description?.trim() || defaultDescription;
+  const DESCRIPTION_TRUNCATE_CHAR_LIMIT = 220;
+  const shouldTruncateDescription = descriptionText.length > DESCRIPTION_TRUNCATE_CHAR_LIMIT;
+
 
   const communityRules = [
     'Dogs must be leashed when entering and exiting the park',
@@ -376,44 +381,19 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
 
             <div>
               <h3 className="font-bold text-lg text-dark-green mb-2">Description</h3>
-              <p className="text-dark-green leading-relaxed break-words">
-                {(() => {
-                  const description = field?.description || "A peaceful, green field ideal for off-leash play and zoomies. Fully fenced, with drinking water, shaded rest spots, and safe access. Perfect for morning walks or weekend meetups.";
-                  const shouldTruncate = description.length > 100;
-
-                  if (!shouldTruncate) {
-                    return description;
-                  }
-
-                  if (showFullDescription) {
-                    return (
-                      <>
-                        {description}
-                        {' '}
-                        <button
-                          onClick={() => setShowFullDescription(false)}
-                          className="text-[#3A6B22] font-semibold underline hover:opacity-80 transition-opacity"
-                        >
-                          Show less
-                        </button>
-                      </>
-                    );
-                  }
-
-                  return (
-                    <>
-                      {description.substring(0, 100)}...
-                      {' '}
-                      <button
-                        onClick={() => setShowFullDescription(true)}
-                        className="text-[#3A6B22] font-semibold underline hover:opacity-80 transition-opacity"
-                      >
-                        Show more
-                      </button>
-                    </>
-                  );
-                })()}
-              </p>
+              <div className="text-dark-green leading-relaxed break-words">
+                <p className={`${!showFullDescription && shouldTruncateDescription ? 'line-clamp-2 sm:line-clamp-3' : ''}`}>
+                  {descriptionText}
+                </p>
+                {shouldTruncateDescription && (
+                  <button
+                    onClick={() => setShowFullDescription((prev) => !prev)}
+                    className="mt-2 text-[#3A6B22] font-semibold underline hover:opacity-80 transition-opacity"
+                  >
+                    {showFullDescription ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div>
@@ -893,5 +873,3 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
     </div>
   );
 }
-
-

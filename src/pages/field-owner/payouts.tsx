@@ -23,7 +23,13 @@ const EarningsHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isConnecting, setIsConnecting] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const itemsPerPage = 10;
+
+  // Track component mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch data using React Query hooks
   const {
@@ -184,9 +190,9 @@ const EarningsHistory: React.FC = () => {
                   <div className="flex items-center gap-4">
                     {/* Icon based on account status */}
                     <div className="flex-shrink-0">
-                      <img 
+                      <img
                         src={
-                          accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled 
+                          accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
                             ? '/connected.svg'
                             : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
                             ? '/wallet.svg'
@@ -197,35 +203,67 @@ const EarningsHistory: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      {isLoadingSummary ? (
+                      {!mounted || isLoadingSummary ? (
                         <div className="h-10 bg-gray-200 rounded animate-pulse w-48"></div>
                       ) : (
                         <h2 className="text-2xl sm:text-3xl font-bold text-[#192215]">
-                          {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled 
+                          {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
                             ? `Total Earnings ${formatCurrency(summaryData?.totalEarnings || 0)}`
                             : accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
                             ? 'Account Restricted'
                             : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
                             ? 'Account Unable to Receive Payments'
+                            : heldPayoutsData?.data?.totalHeldAmount > 0
+                            ? 'Pending Payments Awaiting Release'
                             : 'Connect your bank for payouts'}
                         </h2>
                       )}
                       <p className="text-base sm:text-lg text-gray-500 max-w-2xl">
-                        {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
+                        {!mounted
+                          ? 'Link your bank account securely to receive payouts directly. Fast, safe, and hassle-free transfers every time you get paid.'
+                          : accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
                           ? 'Your bank account is connected and ready to receive payments. Payouts are processed automatically and securely.'
                           : accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
                           ? 'Your account needs additional information to start receiving payments.'
                           : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
                           ? 'Your linked account is currently unable to accept customer payments.'
+                          : heldPayoutsData?.data?.totalHeldAmount > 0
+                          ? 'Connect your bank account to receive your pending payments'
                           : 'Link your bank account securely to receive payouts directly. Fast, safe, and hassle-free transfers every time you get paid.'}
                       </p>
+
+                      {/* Show pending payment details when bank is not connected and there are held payouts */}
+                      {mounted && !accountStatus?.data?.hasAccount && heldPayoutsData?.data?.totalHeldAmount > 0 && (
+                        <div className="flex flex-wrap gap-3 mt-4">
+                          <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
+                            <p className="text-xs text-amber-700 font-medium">Total Pending</p>
+                            <p className="text-xl font-bold text-amber-900">
+                              {formatCurrency(heldPayoutsData.data.totalHeldAmount)}
+                            </p>
+                          </div>
+                          <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
+                            <p className="text-xs text-amber-700 font-medium">Bookings On Hold</p>
+                            <p className="text-xl font-bold text-amber-900">
+                              {heldPayoutsData.data.heldBookingsCount}
+                            </p>
+                          </div>
+                          {heldPayoutsData.data.heldByReason?.noStripeAccount?.count > 0 && (
+                            <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
+                              <p className="text-xs text-amber-700 font-medium">Awaiting Bank Setup</p>
+                              <p className="text-xl font-bold text-amber-900">
+                                {formatCurrency(heldPayoutsData.data.heldByReason.noStripeAccount.amount)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Show different UI based on account connection status */}
                   {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && !accountStatus?.data?.requiresAction ? (
                     <div className="flex flex-col gap-2 items-start lg:items-end lg:self-center">
-                      <button 
+                      <button
                         onClick={handleConnectBank}
                         disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
                         className="bg-green hover:bg-gray-700 transition-colors text-white font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -235,7 +273,7 @@ const EarningsHistory: React.FC = () => {
                     </div>
                   ) : accountStatus?.data?.hasAccount && accountStatus?.data?.requiresAction ? (
                     <div className="flex flex-col gap-2 items-start lg:items-center lg:self-center">
-                      <button 
+                      <button
                         onClick={handleConnectBank}
                         disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
                         className="bg-[#FF5733] hover:bg-[#CC4125] transition-colors text-white font-semibold px-6 py-3.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed animate-pulse"
@@ -246,14 +284,14 @@ const EarningsHistory: React.FC = () => {
                     </div>
                   ) : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled ? (
                     <div className="flex flex-col sm:flex-row gap-2 items-start lg:items-center lg:self-center">
-                      <button 
+                      <button
                         onClick={handleConnectBank}
                         disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
                         className="bg-white hover:bg-green-50 transition-colors text-[#3a6b22] border border-[#3a6b22] font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Loading...' : 'Edit Account'}
                       </button>
-                      <button 
+                      <button
                         onClick={async () => {
                           try {
                             setIsConnecting(true);
@@ -273,7 +311,7 @@ const EarningsHistory: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <button 
+                    <button
                       onClick={handleConnectBank}
                       disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
                       className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-6 py-3.5 rounded-full whitespace-nowrap self-start lg:self-center disabled:opacity-50 disabled:cursor-not-allowed"
@@ -281,7 +319,7 @@ const EarningsHistory: React.FC = () => {
                       {isConnecting || createAccount.isPending || getOnboardingLink.isPending ? 'Connecting...' : 'Connect Bank'}
                     </button>
                   )}
-            
+
                 </div>
             </div>
           </div>
@@ -367,67 +405,6 @@ const EarningsHistory: React.FC = () => {
           )} */}
 
         </div>
-
-        {/* Pending/Held Payouts Alert - Show when user has held payouts */}
-        {heldPayoutsData?.data?.totalHeldAmount > 0 && (
-          <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-6 mb-6 shadow-md">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 mt-1">
-                  <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-amber-900 mb-1">
-                    💰 Pending Payments Awaiting Release
-                  </h3>
-                  <p className="text-amber-800 mb-2">
-                    {heldPayoutsData.data.actionMessage}
-                  </p>
-                  <div className="flex flex-wrap gap-4 mt-3">
-                    <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
-                      <p className="text-xs text-amber-700 font-medium">Total Pending</p>
-                      <p className="text-xl font-bold text-amber-900">
-                        {formatCurrency(heldPayoutsData.data.totalHeldAmount)}
-                      </p>
-                    </div>
-                    <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
-                      <p className="text-xs text-amber-700 font-medium">Bookings On Hold</p>
-                      <p className="text-xl font-bold text-amber-900">
-                        {heldPayoutsData.data.heldBookingsCount}
-                      </p>
-                    </div>
-                    {heldPayoutsData.data.heldByReason?.noStripeAccount?.count > 0 && (
-                      <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
-                        <p className="text-xs text-amber-700 font-medium">Awaiting Bank Setup</p>
-                        <p className="text-xl font-bold text-amber-900">
-                          {formatCurrency(heldPayoutsData.data.heldByReason.noStripeAccount.amount)}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {heldPayoutsData.data.requiresAction && (
-                <div className="flex-shrink-0">
-                  <button
-                    onClick={handleConnectBank}
-                    disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
-                    className="bg-amber-600 hover:bg-amber-700 transition-colors text-white font-bold px-6 py-3 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg animate-pulse"
-                  >
-                    {isConnecting || createAccount.isPending || getOnboardingLink.isPending
-                      ? 'Connecting...'
-                      : !accountStatus?.data?.hasAccount
-                      ? 'Connect Bank to Release Funds'
-                      : 'Complete Setup to Release Funds'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Status Filter Tabs - Only show when bank is connected */}
         {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && (

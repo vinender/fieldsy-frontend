@@ -3,10 +3,18 @@ import { X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useCreateContactQuery } from "@/hooks/api/useContactQueries"
+import { toast } from "sonner"
 
 interface ContactSupportModalProps {
   isOpen: boolean
   onClose: () => void
+}
+
+interface ValidationErrors {
+  name?: string
+  email?: string
+  subject?: string
+  message?: string
 }
 
 export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProps) {
@@ -17,6 +25,9 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
     subject: "",
     message: ""
   })
+
+  const [errors, setErrors] = useState<ValidationErrors>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
   const createQueryMutation = useCreateContactQuery()
 
@@ -30,11 +41,74 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
         subject: "",
         message: ""
       })
+      setErrors({})
+      setTouched({})
     }
   }, [isOpen])
 
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case "name":
+        if (!value.trim()) return "Name is required"
+        if (value.trim().length < 2) return "Name must be at least 2 characters"
+        return undefined
+
+      case "email":
+        if (!value.trim()) return "Email is required"
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(value)) return "Please enter a valid email address"
+        return undefined
+
+      case "subject":
+        if (!value.trim()) return "Subject is required"
+        if (value.trim().length < 5) return "Subject must be at least 5 characters"
+        return undefined
+
+      case "message":
+        if (!value.trim()) return "Message is required"
+        if (value.trim().length < 10) return "Message must be at least 10 characters"
+        return undefined
+
+      default:
+        return undefined
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {}
+
+    newErrors.name = validateField("name", formData.name)
+    newErrors.email = validateField("email", formData.email)
+    newErrors.subject = validateField("subject", formData.subject)
+    newErrors.message = validateField("message", formData.message)
+
+    setErrors(newErrors)
+
+    // Check if there are any errors
+    const hasErrors = Object.values(newErrors).some(error => error !== undefined)
+
+    if (hasErrors) {
+      toast.error("Please fill in all required fields correctly")
+    }
+
+    return !hasErrors
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Mark all fields as touched
+    setTouched({
+      name: true,
+      email: true,
+      subject: true,
+      message: true
+    })
+
+    // Validate form
+    if (!validateForm()) {
+      return
+    }
 
     createQueryMutation.mutate(formData, {
       onSuccess: () => {
@@ -46,9 +120,37 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
+    }))
+
+    // Validate field on change if it has been touched
+    if (touched[name]) {
+      const error = validateField(name, value)
+      setErrors(prev => ({
+        ...prev,
+        [name]: error
+      }))
+    }
+  }
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+
+    // Mark field as touched
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }))
+
+    // Validate field on blur
+    const error = validateField(name, value)
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
     }))
   }
 
@@ -73,7 +175,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-dark-green font-semibold">
-              Name *
+              Name <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
@@ -82,15 +184,19 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               placeholder="Enter your name"
               value={formData.name}
               onChange={handleChange}
-              required
+              onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
+              className={touched.name && errors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}
             />
+            {touched.name && errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
 
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-dark-green font-semibold">
-              Email *
+              Email <span className="text-red-500">*</span>
             </Label>
             <Input
               id="email"
@@ -99,15 +205,19 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
-              required
+              onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
+              className={touched.email && errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}
             />
+            {touched.email && errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
 
           {/* Phone Field */}
           <div className="space-y-2">
             <Label htmlFor="phone" className="text-dark-green font-semibold">
-              Phone (Optional)
+              Phone <span className="text-gray-400 text-sm">(Optional)</span>
             </Label>
             <Input
               id="phone"
@@ -123,7 +233,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
           {/* Subject Field */}
           <div className="space-y-2">
             <Label htmlFor="subject" className="text-dark-green font-semibold">
-              Subject *
+              Subject <span className="text-red-500">*</span>
             </Label>
             <Input
               id="subject"
@@ -132,15 +242,19 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               placeholder="Brief description of your query"
               value={formData.subject}
               onChange={handleChange}
-              required
+              onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
+              className={touched.subject && errors.subject ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}
             />
+            {touched.subject && errors.subject && (
+              <p className="text-red-500 text-sm mt-1">{errors.subject}</p>
+            )}
           </div>
 
           {/* Message Field */}
           <div className="space-y-2">
             <Label htmlFor="message" className="text-dark-green font-semibold">
-              Message *
+              Message <span className="text-red-500">*</span>
             </Label>
             <textarea
               id="message"
@@ -148,11 +262,18 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               placeholder="Describe your issue or question in detail..."
               value={formData.message}
               onChange={handleChange}
-              required
+              onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
               rows={5}
-              className="flex w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-800 shadow-sm transition-all duration-200 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+              className={`flex w-full rounded-2xl border bg-white px-4 py-3 text-base text-gray-800 shadow-sm transition-all duration-200 focus:outline-none focus:ring-1 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none ${
+                touched.message && errors.message
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                  : "border-gray-300 focus:border-green focus:ring-green/20"
+              }`}
             />
+            {touched.message && errors.message && (
+              <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+            )}
           </div>
 
           {/* Status Message */}

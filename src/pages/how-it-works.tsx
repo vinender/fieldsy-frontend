@@ -21,15 +21,16 @@ const FAQSectionWithImage = dynamic(
 )
 
 export default function HowItWorksPage() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   // Determine which sections to show based on user role
-  const showDogOwnerSection = !user || user.role !== 'FIELD_OWNER'
-  const showLandownerSection = !user || user.role !== 'DOG_OWNER'
+  const showDogOwnerSection = !user || user.role !== 'FIELD_OWNER';
+  const showLandownerSection = !user || user.role !== 'DOG_OWNER';
+  
   return (
     <div className="min-h-screen overflow-x-hidden">
       {/* Hero Section - Always shown for all users */}
-      <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-cream">
+      <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] pt-10 xl:pt-20 bg-light-cream">
         <div className="w-full">
           {/* Hero Section - Always loaded immediately */}
           <HowItWorksHeroSection />
@@ -38,7 +39,7 @@ export default function HowItWorksPage() {
 
       {/* Section 1: For Dog Owners */}
       {showDogOwnerSection && (
-        <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-cream">
+        <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] pb-10  bg-light-cream">
           <div className="w-full">
             {/* For Dog Owners - Lazy loaded */}
             <LazySection

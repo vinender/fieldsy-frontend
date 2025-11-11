@@ -73,6 +73,11 @@ export function Header() {
       { name: "FAQ's", href: "/faqs" },
     ]
 
+    // During SSR or before mount, always return base navigation to prevent hydration mismatch
+    if (!mounted) {
+      return baseNav
+    }
+
     // If not authenticated, show base navigation with Search Fields
     if (!isAuthenticated || !currentUser) {
       return baseNav
@@ -96,7 +101,7 @@ export function Header() {
       { name: "How it works", href: "/how-it-works" },
       { name: "FAQ's", href: "/faqs" },
     ]
-  }, [currentUser, isAuthenticated])
+  }, [currentUser, isAuthenticated, mounted])
 
   // Dynamic user navigation based on role (only when authenticated)
   const userNavigation = useMemo(() => {
@@ -124,14 +129,15 @@ export function Header() {
   }, [currentUser, isAuthenticated])
 
   // Check if field owner is viewing homepage (which shows their dashboard)
-  const isFieldOwnerHomepage = isLandingPage && currentUser?.role === 'FIELD_OWNER'
-  
+  // Only check after mount to prevent hydration mismatch
+  const isFieldOwnerHomepage = mounted && isLandingPage && currentUser?.role === 'FIELD_OWNER'
+
   // Determine header styles based on page, user role, and scroll position
   // For field owners on homepage, always use white background
   const headerBg = !isLandingPage || scrolled || isFieldOwnerHomepage ? "bg-white shadow-sm" : "bg-transparent"
   const textColor = !isLandingPage || scrolled || isFieldOwnerHomepage ? "text-gray-700" : "text-white"
   const navLinkColor = !isLandingPage || scrolled || isFieldOwnerHomepage
-    ? "text-gray-600 hover:text-gray-900" 
+    ? "text-gray-600 hover:text-gray-900"
     : "text-white/90 hover:text-white"
 
   return (
