@@ -86,7 +86,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     apartment: formData?.apartment,
     city: formData?.city,
     zipCode: formData?.postalCode,
-    // Map amenities - handle different formats and ALWAYS return string labels
+    // Map amenities - keep original format for proper icon display
     amenities: (() => {
       console.log('🔍 FieldPreview amenities processing:', {
         formDataAmenities: formData?.amenities,
@@ -99,32 +99,35 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
       // If amenities is an array
       if (Array.isArray(formData.amenities)) {
-        // Check if array contains objects (already enriched from API)
+        // Check if array contains objects (already enriched from API with iconUrl)
         if (formData.amenities.length > 0 && typeof formData.amenities[0] === 'object' && formData.amenities[0] !== null) {
-          // Already enriched - extract labels as strings
-          const labels = formData.amenities
-            .map((amenity: any) => {
-              const label = amenity.label || amenity.name || amenity.value;
-              console.log('📝 Extracting label from object:', { amenity, extractedLabel: label });
-              return label;
-            })
-            .filter(Boolean); // Remove undefined/null values
-
-          console.log('✅ Returning labels from objects:', labels);
-          return labels;
+          // Return objects as-is for proper icon display
+          console.log('✅ Returning enriched amenity objects:', formData.amenities);
+          return formData.amenities;
         }
 
-        // Array of strings (IDs or names) - map to labels using amenityMap
-        const mappedLabels = formData.amenities
+        // Array of strings (IDs or names) - enrich with amenityMap data
+        const enrichedAmenities = formData.amenities
           .map((id: string) => {
-            const label = amenityMap[id];
-            console.log('🔑 Mapping ID to label:', { id, label, hasInMap: !!label });
+            const amenityData = amenitiesData?.find((a: any) => a.id === id || a.name === id);
+            if (amenityData) {
+              console.log('🔑 Enriching amenity:', { id, amenityData });
+              return {
+                id: amenityData.id,
+                name: amenityData.name,
+                label: amenityData.label || amenityData.name,
+                iconUrl: amenityData.iconUrl
+              };
+            }
+            // Fallback: return as string for backward compatibility
+            const label = amenityMap[id] || id;
+            console.log('⚠️ Using fallback for amenity:', { id, label });
             return label;
           })
-          .filter(Boolean); // Remove undefined values
+          .filter(Boolean);
 
-        console.log('✅ Returning mapped labels:', mappedLabels);
-        return mappedLabels;
+        console.log('✅ Returning enriched amenities:', enrichedAmenities);
+        return enrichedAmenities;
       }
 
       // If amenities is an object (old format)
@@ -133,7 +136,21 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
         return Object.entries(formData.amenities)
           .filter(([_, isSelected]) => isSelected)
           .map(([key]) => {
-            // Try to get from amenityMap first, fallback to hardcoded labels
+            // Try to get from amenitiesData first
+            const amenityData = amenitiesData?.find((a: any) =>
+              a.id === key || a.name?.toLowerCase() === key.toLowerCase()
+            );
+
+            if (amenityData) {
+              return {
+                id: amenityData.id,
+                name: amenityData.name,
+                label: amenityData.label || amenityData.name,
+                iconUrl: amenityData.iconUrl
+              };
+            }
+
+            // Fallback to hardcoded labels
             const amenityLabels: Record<string, string> = {
               'secureFencing': 'Secure fencing',
               'waterAccess': 'Water Access',

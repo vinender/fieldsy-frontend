@@ -265,10 +265,10 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
                     <span className="text-sm lg:text-base text-gray-500 ml-1">/dog/{field.bookingDuration}</span>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={isSubmitted ? undefined : handleToggleFavorite}
-                  disabled={toggleFavoriteMutation.isPending}
-                  className="mt-2 w-10 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200 disabled:opacity-50 flex-shrink-0"
+                  disabled={isSubmitted || toggleFavoriteMutation.isPending}
+                  className="mt-2 w-10 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                 >
                   {isLiked ? (
                     <img src="/field-details/saved-heart.svg" alt="Saved" className="w-5 h-5" />
@@ -427,7 +427,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
             <h3 className="font-bold text-lg text-dark-green ">Other Details</h3>
 
 
-            {!isClaimed && (
+            {(!isClaimed || isSubmitted) && (
               <FieldMapWrapper
                 address={field?.address || field?.streetAddress}
                 city={field?.city}
@@ -441,8 +441,8 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
               />
             )}
 
-            {/* Other details and actions - Only show for claimed fields */}
-            {isClaimed && (
+            {/* Other details and actions - Show for claimed fields OR in preview mode */}
+            {(isClaimed || isSubmitted) && (
               <div className="space-y-2">
                 {/* Slot Duration Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 gap-2">
