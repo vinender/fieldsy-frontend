@@ -11,6 +11,9 @@ interface UserProfile {
   phone?: string;
   bio?: string;
   image?: string;
+  googleImage?: string;
+  profileImage?: string;
+  avatar?: string;
   role: string;
   provider?: string;
   createdAt: string;

@@ -79,7 +79,7 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
           isDefault,
         });
 
-        toast.success('Card added successfully');
+        toast.success('Card added successfully', { id: 'card-added' });
         onSuccess();
         onClose();
       }

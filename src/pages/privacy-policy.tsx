@@ -106,7 +106,7 @@ const PrivacyPolicy = () => {
         
         {/* Back Button and Title */}
         <div className="flex items-center gap-4 mt-[20px] mb-8 lg:mb-10">
-          <BackButton />
+          <BackButton size="lg" />
           <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
             Privacy Policy
           </h1>

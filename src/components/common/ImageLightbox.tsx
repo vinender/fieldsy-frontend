@@ -35,16 +35,16 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
           <span className="sr-only">Close</span>
         </DialogClose>
 
-        <div className="flex flex-col relative w-full border-[10px] rounded-[20px] border-white aspect-video bg- flex items-center justify-center">
+        <div className="flex flex-col relative w-full border-[10px] rounded-[20px] border-white aspect-video bg-black flex items-center justify-center">
           {/* Main image */}
-          <div className="relative w-full h-[80vh]">
+          <div className="relative w-full h-[80vh] flex items-center justify-center">
             <Image
               src={images[index]}
               alt={`Image ${index + 1}`}
               fill
-              className="object-cover select-none rounded-[20px] "
+              className="object-cover select-none rounded-[10px]"
               draggable={false}
-              quality={90}
+              quality={20}
               priority
               sizes="(max-width: 1200px) 100vw, 1200px"
             />
@@ -56,14 +56,14 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
               <button
                 aria-label="Previous image"
                 onClick={goPrev}
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors z-10"
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/35 hover:bg-white/55 text-white transition-colors z-10"
               >
                 <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               <button
                 aria-label="Next image"
                 onClick={goNext}
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors z-10"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/35 hover:bg-white/55 text-white transition-colors z-10"
               >
                 <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
@@ -72,12 +72,12 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
 
              {/* Thumbnails - only show if there are multiple images */}
         {hasMultipleImages && (
-          <div className="absolute bottom-0 bg-transparent bg-black/80 px-3 sm:px-4 py-3 flex gap-2 overflow-x-auto">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2  px-3 sm:px-4 py-3 flex gap-2 overflow-x-auto rounded-t-xl">
             {images.map((thumb, i) => (
               <button
                 key={thumb + i}
                 onClick={() => setIndex(i)}
-                className={`relative flex-shrink-0 h-14 w-20 rounded-lg overflow-hidden border ${
+                className={`relative flex-shrink-0 h-14 w-20 rounded-lg overflow-hidden border-2 ${
                   i === index ? "border-white" : "border-white/20"
                 }`}
                 aria-label={`Go to image ${i + 1}`}
@@ -86,9 +86,9 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
                   src={thumb}
                   alt={`Thumbnail ${i + 1}`}
                   fill
-                  className={` object-cover ${index == i ? 'border-2 border-white ': ''} `}
-                  sizes={` ${ index== i ? '100px' : '80px'}  `}
-                  quality={60}
+                  className="object-cover"
+                  sizes="80px"
+                  quality={20}
                 />
               </button>
             ))}

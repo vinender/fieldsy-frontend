@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { MapPin, Star, Shield, Heart, ChevronDown, BadgeCheck, CheckCircle } from 'lucide-react';
+import { Shield, Heart, ChevronDown, BadgeCheck, CheckCircle } from 'lucide-react';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/router';
 import { getAmenityLabel, formatOpeningHours } from '@/utils/formatters';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
+import { RatingStars } from '@/components/common/RatingStars';
 
 interface FieldDetailsDisplayProps {
   field: any;
@@ -31,6 +32,7 @@ export default function FieldDetailsDisplay({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(true);
   const [bookingOpen, setBookingOpen] = useState(true);
+  const numericRating = typeof field?.rating === 'number' ? field.rating : Number(field?.rating) || 0;
 
   const isClaimed = !isPreview && (field?.isActive || false);
 
@@ -195,9 +197,15 @@ export default function FieldDetailsDisplay({
                   <img src='/location.svg' className="w-5 h-5 text-[#8FB366] mr-1" />
                   <span>{field?.city ? `${field.city}, ${field.state || field.county}` : 'Location not specified'} • {field?.distance || '0 miles'}</span>
                 </div>
-                <div className="flex items-center bg-dark-green text-white px-2 py-1 rounded-md">
-                  <img src='/star.svg' className="w-4 h-4 fill-yellow text-yellow mr-1" />
-                  <span className="text-sm font-semibold">{field?.rating || 4.5}</span>
+                <div className="flex items-center bg-dark-green text-white px-2 py-1 rounded-md gap-1">
+                  <RatingStars
+                    rating={numericRating}
+                    size={14}
+                    activeColor="#FFDD57"
+                    inactiveColor="rgba(255,255,255,0.35)"
+                    className="gap-[2px]"
+                  />
+                  <span className="text-sm font-semibold">{numericRating.toFixed(1)}</span>
                 </div>
               </div>
             </div>
@@ -406,11 +414,7 @@ export default function FieldDetailsDisplay({
                       <div>
                         <p className="font-medium text-[#090F1F]">{review.name}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                              <img src='/star.svg' key={i} className={`w-4 h-4 ${i < Math.floor(review.rating) ? 'fill-yellow text-yellow' : 'text-gray-300'}`} />
-                            ))}
-                          </div>
+                          <RatingStars rating={review.rating} size={16} />
                           <span className="text-xs text-gray-500">{review.date}</span>
                         </div>
                       </div>

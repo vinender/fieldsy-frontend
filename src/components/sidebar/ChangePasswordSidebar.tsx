@@ -3,6 +3,7 @@ import { ArrowLeft, Eye, EyeOff, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useChangePassword } from '@/hooks/useProfile';
 import { toast } from 'sonner';
+import Spinner from '@/components/ui/Spinner';
 
 interface ChangePasswordSidebarProps {
   isOpen?: boolean;
@@ -289,9 +290,17 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
             {/* Submit Button */}
             <button
               onClick={handleSubmit}
-              className="w-full h-14 bg-[#3a6b22] text-white text-[16px] font-semibold rounded-full hover:bg-[#2d5319] transition-colors mt-8"
+              disabled={changePasswordMutation.isPending}
+              className="w-full h-14 bg-[#3a6b22] text-white text-[16px] font-semibold rounded-full hover:bg-[#2d5319] transition-colors mt-8 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Submit
+              {changePasswordMutation.isPending ? (
+                <>
+                  <Spinner size="sm" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                'Submit'
+              )}
             </button>
           </div>
         </div>

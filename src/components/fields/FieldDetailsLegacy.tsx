@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Star, Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle, MessageCircle } from 'lucide-react';
+import { Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useFieldReviews } from '@/hooks/useReviews';
 import { format } from 'date-fns';
@@ -15,6 +15,7 @@ import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
+import { RatingStars } from '@/components/common/RatingStars';
 
 
 interface FieldDetailsLegacyProps {
@@ -170,7 +171,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
   ];  
 
   return (
-    <div className="min-h-screen bg-[#FFFCF3] mt-32 w-full">
+    <div className="min-h-screen bg-[#FFFCF3] mt-12 xl:mt-32 w-full">
       
       <div className="max-w-[1920px] mx-auto">
         {headerContent && (
@@ -180,11 +181,11 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
         {/* Back Button with Claim Field label for unclaimed fields */}
         {!isClaimed && !isSubmitted && (
           <div className="px-4 lg:px-20 pb-4">
-            <BackButton 
-              label="Claim Field" 
+            <BackButton
+              label="Claim Field"
               showLabel={true}
               variant="cream"
-              size="md"
+              size="lg"
             />
           </div>
         )}
@@ -278,8 +279,15 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
                   textClassName="truncate"
                   showDistance={true}
                 />
-                <div className="flex w-16 sm:w-auto items-center bg-dark-green text-white px-2 py-1 rounded-md flex-shrink-0">
-                  <img src='/star.svg' className="w-4 h-4 fill-[#FFDD57] text-[#FFDD57] mr-1" />
+                <div className="flex w-16 sm:w-auto items-center bg-dark-green text-white px-2 py-1 rounded-md flex-shrink-0 gap-1">
+                  {/* <RatingStars
+                    rating={field?.averageRating || 0}
+                    size={14}
+                    activeColor="#FFDD57"
+                    inactiveColor="rgba(255,255,255,0.35)"
+                    className="gap-[2px]"
+                  /> */}
+                  <img src='/star.svg' />
                   <span className="text-sm font-semibold">{field?.averageRating?.toFixed(1) || '0.0'}</span>
                 </div>
               </div>
@@ -729,19 +737,9 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
                               {/* Average score */}
                               <div className="w-36 bg-black flex flex-col items-left justify-center rounded-xl p-4">
                                 <div className="text-4xl font-bold text-white">{(stats.averageRating || 0).toFixed(1)}</div>
-                                  <div className="flex items-center mt-2">
-                                    {[...Array(5)].map((_, i) => (
-                                      <img
-                                        key={i}
-                                        src="/star.svg"
-                                        className={`w-4 h-4 mr-1 ${
-                                          i < Math.round(stats.averageRating || 0)
-                                            ? 'fill-[#FFDD57] text-[#FFDD57]'
-                                            : 'text-gray-300'
-                                        }`}
-                                      />
-                                    ))}
-                                  </div>
+                                <div className="flex items-center mt-2">
+                                  <RatingStars rating={stats.averageRating || 0} size={16} />
+                                </div>
                                 <div className="text-xs text-gray-200 mt-2">{stats.totalReviews} Reviews</div>
                               </div>
                               {/* Rating bars */}
@@ -805,12 +803,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
                                     </div>
                                     
                                     <div className="flex items-center mt-1">
-                                      {[...Array(5)].map((_, i) => (
-                                        <img src='/star.svg' 
-                                          key={i} 
-                                          className={`w-4 h-4 ${i < Math.floor(review.rating || 0) ? 'fill-[#FFDD57] text-[#FFDD57]' : 'text-gray-300'}`} 
-                                        />
-                                      ))}
+                                      <RatingStars rating={review.rating || 0} size={16} />
                                     </div>
                                   </div>
                                 </div>

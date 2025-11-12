@@ -27,6 +27,10 @@ interface PaymentMethod {
   updatedAt: string;
 }
 
+const TOAST_IDS = {
+  defaultCard: 'default-card-updated',
+};
+
 export default function SavedCards() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -79,19 +83,19 @@ export default function SavedCards() {
       try {
         const response = await axiosClient.put(`/payment-methods/${card.id}/set-default`);
         if (response.data.success) {
-          toast.success('Default card updated');
+          toast.success('Default card updated', { id: TOAST_IDS.defaultCard });
           // Optionally fetch to ensure sync with server
           // fetchPaymentMethods();
         }
       } catch (error) {
         // Revert on error
         console.error('Error setting default card:', error);
-        toast.error('Failed to update default card');
+        toast.error('Failed to update default card', { id: TOAST_IDS.defaultCard });
         setCards(previousCards);
       }
     } catch (error) {
       console.error('Error setting default card:', error);
-      toast.error('Failed to update default card');
+      toast.error('Failed to update default card', { id: TOAST_IDS.defaultCard });
     }
   };
 
@@ -137,7 +141,6 @@ export default function SavedCards() {
   const handleAddCardSuccess = () => {
     setShowAddCardModal(false);
     fetchPaymentMethods(); // Refresh the list of cards
-    toast.success('Card added successfully!');
   };
 
   return (

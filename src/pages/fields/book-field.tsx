@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { ChevronDown, ChevronUp, Star, Calendar } from 'lucide-react';
 import BackButton from '@/components/common/BackButton';
 import Spinner from '@/components/ui/Spinner';
@@ -73,7 +74,7 @@ const BookFieldPage = () => {
   });
   
   const field = fieldData?.data || fieldData;
-  console.log(';; field',field);
+  console.log(';; field',field?.images[0]);
 
 
   // Load reschedule data from localStorage if in reschedule mode
@@ -658,12 +659,17 @@ const BookFieldPage = () => {
           {/* Left Column - Field Details Card */}
           <div className="bg-white rounded-[16px] sm:rounded-[20px] p-3  shadow-sm border border-black/5 h-auto">
             {/* Field Image */}
-            <div 
-              className="w-full h-[200px] sm:h-[240px] md:h-[263px] rounded-[10px] bg-cover bg-center mb-4 sm:mb-5"
-              style={{
-                backgroundImage: `url('${field.images?.[0] || '/green-field.png'}')`
-              }}
-            />
+            <div className="relative w-full h-[200px] sm:h-[240px] md:h-[263px] rounded-[10px] overflow-hidden mb-4 sm:mb-5">
+              <Image
+                src={field?.images?.[0] || '/green-field.png'}
+                alt={field?.name || 'Field'}
+                fill
+                priority
+                unoptimized
+                className="object-cover"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
 
             {/* Field Info */}
             <div className="space-y-6">

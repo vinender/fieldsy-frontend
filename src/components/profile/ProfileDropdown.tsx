@@ -7,11 +7,16 @@ import {
   ChevronRight,
 } from "lucide-react"
 import Image from "next/image"
-import { getUserImage, getUserInitials } from "@/utils/getUserImage"
 import { LogoutConfirmationModal } from "@/components/modal/LogoutConfirmationModal"
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar"
+import type { ProfileAvatarUser } from "@/components/profile/ProfileAvatar"
+
+type ProfileDropdownUser = ProfileAvatarUser & {
+  role?: string | null
+}
 
 type ProfileDropdownProps = {
-  user?: { name?: string | null; email?: string | null; image?: string | null; role?: string | null }
+  user?: ProfileDropdownUser
   onLogout?: () => void
   className?: string
   isOpen: boolean
@@ -60,9 +65,6 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
         { icon: '/profile/saved-cards.svg', label: "Saved Cards", href: "/user/saved-cards" },
       ]
 
-  const displayInitial = getUserInitials(user)
-  const userImageUrl = getUserImage(user)
-console.log('user',user);
   if (!isOpen) return null
 
   return (
@@ -76,37 +78,12 @@ console.log('user',user);
       {/* User Profile Section */}
       <div className="p-6 pb-4">
         <div className="flex items-center gap-4">
-          {userImageUrl ? (
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-[#3A6B22] flex items-center justify-center relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={userImageUrl}
-                alt={user?.name || "Profile"}
-                className="w-full h-full object-cover absolute inset-0"
-                onError={(e) => {
-                  // Hide the failed image
-                  e.currentTarget.style.display = 'none';
-                  // Show the fallback initial - parent already has solid background
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    // Check if initial span already exists
-                    if (!parent.querySelector('.fallback-initial')) {
-                      const initial = document.createElement('span');
-                      initial.className = 'fallback-initial w-full h-full flex items-center justify-center text-white text-xl font-semibold relative z-10';
-                      initial.textContent = displayInitial;
-                      parent.appendChild(initial);
-                    }
-                  }
-                }}
-              />
-            </div>
-          ) : (
-            <div className="w-14 h-14 rounded-full bg-[#3A6B22] flex items-center justify-center">
-              <span className="text-white text-xl font-semibold">
-                {displayInitial}
-              </span>
-            </div>
-          )}
+          <ProfileAvatar
+            user={user}
+            className="w-14 h-14"
+            alt={user?.name || "Profile"}
+            sizes="56px"
+          />
           <div className="flex-1 min-w-0">
             <h3 className="text-xl font-semibold text-[#192215] truncate">{user?.name || "User"}</h3>
             <p className="text-sm text-[#8d8d8d] truncate">{user?.email || ""}</p>
@@ -175,5 +152,3 @@ console.log('user',user);
 }
 
 export default ProfileDropdown
-
-

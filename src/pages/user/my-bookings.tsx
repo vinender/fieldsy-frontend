@@ -10,7 +10,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Check
+  Check,
+  X
 } from 'lucide-react';
 import { BookingDetailsModal } from '@/components/modal/BookingDetailModal';
 import { CancelBookingModal } from '@/components/modal/CancelBookingModal';
@@ -23,6 +24,8 @@ import { useCancelBooking, useRescheduleBooking } from '@/hooks/useBookingApi';
 import { formatAmenities, formatDateDDMMYYYY } from '@/utils/formatters';
 import { calculateDistance, formatDistance } from '@/utils/location';
 import { toast } from 'sonner';
+import { getAmenityBySlug, mapAmenityConfigs } from '@/config/amenities.config';
+import AmenityIcon from '@/components/common/AmenityIcon';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { BookingCardSkeleton } from '@/components/skeletons/SkeletonComponents';
 
@@ -109,6 +112,8 @@ const BookingHistoryPage = () => {
   const [totalBookings, setTotalBookings] = useState(0);
   const [appliedFilters, setAppliedFilters] = useState<any>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   // Helper function to convert time string to minutes
   const timeToMinutes = (time: string): number => {
@@ -672,7 +677,7 @@ const BookingHistoryPage = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div>  
           
           {/* Actions */}
           {subscription.status === 'active' && !subscription.cancelAtPeriodEnd && (
@@ -848,8 +853,46 @@ const BookingHistoryPage = () => {
           </div>
         </div>
 
-        {/* Features - Hidden on mobile, shown on larger screens */}
-        <p className="hidden sm:block text-[16px] font-medium text-[#192215] mb-4 line-clamp-2">{booking.features}</p>
+        {/* Amenities - Hidden on mobile, shown on larger screens */}
+        {booking.field?.amenities && booking.field.amenities.length > 0 && (
+          <div className="hidden sm:flex flex-wrap gap-2 mb-4">
+            {booking.field.amenities.slice(0, 4).map((amenity: any, index: number) => {
+              // Handle both string and object formats
+              const amenitySlug = typeof amenity === 'string' ? amenity : amenity.label;
+              const amenityConfig = getAmenityBySlug(amenitySlug);
+              const iconPath = typeof amenity === 'object' && amenity.iconUrl
+                ? amenity.iconUrl
+                : amenityConfig?.iconPath;
+              const label = amenityConfig?.label || (typeof amenity === 'object' ? amenity.label : amenity);
+
+              return (
+                <div key={index} className="flex items-center gap-1.5">
+                  {iconPath && (
+                    <img
+                      src={iconPath}
+                      alt={label}
+                      className="w-4 h-4 brightness-0"
+                    />
+                  )}
+                  <span className="text-[14px] font-medium text-[#192215]">
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+            {booking.field.amenities.length > 4 && (
+              <button
+                onClick={() => {
+                  setSelectedAmenities(booking.field.amenities);
+                  setAmenitiesModalOpen(true);
+                }}
+                className="flex items-center gap-1 text-[#3a6b22] hover:text-[#2d5319] transition-colors"
+              >
+                <span className="text-[14px] font-bold">+{booking.field.amenities.length - 4} more</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Details */}
         <div className="flex flex-wrap gap-3 sm:gap-6 text-[12px] sm:text-[14px] text-[#8d8d8d] mb-3">
@@ -1235,6 +1278,75 @@ const BookingHistoryPage = () => {
           booking={bookingToReschedule}
           onConfirm={handleRescheduleBooking}
         />
+      )}
+
+      {/* All Amenities Modal */}
+      {amenitiesModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setAmenitiesModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-900">All Amenities</h3>
+              <button
+                onClick={() => setAmenitiesModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-88px)]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {selectedAmenities.map((amenity: any, index: number) => {
+                  // Handle both string and object formats
+                  const amenitySlug = typeof amenity === 'string' ? amenity : amenity.label;
+                  const amenityConfig = getAmenityBySlug(amenitySlug);
+                  const iconPath = typeof amenity === 'object' && amenity.iconUrl
+                    ? amenity.iconUrl
+                    : amenityConfig?.iconPath;
+                  const label = amenityConfig?.label || (typeof amenity === 'object' ? amenity.label : amenity);
+
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-[#f4ffef] border border-[#3a6b221a] rounded-xl hover:bg-[#e8f5df] transition-colors"
+                    >
+                      {iconPath && (
+                        <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white rounded-lg border border-[#3a6b221a]">
+                          <img
+                            src={iconPath}
+                            alt={label}
+                            className="w-6 h-6"
+                          />
+                        </div>
+                      )}
+                      <span className="text-[14px] font-medium text-[#192215]">
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-200">
+              <button
+                onClick={() => setAmenitiesModalOpen(false)}
+                className="w-full py-3 px-4 bg-[#3a6b22] text-white font-semibold rounded-xl hover:bg-[#2d5319] transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
     </UserLayout>

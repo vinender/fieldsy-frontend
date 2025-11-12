@@ -13,10 +13,10 @@ import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNotifications } from "@/contexts/NotificationContext"
 import { useChat } from "@/contexts/ChatContext"
-import { getUserImage, getUserInitials } from "@/utils/getUserImage"
 import { ResponsiveLink } from "@/components/common/ResponsiveLink"
 import { OptimizedLink, usePrefetch } from "@/components/common/OptimizedLink"
 import router from "next/router"
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar"
 
 export function Header() {
   const pathname = usePathname()
@@ -244,14 +244,12 @@ export function Header() {
                     className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                     aria-label="User menu"
                   >
-                    <div className="h-10 w-10 rounded-full ring-2 ring-white overflow-hidden relative">
-                      <Image
-                        src={getUserImage(currentUser) || ''}
-                        alt={currentUser?.name || "Profile"}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                    <ProfileAvatar
+                      user={currentUser}
+                      className="h-10 w-10 ring-2 ring-white"
+                      alt={currentUser?.name || "Profile"}
+                      sizes="40px"
+                    />
                   </button>
                   
                   {/* Dropdown Menu */}
@@ -260,7 +258,11 @@ export function Header() {
                       name: currentUser?.name || "User", 
                       email: currentUser?.email || "", 
                       image: currentUser?.image || null,
-                      role: currentUser?.role || null
+                      googleImage: currentUser?.googleImage || null,
+                      profileImage: currentUser?.profileImage || null,
+                      avatar: currentUser?.avatar || null,
+                      role: currentUser?.role || null,
+                      provider: currentUser?.provider || null,
                     }}
                     isOpen={profileDropdownOpen}
                     onClose={() => setProfileDropdownOpen(false)}
@@ -359,34 +361,12 @@ export function Header() {
                   className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-green-500"
                   aria-label="User menu"
                 >
-                  {getUserImage(currentUser) ? (
-                    <div className="h-9 w-9 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white overflow-hidden relative">
-                      <Image
-                        src={getUserImage(currentUser) || ''}
-                        alt={currentUser?.name || "Profile"}
-                        fill
-                        className="object-cover"
-                        onError={(e) => {
-                          // Hide the failed image
-                          e.currentTarget.style.display = 'none';
-                          // Show the fallback initial
-                          const parent = e.currentTarget.parentElement;
-                          if (parent) {
-                            const initial = document.createElement('span');
-                            initial.className = 'text-white text-xs font-semibold relative z-10';
-                            initial.textContent = getUserInitials(currentUser);
-                            parent.appendChild(initial);
-                          }
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-9 w-9 rounded-full bg-[#3A6B22] flex items-center justify-center ring-2 ring-white">
-                      <span className="text-white text-xs font-semibold">
-                        {getUserInitials(currentUser)}
-                      </span>
-                    </div>
-                  )}
+                  <ProfileAvatar
+                    user={currentUser}
+                    className="h-9 w-9 ring-2 ring-white"
+                    alt={currentUser?.name || "Profile"}
+                    sizes="36px"
+                  />
                 </button>
               </>
             ) : (
@@ -558,17 +538,12 @@ export function Header() {
                 <div className="space-y-1">
                   {/* User profile section */}
                   <div className="flex items-center p-4">
-                    <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden relative">
-                      <Image
-                        src={getUserImage(currentUser)}
-                        alt="Profile"
-                        fill
-                        className="object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(currentUser)}&background=3A6B22&color=fff&size=200`;
-                        }}
-                      />
-                    </div>
+                    <ProfileAvatar
+                      user={currentUser}
+                      className="h-10 w-10"
+                      alt={currentUser?.name || "Profile"}
+                      sizes="40px"
+                    />
                     <div className="ml-3">
                       <div className="text-base font-medium text-gray-800">
                         {currentUser?.name || "User"}

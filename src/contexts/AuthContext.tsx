@@ -7,6 +7,9 @@ interface User {
   email: string;
   name?: string;
   image?: string;
+  googleImage?: string | null;
+  profileImage?: string | null;
+  avatar?: string | null;
   role: 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN';
   provider?: string;
 }
@@ -130,6 +133,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: userData?.email,
         name: userData?.name,
         image: userData?.image || userData?.googleImage || userData?.avatar,
+        googleImage: userData?.googleImage || null,
+        profileImage: userData?.profileImage || null,
+        avatar: userData?.avatar || null,
         role: userData?.role as 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN',
         provider: userData?.provider,
       };

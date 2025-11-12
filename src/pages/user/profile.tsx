@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ArrowLeft,
   User,
@@ -16,11 +16,16 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { ProfileSkeleton } from '@/components/skeletons/SkeletonComponents';
 import { DeleteProfileImageModal } from '@/components/modal/DeleteProfileImageModal';
+import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
+
+const BIO_PREVIEW_LIMIT = 250;
 
 const MyProfilePage = () => {
   const router = useRouter();
   const [isPasswordSidebarOpen, setIsPasswordSidebarOpen] = useState(false);
   const [showDeleteImageModal, setShowDeleteImageModal] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [showFullBio, setShowFullBio] = useState(false);
   
   // Fetch profile data
   const { data: profile, isLoading, error } = useProfile();
@@ -47,8 +52,27 @@ const MyProfilePage = () => {
         phoneNumber: profile.phone?.replace('+44', '').trim() || '',
         bio: profile.bio || ''
       });
+      setShowFullBio(false);
     }
   }, [profile]);
+
+  const { displayedBio, isLongBio } = useMemo(() => {
+    const bio = profile?.bio || '';
+    const isLong = bio.length > BIO_PREVIEW_LIMIT;
+
+    if (!bio) {
+      return { displayedBio: null, isLongBio: false };
+    }
+
+    if (showFullBio || !isLong) {
+      return { displayedBio: bio, isLongBio: isLong };
+    }
+
+    return {
+      displayedBio: `${bio.slice(0, BIO_PREVIEW_LIMIT)}...`,
+      isLongBio: isLong,
+    };
+  }, [profile?.bio, showFullBio]);
 
   const handleInputChange = (field: string, value: string) => {
     // For phone number, only allow digits
@@ -64,14 +88,28 @@ const MyProfilePage = () => {
         [field]: value
       }));
     }
+
+    if (field === 'fullName' && nameError) {
+      if (value.trim()) {
+        setNameError(null);
+      }
+    }
   };
 
   const handleUpdate = async () => {
     try {
+      const trimmedName = formData.fullName.trim();
+
+      if (!trimmedName) {
+        setNameError('Name is required');
+        toast.error('Please enter your name before saving changes');
+        return;
+      }
+
       const updates: any = {};
       
-      if (formData.fullName !== profile?.name) {
-        updates.name = formData.fullName;
+      if (trimmedName !== (profile?.name || '').trim()) {
+        updates.name = trimmedName;
       }
       
       if (formData.phoneNumber && formData.phoneNumber !== profile?.phone?.replace('+44', '').trim()) {
@@ -160,6 +198,16 @@ const MyProfilePage = () => {
     );
   }
 
+  const profileAvatarData = {
+    name: profile.name,
+    email: profile.email,
+    image: profile.image,
+    googleImage: profile.googleImage,
+    profileImage: profile.profileImage,
+    avatar: profile.avatar,
+    provider: profile.provider,
+  };
+
   return (
     <div className="h-full bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-20">
@@ -181,34 +229,12 @@ const MyProfilePage = () => {
             
             {/* User Info */}
             <div className="flex items-center gap-3 sm:gap-4 mb-4">
-              {profile?.image ? (
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0 overflow-hidden relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={profile.image}
-                    alt={profile?.name || 'User'}
-                    className="w-full h-full rounded-full object-cover absolute inset-0"
-                    onError={(e) => {
-                      // Hide broken image
-                      e.currentTarget.style.display = 'none';
-                      // Show fallback initial
-                      const parent = e.currentTarget.parentElement;
-                      if (parent && !parent.querySelector('.fallback-initial')) {
-                        const initial = document.createElement('span');
-                        initial.className = 'fallback-initial text-white text-lg sm:text-xl font-semibold relative z-10';
-                        initial.textContent = profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase() || 'U';
-                        parent.appendChild(initial);
-                      }
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-lg sm:text-xl font-semibold">
-                    {profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
+              <ProfileAvatar
+                user={profileAvatarData}
+                className="w-12 h-12 sm:w-14 sm:h-14"
+                alt={profile.name || 'User'}
+                sizes="(max-width:640px) 48px, 56px"
+              />
               <div className="min-w-0">
                 <h3 className="text-base sm:text-[18px] font-semibold text-[#323232] truncate">{profile.name || 'User'}</h3>
                 <p className="text-xs sm:text-sm text-[#323232] truncate">{profile.email}</p>
@@ -237,12 +263,20 @@ const MyProfilePage = () => {
             </div>
 
             {/* About Me Section */}
-            {profile.bio && (
+            {displayedBio && (
               <div className="mt-6">
                 <h4 className="text-xs sm:text-sm font-bold text-[#192215] mb-3">About me</h4>
                 <p className="text-sm sm:text-base text-[#8d8d8d] leading-relaxed">
-                  {profile.bio}
+                  {displayedBio}
                 </p>
+                {isLongBio && (
+                  <button
+                    onClick={() => setShowFullBio((prev) => !prev)}
+                    className="mt-2 text-sm font-semibold text-[#3a6b22] hover:text-[#2e5519]"
+                  >
+                    {showFullBio ? 'Show less' : 'Read more'}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -253,34 +287,12 @@ const MyProfilePage = () => {
 
             {/* Profile Image Section */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 sm:mb-8">
-              {profile?.image ? (
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0 overflow-hidden relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={profile.image}
-                    alt={profile.name || 'User'}
-                    className="w-full h-full rounded-full object-cover absolute inset-0"
-                    onError={(e) => {
-                      // Hide broken image
-                      e.currentTarget.style.display = 'none';
-                      // Show fallback initial
-                      const parent = e.currentTarget.parentElement;
-                      if (parent && !parent.querySelector('.fallback-initial')) {
-                        const initial = document.createElement('span');
-                        initial.className = 'fallback-initial text-white text-xl sm:text-2xl font-semibold relative z-10';
-                        initial.textContent = profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase() || 'U';
-                        parent.appendChild(initial);
-                      }
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#3A6B22] flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-xl sm:text-2xl font-semibold">
-                    {profile.name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
+              <ProfileAvatar
+                user={profileAvatarData}
+                className="w-14 h-14 sm:w-16 sm:h-16"
+                alt={profile.name || 'User'}
+                sizes="(max-width:640px) 56px, 64px"
+              />
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                 <label className="text-sm sm:text-base font-semibold text-[#3a6b22] underline hover:opacity-80 transition-opacity cursor-pointer">
                   <input 
@@ -334,6 +346,11 @@ const MyProfilePage = () => {
                     maxLength={50}
                     className="h-12 sm:h-14 text-sm sm:text-[15px] border-[#e3e3e3] focus:border-[#3a6b22]"
                   />
+                  {nameError && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {nameError}
+                    </p>
+                  )}
                   <p className="text-gray-500 text-xs mt-1 text-right">
                     {formData.fullName.length}/50
                   </p>
