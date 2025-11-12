@@ -70,7 +70,7 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
             </>
           )}
 
-             {/* Thumbnails - only show if there are multiple images */}
+        {/* Thumbnails - only show if there are multiple images */}
         {hasMultipleImages && (
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2  px-3 sm:px-4 py-3 flex gap-2 overflow-x-auto rounded-t-xl">
             {images.map((thumb, i) => (

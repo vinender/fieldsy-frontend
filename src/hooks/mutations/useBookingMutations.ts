@@ -128,8 +128,10 @@ export function useCancelBooking(
       queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
       queryClient.invalidateQueries({ queryKey: bookingQueryKeys.bookingDetails(variables.bookingId) });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerBookings() });
+      // Invalidate all cancelled bookings pages to ensure the cancelled tab updates
+      queryClient.invalidateQueries({ queryKey: ['bookings', 'cancelled'] });
       toast.success('Booking cancelled successfully!');
-      
+
       if (options?.onSuccess) {
         options.onSuccess(result, variables, {} as any);
       }

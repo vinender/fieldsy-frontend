@@ -131,6 +131,7 @@ export default function AddYourField() {
     county: string;
     postalCode: string;
     country: string;
+    addressVerified: boolean;
     images: string[];
     price: string;
     bookingDuration: string;
@@ -157,6 +158,7 @@ export default function AddYourField() {
     county: '',
     postalCode: '',
     country: '',
+    addressVerified: false,
     images: [], // Add images field
     // Pricing fields
     price: '',
@@ -253,6 +255,7 @@ export default function AddYourField() {
         county: '',
         postalCode: '',
         country: '',
+        addressVerified: false,
         latitude: null,
         longitude: null,
         images: [],
@@ -326,6 +329,7 @@ export default function AddYourField() {
         county: fieldData.state || '',
         postalCode: fieldData.zipCode || '',
         country: fieldData.country || '',
+        addressVerified: Boolean(fieldData.address || fieldData.streetAddress || fieldData.location),
         images: fieldData.images || [],
         price: fieldData.price?.toString() || fieldData.pricePerHour?.toString() || '',
         bookingDuration: fieldData.bookingDuration || '30min',
@@ -356,7 +360,11 @@ export default function AddYourField() {
         if (!formData.openingDays) errors.openingDays = 'Please select your opening days';
         if (!formData.startTime) errors.startTime = 'Please select a start time';
         if (!formData.endTime) errors.endTime = 'Please select an end time';
-        if (!formData.streetAddress?.trim()) errors.streetAddress = 'Please enter a street address';
+        if (!formData.streetAddress?.trim()) {
+          errors.streetAddress = 'Please enter a street address';
+        } else if (!formData.addressVerified) {
+          errors.streetAddress = 'Please select an address from the suggestions';
+        }
         if (!formData.city?.trim()) errors.city = 'Please enter a city';
         if (!formData.county?.trim()) errors.county = 'Please enter a county or state';
         if (!formData.postalCode?.trim()) errors.postalCode = 'Please enter a postal code';
@@ -516,9 +524,10 @@ export default function AddYourField() {
     
     setIsLoading(true);
     try {
+      const { addressVerified, ...payload } = formData;
       await saveProgressMutation.mutateAsync({
         step: activeSection,
-        data: formData,
+        data: payload,
         fieldId
       });
     } catch (error) {

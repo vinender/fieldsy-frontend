@@ -149,18 +149,18 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
   const headerContent = (
     <div className="flex justify-between items-center">
-      <BackButton
+      {/* <BackButton
         size='lg'
         label={isSubmitted ? 'My Field' : 'Preview'}
         showLabel={true}
         onClick={onBack}
-      />
+      /> */}
       <div className="flex items-center gap-3">
         <button
           onClick={onEdit}
           className="px-[20px] py-[16px] w-[120px] rounded-[70px] border border-green text-green text-[16px] font-[700] font-sans bg-cream transition-colors hover:bg-gray-50"
         >
-          Edit
+          Edit  
         </button>
         {isSubmitted ? (
           <div className={`flex items-center bg-cream border border-green gap-2 rounded-[70px] px-[20px] py-[16px] ${!isClaimed ? 'opacity-50 cursor-not-allowed' : ''}`}>

@@ -34,7 +34,8 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
     const { name, value } = e.target;
     setFormData((prev: any) => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      ...(name === 'streetAddress' ? { addressVerified: false } : {}),
     }));
   };
 
@@ -431,6 +432,12 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               onChange={handleInputChange}
               placeholder="42 Meadowcroft Lane"
               className={`w-full px-4 py-3 bg-white rounded-3xl border ${validationErrors.streetAddress ? 'border-red-500' : 'border-gray-300'} hover:border-gray-400 focus:outline-none focus:border-green focus:ring-1 focus:ring-green/20 font-sans text-gray-input placeholder:text-gray-400 shadow-sm transition-all duration-200`}
+              onManualInput={() => {
+                setFormData((prev: any) => ({
+                  ...prev,
+                  addressVerified: false,
+                }));
+              }}
               onAddressSelect={(components) => {
                 // Validate that the address is in the UK
                 const isUK = components.country === 'United Kingdom' ||
@@ -449,6 +456,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   city: components.city,
                   county: components.county,
                   postalCode: components.postalCode,
+                  addressVerified: true,
                   // Store the complete location object
                   location: {
                     streetAddress: components.streetAddress,

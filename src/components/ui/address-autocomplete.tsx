@@ -23,6 +23,7 @@ interface AddressAutocompleteProps {
   placeholder?: string;
   className?: string;
   name?: string;
+  onManualInput?: () => void;
 }
 
 export function AddressAutocomplete({
@@ -31,7 +32,8 @@ export function AddressAutocomplete({
   onChange,
   placeholder = "42 Meadowcroft Lane",
   className = "",
-  name = "streetAddress"
+  name = "streetAddress",
+  onManualInput,
 }: AddressAutocompleteProps) {
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,20 +108,14 @@ export function AddressAutocomplete({
         addressComponents.streetAddress = streetNumber ? `${streetNumber} ${route}` : route;
 
         // Update the input field with the street address
-        if (inputRef.current) {
-          inputRef.current.value = addressComponents.streetAddress;
-          // Trigger the onChange event to update form state
-          const event = new Event('input', { bubbles: true });
-          Object.defineProperty(event, 'target', {
-            writable: false,
-            value: {
-              name: name,
-              value: addressComponents.streetAddress
-            }
-          });
-          if (onChange) {
-            onChange(event as any);
-          }
+        if (onChange) {
+          const syntheticEvent = {
+            target: {
+              name,
+              value: addressComponents.streetAddress,
+            },
+          } as React.ChangeEvent<HTMLInputElement>;
+          onChange(syntheticEvent);
         }
 
         // Call the callback to update all address fields
@@ -215,6 +211,11 @@ export function AddressAutocomplete({
     }
   }, [isLoaded]);
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onManualInput?.();
+    onChange?.(event);
+  };
+
   if (loadError) {
     // Fall back to regular input if Google Maps fails to load
     return (
@@ -223,7 +224,7 @@ export function AddressAutocomplete({
         type="text"
         name={name}
         value={value}
-        onChange={onChange}
+        onChange={handleInputChange}
         placeholder={placeholder}
         className={className}
         autoComplete="off"
@@ -251,8 +252,8 @@ export function AddressAutocomplete({
         ref={inputRef}
         type="text"
         name={name}
-        defaultValue={value}
-        onChange={onChange}
+        value={value}
+        onChange={handleInputChange}
         placeholder={placeholder}
         className={className}
         autoComplete="off"

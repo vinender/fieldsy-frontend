@@ -273,13 +273,14 @@ const BookingHistoryPage = () => {
       params.append('page', page.toString());
       params.append('limit', '10');
       if (activeTab === 'previous') {
-        // Include both COMPLETED and CANCELLED bookings with past dates
-        params.append('status', 'COMPLETED,CANCELLED');
+        params.append('status', 'COMPLETED');
         params.append('includeExpired', 'true');
       } else if (activeTab === 'upcoming') {
-        // Include both CONFIRMED and CANCELLED bookings with future dates
-        params.append('status', 'CONFIRMED,CANCELLED');
+        params.append('status', 'CONFIRMED');
         params.append('includeFuture', 'true');
+      } else if (activeTab === 'cancelled') {
+        params.append('status', 'CANCELLED');
+        params.append('includeExpired', 'true');
       } else {
         params.append('status', 'PENDING');
       }
@@ -1054,6 +1055,16 @@ const BookingHistoryPage = () => {
               Previous
             </button>
             <button
+              onClick={() => setActiveTab('cancelled')}
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${
+                activeTab === 'cancelled'
+                  ? 'bg-[#8fb366] text-white'
+                  : 'bg-transparent text-[#192215] hover:bg-white/50'
+              }`}
+            >
+              Cancelled
+            </button>
+            <button
               onClick={() => setActiveTab('recurring')}
               className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${
                 activeTab === 'recurring'
@@ -1151,7 +1162,9 @@ const BookingHistoryPage = () => {
               <p className="text-gray-600 mb-4">
                 {activeTab === 'upcoming'
                   ? "You don't have any upcoming bookings."
-                  : "You don't have any previous bookings."}
+                  : activeTab === 'cancelled'
+                    ? "You haven't cancelled any bookings yet."
+                    : "You don't have any previous bookings."}
               </p>
               <button
                 onClick={() => router.push('/fields')}
