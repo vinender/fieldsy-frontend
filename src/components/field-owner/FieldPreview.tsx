@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import FieldDetailsScreen from '@/components/fields/FieldDetailsScreen';
 import { Switch } from '@/components/ui/switch';
 import BackButton from '@/components/common/BackButton';
 import { useFieldOptions } from '@/hooks/api/useFieldOptions';
 import { useAmenities } from '@/hooks/api/useAmenities';
+import { ToggleFieldStatusModal } from '@/components/modal/ToggleFieldStatusModal';
 
 interface FieldPreviewProps {
   formData: any;
@@ -20,6 +21,8 @@ interface FieldPreviewProps {
 export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, isClaimed = false, onToggleActive, onBack }: FieldPreviewProps) {
   const { data: fieldOptions } = useFieldOptions();
   const { data: amenitiesData } = useAmenities();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
   // Create a lookup map for fast label retrieval
   const labelMap = useMemo(() => {
@@ -44,6 +47,31 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
   // Debug: Log formData amenities
   console.log('FormData amenities:', formData?.amenities);
+
+  // Handle toggle status click - open confirmation modal
+  const handleToggleStatusClick = () => {
+    if (isClaimed) {
+      setModalOpen(true);
+    }
+  };
+
+  // Handle confirm toggle from modal
+  const handleConfirmToggle = async () => {
+    if (!onToggleActive) return;
+
+    setIsToggling(true);
+    try {
+      await onToggleActive();
+      setModalOpen(false);
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
+  // Handle close modal
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
 
   const formatLabel = (value: string) => {
     if (!value) return null;
@@ -149,26 +177,26 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
   const headerContent = (
     <div className="flex justify-between items-center">
-      {/* <BackButton
+      <BackButton
         size='lg'
         label={isSubmitted ? 'My Field' : 'Preview'}
         showLabel={true}
         onClick={onBack}
-      /> */}
+      />
       <div className="flex items-center gap-3">
         <button
           onClick={onEdit}
           className="px-[20px] py-[16px] w-[120px] rounded-[70px] border border-green text-green text-[16px] font-[700] font-sans bg-cream transition-colors hover:bg-gray-50"
         >
-          Edit  
+          Edit
         </button>
         {isSubmitted ? (
           <div className={`flex items-center bg-cream border border-green gap-2 rounded-[70px] px-[20px] py-[16px] ${!isClaimed ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <span className="text-[16px] font-[700] w-[110px] text-green">{isActive ? 'Enabled' : 'Disable Field'}</span>
             <Switch
               checked={!!isActive}
-              onCheckedChange={() => isClaimed && onToggleActive?.()}
-              disabled={!isClaimed}
+              onCheckedChange={handleToggleStatusClick}
+              disabled={!isClaimed || isToggling}
             />
           </div>
         ) : (
@@ -185,13 +213,28 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
   );
 
   return (
-    <FieldDetailsScreen
-      field={field}
-      isPreview={true}
-      showReviews={false}
-      showOwnerInfo={false}
-      showClaimField={false}
-      headerContent={headerContent}
-    />
+    <>
+      <FieldDetailsScreen
+        field={field}
+        isPreview={true}
+        showReviews={false}
+        showOwnerInfo={false}
+        showClaimField={false}
+        headerContent={headerContent}
+      />
+
+      {/* Toggle Field Status Modal */}
+      <ToggleFieldStatusModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        field={{
+          id: formData?.id || '',
+          name: formData?.fieldName || '',
+          isActive: !!isActive,
+        }}
+        onConfirm={handleConfirmToggle}
+        isLoading={isToggling}
+      />
+    </>
   );
 }

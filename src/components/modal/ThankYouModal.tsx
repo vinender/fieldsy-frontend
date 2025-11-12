@@ -39,7 +39,7 @@ export default function ThankYouModal({ isOpen, onGoHome, onPreviewListing, onCl
 
         {/* Message */}
         <p className="text-gray-600 mb-6">
-          Your listing has been successfully submitted and is now under review to ensure it meets our platform standards. We'll notify you as soon as it's live and ready for bookings.
+          Your listing has been successfully submitted and is now under review. We'll notify you as soon as it's live and ready for bookings.
         </p>
 
         {/* Actions */}

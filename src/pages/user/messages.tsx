@@ -1293,33 +1293,41 @@ const MessagesPage = () => {
                       </div>
                     ) : (
                       <>
-                        {Object.entries(groupMessagesByDate(messages)).map(([dateKey, dateMessages], index) => (
-                          <div
-                            key={dateKey}
-                            data-date-section={formatChatDateHeader(dateMessages[0].createdAt)}
-                            className="date-section"
-                          >
-                            {/* Date Divider - Inline with messages */}
-                            <div className="flex justify-center mb-4 mt-6 first:mt-0">
-                              <span className="bg-cream px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[12px] sm:text-[13px] font-semibold text-dark-green shadow-sm">
-                                {formatChatDateHeader(dateMessages[0].createdAt)}
-                              </span>
-                            </div>
+                        {Object.entries(groupMessagesByDate(messages)).map(([dateKey, dateMessages], index) => {
+                          const sectionDate = formatChatDateHeader(dateMessages[0].createdAt);
+                          // Hide inline date divider if sticky header is showing the same date
+                          const hideInlineDate = showFloatingDate && floatingDate === sectionDate;
 
-                            {/* Messages for this date */}
-                            <div className="space-y-4">
-                              {dateMessages.map((message) => (
-                                <MessageItem
-                                  key={message.id}
-                                  message={message}
-                                  isMyMessage={message.senderId === currentUserId}
-                                  isNewMessage={newMessageIds.has(message.id)}
-                                  formatMessageTime={formatMessageTime}
-                                />
-                              ))}
+                          return (
+                            <div
+                              key={dateKey}
+                              data-date-section={sectionDate}
+                              className="date-section"
+                            >
+                              {/* Date Divider - Inline with messages - Hidden when sticky header shows same date */}
+                              {!hideInlineDate && (
+                                <div className="flex justify-center mb-4 mt-6 first:mt-0">
+                                  <span className="bg-cream px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[12px] sm:text-[13px] font-semibold text-dark-green shadow-sm">
+                                    {sectionDate}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Messages for this date */}
+                              <div className="space-y-4">
+                                {dateMessages.map((message) => (
+                                  <MessageItem
+                                    key={message.id}
+                                    message={message}
+                                    isMyMessage={message.senderId === currentUserId}
+                                    isNewMessage={newMessageIds.has(message.id)}
+                                    formatMessageTime={formatMessageTime}
+                                  />
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
 
                         {/* Typing Indicator */}
                         {otherUserTyping && (

@@ -6,6 +6,7 @@ export const bookingQueryKeys = {
   userBookings: () => ['bookings', 'my-bookings'] as const,
   bookingDetails: (id: string) => ['booking', id] as const,
   cancelledBookings: (page: number) => ['bookings', 'cancelled', page] as const,
+  hasCompletedBooking: (fieldId: string) => ['bookings', 'has-completed', fieldId] as const,
 };
 
 // Types
@@ -129,6 +130,42 @@ export function useCancelledBookings(
   return {
     data: query.data?.data || [],
     pagination: query.data?.pagination,
+    loading: query.isLoading,
+    isLoading: query.isLoading,
+    error: query.error,
+    isError: query.isError,
+    isSuccess: query.isSuccess,
+    refetch: query.refetch,
+  };
+}
+
+// Hook to check if user has completed bookings for a specific field
+export interface HasCompletedBookingResponse {
+  success: boolean;
+  hasCompletedBooking: boolean;
+  data: {
+    canReview: boolean;
+  };
+}
+
+export function useHasCompletedBooking(
+  fieldId: string,
+  options?: Omit<UseQueryOptions<HasCompletedBookingResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  const query = useQuery({
+    queryKey: bookingQueryKeys.hasCompletedBooking(fieldId),
+    queryFn: async () => {
+      const response = await axiosClient.get(`/bookings/fields/${fieldId}/has-completed`);
+      return response.data as HasCompletedBookingResponse;
+    },
+    enabled: !!fieldId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  });
+
+  return {
+    hasCompletedBooking: query.data?.hasCompletedBooking || false,
+    canReview: query.data?.data?.canReview || false,
     loading: query.isLoading,
     isLoading: query.isLoading,
     error: query.error,

@@ -59,11 +59,13 @@ export default function FieldDetailsScreen({
   const resolvedShowClaimField = typeof showClaimField === 'boolean' ? showClaimField : !isSubmitted;
 
   return (
-    <FieldDetailsLegacy 
+    <FieldDetailsLegacy
       field={field}
       isSubmitted={isSubmitted}
       headerContent={headerContent}
       showReviews={resolvedShowReviews}
+      showOwnerInfo={resolvedShowOwnerInfo}
+      showClaimField={resolvedShowClaimField}
     />
   );
 }

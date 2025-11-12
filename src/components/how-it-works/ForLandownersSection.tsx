@@ -1,4 +1,5 @@
 import { MapPin, Calendar } from "lucide-react"
+import Link from "next/link"
 
 export function ForLandownersSection() {
   return (
@@ -58,11 +59,12 @@ export function ForLandownersSection() {
               </div>
             </div>
             
-            <button 
-              className="w-full mt-8 py-4 rounded-full text-white font-[600] bg-green hover:bg-dark-green transition-colors"
+            <Link
+              href="/fields"
+              className="inline-flex w-full justify-center mt-8 py-4 rounded-full text-white font-[600] bg-green hover:bg-dark-green transition-colors"
             >
               Claim Your Field
-            </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -7,11 +7,14 @@ import { FieldData } from '@/hooks/queries/useFieldQueries';
 import { Eye, Edit, Power } from 'lucide-react';
 import Spinner from '@/components/ui/Spinner';
 import  BackButton  from '@/components/common/BackButton';
+import { ToggleFieldStatusModal } from '@/components/modal/ToggleFieldStatusModal';
 
 export default function MyFieldsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [togglingFieldId, setTogglingFieldId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedField, setSelectedField] = useState<FieldData | null>(null);
 
   // Fetch all fields owned by the user
   const { data: fields, isLoading: fetchingFields, refetch, error, isError } = useOwnerFields({
@@ -40,14 +43,28 @@ export default function MyFieldsPage() {
     router.push(`/?edit=true&fieldId=${fieldId}`);
   };
 
-  const handleToggleStatus = async (fieldId: string, e: React.MouseEvent) => {
+  const handleToggleStatusClick = (field: FieldData, e: React.MouseEvent) => {
     e.stopPropagation();
-    setTogglingFieldId(fieldId);
+    setSelectedField(field);
+    setModalOpen(true);
+  };
+
+  const handleConfirmToggle = async () => {
+    if (!selectedField) return;
+
+    setTogglingFieldId(selectedField.id);
     try {
-      await toggleFieldStatusMutation.mutateAsync(fieldId);
+      await toggleFieldStatusMutation.mutateAsync(selectedField.id);
+      setModalOpen(false);
+      setSelectedField(null);
     } finally {
       setTogglingFieldId(null);
     }
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedField(null);
   };
 
   if (fetchingFields) {
@@ -145,7 +162,7 @@ export default function MyFieldsPage() {
                     </span>
                     <div className="flex gap-2">
                       <button
-                        onClick={(e) => handleToggleStatus(field.id, e)}
+                        onClick={(e) => handleToggleStatusClick(field, e)}
                         disabled={togglingFieldId === field.id}
                         className={`p-2 rounded-full transition-all ${
                           field.isActive
@@ -188,6 +205,21 @@ export default function MyFieldsPage() {
           </div>
         )}
       </div>
+
+      {/* Toggle Field Status Modal */}
+      {selectedField && (
+        <ToggleFieldStatusModal
+          isOpen={modalOpen}
+          onClose={handleCloseModal}
+          field={{
+            id: selectedField.id,
+            name: selectedField.name,
+            isActive: selectedField.isActive,
+          }}
+          onConfirm={handleConfirmToggle}
+          isLoading={togglingFieldId === selectedField.id}
+        />
+      )}
     </UserLayout>
   );
 }

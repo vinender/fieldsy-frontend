@@ -385,7 +385,7 @@ export default function BookingHistory() {
                       <>
                         <div className={`flex-1 py-2 px-3 border rounded-full text-xs font-medium font-sans flex items-center justify-center gap-1.5 ${
                           displayBooking.status === 'completed' ? 'bg-green/10 text-green' :
-                          displayBooking.status === 'cancelled' ? 'bg-red/10 text-red' :
+                          displayBooking.status === 'cancelled' ? 'border-red-600 bg-red-100/10 text-red-600' :
                           displayBooking.status === 'refunded' ? 'bg-orange/10 text-orange' :
                           displayBooking.status === 'confirmed' ? 'bg-white text-green border-green' :
                           'bg-gray-100 text-gray-600'

@@ -25,7 +25,6 @@ const ClaimFieldPage = () => {
     isLegalOwner: true
   });
   
-  const [phoneCode, setPhoneCode] = useState('+44');
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState<{
@@ -249,7 +248,7 @@ const ClaimFieldPage = () => {
       fieldId: field_id as string,
       fullName: formData.fullName.trim(),
       email: formData.email.trim(),
-      phoneCode,
+      phoneCode: '+44',
       phoneNumber: formData.phoneNumber.trim(),
       isLegalOwner: formData.isLegalOwner!,
       documents: uploadedFiles
@@ -374,15 +373,9 @@ const ClaimFieldPage = () => {
                     ? 'border-red-500 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500'
                     : 'border-gray-200 focus-within:border-[#3A6B22] focus-within:ring-1 focus-within:ring-[#3A6B22]'
                 }`}>
-                  <select
-                    value={phoneCode}
-                    onChange={(e) => setPhoneCode(e.target.value)}
-                    className="px-3 py-3 rounded-l-[76px] border-none  bg-transparent focus:outline-none"
-                  >
-                    <option value="+44">+44</option>
-                    <option value="+1">+1</option>
-                    <option value="+91">+91</option>
-                  </select>
+                  <div className="px-4 py-3 flex items-center text-gray-700 font-medium">
+                    +44
+                  </div>
 
                   <div className="h-10 my-auto w-px bg-gray-300"></div>
 

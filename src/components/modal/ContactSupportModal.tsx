@@ -157,10 +157,10 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-dark-green">Contact Support</h2>
           <button
             onClick={onClose}
@@ -171,7 +171,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-dark-green font-semibold">
@@ -264,7 +264,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               onChange={handleChange}
               onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
-              rows={5}
+              rows={4}
               className={`flex w-full rounded-2xl border bg-white px-4 py-3 text-base text-gray-800 shadow-sm transition-all duration-200 focus:outline-none focus:ring-1 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none ${
                 touched.message && errors.message
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"

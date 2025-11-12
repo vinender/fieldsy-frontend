@@ -209,25 +209,28 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                       <DetailRow
                         label="Status"
                         value={
-                          <div className="flex flex-wrap gap-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
-                              booking.status === 'completed' ? 'bg-green-100 text-green-700' :
-                              booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                              booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              {booking.status?.toUpperCase()}
-                            </span>
-                            {/* Rescheduled Badge */}
-                            {booking.rescheduleCount && booking.rescheduleCount > 0 && (
-                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[#fff4e6] text-[#ff9800] border border-[#ff9800]/20">
-                                RESCHEDULED {booking.rescheduleCount > 1 ? `(${booking.rescheduleCount}x)` : ''}
-                              </span>
-                            )}
-                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
+                            booking.status === 'completed' ? 'bg-green text-white' :
+                            booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                            booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {booking.status?.toUpperCase()}
+                          </span>
                         }
                       />
+                      {/* Rescheduled Count Row */}
+                      {booking.rescheduleCount && booking.rescheduleCount > 0 ? (
+                        <DetailRow
+                          label="Rescheduled"
+                          value={
+                            <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[#fff4e6] text-[#ff9800] border border-[#ff9800]/20">
+                              {booking.rescheduleCount} time{booking.rescheduleCount > 1 ? 's' : ''}
+                            </span>
+                          }
+                        />
+                      ): ''}
                     </div>
                   </div>
 

@@ -16,6 +16,7 @@ import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 import { RatingStars } from '@/components/common/RatingStars';
+import { useHasCompletedBooking } from '@/hooks/queries/useBookingQueries';
 
 
 interface FieldDetailsLegacyProps {
@@ -23,9 +24,11 @@ interface FieldDetailsLegacyProps {
   isSubmitted?: boolean;
   headerContent?: React.ReactNode;
   showReviews?: boolean;
+  showOwnerInfo?: boolean;
+  showClaimField?: boolean;
 }
 
-export default function FieldDetailsLegacy({ field, isSubmitted = false, headerContent, showReviews = true }: FieldDetailsLegacyProps) {
+export default function FieldDetailsLegacy({ field, isSubmitted = false, headerContent, showReviews = true, showOwnerInfo = true, showClaimField = true }: FieldDetailsLegacyProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const reviewsRef = useRef<HTMLDivElement>(null);
@@ -45,6 +48,11 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
   const { data: isFavorited } = useFavoriteStatus(fieldId);
   const toggleFavoriteMutation = useToggleFavorite(fieldId);
   const [isLiked, setIsLiked] = useState(false);
+
+  // Check if user has completed bookings for this field (only check if user is logged in and not in preview mode)
+  const { canReview, isLoading: checkingBookings } = useHasCompletedBooking(fieldId, {
+    enabled: !!session && !isSubmitted && !!fieldId
+  });
   
   useEffect(() => {
     setIsLiked(isFavorited || false);
@@ -179,7 +187,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
         )}
 
         {/* Back Button with Claim Field label for unclaimed fields */}
-        {!isClaimed && !isSubmitted && (
+        {!isClaimed && !isSubmitted && showClaimField && (
           <div className="px-4 lg:px-20 pb-4">
             <BackButton
               label="Claim Field"
@@ -341,7 +349,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
               })}
             </div>
 
-            {isClaimed && field?.owner && (
+            {isClaimed && field?.owner && showOwnerInfo && (
               <OwnerInformation
                 owner={{
                   id: field?.ownerId || field?.owner?._id || field?.owner?.id || field?.userId,
@@ -356,9 +364,9 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
               />
             )}
             
-            {!isClaimed && !isSubmitted && (
+            {!isClaimed && !isSubmitted && showClaimField && (
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={isSubmitted ? undefined : () => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
                   className="flex-1 w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-[70px] hover:bg-[#2e5519] transition"
                 >
@@ -762,23 +770,25 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
                             </div>
                           </div>
 
-                          {/* Right: Leave a review (legacy style) */}
-                          <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
-                            <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
-                            <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
-                            <button 
-                              onClick={isSubmitted ? undefined : () => {
-                                if (!session) {
-                                  router.push('/login');
-                                } else {
-                                  setShowReviewModal(true);
-                                }
-                              }}
-                              className="px-5 py-2 border border-[#8FB366] flex justify-center items-center text-center rounded-full bg-white w-full text-green hover:text-white font-semibold hover:bg-[#2e5519] transition"
-                            >
-                              Write A Review
-                            </button>
-                          </div>
+                          {/* Right: Leave a review (legacy style) - Only show if user can review */}
+                          {canReview && (
+                            <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
+                              <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
+                              <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
+                              <button
+                                onClick={isSubmitted ? undefined : () => {
+                                  if (!session) {
+                                    router.push('/login');
+                                  } else {
+                                    setShowReviewModal(true);
+                                  }
+                                }}
+                                className="px-5 py-2 border border-[#8FB366] flex justify-center items-center text-center rounded-full bg-white w-full text-green hover:text-white font-semibold hover:bg-[#2e5519] transition"
+                              >
+                                Write A Review
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -816,22 +826,31 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
                           ))}
                         </div>
                       ) : (
-                        <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
-                          <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
-                          <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
-                          <button 
-                            onClick={isSubmitted ? undefined : () => {
-                              if (!session) {
-                                router.push('/login');
-                              } else {
-                                setShowReviewModal(true);
-                              }
-                            }}
-                            className="px-5 py-2 border border-[#8FB366] flex justify-center items-center text-center rounded-full bg-white w-full text-green hover:text-white font-semibold hover:bg-[#2e5519] transition"
-                          >
-                            Write A Review
-                          </button>
-                        </div>
+                        <>
+                          {/* Show "Leave a Review" only if user can review */}
+                          {canReview ? (
+                            <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
+                              <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
+                              <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
+                              <button
+                                onClick={isSubmitted ? undefined : () => {
+                                  if (!session) {
+                                    router.push('/login');
+                                  } else {
+                                    setShowReviewModal(true);
+                                  }
+                                }}
+                                className="px-5 py-2 border border-[#8FB366] flex justify-center items-center text-center rounded-full bg-white w-full text-green hover:text-white font-semibold hover:bg-[#2e5519] transition"
+                              >
+                                Write A Review
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
+                              <p className="text-gray-600 text-sm text-center">No reviews yet. Be the first to book and review this field!</p>
+                            </div>
+                          )}
+                        </>
                       )}
                     </>
                   )

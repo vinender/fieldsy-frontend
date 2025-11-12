@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useCurrentUser } from '@/hooks';
 
@@ -61,47 +61,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return localStorage.getItem('authToken');
   });
 
+  const syncAuthFromStorage = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const storedToken = localStorage.getItem('authToken');
+    const storedUser = localStorage.getItem('currentUser');
+
+    setAuthToken(storedToken);
+
+    if (storedUser && storedToken) {
+      try {
+        const parsedUser = JSON.parse(storedUser) as User;
+        setOptimisticUser(parsedUser);
+        setUser((prev) => prev ?? parsedUser);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('[AuthContext] Failed to parse stored user during sync:', error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('authToken');
-      setAuthToken(token);
+    if (typeof window === 'undefined') return;
 
-      // Listen for storage changes
-      const handleStorageChange = () => {
-        const newToken = localStorage.getItem('authToken');
-        const storedUser = localStorage.getItem('currentUser');
+    syncAuthFromStorage();
 
-        setAuthToken(newToken);
+    const handleStorageChange = () => {
+      const newToken = localStorage.getItem('authToken');
+      const storedUser = localStorage.getItem('currentUser');
 
-        // Update optimistic user state when localStorage changes
-        if (storedUser && newToken) {
-          try {
-            const parsedUser = JSON.parse(storedUser) as User;
-            setOptimisticUser(parsedUser);
-            // Also immediately update the user state for instant UI updates
-            setUser(parsedUser);
-          } catch (error) {
-            console.error('[AuthContext] Failed to parse stored user:', error);
-            setOptimisticUser(null);
-            setUser(null);
-          }
-        } else {
+      setAuthToken(newToken);
+
+      if (storedUser && newToken) {
+        try {
+          const parsedUser = JSON.parse(storedUser) as User;
+          setOptimisticUser(parsedUser);
+          setUser(parsedUser);
+        } catch (error) {
+          console.error('[AuthContext] Failed to parse stored user:', error);
           setOptimisticUser(null);
           setUser(null);
         }
-      };
+      } else {
+        setOptimisticUser(null);
+        setUser(null);
+      }
+    };
 
-      window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('authTokenChanged', handleStorageChange);
+    window.addEventListener('focus', syncAuthFromStorage);
 
-      // Also listen for custom event when we update localStorage
-      window.addEventListener('authTokenChanged', handleStorageChange);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncAuthFromStorage();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-      return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        window.removeEventListener('authTokenChanged', handleStorageChange);
-      };
-    }
-  }, []);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authTokenChanged', handleStorageChange);
+      window.removeEventListener('focus', syncAuthFromStorage);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [syncAuthFromStorage]);
 
   // Use custom hook for fetching user data
   const {
@@ -126,6 +150,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   // Update local user state when userData changes
+  useEffect(() => {
+    if (!user && authToken) {
+      syncAuthFromStorage();
+    }
+  }, [user, authToken, syncAuthFromStorage]);
+
   useEffect(() => {
     if (userData) {
       const newUser = {
