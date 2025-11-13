@@ -51,9 +51,15 @@ const BookFieldPage = () => {
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
   const [rescheduleData, setRescheduleData] = useState<any>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isClient, setIsClient] = useState(false); // Track if we're on client side for timezone
 
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
+
+  // Set isClient to true once mounted (ensures client-side timezone is used)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Get user location on mount
   useEffect(() => {
@@ -261,6 +267,9 @@ const BookFieldPage = () => {
   const isSlotInPast = (date: Date | null, hour: number, minute: number = 0) => {
     if (!date) return false;
 
+    // Only check for past slots on client side to ensure correct timezone
+    if (!isClient) return false;
+
     const now = new Date();
     if (date.toDateString() !== now.toDateString()) {
       return false;
@@ -335,9 +344,10 @@ const BookFieldPage = () => {
 
     // Use availability data if available, otherwise generate basic slots
     if (availabilityData?.data?.slots) {
-      const now = new Date();
-      const isTodaySelected = selectedDate && selectedDate.toDateString() === now.toDateString();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      // Only calculate current time on client side to ensure correct timezone
+      const now = isClient ? new Date() : null;
+      const isTodaySelected = isClient && selectedDate && now && selectedDate.toDateString() === now.toDateString();
+      const currentMinutes = now ? now.getHours() * 60 + now.getMinutes() : 0;
 
       const getSlotStartMinutes = (slotData: any): number | null => {
         if (typeof slotData.startHour === 'number') {
@@ -370,7 +380,7 @@ const BookFieldPage = () => {
 
         // A slot is past if current time is at or after the slot start time
         // This prevents booking slots that have already started or passed
-        const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes < currentMinutes;
+        const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes <= currentMinutes;
         const isPast = typeof slotData.isPast === 'boolean' ? slotData.isPast : computedIsPast;
         const isBooked = Boolean(slotData.isBooked);
         const available = Boolean(slotData.isAvailable) && !isPast && !isBooked;
@@ -470,7 +480,8 @@ const BookFieldPage = () => {
     numberOfDogs,
     selectedDate,
     selectedTimeSlot,
-    field
+    field,
+    isClient // Re-calculate when client mount completes to get correct timezone
   ]);
 
   // Conditional returns MUST come after all hooks
