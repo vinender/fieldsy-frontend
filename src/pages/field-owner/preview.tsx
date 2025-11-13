@@ -121,7 +121,12 @@ export default function PreviewPage() {
       bookingDuration: fieldData.bookingDuration || '30min',
       instantBooking: fieldData.instantBooking || false,
       rules: fieldData.rules?.[0] || '',
-      policies: fieldData.cancellationPolicy || ''
+      policies: fieldData.cancellationPolicy || '',
+      // Add missing fields for preview sections
+      bufferTime: fieldData.bufferTime || 30,
+      bookingPolicies: fieldData.bookingPolicies || [],
+      latitude: fieldData.latitude,
+      longitude: fieldData.longitude
     };
   };
 

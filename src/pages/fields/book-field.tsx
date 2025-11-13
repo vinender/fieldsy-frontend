@@ -229,8 +229,50 @@ const BookFieldPage = () => {
     return timeStr;
   };
 
+  const parseTimeString = (timeStr: string): { hour: number; minute: number } => {
+    if (!timeStr) return { hour: 0, minute: 0 };
+
+    const time12Match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (time12Match) {
+      let hour = parseInt(time12Match[1]);
+      const minute = parseInt(time12Match[2]);
+      const period = time12Match[3].toUpperCase();
+
+      if (period === 'PM' && hour !== 12) {
+        hour += 12;
+      } else if (period === 'AM' && hour === 12) {
+        hour = 0;
+      }
+
+      return { hour, minute };
+    }
+
+    const time24Match = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (time24Match) {  
+      const hour = parseInt(time24Match[1]);
+      const minute = parseInt(time24Match[2]);
+      return { hour, minute };
+    }
+
+    const hour = parseInt(timeStr.split(':')[0]) || 0;
+    return { hour, minute: 0 };
+  };
+
+  const isSlotInPast = (date: Date | null, hour: number, minute: number = 0) => {
+    if (!date) return false;
+
+    const now = new Date();
+    if (date.toDateString() !== now.toDateString()) {
+      return false;
+    }
+
+    const slotMinutes = hour * 60 + minute;
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    return slotMinutes <= currentMinutes;
+  };
+
   // Check if a specific time slot is available
-  const checkSlotAvailability = (date: Date | null, hour: number) => {
+  const checkSlotAvailability = (date: Date | null, hour: number, minute: number = 0) => {
     if (!date || !field) return true; // Default to available if no date selected
 
     // Check if the selected date is an operating day
@@ -275,13 +317,8 @@ const BookFieldPage = () => {
       }
     }
 
-    // Check if slot is in the past for today
-    const now = new Date();
-    if (date && date.toDateString() === now.toDateString()) {
-      const currentHour = now.getHours();
-      if (hour <= currentHour) {
-        return false; // Past time slots are not available
-      }
+    if (isSlotInPast(date, hour, minute)) {
+      return false;
     }
     
     // If we don't have availability data yet, assume available
@@ -298,17 +335,52 @@ const BookFieldPage = () => {
 
     // Use availability data if available, otherwise generate basic slots
     if (availabilityData?.data?.slots) {
+      const now = new Date();
+      const isTodaySelected = selectedDate && selectedDate.toDateString() === now.toDateString();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      const getSlotStartMinutes = (slotData: any): number | null => {
+        if (typeof slotData.startHour === 'number') {
+          const minute = typeof slotData.startMinute === 'number' ? slotData.startMinute : 0;
+          return slotData.startHour * 60 + minute;
+        }
+
+        if (slotData.time) {
+          const [startPart] = slotData.time.split('-').map((part: string) => part.trim());
+          if (startPart) {
+            const { hour, minute } = parseTimeString(startPart);
+            return hour * 60 + minute;
+          }
+        }
+        return null;
+      };
+
       availabilityData.data.slots.forEach((slotData) => {
+        const startMinutes = getSlotStartMinutes(slotData);
+        const hour = typeof slotData.startHour === 'number'
+          ? slotData.startHour
+          : startMinutes !== null
+            ? Math.floor(startMinutes / 60)
+            : 0;
+        const minute = typeof slotData.startMinute === 'number'
+          ? slotData.startMinute
+          : startMinutes !== null
+            ? startMinutes % 60
+            : 0;
+
+        const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes <= currentMinutes;
+        const isPast = typeof slotData.isPast === 'boolean' ? slotData.isPast : computedIsPast;
+        const isBooked = Boolean(slotData.isBooked);
+        const available = Boolean(slotData.isAvailable) && !isPast && !isBooked;
+
         const slot = {
           time: slotData.time,
-          available: slotData.isAvailable,
+          available,
           selected: slotData.time === selectedTimeSlot,
-          isPast: slotData.isPast,
-          isBooked: slotData.isBooked
+          isPast,
+          isBooked
         };
 
-        // Categorize into morning, afternoon, or evening
-        const hour = slotData.startHour;
         if (hour < 12) {
           slots.morning.push(slot);
         } else if (hour < 18) {
@@ -319,43 +391,8 @@ const BookFieldPage = () => {
       });
     } else {
       // Fallback to basic time slot generation if no availability data
-      // Parse opening and closing times to get hours and minutes
-      const parseTime = (timeStr: string): { hour: number; minute: number } => {
-        if (!timeStr) return { hour: 0, minute: 0 };
-
-        // First, try to match 12-hour format with AM/PM (e.g., "12:15AM", "2:30 PM")
-        const time12Match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-
-        if (time12Match) {
-          let hour = parseInt(time12Match[1]);
-          const minute = parseInt(time12Match[2]);
-          const period = time12Match[3].toUpperCase();
-
-          // Convert to 24-hour format
-          if (period === 'PM' && hour !== 12) {
-            hour += 12;
-          } else if (period === 'AM' && hour === 12) {
-            hour = 0;
-          }
-
-          return { hour, minute };
-        }
-
-        // Second, try to match 24-hour format (e.g., "14:30", "02:15")
-        const time24Match = timeStr.match(/(\d{1,2}):(\d{2})/);
-        if (time24Match) {  
-          const hour = parseInt(time24Match[1]);
-          const minute = parseInt(time24Match[2]);
-          return { hour, minute };
-        }
-
-        // Fallback: try to parse as just hour
-        const hour = parseInt(timeStr.split(':')[0]) || 0;
-        return { hour, minute: 0 };
-      };
-
-      const openingTime = parseTime(field?.openingTime || '6:00AM');
-      const closingTime = parseTime(field?.closingTime || '9:00PM');
+      const openingTime = parseTimeString(field?.openingTime || '6:00AM');
+      const closingTime = parseTimeString(field?.closingTime || '9:00PM');
       const bookingDuration = field?.bookingDuration || '1hour';
 
       // Helper function to format time
@@ -395,12 +432,15 @@ const BookFieldPage = () => {
         const slotTime = `${startTime} - ${endTime}`;
 
         // Check availability
-        const isAvailable = checkSlotAvailability(selectedDate, startHour);
+        const isPastSlot = isSlotInPast(selectedDate, startHour, startMinute);
+        const isAvailable = checkSlotAvailability(selectedDate, startHour, startMinute);
 
         const slot = {
           time: slotTime,
           available: isAvailable,
-          selected: slotTime === selectedTimeSlot
+          selected: slotTime === selectedTimeSlot,
+          isPast: isPastSlot,
+          isBooked: false
         };
 
         // Categorize by time of day

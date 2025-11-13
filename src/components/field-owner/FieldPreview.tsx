@@ -182,11 +182,16 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     fenceSize: formatLabel(formData?.fenceSize),
     type: formatLabel(formData?.terrainType),
     surfaceType: formatLabel(formData?.surfaceType),
-    rules: formData?.rules,
+    rules: formData?.rules ? [formData.rules] : [],
     cancellationPolicy: formData?.policies,
     instantBooking: formData?.instantBooking,
     maxDogs: formData?.maxDogs,
     minBookingDuration: formData?.bookingDuration,
+    // Add missing fields for preview sections
+    bufferTime: formData?.bufferTime || 30,
+    bookingPolicies: formData?.bookingPolicies || [],
+    latitude: formData?.latitude,
+    longitude: formData?.longitude,
     // Set isActive to true for preview to show all sections
     isActive: true
   };

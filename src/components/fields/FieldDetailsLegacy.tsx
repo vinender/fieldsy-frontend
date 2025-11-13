@@ -22,13 +22,14 @@ import { useHasCompletedBooking } from '@/hooks/queries/useBookingQueries';
 interface FieldDetailsLegacyProps {
   field: any;
   isSubmitted?: boolean;
+  isPreview?: boolean;
   headerContent?: React.ReactNode;
   showReviews?: boolean;
   showOwnerInfo?: boolean;
   showClaimField?: boolean;
 }
 
-export default function FieldDetailsLegacy({ field, isSubmitted = false, headerContent, showReviews = true, showOwnerInfo = true, showClaimField = true }: FieldDetailsLegacyProps) {
+export default function FieldDetailsLegacy({ field, isSubmitted = false, isPreview = false, headerContent, showReviews = true, showOwnerInfo = true, showClaimField = true }: FieldDetailsLegacyProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const reviewsRef = useRef<HTMLDivElement>(null);
@@ -41,7 +42,8 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
   const [bookingOpen, setBookingOpen] = useState(false);  // Collapsed by default
   const [showFullDescription, setShowFullDescription] = useState(false);  // For description truncation
 
-  const isClaimed = field?.isClaimed || isSubmitted || false;
+  // In preview mode, treat as claimed to show all sections
+  const isClaimed = field?.isClaimed || isSubmitted || isPreview || false;
   const ownerImg =field?.owner?.image
   // Favorite status and toggle
   const fieldId = field?.id || field?._id;
@@ -427,7 +429,8 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
             <h3 className="font-bold text-lg text-dark-green ">Other Details</h3>
 
 
-            {(!isClaimed || isSubmitted) && (
+            {/* Map for unclaimed fields only - claimed fields show map on left */}
+            {!isClaimed && !isSubmitted && (
               <FieldMapWrapper
                 address={field?.address || field?.streetAddress}
                 city={field?.city}
@@ -492,7 +495,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
                             <img src="/field-details/clock.svg" alt="clock" className="w-6 h-6" />
                           </div>
                           <div>
-                            <p className="text-[16px] font-[700] text-dark-green">Maximum visit length</p>
+                            <p className="text-[16px] font-[700] text-dark-green">Maximum visit duration per booking</p>
                             <p className="text-sm font-medium text-dark-green">{field?.minBookingDuration || '30'} min</p>
                           </div>
                         </div>
@@ -697,9 +700,9 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, headerC
               </div>
             )}
 
-            {isClaimed && !isSubmitted && (
+            {isClaimed && !isSubmitted && !isPreview && (
               <div className="space-y-3">
-                <button 
+                <button
                   onClick={isSubmitted ? undefined : () => {
                     if (!session) {
                       router.push('/login');

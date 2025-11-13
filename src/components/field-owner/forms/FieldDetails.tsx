@@ -309,11 +309,54 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 name="startTime"
                 value={formData.startTime}
                 onChange={(value) => {
+                  // Calculate auto end time based on minimum hours
+                  const calculateAutoEndTime = (startTime: string): string => {
+                    if (!startTime) return '';
+
+                    const [time, period] = startTime.split(/(?=[AP]M)/i);
+                    const [hours, minutes] = time.split(':').map(Number);
+
+                    // Convert to 24-hour format
+                    let startHours = hours;
+                    if (period === 'PM' && hours !== 12) startHours += 12;
+                    if (period === 'AM' && hours === 12) startHours = 0;
+
+                    // Add minimum operating hours
+                    let endHours = startHours + minimumOperatingHours;
+                    let endMinutes = minutes || 0;
+
+                    // Handle day overflow (if end time goes past 24:00)
+                    if (endHours >= 24) {
+                      endHours = endHours % 24;
+                    }
+
+                    // Convert back to 12-hour format
+                    let endPeriod = 'AM';
+                    let displayHours = endHours;
+
+                    if (endHours >= 12) {
+                      endPeriod = 'PM';
+                      if (endHours > 12) {
+                        displayHours = endHours - 12;
+                      }
+                    }
+                    if (endHours === 0) {
+                      displayHours = 12;
+                    }
+
+                    // Format time string
+                    const formattedMinutes = endMinutes.toString().padStart(2, '0');
+                    return `${displayHours}:${formattedMinutes}${endPeriod}`;
+                  };
+
+                  const autoEndTime = calculateAutoEndTime(value);
+
                   setFormData((prev: any) => ({
                     ...prev,
-                    startTime: value
+                    startTime: value,
+                    endTime: autoEndTime // Auto-set end time
                   }));
-                  validateTimeDifference(value, formData.endTime);
+                  validateTimeDifference(value, autoEndTime);
                 }}
                 placeholder="Select start time"
               />

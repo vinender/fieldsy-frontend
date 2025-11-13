@@ -8,6 +8,7 @@ interface FieldDetailsScreenProps {
   field?: any;
   fieldId?: string;
   isSubmitted?: boolean;
+  isPreview?: boolean;
   showReviews?: boolean;
   showOwnerInfo?: boolean;
   showClaimField?: boolean;
@@ -20,6 +21,7 @@ export default function FieldDetailsScreen({
   field: providedField,
   fieldId,
   isSubmitted = false,
+  isPreview = false,
   showReviews,
   showOwnerInfo,
   showClaimField,
@@ -62,6 +64,7 @@ export default function FieldDetailsScreen({
     <FieldDetailsLegacy
       field={field}
       isSubmitted={isSubmitted}
+      isPreview={isPreview}
       headerContent={headerContent}
       showReviews={resolvedShowReviews}
       showOwnerInfo={resolvedShowOwnerInfo}

@@ -83,7 +83,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 w-full lg:py-20 bg-light-cream">
       <div className="w-full">
-        <h2 className="text-sm sm:text-base font-[400] text-dark-green/80 mb-6 sm:mb-8">
+        <h2 className="text-[20px] xl:text-[29px] font-[600] text-dark-green">
           {content.sectionTitle}
         </h2>
         
@@ -119,6 +119,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
               />
             </div>
           </div>
+
         </div>
         
         {/* Stats */}
@@ -139,6 +140,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
             </div>
           ))}
         </div>
+        
       </div>
     </section>
   )
