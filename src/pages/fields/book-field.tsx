@@ -368,7 +368,9 @@ const BookFieldPage = () => {
             ? startMinutes % 60
             : 0;
 
-        const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes <= currentMinutes;
+        // A slot is past if current time is at or after the slot start time
+        // This prevents booking slots that have already started or passed
+        const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes < currentMinutes;
         const isPast = typeof slotData.isPast === 'boolean' ? slotData.isPast : computedIsPast;
         const isBooked = Boolean(slotData.isBooked);
         const available = Boolean(slotData.isAvailable) && !isPast && !isBooked;
