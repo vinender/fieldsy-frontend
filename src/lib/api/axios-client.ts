@@ -16,31 +16,13 @@ const axiosClient = axios.create({
 // Request interceptor to add auth token
 axiosClient.interceptors.request.use(
   async (config) => {
-    // Get session for auth token
-    const session = await getSession();
-    
-    // Try multiple possible token locations
-    let token = null;
-    
-    // 1. Check session.accessToken
-    if (session?.accessToken) {
-      token = session.accessToken;
-    } 
-    // 2. Check session.user.token
-    else if ((session?.user as any)?.token) {
-      token = (session.user as any).token;
-    }
-    // 3. Check session.token
-    else if ((session as any)?.token) {
-      token = (session as any).token;
-    }
-    // 4. Fallback to localStorage authToken
-    else {
+    let token: string | null = null;
+
+    if (typeof window !== 'undefined') {
       const authToken = localStorage.getItem('authToken');
       if (authToken) {
         token = authToken;
       } else {
-        // 5. Check currentUser in localStorage (legacy)
         const storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
           try {
@@ -54,16 +36,25 @@ axiosClient.interceptors.request.use(
         }
       }
     }
-    
+
+    if (!token) {
+      const session = await getSession();
+      if (session?.accessToken) {
+        token = session.accessToken as string;
+      } else if ((session?.user as any)?.token) {
+        token = (session.user as any).token;
+      } else if ((session as any)?.token) {
+        token = (session as any).token;
+      }
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Keep track of whether we're already redirecting to avoid multiple redirects

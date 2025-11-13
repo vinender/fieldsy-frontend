@@ -20,9 +20,9 @@ export default function PricingAvailability({ formData, setFormData, validationE
       return;
     }
 
-    // Allow decimal numbers with up to 2 decimal places
-    // Pattern: optional digits, optional decimal point, optional up to 2 digits after decimal
-    const priceRegex = /^\d*\.?\d{0,2}$/;
+    // Only allow whole numbers (no decimals)
+    // Pattern: one or more digits only
+    const priceRegex = /^\d+$/;
 
     if (priceRegex.test(value)) {
       setFormData((prev: any) => ({
@@ -109,14 +109,19 @@ export default function PricingAvailability({ formData, setFormData, validationE
               value={formData.price || ''}
               onChange={handlePriceChange}
               onKeyDown={(e) => {
-                // Prevent 'e', 'E', '-', and '+' keys
-                if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+') {
+                // Prevent 'e', 'E', '-', '+', and '.' (decimal point) keys
+                if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
                   e.preventDefault();
                 }
               }}
+              onInput={(e) => {
+                // Extra protection: remove any non-digit characters
+                const input = e.target as HTMLInputElement;
+                input.value = input.value.replace(/[^0-9]/g, '');
+              }}
               min="0"
-              step="0.01"
-              placeholder="0.00"
+              step="1"
+              placeholder="0"
               className={`pl-8 pr-40 py-3 ${validationErrors.price ? 'border-red-500' : ''}`}
               aria-invalid={!!validationErrors.price}
             />
