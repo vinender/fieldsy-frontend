@@ -137,11 +137,20 @@ const EarningsHistory: React.FC = () => {
           label: 'Failed'
         };
       case 'pending':
+      case 'processing':
+      case 'in_transit':
         return {
           bg: 'bg-yellow-50',
           border: 'border-yellow-200',
           text: 'text-yellow-600',
-          label: 'Pending'
+          label: status === 'pending' ? 'Pending' : 'Processing'
+        };
+      case 'canceled':
+        return {
+          bg: 'bg-gray-50',
+          border: 'border-gray-200',
+          text: 'text-gray-600',
+          label: 'Canceled'
         };
       default:
         return {

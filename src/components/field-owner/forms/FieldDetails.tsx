@@ -330,23 +330,9 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                       endHours = endHours % 24;
                     }
 
-                    // Convert back to 12-hour format
-                    let endPeriod = 'AM';
-                    let displayHours = endHours;
-
-                    if (endHours >= 12) {
-                      endPeriod = 'PM';
-                      if (endHours > 12) {
-                        displayHours = endHours - 12;
-                      }
-                    }
-                    if (endHours === 0) {
-                      displayHours = 12;
-                    }
-
-                    // Format time string
+                    // Return in 24-hour format (HH:MM) for TimeInput component
                     const formattedMinutes = endMinutes.toString().padStart(2, '0');
-                    return `${displayHours}:${formattedMinutes}${endPeriod}`;
+                    return `${endHours.toString().padStart(2, '0')}:${formattedMinutes}`;
                   };
 
                   const autoEndTime = calculateAutoEndTime(value);

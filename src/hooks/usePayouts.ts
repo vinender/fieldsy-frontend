@@ -10,7 +10,7 @@ export interface Transaction {
   paymentId: string;
   date: string;
   amount: number;
-  status: 'completed' | 'refunded' | 'failed' | 'pending';
+  status: 'completed' | 'refunded' | 'failed' | 'pending' | 'processing' | 'canceled' | 'in_transit';
   type: string;
   fieldName?: string;
   fieldAddress?: string;
@@ -95,20 +95,33 @@ export const useEarningsHistory = (params?: {
       if (data.success && data.data) {
         const payouts = data.data.payouts || [];
         return {
-          transactions: payouts.map((payout: any) => ({
+          transactions: payouts.map((payout: any) => {
+            let status: Transaction['status'] = payout.status;
+            if (payout.status === 'paid' || payout.status === 'COMPLETED') {
+              status = 'completed';
+            } else if (payout.status === 'in_transit' || payout.status === 'processing') {
+              status = 'processing';
+            } else if (payout.status === 'pending') {
+              status = 'pending';
+            } else if (payout.status === 'failed' || payout.status === 'canceled') {
+              status = 'failed';
+            }
+
+            return {
             id: payout.id,
             orderId: payout.stripePayoutId || payout.id,
             paymentId: payout.stripePayoutId || payout.id,
             date: payout.createdAt,
             amount: payout.amount,
-            status: payout.status === 'paid' ? 'completed' : payout.status,
+            status,
             type: 'payout',
             description: payout.description,
             fieldName: payout.bookings?.[0]?.fieldName || 'Field',
             customerName: payout.bookings?.map((b: any) => b.customerName).join(', ') || 'Multiple bookings',
             bookingCount: payout.bookingCount || payout.bookings?.length || 1,
             arrivalDate: payout.arrivalDate
-          })),
+          };
+        }),
           totalEarnings: payouts.reduce((sum: number, p: any) => sum + p.amount, 0),
           stats: {
             completed: payouts.filter((p: any) => p.status === 'paid').length,
