@@ -7,52 +7,19 @@ interface BookingRulesProps {
 }
 
 export default function BookingRules({ formData, setFormData, validationErrors = {} }: BookingRulesProps) {
-  // Helper function to add full stops to lines that don't already have punctuation
-  const addFullStopsToLines = (text: string): string => {
-    const lines = text.split('\n');
-    const processedLines = lines.map((line, index) => {
-      // Don't process the last line (current line being typed)
-      if (index === lines.length - 1) {
-        return line;
-      }
-
-      // Trim to check if line has content
-      const trimmedLine = line.trim();
-
-      // If line is empty or only whitespace, keep it as is
-      if (trimmedLine === '') {
-        return line;
-      }
-
-      // Check if line already ends with punctuation (., !, ?)
-      const endsWithPunctuation = /[.!?]$/.test(trimmedLine);
-
-      // If no punctuation, add a full stop
-      if (!endsWithPunctuation) {
-        return line + '.';
-      }
-
-      return line;
-    });
-
-    return processedLines.join('\n');
-  };
-
   const handleRulesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const processedValue = addFullStopsToLines(e.target.value);
-
+    // Store value as-is without any processing
     setFormData((prev: any) => ({
       ...prev,
-      rules: processedValue
+      rules: e.target.value
     }));
   };
 
   const handlePoliciesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const processedValue = addFullStopsToLines(e.target.value);
-
+    // Store value as-is without any processing
     setFormData((prev: any) => ({
       ...prev,
-      policies: processedValue
+      policies: e.target.value
     }));
   };
 
@@ -87,7 +54,7 @@ export default function BookingRules({ formData, setFormData, validationErrors =
                 id="rules"
                 value={formData.rules || ''}
                 onChange={handleRulesChange}
-                placeholder="Write your rules here..."
+                placeholder="Enter each rule on a new line&#10;• No aggressive dogs&#10;• Clean up after your pet&#10;• Respect other users' time slots"
                 className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${
                   validationErrors.rules ? 'border-red-500' : 'border-gray-border'
                 }`}
@@ -100,7 +67,7 @@ export default function BookingRules({ formData, setFormData, validationErrors =
               )}
             </div>
             <p className="text-xs text-gray-text font-sans">
-              Example: No aggressive dogs, must clean up after your pet, respect other users' time slots
+              Tip: Press Enter to create a new line for each rule
             </p>
           </div>
         </div>
@@ -122,7 +89,7 @@ export default function BookingRules({ formData, setFormData, validationErrors =
                 id="policies"
                 value={formData.policies || ''}
                 onChange={handlePoliciesChange}
-                placeholder="Write your policies here..."
+                placeholder="Enter each policy on a new line&#10;• 24-hour cancellation policy&#10;• Maximum 2 dogs per booking&#10;• Arrival 10 minutes before booking"
                 className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${
                   validationErrors.policies ? 'border-red-500' : 'border-gray-border'
                 }`}
@@ -135,7 +102,7 @@ export default function BookingRules({ formData, setFormData, validationErrors =
               )}
             </div>
             <p className="text-xs text-gray-text font-sans">
-              Example: 24-hour cancellation policy, maximum 2 dogs per booking, arrival and departure times
+              Tip: Press Enter to create a new line for each policy
             </p>
           </div>
         </div>
