@@ -38,6 +38,33 @@ export function Header() {
     setMounted(true)
   }, [])
 
+  // Handle tab visibility changes - check localStorage immediately
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Check if we have auth data in localStorage
+        const storedUser = localStorage.getItem('currentUser')
+        const authToken = localStorage.getItem('authToken')
+
+        if (storedUser && authToken && !user) {
+          // Force a brief unmount/remount to sync with AuthContext
+          setMounted(false)
+          requestAnimationFrame(() => {
+            setMounted(true)
+          })
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleVisibilityChange)
+    }
+  }, [user])
+
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 30
