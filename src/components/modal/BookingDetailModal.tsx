@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   X,
   MapPin,
@@ -14,7 +14,7 @@ import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
 import { deslugify, formatDateDDMMYYYY } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import Spinner from '@/components/ui/Spinner';
-import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
+import { AMENITIES_CONFIG, getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -117,45 +117,97 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     return '';
   };
 
-  // Format amenities - directly map over the amenities array
-  const formatAmenities = () => {
-    const field = fullBooking?.field;
-
-    console.log('formatAmenities - field:', field);
-    console.log('formatAmenities - amenities:', field?.amenities);
-
-    // Return empty array if no field or amenities
-    if (!field?.amenities || !Array.isArray(field.amenities) || field.amenities.length === 0) {
-      console.log('formatAmenities - returning empty array');
+  const amenities = useMemo(() => {
+    const fieldAmenities = fullBooking?.field?.amenities;
+    if (!Array.isArray(fieldAmenities) || fieldAmenities.length === 0) {
       return [];
     }
 
-    // If amenities have iconUrl and label (from database), use them directly
-    const firstAmenity = field.amenities[0];
-    console.log('formatAmenities - firstAmenity:', firstAmenity);
+    const defaultIcon = '/field-details/shield.svg';
 
-    if (typeof firstAmenity === 'object' && firstAmenity !== null && 'iconUrl' in firstAmenity && 'label' in firstAmenity) {
-      console.log('formatAmenities - using database format with iconUrl');
-      const formatted = field.amenities
-        .filter((amenity: any) => amenity.label && amenity.iconUrl)
-        .map((amenity: any) => ({
-          iconPath: amenity.iconUrl,
-          label: amenity.label
-        }))
-        .slice(0, 4);
-      console.log('formatAmenities - formatted:', formatted);
-      return formatted;
-    }
+    const slugifyAmenity = (value?: string) => {
+      if (!value) return '';
+      return value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    };
 
-    // Legacy fallback: if amenities are strings, use config
-    console.log('formatAmenities - using legacy format');
-    return field.amenities
-      .slice(0, 4)
-      .map((amenity: any) => ({
-        iconPath: getAmenityIcon(amenity),
-        label: getAmenityLabel(amenity)
-      }));
-  };
+    const findConfig = (slug?: string, label?: string) => {
+      if (slug) {
+        const bySlug = AMENITIES_CONFIG.find(config => config.slug === slug);
+        if (bySlug) return bySlug;
+      }
+
+      if (label) {
+        const normalizedLabel = label.trim().toLowerCase();
+        return AMENITIES_CONFIG.find(
+          config => config.label.toLowerCase() === normalizedLabel
+        );
+      }
+      return undefined;
+    };
+
+    const seenLabels = new Set<string>();
+
+    return fieldAmenities
+      .map((amenity: any) => {
+        if (!amenity) return null;
+
+        let labelFromData = '';
+        let slugFromData = '';
+        let iconFromData = '';
+
+        if (typeof amenity === 'string') {
+          labelFromData = amenity;
+          slugFromData = slugifyAmenity(amenity);
+        } else if (typeof amenity === 'object') {
+          labelFromData =
+            amenity.label ||
+            amenity.name ||
+            amenity.title ||
+            amenity.slug ||
+            amenity.id ||
+            '';
+
+          const slugSource =
+            amenity.slug ||
+            amenity.value ||
+            amenity.id ||
+            labelFromData;
+
+          slugFromData = slugifyAmenity(slugSource);
+          iconFromData = amenity.iconUrl || amenity.icon || amenity.iconPath || '';
+        }
+
+        const amenityConfig = findConfig(slugFromData, labelFromData);
+        const normalizedSlug = slugFromData || amenityConfig?.slug || slugifyAmenity(labelFromData);
+
+        const iconPath =
+          iconFromData ||
+          (normalizedSlug ? getAmenityIcon(normalizedSlug, defaultIcon) : amenityConfig?.iconPath) ||
+          defaultIcon;
+
+        const label =
+          labelFromData ||
+          (normalizedSlug ? getAmenityLabel(normalizedSlug) : amenityConfig?.label) ||
+          'Amenity';
+
+        const normalizedLabelKey = label.toLowerCase();
+        if (seenLabels.has(normalizedLabelKey)) {
+          return null;
+        }
+        seenLabels.add(normalizedLabelKey);
+
+        return {
+          iconPath,
+          label,
+        };
+      })
+      .filter((amenity): amenity is { iconPath: string; label: string } => Boolean(amenity));
+  }, [fullBooking]);
 
   const getStatusBadge = (status: string) => {
     const statusStyles: Record<string, string> = {
@@ -179,8 +231,6 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const price = fullBooking?.totalPrice || fullBooking?.price || 0;
   const field = fullBooking?.field || {};
   const owner = field?.owner || fullBooking?.owner || {};
-
-  console.log(';;amenites',field)
 
   return (
     <>
@@ -265,26 +315,26 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                 </div>
 
                 {/* Amenities */}
-                {formatAmenities().length > 0 && (
-                  <div className="grid grid-cols-2 sm:flex gap-1.5 mb-4 sm:mb-6">
-                    {formatAmenities().map((amenity: any, index: number) => {
-                      return (
-                        <div key={index} className="flex-1 bg-white border border-black/6 rounded-lg sm:rounded-[14px] px-2 py-1.5 sm:px-3.5 sm:py-2 flex items-center justify-center gap-1 sm:gap-2">
-                          <img
-                            src={amenity.iconPath}
-                            alt={amenity.label}
-                            className="w-4 h-4 sm:w-5 sm:h-5  object-contain"
-                            onError={(e) => {
-                              // Fallback to default icon if S3 image fails to load
-                              e.currentTarget.src = '/field-details/shield.svg';
-                            }}
-                          />
-                          <span className="text-[11px] sm:text-[14px] font-medium text-[#192215] truncate">
-                            {amenity.label}
-                          </span>
-                        </div>
-                      );
-                    })}
+                {amenities.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4 sm:mb-6">
+                    {amenities.map((amenity, index) => (
+                      <div
+                        key={`${amenity.label}-${index}`}
+                        className="bg-white border border-black/6 rounded-lg sm:rounded-[14px] px-2 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1 sm:gap-2"
+                      >
+                        <img
+                          src={amenity.iconPath}
+                          alt={amenity.label}
+                          className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src = '/field-details/shield.svg';
+                          }}
+                        />
+                        <span className="text-[11px] sm:text-[14px] font-medium text-[#192215] truncate">
+                          {amenity.label}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 )}
 

@@ -63,7 +63,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   }, [field?.id]); // Run when field data is loaded
   
   const handleToggleFavorite = async () => {
-    if (isSubmitted) return; // Disabled in preview mode
+    if (isSubmitted || isPreview) return; // Disabled in preview mode
     if (!session) {
       setLoginModalMessage('Please login or sign up to save your favorite fields');
       setShowLoginModal(true);
@@ -260,8 +260,8 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                   </div>
                 </div>
                 <button
-                  onClick={isSubmitted ? undefined : handleToggleFavorite}
-                  disabled={isSubmitted || toggleFavoriteMutation.isPending}
+                  onClick={isSubmitted || isPreview ? undefined : handleToggleFavorite}
+                  disabled={isSubmitted || isPreview || toggleFavoriteMutation.isPending}
                   className="mt-2 w-10 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                 >
                   {isLiked ? (

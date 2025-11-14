@@ -460,10 +460,10 @@ export default function AddYourField() {
       if (!fieldData || !fieldData[completedKey]) {
         return false;
       }
-
     }
-    
-    return false; // Default to disabled for forward navigation
+
+    // If all previous sections are completed, allow access to this section
+    return true;
   };
 
 

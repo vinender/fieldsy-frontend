@@ -6,7 +6,8 @@ import {
   Phone,
   Check,
   ChevronDown,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 import Spinner from '@/components/ui/Spinner';
 import ChangePasswordSidebar from '@/components/sidebar/ChangePasswordSidebar';
@@ -167,6 +168,19 @@ const MyProfilePage = () => {
     try {
       await deleteImageMutation.mutateAsync();
       setShowDeleteImageModal(false);
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  const handleRemovePhoneNumber = async () => {
+    try {
+      await updateProfileMutation.mutateAsync({ phone: null });
+      // Clear the phone number in form state
+      setFormData(prev => ({
+        ...prev,
+        phoneNumber: ''
+      }));
     } catch (error) {
       // Error handled by mutation
     }
@@ -377,22 +391,40 @@ const MyProfilePage = () => {
                 <label className="block text-sm sm:text-[15px] font-medium text-[#192215] mb-2">
                   Phone Number
                 </label>
-                <div className="flex items-center h-12 sm:h-14 px-3 sm:px-4 bg-white border border-[#e3e3e3] rounded-full">
-                  <div className="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-3 border-r border-[#8d8d8d]">
-                    <span className="text-sm sm:text-[15px] text-[#192215]">{formData.countryCode}</span>
-                    {/* <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#192215]" /> */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 h-12 sm:h-14 px-3 sm:px-4 bg-white border border-[#e3e3e3] rounded-full">
+                    <div className="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-3 border-r border-[#8d8d8d]">
+                      <span className="text-sm sm:text-[15px] text-[#192215]">{formData.countryCode}</span>
+                      {/* <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#192215]" /> */}
+                    </div>
+                    <input
+                      type="tel"
+                      value={formData.phoneNumber}
+                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                      placeholder="Enter phone number"
+                      className="flex-1 ml-2 sm:ml-3 bg-white text-sm sm:text-[15px] border-none outline-none focus:outline-none focus:ring-0 focus:border-none"
+                    />
                   </div>
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                    placeholder="Enter phone number"
-                    className="flex-1 ml-2 sm:ml-3 bg-white text-sm sm:text-[15px] border-none outline-none focus:outline-none focus:ring-0 focus:border-none"
-                  />
-
-                  {/* {formData.phoneNumber && formData.phoneNumber.trim() !== '' && (
-                    <Check className="w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
-                  )} */}
+                  {formData.phoneNumber && formData.phoneNumber.trim() !== '' && (
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoneNumber}
+                      disabled={updateProfileMutation.isPending}
+                      className="flex-shrink-0 h-12 sm:h-14 px-4 sm:px-5 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium text-red-600 bg-white border border-red-200 rounded-full hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50"
+                    >
+                      {updateProfileMutation.isPending ? (
+                        <>
+                          <Spinner size="sm" />
+                          <span>Removing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <X className="w-4 h-4" />
+                          <span>Remove</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
 

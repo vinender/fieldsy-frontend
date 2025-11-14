@@ -116,7 +116,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
                 id: amenityData.id,
                 name: amenityData.name,
                 label: amenityData.label || amenityData.name,
-                iconUrl: amenityData.iconUrl
+                iconUrl: amenityData.icon
               };
             }
             // Fallback: return as string for backward compatibility
@@ -146,7 +146,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
                 id: amenityData.id,
                 name: amenityData.name,
                 label: amenityData.label || amenityData.name,
-                iconUrl: amenityData.iconUrl
+                iconUrl: amenityData.icon
               };
             }
 

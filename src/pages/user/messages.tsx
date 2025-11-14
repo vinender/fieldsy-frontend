@@ -749,29 +749,43 @@ const MessagesPage = () => {
     // setSelectedConversation(null);
   };
 
+  const pendingConversationCreationsRef = useRef<Set<string>>(new Set());
+
   const createConversationWithUser = async (userId: string, fieldId?: string | null) => {
-    createConversationMutation.mutate({ receiverId: userId, fieldId: fieldId || undefined }, {
-      onSuccess: (data) => {
-        // The conversation is returned directly with participants info
-        if (data) {
-          // Add to conversations list if not already there
-          setConversations(prev => {
-            const exists = prev.some(c => c.id === data.id);
-            if (!exists) {
-              return [data, ...prev];
-            }
-            return prev;
-          });
-          // Select the conversation
-          handleSelectConversation(data);
-          // Show mobile chat view
-          setShowMobileChat(true);
+    if (!userId) return;
+
+    const creationKey = fieldId ? `${userId}-${fieldId}` : userId;
+
+    if (pendingConversationCreationsRef.current.has(creationKey)) {
+      return;
+    }
+
+    pendingConversationCreationsRef.current.add(creationKey);
+
+    createConversationMutation.mutate(
+      { receiverId: userId, fieldId: fieldId || undefined },
+      {
+        onSuccess: (data) => {
+          if (data) {
+            setConversations(prev => {
+              const exists = prev.some(c => c.id === data.id);
+              if (!exists) {
+                return [data, ...prev];
+              }
+              return prev;
+            });
+            handleSelectConversation(data);
+            setShowMobileChat(true);
+          }
+        },
+        onError: () => {
+          toast.error('Failed to create conversation');
+        },
+        onSettled: () => {
+          pendingConversationCreationsRef.current.delete(creationKey);
         }
-      },
-      onError: (error) => {
-        toast.error('Failed to create conversation');
       }
-    });
+    );
   };
 
   const handleDeleteConversation = () => {

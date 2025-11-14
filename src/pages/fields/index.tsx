@@ -13,12 +13,14 @@ import { useSession } from 'next-auth/react';
 import { useFields, FieldsParams, useNearbyFields, usePriceRange } from '@/hooks/queries/useFieldQueries';
 import { NearbyFieldsParams } from '@/lib/api/fields';
 import { useLocation } from '@/contexts/LocationContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 export default function SearchResults() {
   const router = useRouter();
   const { } = useSession();
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const { user, isLoading: authLoading } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchValue, setSearchValue] = useState('');
   const [zipCode, setZipCode] = useState('');
@@ -43,6 +45,13 @@ export default function SearchResults() {
 
     return '';
   }, [currentLocation]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (user?.role === 'FIELD_OWNER') {
+      router.replace('/field-owner/my-fields');
+    }
+  }, [authLoading, user?.role, router]);
 
   // Extract min and max price from API or use fallback from mockData
   const minPrice = priceRangeData?.data?.minPrice ?? mockData.filterOptions.priceRange.min;
@@ -302,6 +311,18 @@ export default function SearchResults() {
     // Redirect to claim field form - no authentication required
     router.push(`/fields/claim-field-form?field_id=${fieldId}`);
   };
+
+  if (!authLoading && user?.role === 'FIELD_OWNER') {
+    return (
+      <UserLayout>
+        <div className="min-h-screen flex items-center justify-center px-4 py-20">
+          <div className="text-center">
+            <p className="text-lg text-dark-green font-medium">Redirecting to your field owner dashboard…</p>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
 
   return (
     <UserLayout>
