@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 
 interface BackButtonProps {
@@ -19,12 +19,66 @@ export default function BackButton({
   size = 'md'
 }: BackButtonProps) {
   const router = useRouter();
+  const previousPathRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    const storedCurrent = sessionStorage.getItem('fieldsy_current_path');
+
+    if (storedCurrent && storedCurrent !== currentPath) {
+      sessionStorage.setItem('fieldsy_previous_path', storedCurrent);
+    }
+
+    sessionStorage.setItem('fieldsy_current_path', currentPath);
+    previousPathRef.current = sessionStorage.getItem('fieldsy_previous_path');
+  }, [router.asPath]);
+
+  const navigateToFallback = () => {
+    const fallbackPath = previousPathRef.current;
+
+    if (fallbackPath && fallbackPath !== router.asPath) {
+      router.push(fallbackPath);
+      return;
+    }
+
+    if (typeof window !== 'undefined' && document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin === window.location.origin) {
+          router.push(refUrl.pathname + refUrl.search + refUrl.hash);
+          return;
+        }
+        window.location.href = refUrl.toString();
+        return;
+      } catch {
+        router.push('/');
+        return;
+      }
+    }
+
+    router.push('/');
+  };
+
+  const canUseNativeBack = () => {
+    if (typeof window === 'undefined') return false;
+    const historyState = window.history.state;
+    if (historyState && typeof historyState.idx === 'number') {
+      return historyState.idx > 0;
+    }
+    return window.history.length > 1;
+  };
 
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
-      router.back();
+      if (canUseNativeBack()) {
+        router.back();
+      } else {
+        navigateToFallback();
+      }
     }
   };
 

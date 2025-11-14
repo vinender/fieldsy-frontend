@@ -417,6 +417,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                 ))}
               </div>
             </div>
+            
 
             <h3 className="font-bold text-lg text-dark-green ">Other Details</h3>
 
