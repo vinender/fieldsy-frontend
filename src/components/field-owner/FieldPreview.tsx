@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import FieldDetailsScreen from '@/components/fields/FieldDetailsScreen';
 import { Switch } from '@/components/ui/switch';
@@ -5,6 +6,7 @@ import BackButton from '@/components/common/BackButton';
 import { useFieldOptions } from '@/hooks/api/useFieldOptions';
 import { useAmenities } from '@/hooks/api/useAmenities';
 import { ToggleFieldStatusModal } from '@/components/modal/ToggleFieldStatusModal';
+
 
 interface FieldPreviewProps {
   formData: any;
@@ -18,11 +20,13 @@ interface FieldPreviewProps {
   onBack?: () => void;
 }
 
+
 export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, isSubmitted, isActive, isClaimed = false, onToggleActive, onBack }: FieldPreviewProps) {
   const { data: fieldOptions } = useFieldOptions();
   const { data: amenitiesData } = useAmenities();
   const [modalOpen, setModalOpen] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+
 
   // Create a lookup map for fast label retrieval
   const labelMap = useMemo(() => {
@@ -33,6 +37,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     });
     return map;
   }, [fieldOptions]);
+
 
   // Create amenity lookup map
   const amenityMap = useMemo(() => {
@@ -45,8 +50,10 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     return map;
   }, [amenitiesData]);
 
+
   // Debug: Log formData amenities
   console.log('FormData amenities:', formData?.amenities);
+
 
   // Handle toggle status click - open confirmation modal
   const handleToggleStatusClick = () => {
@@ -55,6 +62,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     }
   };
 
+  
   // Handle confirm toggle from modal
   const handleConfirmToggle = async () => {
     if (!onToggleActive) return;

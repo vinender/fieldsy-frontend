@@ -111,7 +111,7 @@ export function TimeInput({
   // Calculate disabled hours for end time based on start time and minimum hours
   const isHourDisabled = (hour: number, period: string): boolean => {
     if (!isEndTime || !startTime || !minHoursDifference) return false;
-    
+
     // Convert hour to 24-hour format
     let hour24 = hour;
     if (period === 'PM' && hour !== 12) {
@@ -119,18 +119,26 @@ export function TimeInput({
     } else if (period === 'AM' && hour === 12) {
       hour24 = 0;
     }
-    
+
     // Parse start time
     const [startHours, startMinutes] = startTime.split(':').map(Number);
     const startTotalMinutes = startHours * 60 + startMinutes;
-    
+
     // Calculate end time in minutes
     const endTotalMinutes = hour24 * 60;
-    
-    // Check if the difference meets minimum hours requirement
-    const diffHours = (endTotalMinutes - startTotalMinutes) / 60;
-    
-    // Disable if less than minimum hours or if end time is before start time
+
+    // Calculate time difference, handling overnight periods
+    let diffMinutes = endTotalMinutes - startTotalMinutes;
+
+    // If end time is "before" start time, it means crossing midnight
+    // Add 24 hours to get the actual duration
+    if (diffMinutes < 0) {
+      diffMinutes = diffMinutes + (24 * 60);
+    }
+
+    const diffHours = diffMinutes / 60;
+
+    // Only disable if less than minimum hours
     return diffHours < minHoursDifference;
   };
 

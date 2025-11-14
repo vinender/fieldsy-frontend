@@ -56,15 +56,23 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
       setTimeError('');
       return;
     }
-    
+
     const startMinutes = timeToMinutes(startTime);
     const endMinutes = timeToMinutes(endTime);
-    const diffMinutes = endMinutes - startMinutes;
+
+    // Calculate time difference, handling overnight periods (e.g., 8 PM to 2 AM)
+    let diffMinutes = endMinutes - startMinutes;
+
+    // If end time is "before" start time, it means the period crosses midnight
+    // Add 24 hours (1440 minutes) to get the actual duration
+    if (diffMinutes < 0) {
+      diffMinutes = diffMinutes + (24 * 60); // Add 24 hours in minutes
+    }
+
     const diffHours = diffMinutes / 60;
-    
-    if (diffHours < 0) {
-      setTimeError('End time must be after start time');
-    } else if (diffHours < minimumOperatingHours) {
+
+    // Only check minimum operating hours, allow any 24-hour period
+    if (diffHours < minimumOperatingHours) {
       setTimeError(`Field must be open for at least ${minimumOperatingHours} hours`);
     } else {
       setTimeError('');
