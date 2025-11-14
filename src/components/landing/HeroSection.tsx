@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FieldSearchInput } from '@/components/ui/field-search-input';
 import Image from 'next/image';
 
@@ -41,6 +41,14 @@ export function HeroSection() {
 
     fetchBannerSettings();
   }, []);
+
+  const memoizedSearchInput = useMemo(() => (
+    <FieldSearchInput
+      placeholder="Enter postcode or location"
+      className="w-full pl-4 lg:pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-[90px] focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
+      showRecentSearches={true}
+    />
+  ), []);
 
   return (
     <div className="relative min-h-screen bg-gray-100">
@@ -132,11 +140,7 @@ export function HeroSection() {
         Use your location or enter a postcode to explore secure, private dog walking fields nearby.
       </p>
       {/* Search Form */}
-      <FieldSearchInput
-        placeholder="Enter postcode or location"
-        className="w-full pl-4 lg:pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-[90px] focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
-        showRecentSearches={true}
-      />
+      {memoizedSearchInput}
     </div>
     {/* Right Section - 35% */}
     <div className="flex w-full flex-col justify-center items-center text-center p-6 sm:p-8 border-t xl:border-t-0 xl:border-l">

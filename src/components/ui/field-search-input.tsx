@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Search, X } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useResponsiveRouter } from '@/hooks/useResponsiveRouter';
 import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
 import { detectPostcodeInQuery, getPostcodeDisplay } from '@/utils/postcode';
-import Spinner from '@/components/ui/Spinner';
 
 interface RecentSearch {
   id: string;
@@ -35,7 +35,7 @@ interface FieldSuggestion {
 }
 
 
-export function FieldSearchInput({
+function FieldSearchInputComponent({
   placeholder = "Search by field name, location, or postal code",
   className = "",
   onSearch,
@@ -48,7 +48,8 @@ export function FieldSearchInput({
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const router = useResponsiveRouter();
+  const nextRouter = useRouter(); // Direct Next.js router (no loader)
+  const router = useResponsiveRouter(); // Router with loader for search navigation
   
   // Get location context
   const { requestLocation, isLoadingLocation } = useLocation();
@@ -232,8 +233,25 @@ export function FieldSearchInput({
     }
   };
 
+  const shouldShowDropdown = showDropdown || (searchQuery.trim().length >= 2 && isLoadingSuggestions);
+
   return (
     <div className="relative" ref={dropdownRef}>
+      <style jsx>{`
+        .custom-loader {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 3px solid rgba(9, 103, 45, 0.15);
+          border-top-color: #3A6B22;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       <input
         type="text"
         value={searchQuery}
@@ -305,15 +323,13 @@ export function FieldSearchInput({
       </div>
 
       {/* Dropdown for suggestions and recent searches */}
-      {showDropdown && (
-        <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border overflow-hidden z-40">
+      {shouldShowDropdown && (
+        <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border overflow-hidden z-40 transition-opacity duration-150">
           {/* Show loading state */}
           {isLoadingSuggestions && (
-            <div className="px-4 sm:px-5 py-6 sm:py-8 text-center">
-              <div className="inline-flex items-center gap-2 text-dark-green/70">
-                <Spinner size="sm" />
-                <span className="text-xs sm:text-sm">Searching fields...</span>
-              </div>
+            <div className="px-4 sm:px-5 py-6 sm:py-8 text-center min-h-[110px] flex flex-col items-center justify-center gap-3 text-dark-green/70">
+              <span className="custom-loader" aria-hidden="true"></span>
+              <span className="text-xs sm:text-sm">Searching fields...</span>
             </div>
           )}
 
@@ -326,10 +342,11 @@ export function FieldSearchInput({
                   onClick={() => {
                     // Save field name to search history before navigating
                     saveSearchToHistory(field.name || 'Dog Field');
-                    router.push(`/fields/${field.id}`);
                     setShowDropdown(false);
+                    // Use direct Next.js router to avoid showing full page loader
+                    nextRouter.push(`/fields/${field.id}`);
                   }}
-                  className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-start gap-2 sm:gap-3 border-b last:border-b-0"
+                  className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-start gap-2 sm:gap-3 border-b last:border-b-0 transition-colors"
                 >
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mt-0.5">
@@ -349,7 +366,7 @@ export function FieldSearchInput({
 
           {/* Show no results message */}
           {!isLoadingSuggestions && searchQuery.trim().length >= 2 && suggestions.length === 0 && (
-            <div className="px-4 sm:px-5 py-6 sm:py-8 text-center">
+            <div className="px-4 sm:px-5 py-6 sm:py-8 text-center min-h-[110px] flex flex-col items-center justify-center">
               <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
               {(() => {
                 const postcodeInfo = detectPostcodeInQuery(searchQuery);
@@ -426,3 +443,6 @@ export function FieldSearchInput({
     </div>
   );
 }
+
+export const FieldSearchInput = React.memo(FieldSearchInputComponent);
+FieldSearchInput.displayName = 'FieldSearchInput';
