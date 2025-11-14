@@ -514,14 +514,77 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                           if (field?.rules) {
                             // If rules is an array
                             if (Array.isArray(field.rules)) {
-                              // Check if array has a single string element that needs splitting
-                              if (field.rules.length === 1 && typeof field.rules[0] === 'string' && field.rules[0].includes('.')) {
-                                // Split the single string by periods
-                                rulesToDisplay = field.rules[0]
+                              // Check if array has a single string element
+                              if (field.rules.length === 1 && typeof field.rules[0] === 'string') {
+                                const rulesText = field.rules[0];
+                                // Check if text contains newlines (new format)
+                                if (rulesText.includes('\n')) {
+                                  // Split by newlines
+                                  rulesToDisplay = rulesText
+                                    .split('\n')
+                                    .filter((rule: string) => rule.trim().length > 0)
+                                    .map((rule: string) => rule.trim());
+                                } else if (rulesText.includes('.')) {
+                                  // Old format: Split by periods
+                                  rulesToDisplay = rulesText
+                                    .split(/\.(?:\s+|$)/)  // Split by period followed by whitespace or end
+                                    .filter((rule: string) => rule.trim().length > 0)
+                                    .map((rule: string) => {
+                                      // Clean up the rule text and ensure proper formatting
+                                      let cleanRule = rule.trim();
+                                      // Add period back if it doesn't end with punctuation
+                                      if (!/[.!?]$/.test(cleanRule)) {
+                                        cleanRule += '.';
+                                      }
+                                      return cleanRule;
+                                    });
+                                } else {
+                                  // Single rule without period or newline
+                                  rulesToDisplay = [rulesText.trim()];
+                                }
+                              } else {
+                                // Use array as is, but still check each element
+                                rulesToDisplay = field.rules.flatMap((rule: any) => {
+                                  if (typeof rule === 'string') {
+                                    // Check for newlines first
+                                    if (rule.includes('\n')) {
+                                      return rule
+                                        .split('\n')
+                                        .filter((r: string) => r.trim().length > 0)
+                                        .map((r: string) => r.trim());
+                                    } else if (rule.includes('.')) {
+                                      // If this array element contains multiple sentences, split it
+                                      return rule
+                                        .split(/\.(?:\s+|$)/)
+                                        .filter((r: string) => r.trim().length > 0)
+                                        .map((r: string) => {
+                                          let cleanRule = r.trim();
+                                          if (!/[.!?]$/.test(cleanRule)) {
+                                            cleanRule += '.';
+                                          }
+                                          return cleanRule;
+                                        });
+                                    }
+                                  }
+                                  return rule;
+                                });
+                              }
+                            }
+                            // If rules is a string
+                            else if (typeof field.rules === 'string') {
+                              // Check if text contains newlines (new format)
+                              if (field.rules.includes('\n')) {
+                                // Split by newlines
+                                rulesToDisplay = field.rules
+                                  .split('\n')
+                                  .filter((rule: string) => rule.trim().length > 0)
+                                  .map((rule: string) => rule.trim());
+                              } else {
+                                // Old format: Split by periods
+                                rulesToDisplay = field.rules
                                   .split(/\.(?:\s+|$)/)  // Split by period followed by whitespace or end
                                   .filter((rule: string) => rule.trim().length > 0)
                                   .map((rule: string) => {
-                                    // Clean up the rule text and ensure proper formatting
                                     let cleanRule = rule.trim();
                                     // Add period back if it doesn't end with punctuation
                                     if (!/[.!?]$/.test(cleanRule)) {
@@ -529,39 +592,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                                     }
                                     return cleanRule;
                                   });
-                              } else {
-                                // Use array as is, but still check each element
-                                rulesToDisplay = field.rules.flatMap((rule: any) => {
-                                  if (typeof rule === 'string' && rule.includes('.')) {
-                                    // If this array element contains multiple sentences, split it
-                                    return rule
-                                      .split(/\.(?:\s+|$)/)
-                                      .filter((r: string) => r.trim().length > 0)
-                                      .map((r: string) => {
-                                        let cleanRule = r.trim();
-                                        if (!/[.!?]$/.test(cleanRule)) {
-                                          cleanRule += '.';
-                                        }
-                                        return cleanRule;
-                                      });
-                                  }
-                                  return rule;
-                                });
                               }
-                            } 
-                            // If rules is a string, split by periods
-                            else if (typeof field.rules === 'string') {
-                              rulesToDisplay = field.rules
-                                .split(/\.(?:\s+|$)/)  // Split by period followed by whitespace or end
-                                .filter((rule: string) => rule.trim().length > 0)
-                                .map((rule: string) => {
-                                  let cleanRule = rule.trim();
-                                  // Add period back if it doesn't end with punctuation
-                                  if (!/[.!?]$/.test(cleanRule)) {
-                                    cleanRule += '.';
-                                  }
-                                  return cleanRule;
-                                });
                             }
                           }
                           
@@ -573,7 +604,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                           return rulesToDisplay.map((rule: string, index: number) => (
                             <div key={index} className="flex items-start gap-3">
                               <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
-                              <p className="text-sm text-dark-green leading-relaxed break-words">{rule}</p>
+                              <p className="text-sm text-dark-green leading-relaxed break-words whitespace-pre-wrap">{rule}</p>
                             </div>
                           ));
                         })()}
@@ -602,18 +633,28 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         // Parse cancellation policy if available
                         if (field?.cancellationPolicy) {
                           if (typeof field.cancellationPolicy === 'string') {
-                            // Split by periods to get individual policies
-                            const policies = field.cancellationPolicy
-                              .split(/\.(?:\s+|$)/)
-                              .filter((policy: string) => policy.trim().length > 0)
-                              .map((policy: string) => {
-                                let cleanPolicy = policy.trim();
-                                if (!/[.!?]$/.test(cleanPolicy)) {
-                                  cleanPolicy += '.';
-                                }
-                                return cleanPolicy;
-                              });
-                            policiesToDisplay.push(...policies);
+                            // Check if text contains newlines (new format)
+                            if (field.cancellationPolicy.includes('\n')) {
+                              // Split by newlines
+                              const policies = field.cancellationPolicy
+                                .split('\n')
+                                .filter((policy: string) => policy.trim().length > 0)
+                                .map((policy: string) => policy.trim());
+                              policiesToDisplay.push(...policies);
+                            } else {
+                              // Old format: Split by periods to get individual policies
+                              const policies = field.cancellationPolicy
+                                .split(/\.(?:\s+|$)/)
+                                .filter((policy: string) => policy.trim().length > 0)
+                                .map((policy: string) => {
+                                  let cleanPolicy = policy.trim();
+                                  if (!/[.!?]$/.test(cleanPolicy)) {
+                                    cleanPolicy += '.';
+                                  }
+                                  return cleanPolicy;
+                                });
+                              policiesToDisplay.push(...policies);
+                            }
                           }
                         }
                         
@@ -636,36 +677,54 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                           if (Array.isArray(field.bookingPolicies)) {
                             // Handle array of policies
                             field.bookingPolicies.forEach((policy: any) => {
-                              if (typeof policy === 'string' && policy.includes('.')) {
-                                // Split if contains multiple sentences
-                                const splitPolicies = policy
-                                  .split(/\.(?:\s+|$)/)
-                                  .filter((p: string) => p.trim().length > 0)
-                                  .map((p: string) => {
-                                    let cleanPolicy = p.trim();
-                                    if (!/[.!?]$/.test(cleanPolicy)) {
-                                      cleanPolicy += '.';
-                                    }
-                                    return cleanPolicy;
-                                  });
-                                policiesToDisplay.push(...splitPolicies);
-                              } else if (typeof policy === 'string') {
-                                policiesToDisplay.push(policy);
+                              if (typeof policy === 'string') {
+                                // Check for newlines first
+                                if (policy.includes('\n')) {
+                                  const splitPolicies = policy
+                                    .split('\n')
+                                    .filter((p: string) => p.trim().length > 0)
+                                    .map((p: string) => p.trim());
+                                  policiesToDisplay.push(...splitPolicies);
+                                } else if (policy.includes('.')) {
+                                  // Old format: Split if contains multiple sentences
+                                  const splitPolicies = policy
+                                    .split(/\.(?:\s+|$)/)
+                                    .filter((p: string) => p.trim().length > 0)
+                                    .map((p: string) => {
+                                      let cleanPolicy = p.trim();
+                                      if (!/[.!?]$/.test(cleanPolicy)) {
+                                        cleanPolicy += '.';
+                                      }
+                                      return cleanPolicy;
+                                    });
+                                  policiesToDisplay.push(...splitPolicies);
+                                } else {
+                                  policiesToDisplay.push(policy);
+                                }
                               }
                             });
                           } else if (typeof field.bookingPolicies === 'string') {
-                            // Split string by periods
-                            const policies = field.bookingPolicies
-                              .split(/\.(?:\s+|$)/)
-                              .filter((policy: string) => policy.trim().length > 0)
-                              .map((policy: string) => {
-                                let cleanPolicy = policy.trim();
-                                if (!/[.!?]$/.test(cleanPolicy)) {
-                                  cleanPolicy += '.';
-                                }
-                                return cleanPolicy;
-                              });
-                            policiesToDisplay.push(...policies);
+                            // Check if text contains newlines (new format)
+                            if (field.bookingPolicies.includes('\n')) {
+                              const policies = field.bookingPolicies
+                                .split('\n')
+                                .filter((policy: string) => policy.trim().length > 0)
+                                .map((policy: string) => policy.trim());
+                              policiesToDisplay.push(...policies);
+                            } else {
+                              // Old format: Split string by periods
+                              const policies = field.bookingPolicies
+                                .split(/\.(?:\s+|$)/)
+                                .filter((policy: string) => policy.trim().length > 0)
+                                .map((policy: string) => {
+                                  let cleanPolicy = policy.trim();
+                                  if (!/[.!?]$/.test(cleanPolicy)) {
+                                    cleanPolicy += '.';
+                                  }
+                                  return cleanPolicy;
+                                });
+                              policiesToDisplay.push(...policies);
+                            }
                           }
                         }
                         
@@ -683,7 +742,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         return uniquePolicies.map((policy: string, index: number) => (
                           <div key={index} className="flex items-start gap-3">
                             <img src="/field-details/tick.svg" alt="tick" className="w-5 h-5 mt-0.5" />
-                            <p className="text-sm text-dark-green leading-relaxed break-words">{policy}</p>
+                            <p className="text-sm text-dark-green leading-relaxed break-words whitespace-pre-wrap">{policy}</p>
                           </div>
                         ));
                       })()}

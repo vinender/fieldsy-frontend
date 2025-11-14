@@ -115,104 +115,104 @@ export default function MyFieldsPage() {
 
               return (
                 <div
-                key={field.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => handleViewField(field.id)}
-              >
-                <div className="h-48 bg-gray-200 relative">
-                  {field.images && field.images.length > 0 ? (
-                    <img
-                      src={field.images[0]}
-                      alt={field.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <span className="text-gray-400">No image</span>
-                    </div>
-                  )}
-                  {isSubmitted && (
-                    <div className="absolute top-3 right-3 flex flex-col gap-2">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          field.isClaimed
-                            ? 'bg-green text-white'
-                            : 'bg-yellow-500 text-white'
-                        }`}
-                      >
-                        {field.isClaimed ? 'Approved' : 'Pending'}
-                      </span>
-                      {field.isClaimed && (
+                  key={field.id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => handleViewField(field.id)}
+                >
+                  <div className="h-48 bg-gray-200 relative">
+                    {field.images && field.images.length > 0 ? (
+                      <img
+                        src={field.images[0]}
+                        alt={field.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-gray-400">No image</span>
+                      </div>
+                    )}
+                    {isSubmitted && (
+                      <div className="absolute top-3 right-3 flex flex-col gap-2">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            field.isActive
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-500 text-white'
+                            field.isClaimed
+                              ? 'bg-green text-white'
+                              : 'bg-yellow-500 text-white'
                           }`}
                         >
-                          {field.isActive ? 'Active' : 'Disabled'}
+                          {field.isClaimed ? 'Approved' : 'Pending'}
                         </span>
-                      )}
-                    </div>
-                  )}
-                  {!isSubmitted && (
-                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold bg-gray-500 text-white">
-                      Draft
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{field.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    {field.address}, {field.city}
-                  </p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-green font-bold text-lg">
-                      £{field.price || field.pricePerDay}/hour
-                    </span>
-                    <div className="flex gap-2">
-                      {isSubmitted && (
+                        {field.isClaimed && (
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              field.isActive
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-gray-500 text-white'
+                            }`}
+                          >
+                            {field.isActive ? 'Active' : 'Disabled'}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {!isSubmitted && (
+                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold bg-gray-500 text-white">
+                        Draft
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{field.name}</h3>
+                    <p className="text-gray-600 text-sm mb-2">
+                      {field.address}, {field.city}
+                    </p>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-green font-bold text-lg">
+                        £{field.price || field.pricePerDay}/hour
+                      </span>
+                      <div className="flex gap-2">
+                        {isSubmitted && (
+                          <button
+                            onClick={(e) => handleToggleStatusClick(field, e)}
+                            disabled={togglingFieldId === field.id}
+                            className={`p-2 rounded-full transition-all ${
+                              field.isActive
+                                ? 'text-green hover:bg-green hover:text-white'
+                                : 'text-gray-400 hover:bg-gray-400 hover:text-white'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            title={field.isActive ? 'Disable Field' : 'Enable Field'}
+                          >
+                            {togglingFieldId === field.id ? (
+                              <Spinner size="sm" />
+                            ) : (
+                              <Power className="w-5 h-5" />
+                            )}
+                          </button>
+                        )}
                         <button
-                          onClick={(e) => handleToggleStatusClick(field, e)}
-                          disabled={togglingFieldId === field.id}
-                          className={`p-2 rounded-full transition-all ${
-                            field.isActive
-                              ? 'text-green hover:bg-green hover:text-white'
-                              : 'text-gray-400 hover:bg-gray-400 hover:text-white'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                          title={field.isActive ? 'Disable Field' : 'Enable Field'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewField(field.id);
+                          }}
+                          className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
+                          title="Preview"
                         >
-                          {togglingFieldId === field.id ? (
-                            <Spinner size="sm" />
-                          ) : (
-                            <Power className="w-5 h-5" />
-                          )}
+                          <Eye className="w-5 h-5" />
                         </button>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewField(field.id);
-                        }}
-                        className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
-                        title="Preview"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditField(field.id);
-                        }}
-                        className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
-                        title="Edit"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditField(field.id);
+                          }}
+                          className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
+                          title="Edit"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               );
             })}
           </div>
