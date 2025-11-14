@@ -73,7 +73,7 @@ export default function OwnerInformation({
       router.push(`/user/messages?userId=${owner.id}`);
     }
   };
-   console.log(';; owner', owner);
+
   return (
     <div className={className}>
       <h3 className="text-[18px] font-bold text-dark-green mb-2.5">Owner Information</h3>

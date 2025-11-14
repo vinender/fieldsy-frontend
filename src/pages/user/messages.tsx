@@ -314,13 +314,19 @@ const MessagesPage = () => {
     }
   }, [router.isReady, queryConversationId, conversations]);
 
+  // Track if we've already processed the sessionStorage intent to prevent duplicate creation
+  const processedSessionIntentRef = useRef<boolean>(false);
+
   // Check for saved messaging intent from sessionStorage
   useEffect(() => {
-    if (router.isReady && !isLoadingConversations && !queryUserId && typeof window !== 'undefined') {
+    if (router.isReady && !isLoadingConversations && !queryUserId && typeof window !== 'undefined' && !processedSessionIntentRef.current) {
       const savedUserId = sessionStorage.getItem('messageIntentUserId');
       const savedFieldId = sessionStorage.getItem('messageIntentFieldId');
 
       if (savedUserId) {
+        // Mark as processed before doing anything
+        processedSessionIntentRef.current = true;
+
         // Clear the saved intent
         sessionStorage.removeItem('messageIntentUserId');
         sessionStorage.removeItem('messageIntentFieldId');
@@ -340,10 +346,17 @@ const MessagesPage = () => {
     }
   }, [router.isReady, conversations, isLoadingConversations, queryUserId]);
 
+  // Track if we've already processed the queryUserId to prevent duplicate creation
+  const processedQueryUserIdRef = useRef<string | null>(null);
+
   // Auto-open or create conversation with specific user from query param
   useEffect(() => {
     // Only process if router is ready, not loading and we have the userId
-    if (router.isReady && queryUserId && !isLoadingConversations) {
+    // Also check if we haven't already processed this userId
+    if (router.isReady && queryUserId && !isLoadingConversations && processedQueryUserIdRef.current !== queryUserId) {
+      // Mark this userId as processed
+      processedQueryUserIdRef.current = queryUserId;
+
       // Find conversation with this user
       const targetConversation = conversations.find(conv =>
         conv.participants.some(p => p.id === queryUserId)
