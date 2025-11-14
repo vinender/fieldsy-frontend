@@ -43,7 +43,7 @@ export function useCreateReview(fieldId: string, bookingId?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reviewKeys.field(fieldId) });
-      toast.success('Review created successfully!');
+      // Toast notification handled by the component (AddReviewModal)
     },
     onError: (error: any) => {
       console.log('Review creation error:', error);

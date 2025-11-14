@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/
 import { useFieldReviews } from '@/hooks/useReviews';
 import { format } from 'date-fns';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
-import { AddReviewModal } from '@/components/modal/AddReviewModal';
 import { LoginPromptModal } from '@/components/modal/LoginPromptModal';
 import { useSession } from 'next-auth/react';
 import FieldMapWrapper from '@/components/common/FieldMapWrapper';
@@ -16,7 +15,6 @@ import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 import { RatingStars } from '@/components/common/RatingStars';
-import { useHasCompletedBooking } from '@/hooks/queries/useBookingQueries';
 
 
 interface FieldDetailsLegacyProps {
@@ -35,7 +33,6 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   const reviewsRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginModalMessage, setLoginModalMessage] = useState('');
   const [rulesOpen, setRulesOpen] = useState(true);  // Expanded by default
@@ -51,11 +48,6 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   const toggleFavoriteMutation = useToggleFavorite(fieldId);
   const [isLiked, setIsLiked] = useState(false);
 
-  // Check if user has completed bookings for this field (only check if user is logged in and not in preview mode)
-  const { canReview, isLoading: checkingBookings } = useHasCompletedBooking(fieldId, {
-    enabled: !!session && !isSubmitted && !!fieldId
-  });
-  
   useEffect(() => {
     setIsLiked(isFavorited || false);
   }, [isFavorited]);
@@ -773,25 +765,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                             </div>
                           </div>
 
-                          {/* Right: Leave a review (legacy style) - Only show if user can review */}
-                          {canReview && (
-                            <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
-                              <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
-                              <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
-                              <button
-                                onClick={isSubmitted ? undefined : () => {
-                                  if (!session) {
-                                    router.push('/login');
-                                  } else {
-                                    setShowReviewModal(true);
-                                  }
-                                }}
-                                className="px-5 py-2 border border-[#8FB366] flex justify-center items-center text-center rounded-full bg-white w-full text-green hover:text-white font-semibold hover:bg-[#2e5519] transition"
-                              >
-                                Write A Review
-                              </button>
-                            </div>
-                          )}
+                          {/* Review button removed - reviews now only submitted from booking details in My Bookings page */}
                         </div>
                       )}
 
@@ -829,31 +803,9 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                           ))}
                         </div>
                       ) : (
-                        <>
-                          {/* Show "Leave a Review" only if user can review */}
-                          {canReview ? (
-                            <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
-                              <h3 className="text-dark-green font-semibold mb-4">Leave a Review</h3>
-                              <span className="text-gray-600 text-sm max-w-md mb-4">Share your experience and help other dog owners choose the perfect field.</span>
-                              <button
-                                onClick={isSubmitted ? undefined : () => {
-                                  if (!session) {
-                                    router.push('/login');
-                                  } else {
-                                    setShowReviewModal(true);
-                                  }
-                                }}
-                                className="px-5 py-2 border border-[#8FB366] flex justify-center items-center text-center rounded-full bg-white w-full text-green hover:text-white font-semibold hover:bg-[#2e5519] transition"
-                              >
-                                Write A Review
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
-                              <p className="text-gray-600 text-sm text-center">No reviews yet. Be the first to book and review this field!</p>
-                            </div>
-                          )}
-                        </>
+                        <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
+                          <p className="text-gray-600 text-sm text-center">No reviews yet. Be the first to book and review this field!</p>
+                        </div>
                       )}
                     </>
                   )
@@ -867,18 +819,6 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
         <ImageLightbox images={fieldImages} open={lightboxOpen} initialIndex={currentImageIndex} onOpenChange={setLightboxOpen} />
       )}
 
-      {/* Add Review Modal */}
-      <AddReviewModal 
-        isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        fieldId={field?.id || ''}
-        fieldName={field?.name || 'Field'}
-        onReviewAdded={() => {
-          // Refresh reviews after adding
-          window.location.reload();
-        }}
-      />
-      
       {/* Login Prompt Modal */}
       <LoginPromptModal 
         isOpen={showLoginModal}

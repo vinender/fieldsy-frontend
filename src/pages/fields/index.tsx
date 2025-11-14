@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, SortDesc, Filter } from 'lucide-react';
 import { FieldCard } from '@/components/fields/FieldCard';
 import { LazyFieldCard } from '@/components/fields/LazyFieldCard';
@@ -12,6 +12,7 @@ import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
 import { useSession } from 'next-auth/react';
 import { useFields, FieldsParams, useNearbyFields, usePriceRange } from '@/hooks/queries/useFieldQueries';
 import { NearbyFieldsParams } from '@/lib/api/fields';
+import { useLocation } from '@/contexts/LocationContext';
 
 
 export default function SearchResults() {
@@ -23,30 +24,69 @@ export default function SearchResults() {
   const [zipCode, setZipCode] = useState('');
   const [lat, setLat] = useState<number | undefined>();
   const [lng, setLng] = useState<number | undefined>();
-  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { currentLocation, requestLocation } = useLocation();
   
   const { data: priceRangeData, isLoading: loadingPriceRange } = usePriceRange();
+  const locationRequestInitiatedRef = useRef(false);
+  const locationDisplay = useMemo(() => {
+    if (!currentLocation) return '';
+    if (currentLocation.formattedAddress) return currentLocation.formattedAddress;
+
+    const parts = [currentLocation.city, currentLocation.country].filter(Boolean);
+    if (parts.length > 0) {
+      return parts.join(', ');
+    }
+
+    if (typeof currentLocation.lat === 'number' && typeof currentLocation.lng === 'number') {
+      return `${currentLocation.lat.toFixed(2)}, ${currentLocation.lng.toFixed(2)}`;
+    }
+
+    return '';
+  }, [currentLocation]);
 
   // Extract min and max price from API or use fallback from mockData
   const minPrice = priceRangeData?.data?.minPrice ?? mockData.filterOptions.priceRange.min;
   const maxPrice = priceRangeData?.data?.maxPrice ?? mockData.filterOptions.priceRange.max;
 
-  // Get current location on mount
+  // Request location only if not already stored in context/localStorage
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.log('Error getting location:', error);
-        }
-      );
+    if (typeof window === 'undefined') {
+      return;
     }
-  }, []);
+
+    if (currentLocation || locationRequestInitiatedRef.current) {
+      return;
+    }
+
+    const savedLocation = localStorage.getItem('userLocation');
+    if (savedLocation) {
+      try {
+        const parsed = JSON.parse(savedLocation);
+        const isFresh = !parsed.timestamp || Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
+
+        if (parsed.lat && parsed.lng && isFresh) {
+          // Context will hydrate from localStorage shortly; avoid duplicate prompt
+          return;
+        }
+
+        if (!isFresh) {
+          localStorage.removeItem('userLocation');
+        }
+      } catch (error) {
+        console.error('Failed to parse saved location:', error);
+        localStorage.removeItem('userLocation');
+      }
+    }
+
+    locationRequestInitiatedRef.current = true;
+    requestLocation()
+      .catch(() => {
+        // Errors are handled inside the hook; we just prevent duplicate prompts
+      })
+      .finally(() => {
+        locationRequestInitiatedRef.current = false;
+      });
+  }, [currentLocation, requestLocation]);
 
   // Parse query parameters on mount and when router.query changes
   useEffect(() => {
@@ -314,15 +354,24 @@ export default function SearchResults() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <div className="flex flex-col gap-1 flex-1 w-full">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
                 {activeIsLoading ? 'Loading...' : shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
               </h1>
-              <div className="relative" ref={sortDropdownRef}>
-                <button 
-                  onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                  className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4"
-                >
+              {shouldUseNearbyFields && hasNearbyResults && locationDisplay && (
+                <span className="text-sm text-dark-green/70 truncate max-w-full sm:max-w-[360px]">
+                  • {locationDisplay}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="relative" ref={sortDropdownRef}>
+            <button 
+              onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+              className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4"
+            >
                   <div className="flex items-center gap-2">
                     <SortDesc className="w-4 md:w-5 h-4 md:h-5 text-dark-green" />
                     <span className="text-[13px] md:text-[14px] font-medium text-dark-green">

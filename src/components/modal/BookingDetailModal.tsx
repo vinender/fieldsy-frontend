@@ -510,17 +510,24 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                     )}
                   </div>
                 ) : fullBooking?.status === 'COMPLETED' ? (
-                  <button 
+                  <button
                     onClick={() => {
-                      if (onReview) {
-                        onReview();
-                      } else {
-                        setIsReviewModalOpen(true);
+                      if (!fullBooking?.hasReview) {
+                        if (onReview) {
+                          onReview();
+                        } else {
+                          setIsReviewModalOpen(true);
+                        }
                       }
                     }}
-                    className="w-full h-12 sm:h-14 bg-[#3a6b22] rounded-full text-white text-sm sm:text-[16px] font-semibold hover:bg-[#2d5319] transition-colors"
+                    disabled={fullBooking?.hasReview}
+                    className={`w-full h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${
+                      fullBooking?.hasReview
+                        ? 'bg-gray-100 border-2 border-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#3a6b22] text-white hover:bg-[#2d5319] cursor-pointer'
+                    }`}
                   >
-                    Write a Review
+                    {fullBooking?.hasReview ? 'Reviewed' : 'Write a Review'}
                   </button>
                 ) : fullBooking?.status === 'CANCELLED' ? (
                   <button 

@@ -1,20 +1,20 @@
 //add review modal
 import React, { useState } from 'react';
-import { X, Star, Upload } from 'lucide-react';
-import Spinner from '@/components/ui/Spinner';
+import { X, Star } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCreateReview } from '@/hooks/useReviews';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 
 interface AddReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   fieldId: string;
   fieldName?: string;
-  bookingId?: string;
+  bookingId: string; // Now required
   onReviewAdded?: () => void;
 }
 
@@ -26,6 +26,7 @@ export const AddReviewModal = ({
   bookingId,
   onReviewAdded
 }: AddReviewModalProps) => {
+  const router = useRouter();
   const { data: session } = useSession();
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
@@ -62,7 +63,7 @@ export const AddReviewModal = ({
         images,
         bookingId,
       });
-      
+
       // Only reset and close on success
       setRating(0);
       setReviewText('');
@@ -75,7 +76,11 @@ export const AddReviewModal = ({
       }
 
       onClose();
-      // Toast notification is handled by useReviews hook's onSuccess callback
+
+      // Redirect to fields page after successful review submission
+      toast.success('Review submitted successfully!');
+      router.push('/fields');
+
     } catch (error: any) {
       // Error is handled by the mutation's onError callback
       // Just log it and keep the modal open

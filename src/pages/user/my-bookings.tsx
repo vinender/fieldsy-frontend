@@ -16,6 +16,7 @@ import {
 import { BookingDetailsModal } from '@/components/modal/BookingDetailModal';
 import { CancelBookingModal } from '@/components/modal/CancelBookingModal';
 import { RescheduleBookingModal } from '@/components/modal/RescheduleBookingModal';
+import { AddReviewModal } from '@/components/modal/AddReviewModal';
 import BookingFilter from '@/components/bookings/booking-filter';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useSession } from 'next-auth/react';
@@ -57,6 +58,12 @@ interface Booking {
   field?: any; // Full field data
   averageRating?: number; // Field's average rating
   rescheduleCount?: number; // Number of times this booking has been rescheduled
+  hasReview?: boolean; // Whether booking has been reviewed
+  fieldReview?: {
+    id: string;
+    rating: number;
+    createdAt: string;
+  } | null;
 }
 
 // Recurring Booking Interface
@@ -101,8 +108,10 @@ const BookingHistoryPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
+  const [bookingToReview, setBookingToReview] = useState<Booking | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [recurringBookings, setRecurringBookings] = useState<RecurringBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -372,6 +381,9 @@ const BookingHistoryPage = () => {
             createdAt: booking.createdAt,
             updatedAt: booking.updatedAt,
             rescheduleCount: booking.rescheduleCount || 0, // Include reschedule count for badge display
+            // Include review status
+            hasReview: booking.hasReview || false,
+            fieldReview: booking.fieldReview || null,
             // Include field data for modal
             field: booking.field,
             averageRating: booking.field?.averageRating || 0
@@ -998,15 +1010,32 @@ const BookingHistoryPage = () => {
         ) : (
           <>
             <div className={`flex-1 sm:w-full py-2 px-2.5 rounded-full text-[12px] sm:text-[14px] font-bold flex items-center justify-center ${
-              booking.status === 'completed' 
-                ? 'bg-white border border-green text-green' 
+              booking.status === 'completed'
+                ? 'bg-white border border-green text-green'
                 : 'bg-gray-100 text-gray-600'
             }`}>
               <Check className="w-[18px] h-[18px] mr-2 bg-green text-white rounded-sm p-0.5" />
-              {booking.status === 'completed' ? 'Completed' : 
+              {booking.status === 'completed' ? 'Completed' :
                booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
             </div>
-            <button 
+            {booking.status === 'completed' && (
+              <button
+                onClick={() => {
+                  if (!booking.hasReview) {
+                    setBookingToReview(booking);
+                    setIsReviewModalOpen(true);
+                  }
+                }}
+                disabled={booking.hasReview}
+                className={`flex-1 sm:w-full py-2 px-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-colors ${
+                  booking.hasReview
+                    ? 'bg-gray-100 border border-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#8fb366] text-white hover:bg-[#7a9d57] cursor-pointer'
+                }`}>
+                {booking.hasReview ? 'Reviewed' : 'Write a Review'}
+              </button>
+            )}
+            <button
               onClick={() => handleViewDetails(booking)}
               className="flex-1 sm:w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
               View Details
@@ -1290,6 +1319,34 @@ const BookingHistoryPage = () => {
           }}
           booking={bookingToReschedule}
           onConfirm={handleRescheduleBooking}
+        />
+      )}
+
+      {/* Add Review Modal */}
+      {bookingToReview && (
+        <AddReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => {
+            setIsReviewModalOpen(false);
+            setBookingToReview(null);
+          }}
+          fieldId={bookingToReview.fieldId}
+          fieldName={bookingToReview.name}
+          bookingId={bookingToReview._id}
+          onReviewAdded={async () => {
+            // Update the booking's hasReview status immediately
+            setBookings(prevBookings =>
+              prevBookings.map(b =>
+                b._id === bookingToReview._id
+                  ? { ...b, hasReview: true }
+                  : b
+              )
+            );
+            setIsReviewModalOpen(false);
+            setBookingToReview(null);
+            // Also refresh bookings from server to get the actual review data
+            await fetchBookings();
+          }}
         />
       )}
 
