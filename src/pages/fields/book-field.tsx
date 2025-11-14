@@ -380,8 +380,10 @@ const BookFieldPage = () => {
 
         // A slot is past if current time is at or after the slot start time
         // This prevents booking slots that have already started or passed
+        // IMPORTANT: Always compute isPast on client side, ignore server's isPast value
+        // because server uses server timezone, not client timezone
         const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes <= currentMinutes;
-        const isPast = typeof slotData.isPast === 'boolean' ? slotData.isPast : computedIsPast;
+        const isPast = computedIsPast; // Always use client-side computation, ignore slotData.isPast
         const isBooked = Boolean(slotData.isBooked);
         const available = Boolean(slotData.isAvailable) && !isPast && !isBooked;
 

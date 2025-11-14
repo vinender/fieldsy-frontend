@@ -192,7 +192,7 @@ export function FieldCard({
             </div>
             <div className="bg-dark-green rounded-md px-1.5 py-1 flex items-center gap-0.5">
               <img src='/star.svg' className="w-3.5 h-3.5 fill-yellow text-yellow" fill="white" />
-              <span className="text-[12px] font-semibold text-white">{rating}</span>
+              <span className="text-[12px] font-semibold text-white">{rating.toFixed(1)}</span>
             </div>
           </div>
 
