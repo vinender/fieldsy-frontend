@@ -77,7 +77,7 @@ export default function TestS3Upload() {
 
           {error && (
             <div className="mb-6 p-4 bg-red/10 border border-red rounded-lg">
-              <p className="text-red font-medium">Upload Error:</p>
+              <p className="text-red-500font-medium">Upload Error:</p>
               <p className="text-sm text-gray-600">{error}</p>
             </div>
           )}

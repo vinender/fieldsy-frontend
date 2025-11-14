@@ -998,7 +998,7 @@ const BookingHistoryPage = () => {
           </>
         ) : booking.status === 'cancelled' ? (
           <>
-            <div className="flex-1 sm:w-full py-2 px-2.5 bg-white border  border-red-600 rounded-full text-[12px] sm:text-[14px] font-bold outline-red text-red flex items-center justify-center cursor-not-allowed">
+            <div className="flex-1 sm:w-full py-2 px-2.5 bg-white border  border-red-600 rounded-full text-[12px] sm:text-[14px] font-bold outline-red text-red-400 flex items-center justify-center cursor-not-allowed">
               Cancelled
             </div>
             <button 

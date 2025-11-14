@@ -841,7 +841,7 @@ const BookFieldPage = () => {
                   {/* <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" /> */}
                 </div>
                 {numberOfDogs && parseInt(numberOfDogs) > (field.maxDogs || 10) && (
-                  <p className="text-red text-sm mt-1">
+                  <p className="text-red-500text-sm mt-1">
                     This field allows a maximum of {field.maxDogs || 10} dogs
                   </p>
                 )}

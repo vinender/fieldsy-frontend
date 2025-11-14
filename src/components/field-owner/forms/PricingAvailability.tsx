@@ -168,7 +168,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
         <div className="mt-10 pt-10 border-t border-gray-200">
           <div className="space-y-6">
             <div className="bg- rounded-2xl p-6">
-              <h3 className="text-lg text-red-400 font-semibold text-red mb-3 font-sans">
+              <h3 className="text-lg text-red-400 font-semibold text-red-500mb-3 font-sans">
                 Cancellation & Refund Policy:
               </h3>
               <p className="text-base leading-relaxed text-dark-green font-sans">

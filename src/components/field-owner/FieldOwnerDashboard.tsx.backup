@@ -735,7 +735,7 @@ function UploadImages({ formData, setFormData }: any) {
                 <div className="h-full bg-green rounded-full transition-all duration-300 ease-out" style={{ width: `${img.progress !== undefined ? img.progress : 0}%` }} />
               </div>
               {img.error && (
-                <p className="text-xs text-red mt-2">{img.error}</p>
+                <p className="text-xs text-red-500mt-2">{img.error}</p>
               )}
             </div>
           ))}
@@ -898,7 +898,7 @@ function PricingAvailability({ formData, setFormData }: any) {
         <div className="mt-10 pt-10 border-t border-gray-200">
           <div className="space-y-6">
             <div className="bg- rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-red mb-3 font-sans">
+              <h3 className="text-lg font-semibold text-red-500mb-3 font-sans">
                 Cancellation & Refund Policy:
               </h3>
               <p className="text-base leading-relaxed text-dark-green font-sans">
@@ -1010,7 +1010,7 @@ function BookingRules({ formData, setFormData }: any) {
                 rows={5}
               />
               {errors.rules && (
-                <p className="mt-1 text-sm text-red font-sans">
+                <p className="mt-1 text-sm text-red-500font-sans">
                   {errors.rules}
                 </p>
               )}
@@ -1050,7 +1050,7 @@ function BookingRules({ formData, setFormData }: any) {
                 rows={5}
               />
               {errors.policies && (
-                <p className="mt-1 text-sm text-red font-sans">
+                <p className="mt-1 text-sm text-red-500font-sans">
                   {errors.policies}
                 </p>
               )}

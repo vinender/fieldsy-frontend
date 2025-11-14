@@ -281,7 +281,7 @@ export default function BookingHistory() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <p className="text-sm sm:text-base text-red font-medium mb-2">
+                <p className="text-sm sm:text-base text-red-500font-medium mb-2">
                   {error?.message || 'Failed to fetch bookings'}
                 </p>
                 <button 
