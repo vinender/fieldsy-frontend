@@ -630,77 +630,111 @@ const BookingHistoryPage = () => {
 
     return (
       <>
-        <div className="bg-white rounded-xl p-4 mb-4 hover:shadow-lg transition-shadow border border-gray-100">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Field Info */}
-            <div className="flex-grow">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="text-lg font-semibold text-[#192215]">{subscription.fieldName}</h3>
-                  <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                    <MapPin className="w-4 h-4" />
-                    {subscription.fieldAddress}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    subscription.status === 'active' 
-                      ? 'bg-green-100 text-green-700' 
-                      : subscription.status === 'canceled'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {subscription.status.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-                <div>
-                  <p className="text-xs text-gray-500">Schedule</p>
-                  <p className="text-sm font-semibold">{formatInterval()}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Time</p>
-                  <p className="text-sm font-semibold">{subscription.timeSlot}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Dogs</p>
-                  <p className="text-sm font-semibold">{subscription.numberOfDogs}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Price</p>
-                  <p className="text-sm font-semibold">£{subscription.totalPrice}/{subscription.interval === 'everyday' ? 'day' : subscription.interval}</p>
-                </div>
-              </div>
-              
-              {subscription.nextBillingDate && (
-                <div className="mt-3 p-2 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-600">
-                    Next billing: {formatDateDDMMYYYY(new Date(subscription.nextBillingDate))}
-                  </p>
-                </div>
-              )}
-              
-              {subscription.cancelAtPeriodEnd && (
-                <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
-                  <p className="text-xs text-yellow-700">
-                    Will be canceled on {formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
-                  </p>
-                </div>
-              )}
+        <div className="bg-white rounded-2xl p-5 sm:p-6 mb-4 hover:shadow-lg transition-all duration-200 border-2 border-gray-100 hover:border-[#3a6b22]/20">
+          {/* Header Section */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1 min-w-0 pr-4">
+              <h3 className="text-lg sm:text-xl font-bold text-[#192215] mb-2 truncate">{subscription.fieldName}</h3>
+              <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                <span className="truncate">{subscription.fieldAddress}</span>
+              </p>
             </div>
-          </div>  
-          
+            <div className="flex-shrink-0">
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ${
+                subscription.status === 'active'
+                  ? 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border border-green-200'
+                  : subscription.status === 'canceled'
+                  ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 border border-red-200'
+                  : 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border border-gray-200'
+              }`}>
+                {subscription.status.toUpperCase()}
+              </span>
+            </div>
+          </div>
+
+          {/* Recurring Details Section */}
+          <div className="bg-gradient-to-br from-[#f4ffef] to-[#e8f5df] rounded-xl p-4 mb-4 border border-[#3a6b22]/10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Calendar className="w-3.5 h-3.5 text-[#3a6b22]" />
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Repeats</span>
+                </div>
+                <p className="text-sm sm:text-base font-bold text-[#192215]">{formatInterval()}</p>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Clock className="w-3.5 h-3.5 text-[#3a6b22]" />
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Time</span>
+                </div>
+                <p className="text-sm sm:text-base font-bold text-[#192215]">{subscription.timeSlot}</p>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Dog className="w-3.5 h-3.5 text-[#3a6b22]" />
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Dogs</span>
+                </div>
+                <p className="text-sm sm:text-base font-bold text-[#192215]">{subscription.numberOfDogs} {subscription.numberOfDogs === 1 ? 'Dog' : 'Dogs'}</p>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Price</span>
+                </div>
+                <p className="text-sm sm:text-base font-bold text-[#3a6b22]">
+                  £{subscription.totalPrice}
+                  <span className="text-xs font-normal text-gray-500">/{subscription.interval === 'everyday' ? 'day' : subscription.interval}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Alerts Section */}
+          <div className="space-y-2 mb-4">
+            {subscription.nextBillingDate && !subscription.cancelAtPeriodEnd && (
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                <Calendar className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-blue-900">Next Billing Date</p>
+                  <p className="text-xs text-blue-700 mt-0.5">{formatDateDDMMYYYY(new Date(subscription.nextBillingDate))}</p>
+                </div>
+              </div>
+            )}
+
+            {subscription.cancelAtPeriodEnd && (
+              <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-white text-xs font-bold">!</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-semibold text-amber-900">Cancellation Scheduled</p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    Your subscription will end on {formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           {subscription.status === 'active' && !subscription.cancelAtPeriodEnd && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="pt-4 border-t border-gray-100">
               <button
                 onClick={() => setShowCancelModal(true)}
                 disabled={isCancelling}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                className="w-full sm:w-auto px-6 py-2.5 bg-white border-2 border-red-500 text-red-600 rounded-full hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold shadow-sm hover:shadow flex items-center justify-center gap-2"
               >
-                {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                {isCancelling ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-red-300 border-t-red-600 rounded-full animate-spin"></div>
+                    <span>Cancelling...</span>
+                  </>
+                ) : (
+                  <>
+                    <X className="w-4 h-4" />
+                    <span>Cancel Subscription</span>
+                  </>
+                )}
               </button>
             </div>
           )}

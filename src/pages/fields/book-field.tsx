@@ -1248,13 +1248,14 @@ const BookFieldPage = () => {
                     });
                   }
                 }}
-                disabled={!selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots()}
-                className={`w-full h-14 rounded-full font-bold text-[16px] transition-colors ${
-                  !selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots()
+                disabled={!selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots() || rescheduleBookingMutation.isPending}
+                className={`w-full h-14 rounded-full font-bold text-[16px] transition-colors flex items-center justify-center gap-2 ${
+                  !selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots() || rescheduleBookingMutation.isPending
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-[#3A6B22] text-white hover:bg-[#2D5A1B]'
                 }`}>
-                {isRescheduleMode ? 'Confirm Reschedule' : 'Continue'}
+                {isRescheduleMode && rescheduleBookingMutation.isPending && <Spinner size="sm" />}
+                {isRescheduleMode ? (rescheduleBookingMutation.isPending ? 'Rescheduling...' : 'Confirm Reschedule') : 'Continue'}
               </button>
             </div>
           </div>

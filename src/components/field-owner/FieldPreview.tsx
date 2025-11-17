@@ -179,6 +179,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
       return [];
     })(),
+    
     // Map other fields as needed
     state: formData?.county,
     openingTime: formData?.startTime,
@@ -223,11 +224,11 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
         {isSubmitted ? (
           <div className={`flex items-center bg-cream border border-green gap-2 rounded-[70px] px-[20px] py-[16px] ${!isClaimed ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <span className="text-[16px] font-[700] w-[110px] text-green">{isActive ? 'Enabled' : 'Disable Field'}</span>
-            <Switch
-              checked={!!isActive}
-              onCheckedChange={handleToggleStatusClick}
-              disabled={!isClaimed || isToggling}
-            />
+              <Switch
+                checked={!!isActive}
+                onCheckedChange={handleToggleStatusClick}
+                disabled={!isClaimed || isToggling}
+              />
           </div>
         ) : (
           <button
