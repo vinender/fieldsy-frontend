@@ -153,7 +153,7 @@ export function FieldCard({
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1 pr-2">
               <h3 className="text-[15px] h-10  font-bold text-dark-green leading-[20px]">{name}</h3>
-              <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {owner}</p>
+              {/* <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {owner}</p> */}
             </div>
             <div className="text-right">
               <p className="text-[16px] font-bold text-[#3A6B22] leading-[20px]">£{price}</p>
@@ -247,7 +247,7 @@ export function FieldCard({
             <span className="text-[10px] text-gray-500 block">/{priceUnit}</span>
           </div>
         </div>
-        <p className="text-[10px] text-gray-500">Posted by: {owner}</p>
+        {/* <p className="text-[10px] text-gray-500">Posted by: {owner}</p> */}
       </div>
 
       <div className={`relative ${imageHeight} mx-3 mb-3 ${imageRoundness} overflow-hidden`}>
