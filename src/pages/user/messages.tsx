@@ -147,6 +147,7 @@ const MessagesPage = () => {
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showOptions, setShowOptions] = useState(false);
+  const messageInputRef = useRef<HTMLInputElement>(null);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -844,6 +845,11 @@ const MessagesPage = () => {
     const content = messageInput.trim();
     setMessageInput('');
 
+    // Keep keyboard open on mobile by refocusing input after a short delay
+    setTimeout(() => {
+      messageInputRef.current?.focus();
+    }, 50);
+
     // Stop typing indicator
     emitTyping(selectedConversation.id, false);
 
@@ -1411,6 +1417,7 @@ const MessagesPage = () => {
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-4">
                         <Input
+                          ref={messageInputRef}
                           type="text"
                           placeholder="Type your message here…"
                           value={messageInput}
