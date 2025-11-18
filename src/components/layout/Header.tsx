@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, X } from "lucide-react"
 import NotificationsSidebar from "@/components/sidebar/NotificationsSidebar"
@@ -20,7 +20,13 @@ import { ProfileAvatar } from "@/components/profile/ProfileAvatar"
 
 export function Header() {
   const pathname = usePathname()
-  const { user, isLoading } = useAuth()
+
+  // Use NextAuth session directly for robust authentication state
+  const { data: session, status } = useSession()
+
+  // Fallback to AuthContext for additional user data (profile image, etc.)
+  const { user: authUser } = useAuth()
+
   const { unreadCount } = useNotifications()
   const { unreadMessagesCount, unreadConversationsCount } = useChat()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -38,33 +44,6 @@ export function Header() {
     setMounted(true)
   }, [])
 
-  // Handle tab visibility changes - check localStorage immediately
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Check if we have auth data in localStorage
-        const storedUser = localStorage.getItem('currentUser')
-        const authToken = localStorage.getItem('authToken')
-
-        if (storedUser && authToken && !user) {
-          // Force a brief unmount/remount to sync with AuthContext
-          setMounted(false)
-          requestAnimationFrame(() => {
-            setMounted(true)
-          })
-        }
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleVisibilityChange)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleVisibilityChange)
-    }
-  }, [user])
-
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 30
@@ -74,20 +53,18 @@ export function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-  
-  // Use auth context for authentication state
-  const isAuthenticated = !!user && !isLoading
-  const currentUser = user
-  console.log('currentUser', currentUser)
-  console.log('isLoading', isLoading)
-  
-  // Debug localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[Header] authToken:', localStorage.getItem('authToken'));
-      console.log('[Header] currentUser:', localStorage.getItem('currentUser'));
-    }
-  }, [])
+
+  // ROBUST authentication state using NextAuth session
+  // This ensures auth state persists on hard refresh and is always accurate
+  const isAuthenticated = status === 'authenticated' && !!session?.user
+  const isLoading = status === 'loading'
+
+  // Use authUser from AuthContext if available (has more profile details), otherwise fallback to session user
+  const currentUser = authUser || (session?.user as any)
+
+  console.log('[Header] NextAuth status:', status)
+  console.log('[Header] isAuthenticated:', isAuthenticated)
+  console.log('[Header] currentUser:', currentUser)
 
   // Navigation items based on authentication and role
   const navigation = useMemo(() => {
