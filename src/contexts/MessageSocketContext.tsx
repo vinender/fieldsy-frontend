@@ -45,7 +45,21 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const connect = useCallback(async () => {
     const token = getAuthToken()
 
-    if (!token || socketRef.current?.connected) {
+    // Prevent multiple connection attempts
+    if (!token) {
+      console.log('[MessageSocket] No auth token, skipping connection')
+      return
+    }
+
+    if (socketRef.current?.connected) {
+      console.log('[MessageSocket] Already connected, skipping')
+      return
+    }
+
+    // If socket exists but is disconnected, reconnect it instead of creating new one
+    if (socketRef.current && !socketRef.current.connected) {
+      console.log('[MessageSocket] Reconnecting existing socket')
+      socketRef.current.connect()
       return
     }
 
@@ -86,11 +100,14 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       },
       transports: ['polling', 'websocket'], // Polling first for better compatibility
       reconnection: true,
-      reconnectionAttempts: 3,  // Reduced from 5 to fail faster
+      reconnectionAttempts: 5,  // More attempts for production stability
       reconnectionDelay: 1000,
-      timeout: 10000,  // Increased timeout for production
+      reconnectionDelayMax: 5000, // Cap max delay
+      timeout: 15000,  // Longer timeout for production
       path: '/socket.io/', // Explicit path
-      withCredentials: isProduction, // Only enable credentials in production
+      withCredentials: true, // Always enable credentials for auth
+      autoConnect: true, // Ensure auto-connection
+      forceNew: false, // Reuse existing connection if available
     })
 
     newSocket.on('connect', () => {
@@ -112,8 +129,33 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsConnected(false)
     })
 
-    newSocket.on('disconnect', () => {
-      console.log('[MessageSocket] Disconnected')
+    newSocket.on('disconnect', (reason) => {
+      console.log('[MessageSocket] Disconnected:', reason)
+      setIsConnected(false)
+
+      // Auto-reconnect if disconnected by server or transport close
+      if (reason === 'io server disconnect') {
+        // Server disconnected us, try to reconnect manually
+        console.log('[MessageSocket] Server disconnected, reconnecting...')
+        newSocket.connect()
+      }
+    })
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('[MessageSocket] Reconnected after', attemptNumber, 'attempts')
+      setIsConnected(true)
+    })
+
+    newSocket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('[MessageSocket] Reconnection attempt', attemptNumber)
+    })
+
+    newSocket.on('reconnect_error', (error) => {
+      console.log('[MessageSocket] Reconnection error:', error.message)
+    })
+
+    newSocket.on('reconnect_failed', () => {
+      console.log('[MessageSocket] Reconnection failed after all attempts')
       setIsConnected(false)
     })
 

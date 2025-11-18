@@ -248,6 +248,8 @@ const MessagesPage = () => {
   const { data: blockStatusData, refetch: refetchBlockStatus } = useBlockStatus(otherUserForBlock?.id);
 
   // Connect message socket only when we have authentication
+  // IMPORTANT: connectMessageSocket/disconnectMessageSocket are intentionally NOT in dependencies
+  // to prevent reconnection on every re-render when changing chats
   useEffect(() => {
     // Only connect if we have authentication
     const hasAuth = session || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
@@ -258,7 +260,8 @@ const MessagesPage = () => {
     return () => {
       disconnectMessageSocket();
     };
-  }, [session, status, connectMessageSocket, disconnectMessageSocket]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, status]);
 
   // Monitor connection status and show indicator
   useEffect(() => {
