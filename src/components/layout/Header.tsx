@@ -210,10 +210,10 @@ export function Header() {
                   aria-label="Messages"
                 >
                   <Image src='/header/msg.svg' alt="Messages" width={24} height={24} className={cn("h-6 w-6", textColor)} />
-                  {unreadMessagesCount > 0 && (
+                  {unreadConversationsCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blue-500 rounded-full shadow-md">
                       <span className="text-[11px] text-white font-bold">
-                        {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                        {unreadConversationsCount > 99 ? '99+' : unreadConversationsCount}
                       </span>
                     </span>
                   )}
@@ -329,10 +329,10 @@ export function Header() {
                   aria-label="Messages"
                 >
                   <Image src='/header/msg.svg' alt="Messages" width={20} height={20} className={cn("h-5 w-5", textColor)} />
-                  {unreadMessagesCount > 0 && (
+                  {unreadConversationsCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-4 px-1 bg-blue-500 rounded-full shadow-md">
                       <span className="text-[10px] text-white font-bold">
-                        {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                        {unreadConversationsCount > 99 ? '99+' : unreadConversationsCount}
                       </span>
                     </span>
                   )}

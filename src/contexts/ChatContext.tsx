@@ -12,6 +12,8 @@ interface ChatContextType {
   incrementUnreadCount: () => void;
   decrementUnreadCount: (count?: number) => void;
   resetUnreadCount: () => void;
+  markConversationAsRead: (conversationId: string) => void;
+  markConversationAsUnread: (conversationId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -19,6 +21,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadConversationsCount, setUnreadConversationsCount] = useState(0);
+  const [unreadConversationIds, setUnreadConversationIds] = useState<Set<string>>(new Set());
   const { socket } = useSocket();
   const { user } = useAuth();
   const router = useRouter();
@@ -103,7 +106,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // Only show notification if we're not on the messages page or not in that conversation
       const isOnMessagesPage = router.pathname === '/user/messages';
       const isInConversation = router.query.conversationId === message.conversationId;
-      
+
       // Don't show notification if user is actively in the conversation
       if (isOnMessagesPage && isInConversation) {
         return;
@@ -111,9 +114,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       // Only increment and notify for messages received (not sent)
       if (message.receiverId === user.id || message.receiverId === user._id) {
-        // Increment unread count
+        // Increment unread message count
         incrementUnreadCount();
-        
+
+        // Mark conversation as having unread messages
+        markConversationAsUnread(message.conversationId);
+
         // Play notification sound
         playMessageSound();
       }
@@ -152,6 +158,30 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const resetUnreadCount = () => {
     setUnreadMessagesCount(0);
+    setUnreadConversationsCount(0);
+    setUnreadConversationIds(new Set());
+  };
+
+  const markConversationAsRead = (conversationId: string) => {
+    setUnreadConversationIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(conversationId)) {
+        newSet.delete(conversationId);
+        setUnreadConversationsCount(newSet.size);
+      }
+      return newSet;
+    });
+  };
+
+  const markConversationAsUnread = (conversationId: string) => {
+    setUnreadConversationIds(prev => {
+      const newSet = new Set(prev);
+      if (!newSet.has(conversationId)) {
+        newSet.add(conversationId);
+        setUnreadConversationsCount(newSet.size);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -164,7 +194,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         playMessageSound,
         incrementUnreadCount,
         decrementUnreadCount,
-        resetUnreadCount
+        resetUnreadCount,
+        markConversationAsRead,
+        markConversationAsUnread
       }}
     >
       {children}

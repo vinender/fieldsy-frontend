@@ -126,7 +126,7 @@ const MessagesPage = () => {
   } = useMessageSocket();
 
 
-  const { decrementUnreadCount } = useChat();
+  const { decrementUnreadCount, markConversationAsRead } = useChat();
 
 
   // React Query hooks
@@ -437,6 +437,8 @@ const MessagesPage = () => {
         if (unreadMessageIds.length > 0) {
           markAsRead(unreadMessageIds);
           decrementUnreadCount(unreadMessageIds.length);
+          // Mark the conversation as read (no more unread messages in this chat)
+          markConversationAsRead(data.conversationId);
         }
       }
     };
@@ -474,6 +476,8 @@ const MessagesPage = () => {
         if (unreadMessageIds.length > 0) {
           markAsRead(unreadMessageIds);
           decrementUnreadCount(unreadMessageIds.length);
+          // Mark the conversation as read (no more unread messages in this chat)
+          markConversationAsRead(data.conversationId);
         }
       }
     };
