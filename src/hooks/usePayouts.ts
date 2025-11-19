@@ -268,6 +268,47 @@ export const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
+// Sync payouts from Stripe
+export const useSyncPayouts = () => {
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const token = (session as any)?.accessToken ||
+                   (typeof window !== 'undefined' && localStorage.getItem('authToken'));
+
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch(
+        `${API_URL}/earnings/sync-payouts`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to sync payouts' }));
+        throw new Error(errorData.message || 'Failed to sync payouts');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate all earnings-related queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: ['earnings-history'] });
+      queryClient.invalidateQueries({ queryKey: ['earnings-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['held-payouts'] });
+    },
+  });
+};
+
 // Helper function to format date
 export const formatTransactionDate = (date: string | Date): string => {
   const dateObj = new Date(date);

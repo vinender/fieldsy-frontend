@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { toast } from 'sonner';
 import {
   useEarningsHistory,
   useEarningsSummary,
   useHeldPayouts,
+  useSyncPayouts,
   formatCurrency,
   formatTransactionDate,
   type Transaction
@@ -76,6 +78,9 @@ const EarningsHistory: React.FC = () => {
     enabled: accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
   });
 
+  // Sync payouts mutation
+  const syncPayouts = useSyncPayouts();
+
   // Check for success/refresh from Stripe redirect
   useEffect(() => {
     if (router.query.success === 'true' || router.query.refresh === 'true' || router.query.updated === 'true') {
@@ -95,7 +100,7 @@ const EarningsHistory: React.FC = () => {
   const handleConnectBank = async () => {
     try {
       setIsConnecting(true);
-      
+
       // Check if account exists
       if (!accountStatus?.data?.hasAccount) {
         // Create Stripe Connect account first
@@ -110,6 +115,23 @@ const EarningsHistory: React.FC = () => {
     } catch (error) {
       console.error('Failed to connect bank:', error);
       setIsConnecting(false);
+    }
+  };
+
+  // Handle sync payouts button click
+  const handleSyncPayouts = async () => {
+    try {
+      const result = await syncPayouts.mutateAsync();
+
+      if (result.success) {
+        const { synced, updated, total } = result.data;
+        toast.success(
+          `Successfully synced ${total} payout${total !== 1 ? 's' : ''} from Stripe. ` +
+          `${synced} new, ${updated} updated.`
+        );
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to sync payouts from Stripe');
     }
   };
 
@@ -271,7 +293,15 @@ const EarningsHistory: React.FC = () => {
 
                   {/* Show different UI based on account connection status */}
                   {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && !accountStatus?.data?.requiresAction ? (
-                    <div className="flex flex-col gap-2 items-start lg:items-end lg:self-center">
+                    <div className="flex flex-col sm:flex-row gap-2 items-start lg:items-end lg:self-center">
+                      <button
+                        onClick={handleSyncPayouts}
+                        disabled={syncPayouts.isPending}
+                        className="bg-white hover:bg-gray-50 transition-colors text-green border border-green font-semibold px-6 py-2.5 rounded-full whitespace-nowrap text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${syncPayouts.isPending ? 'animate-spin' : ''}`} />
+                        {syncPayouts.isPending ? 'Syncing...' : 'Sync Payouts'}
+                      </button>
                       <button
                         onClick={handleConnectBank}
                         disabled={isConnecting || createAccount.isPending || getOnboardingLink.isPending}
