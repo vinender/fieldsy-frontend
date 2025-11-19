@@ -262,7 +262,7 @@ export function FieldCard({
           onClick={handleToggleFavorite}
           disabled={toggleFavoriteMutation.isPending}
           className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md disabled:opacity-50"
-        >
+         >
           {isLiked ? (
             <img src="/field-details/saved-heart.svg" alt="Saved" className="w-4 h-4" loading="lazy" />
           ) : (
@@ -274,6 +274,7 @@ export function FieldCard({
           <span className="text-white text-[10px] font-medium">★ {rating.toFixed(1)}</span>
         </div>
       </div>
+
 
       <div className="px-3 pb-3">
         <div className="flex items-center gap-1 text-[10px] text-gray-500 mb-2">
@@ -306,6 +307,7 @@ export function FieldCard({
             {isClaimed ? 'Book Now' : 'Claim Field'}
           </button>
         </div>
+        
       </div>
       
     </div>
@@ -319,3 +321,4 @@ export function FieldCard({
     </>
   )
 }
+

@@ -44,11 +44,21 @@ export const useSubmitFieldClaim = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });
+      }).catch(() => null);
+
+      if (!response) {
+        // Network error - create a plain object error to avoid Next.js error overlay
+        const error: any = { message: 'Network error. Please check your connection.' };
+        error.name = 'NetworkError';
+        throw error;
+      }
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit claim');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to submit claim' }));
+        // Create a plain object error instead of Error instance to avoid Next.js dev overlay
+        const error: any = { message: errorData.message || 'Failed to submit claim' };
+        error.name = 'ValidationError';
+        throw error;
       }
 
       return response.json();
@@ -56,8 +66,12 @@ export const useSubmitFieldClaim = () => {
     onSuccess: (data) => {
       toast.success(data.message || 'Claim submitted successfully!');
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to submit claim');
+    onError: (error: any) => {
+      // Always show toast notification instead of runtime error
+      const message = error?.message || 'Failed to submit claim';
+      toast.error(message);
     },
+    // Prevent error from propagating to React error boundary
+    throwOnError: false,
   });
 };

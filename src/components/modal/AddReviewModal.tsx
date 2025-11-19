@@ -78,7 +78,7 @@ export const AddReviewModal = ({
       onClose();
 
       // Redirect to fields page after successful review submission
-      toast.success('Review submitted successfully!');
+      // Note: Toast notification is handled by NotificationContext via socket
       router.push('/fields');
 
     } catch (error: any) {
