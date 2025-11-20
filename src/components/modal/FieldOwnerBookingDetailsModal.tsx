@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { format } from 'date-fns';
 import { formatDateDDMMYYYY } from '@/utils/formatters';
 import { usePlatformCommissionRate } from '@/hooks/usePublicSettings';
@@ -22,6 +23,8 @@ interface Booking {
   fieldAddress?: string;
   notes?: string;
   rescheduleCount?: number;
+  userId?: string;
+  fieldId?: string;
 }
 
 interface FieldOwnerBookingDetailsModalProps {
@@ -35,6 +38,7 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
   onClose,
   booking
 }) => {
+  const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
   const commissionRate = usePlatformCommissionRate(); // Get dynamic commission rate from admin settings
 
@@ -96,20 +100,18 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
   const fees = calculateFees();
 
   return (
-    <div 
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
       onClick={handleClose}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80" />
-      
+
       {/* Modal Container */}
-      <div 
-        className={`relative w-full max-w-[800px] mx-4 transition-all duration-300 transform ${
-          isVisible ? 'scale-100' : 'scale-95'
-        }`}
+      <div
+        className={`relative w-full max-w-[800px] mx-4 transition-all duration-300 transform ${isVisible ? 'scale-100' : 'scale-95'
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -118,14 +120,14 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
           className="absolute -top-12 right-0 sm:-right-12 sm:top-0 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors"
           aria-label="Close modal"
         >
-          <svg 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             strokeWidth="2"
-            strokeLinecap="round" 
+            strokeLinecap="round"
             strokeLinejoin="round"
           >
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -177,8 +179,16 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                   <button
                     className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-5 py-2.5 rounded-full whitespace-nowrap text-sm"
                     onClick={() => {
-                      // Add your message functionality here
-                      console.log('Send message to user:', booking.id);
+                      if (booking.userId) {
+                        onClose();
+                        // Use query param for direct linking which is handled by messages page
+                        // Also set sessionStorage as backup/intent
+                        sessionStorage.setItem('messageIntentUserId', booking.userId);
+                        if (booking.fieldId) {
+                          sessionStorage.setItem('messageIntentFieldId', booking.fieldId);
+                        }
+                        router.push(`/user/messages?userId=${booking.userId}`);
+                      }
                     }}
                   >
                     Send Message
@@ -190,32 +200,31 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-[#192215]">Order Details</h3>
                     <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
-                      <DetailRow 
-                        label="Order ID" 
-                        value={booking.orderId || `#${booking.id?.slice(-6).toUpperCase() || 'N/A'}`} 
+                      <DetailRow
+                        label="Order ID"
+                        value={booking.orderId || `#${booking.id?.slice(-6).toUpperCase() || 'N/A'}`}
                       />
-                      <DetailRow 
-                        label="Booking date & time" 
-                        value={formatBookingDateTime()} 
+                      <DetailRow
+                        label="Booking date & time"
+                        value={formatBookingDateTime()}
                       />
-                      <DetailRow 
-                        label="Recurring booking" 
-                        value={booking.frequency || 'NA'} 
+                      <DetailRow
+                        label="Recurring booking"
+                        value={booking.frequency || 'NA'}
                       />
-                      <DetailRow 
-                        label="Number of Dogs" 
-                        value={`${booking.dogs || 1} Dog${(booking.dogs || 1) > 1 ? 's' : ''}`} 
+                      <DetailRow
+                        label="Number of Dogs"
+                        value={`${booking.dogs || 1} Dog${(booking.dogs || 1) > 1 ? 's' : ''}`}
                       />
                       <DetailRow
                         label="Status"
                         value={
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
                             booking.status === 'completed' ? 'bg-green text-white' :
-                            booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                            booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
+                              booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
+                                  'bg-gray-100 text-gray-700'
+                            }`}>
                             {booking.status?.toUpperCase()}
                           </span>
                         }
@@ -230,7 +239,7 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                             </span>
                           }
                         />
-                      ): ''}
+                      ) : ''}
                     </div>
                   </div>
 
@@ -239,14 +248,14 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                     <div className="space-y-2">
                       <h3 className="text-base font-bold text-[#192215]">Field Information</h3>
                       <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
-                        <DetailRow 
-                          label="Field Name" 
-                          value={booking.fieldName || 'N/A'} 
+                        <DetailRow
+                          label="Field Name"
+                          value={booking.fieldName || 'N/A'}
                         />
                         {booking.fieldAddress && (
-                          <DetailRow 
-                            label="Location" 
-                            value={booking.fieldAddress} 
+                          <DetailRow
+                            label="Location"
+                            value={booking.fieldAddress}
                           />
                         )}
                       </div>

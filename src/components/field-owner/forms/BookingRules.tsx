@@ -43,8 +43,8 @@ export default function BookingRules({ formData, setFormData, validationErrors =
             Rules
           </h2>
           <div className="space-y-2">
-            <label 
-              htmlFor="rules" 
+            <label
+              htmlFor="rules"
               className="block text-sm font-medium text-dark-green font-sans"
             >
               Write about your rules <span className="text-red-500">*</span>
@@ -55,11 +55,14 @@ export default function BookingRules({ formData, setFormData, validationErrors =
                 value={formData.rules || ''}
                 onChange={handleRulesChange}
                 placeholder="Enter each rule on a new line&#10;• No aggressive dogs&#10;• Clean up after your pet&#10;• Respect other users' time slots"
-                className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${
-                  validationErrors.rules ? 'border-red-500' : 'border-gray-border'
-                }`}
+                className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${validationErrors.rules ? 'border-red-500' : 'border-gray-border'
+                  }`}
                 rows={5}
+                maxLength={1000}
               />
+              <div className="absolute bottom-4 right-4 text-xs text-gray-400 pointer-events-none">
+                {(formData.rules?.length || 0)}/1000
+              </div>
               {validationErrors.rules && (
                 <p className="mt-1 text-sm text-red-500 font-sans">
                   {validationErrors.rules}
@@ -78,8 +81,8 @@ export default function BookingRules({ formData, setFormData, validationErrors =
             Booking Policies
           </h2>
           <div className="space-y-2">
-            <label 
-              htmlFor="policies" 
+            <label
+              htmlFor="policies"
               className="block text-sm font-medium text-dark-green font-sans"
             >
               Write about your policies <span className="text-red-500">*</span>
@@ -90,11 +93,14 @@ export default function BookingRules({ formData, setFormData, validationErrors =
                 value={formData.policies || ''}
                 onChange={handlePoliciesChange}
                 placeholder="Enter each policy on a new line&#10;• 24-hour cancellation policy&#10;• Maximum 2 dogs per booking&#10;• Arrival 10 minutes before booking"
-                className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${
-                  validationErrors.policies ? 'border-red-500' : 'border-gray-border'
-                }`}
+                className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${validationErrors.policies ? 'border-red-500' : 'border-gray-border'
+                  }`}
                 rows={5}
+                maxLength={1000}
               />
+              <div className="absolute bottom-4 right-4 text-xs text-gray-400 pointer-events-none">
+                {(formData.policies?.length || 0)}/1000
+              </div>
               {validationErrors.policies && (
                 <p className="mt-1 text-sm text-red-500 font-sans">
                   {validationErrors.policies}
