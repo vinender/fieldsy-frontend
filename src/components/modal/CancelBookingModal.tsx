@@ -103,11 +103,11 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
     isLoading: checkingEligibility,
     error: eligibilityError
   } = useCheckRefundEligibility(booking?._id || '', isOpen);
-  
+
   // State for fallback calculation
   const [fallbackEligible, setFallbackEligible] = useState<boolean | null>(null);
   const [fallbackMessage, setFallbackMessage] = useState('');
-  
+
   // Use API data if available, otherwise use fallback
   const isRefundEligible = eligibilityData?.data?.isRefundEligible ?? fallbackEligible;
   const refundMessage = eligibilityData?.data?.message ?? fallbackMessage;
@@ -118,10 +118,10 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
       console.error('API error, using fallback calculation:', eligibilityError);
       // Calculate eligibility client-side as fallback
       const now = new Date();
-      
+
       // Use rawDate if available, otherwise parse the display date
       let bookingDateTime: Date;
-      
+
       if (booking.rawDate) {
         // Use the raw ISO date from backend
         bookingDateTime = new Date(booking.rawDate);
@@ -135,17 +135,17 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           .replace(/Sept/i, 'Sep')
           .replace(/July/i, 'Jul')
           .replace(/June/i, 'Jun');
-        
+
         // Try different parsing approaches
         // Format: "1 Sep 2025" -> "Sep 1, 2025"
         const dateStr = normalizedDate.replace(/(\d{1,2})\s+(\w{3,})\s+(\d{4})/, '$2 $1, $3');
         bookingDateTime = new Date(dateStr);
-        
+
         // If still invalid, try parsing as is
         if (isNaN(bookingDateTime.getTime())) {
           bookingDateTime = new Date(booking.date);
         }
-        
+
         // If still invalid, manually parse
         if (isNaN(bookingDateTime.getTime())) {
           const parts = booking.date.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
@@ -153,7 +153,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
             const day = parseInt(parts[1]);
             const year = parseInt(parts[3]);
             const monthStr = parts[2].toLowerCase();
-            const months: {[key: string]: number} = {
+            const months: { [key: string]: number } = {
               'jan': 0, 'january': 0,
               'feb': 1, 'february': 1,
               'mar': 2, 'march': 2,
@@ -174,7 +174,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           }
         }
       }
-      
+
       // Use startTime if available, otherwise extract from time slot
       let startTimeStr = booking.startTime;
       if (!startTimeStr) {
@@ -185,7 +185,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           startTimeStr = match[1];
         }
       }
-      
+
       // Parse and set the time
       if (startTimeStr) {
         const timeMatch = startTimeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -193,14 +193,14 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           let hours = parseInt(timeMatch[1]);
           const minutes = parseInt(timeMatch[2]);
           const period = timeMatch[3].toUpperCase();
-          
+
           if (period === 'PM' && hours !== 12) hours += 12;
           if (period === 'AM' && hours === 12) hours = 0;
-          
+
           bookingDateTime.setHours(hours, minutes, 0, 0);
         }
       }
-      
+
       console.log('=== Client-side Refund Check ===');
       console.log('Raw booking data:', {
         date: booking.date,
@@ -212,14 +212,14 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
       console.log('Current time ISO:', now.toISOString());
       console.log('Booking date/time:', bookingDateTime);
       console.log('Booking date/time ISO:', bookingDateTime.toISOString());
-      
+
       const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-      const eligible = hoursUntilBooking >= 24;
-      
+      const eligible = hoursUntilBooking >= cancellationWindowHours;
+
       console.log('Hours until booking:', hoursUntilBooking);
       console.log('Is eligible:', eligible);
       console.log('=========================');
-      
+
       setFallbackEligible(eligible);
       setFallbackMessage(
         eligible
@@ -294,8 +294,8 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
                 </h4>
                 <p className="text-xs sm:text-sm text-red-700">
                   {(cancelBookingMutation.error as any)?.response?.data?.message ||
-                   (cancelBookingMutation.error as any)?.message ||
-                   'An unexpected error occurred. Please try again.'}
+                    (cancelBookingMutation.error as any)?.message ||
+                    'An unexpected error occurred. Please try again.'}
                 </p>
               </div>
             </div>
@@ -308,11 +308,10 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
             <Spinner size="md" />
           </div>
         ) : (
-          <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${
-            isRefundEligible 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-yellow-50 border border-yellow-200'
-          }`}>
+          <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${isRefundEligible
+            ? 'bg-green-50 border border-green-200'
+            : 'bg-yellow-50 border border-yellow-200'
+            }`}>
             <div className="flex items-start gap-2 sm:gap-3">
               {isRefundEligible ? (
                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green mt-0.5 flex-shrink-0" />
@@ -320,14 +319,12 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
                 <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
               )}
               <div className="flex-1 min-w-0">
-                <h4 className={`font-semibold text-sm sm:text-base mb-1 ${
-                  isRefundEligible ? 'text-green' : 'text-yellow-900'
-                }`}>
+                <h4 className={`font-semibold text-sm sm:text-base mb-1 ${isRefundEligible ? 'text-green' : 'text-yellow-900'
+                  }`}>
                   {isRefundEligible ? 'Eligible for Refund' : 'Not Eligible for Refund'}
                 </h4>
-                <p className={`text-xs sm:text-sm ${
-                  isRefundEligible ? 'text-green' : 'text-yellow-700'
-                }`}>
+                <p className={`text-xs sm:text-sm ${isRefundEligible ? 'text-green' : 'text-yellow-700'
+                  }`}>
                   {refundMessage}
                 </p>
               </div>
