@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { 
   TrendingUp, 
   DollarSign, 
+  PoundSign,
   Clock, 
   CheckCircle, 
   AlertCircle,
