@@ -7,7 +7,7 @@ import { TimeInput } from '@/components/ui/time-input';
 import { usePublicSettings } from '@/hooks/usePublicSettings';
 import { useAmenities } from '@/hooks/api/useAmenities';
 import { useFieldOptions } from '@/hooks/api/useFieldOptions';
-import Image from 'next/image';
+import { AmenityIcon } from '@/components/ui/AmenityIcon';
 
 interface FieldDetailsProps {
   formData: any;
@@ -84,7 +84,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
     validateTimeDifference(formData.startTime, formData.endTime);
   }, [formData.startTime, formData.endTime, minimumOperatingHours]);
 
-  console.log('fieldData formData',formData);
+  console.log('fieldData formData', formData);
 
   const handleAmenityToggle = (amenityId: string) => {
     setFormData((prev: any) => {
@@ -123,7 +123,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
           Basic Info
         </h2>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
@@ -250,7 +250,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 <p className="text-red-500 text-sm mt-1">{validationErrors.maxDogs}</p>
               )}
             </div>
-            
+
           </div>
         </div>
       </div>
@@ -290,7 +290,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
           Opening Days & Hours
         </h2>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
@@ -393,7 +393,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
           Choose Amenities
         </h2>
-        
+
         <div className="flex flex-wrap gap-3">
           {amenitiesLoading ? (
             <div className="text-gray-500">Loading amenities...</div>
@@ -414,11 +414,10 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                       handleAmenityToggle(amenity.id);
                     }
                   }}
-                  className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer ${
-                    isSelected
-                      ? 'bg-cream border-green'
-                      : 'bg-white border-gray-200 hover:border-green/50'
-                  }`}
+                  className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer ${isSelected
+                    ? 'bg-cream border-green'
+                    : 'bg-white border-gray-200 hover:border-green/50'
+                    }`}
                   aria-pressed={isSelected}
                 >
                   <CustomCheckbox
@@ -428,12 +427,10 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   <div className="flex items-center gap-2">
                     {amenity.icon ? (
                       <div className="relative w-5 h-5">
-                        <Image
+                        <AmenityIcon
                           src={amenity.icon}
                           alt={amenity.name}
-                          height={100}
-                          width={100}
-                          className="object-contain "
+                          active={isSelected}
                         />
                       </div>
                     ) : (
@@ -457,7 +454,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
           Address
         </h2>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
@@ -478,9 +475,9 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               onAddressSelect={(components) => {
                 // Validate that the address is in the UK
                 const isUK = components.country === 'United Kingdom' ||
-                             components.country === 'UK' ||
-                             components.country === 'GB' ||
-                             components.country === 'Great Britain';
+                  components.country === 'UK' ||
+                  components.country === 'GB' ||
+                  components.country === 'Great Britain';
 
                 if (!isUK) {
                   alert('Please select a UK address only. This platform currently only supports UK locations.');
