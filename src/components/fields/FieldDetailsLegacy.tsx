@@ -663,7 +663,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                           policiesToDisplay.push(
                             field.instantBooking 
                               ? 'Instant booking is enabled. You will be instantly confirmed for any booking you request.'
-                              : 'Booking requires host approval. You will receive confirmation once the host approves your request.'
+                              : 'Booking does not requires host approval. You will receive confirmation once the booking is confirmed.'
                           );
                         }
                         
