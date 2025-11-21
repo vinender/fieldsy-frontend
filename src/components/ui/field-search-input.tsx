@@ -7,6 +7,7 @@ import { useResponsiveRouter } from '@/hooks/useResponsiveRouter';
 import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
 import { detectPostcodeInQuery, getPostcodeDisplay } from '@/utils/postcode';
+import { LocationPermissionModal } from '@/components/modal/LocationPermissionModal';
 
 interface RecentSearch {
   id: string;
@@ -46,11 +47,12 @@ function FieldSearchInputComponent({
   const [suggestions, setSuggestions] = useState<FieldSuggestion[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const nextRouter = useRouter(); // Direct Next.js router (no loader)
   const router = useResponsiveRouter(); // Router with loader for search navigation
-  
+
   // Get location context
   const { requestLocation, isLoadingLocation } = useLocation();
 
@@ -77,11 +79,11 @@ function FieldSearchInputComponent({
 
   useEffect(() => {
     loadRecentSearches();
-    
+
     // Reload recent searches when window gets focus (in case they were updated in another tab)
     const handleFocus = () => loadRecentSearches();
     window.addEventListener('focus', handleFocus);
-    
+
     return () => window.removeEventListener('focus', handleFocus);
   }, [loadRecentSearches]);
 
@@ -162,12 +164,12 @@ function FieldSearchInputComponent({
     try {
       const stored = localStorage.getItem('fieldsy_recent_searches');
       const searches = stored ? JSON.parse(stored) : [];
-      
+
       // Remove duplicates and add new search at the beginning
-      const filtered = searches.filter((s: RecentSearch) => 
+      const filtered = searches.filter((s: RecentSearch) =>
         s.query.toLowerCase() !== query.toLowerCase()
       );
-      
+
       const updated = [newSearch, ...filtered].slice(0, 10); // Keep max 10 searches
       localStorage.setItem('fieldsy_recent_searches', JSON.stringify(updated));
       setRecentSearches(updated.slice(0, 6)); // Update state immediately
@@ -195,13 +197,13 @@ function FieldSearchInputComponent({
     if (!searchTerm.trim()) return;
 
     const postcodeInfo = detectPostcodeInQuery(searchTerm);
-    
+
     saveSearchToHistory(searchTerm);
     setShowDropdown(false);
-    
+
     // Navigate to fields page with search parameters
     const searchParams = new URLSearchParams();
-    
+
     // Check if it's a UK postcode
     if (postcodeInfo.isPostcode) {
       // Use formatted postcode for search
@@ -209,23 +211,27 @@ function FieldSearchInputComponent({
     } else {
       searchParams.append('search', searchTerm.trim());
     }
-    
+
     router.push(`/fields?${searchParams.toString()}`);
-    
+
     if (onSearch) {
       onSearch(postcodeInfo.formatted || searchTerm);
     }
   };
 
-  const handleUseMyLocation = async () => {
+  const handleUseMyLocation = () => {
+    setShowLocationModal(true);
+  };
+
+  const handleConfirmLocation = async () => {
     try {
       await requestLocation();
-      
+
       // The location will be available in the context after request
       // Navigate to fields page to trigger distance calculations
       const searchParams = new URLSearchParams();
       searchParams.append('useLocation', 'true');
-      
+
       router.push(`/fields?${searchParams.toString()}`);
     } catch (error) {
       console.error('Error getting location:', error);
@@ -252,6 +258,13 @@ function FieldSearchInputComponent({
           to { transform: rotate(360deg); }
         }
       `}</style>
+
+      <LocationPermissionModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        onConfirm={handleConfirmLocation}
+      />
+
       <input
         type="text"
         value={searchQuery}
