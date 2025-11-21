@@ -72,11 +72,13 @@ export default function EarningsDashboard() {
     }
   };
 
+  
   const getEarningsChange = () => {
     if (!earnings) return 0;
     // Calculate percentage change (mock data - should come from API)
     return 12.5; // Placeholder
   };
+
 
   const exportPayoutHistory = async () => {
     try {
