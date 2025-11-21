@@ -6,8 +6,11 @@ import { useOwnerFields, useToggleFieldStatus } from '@/hooks';
 import { FieldData } from '@/hooks/queries/useFieldQueries';
 import { Eye, Edit, Power } from 'lucide-react';
 import Spinner from '@/components/ui/Spinner';
-import  BackButton  from '@/components/common/BackButton';
+import BackButton from '@/components/common/BackButton';
 import { ToggleFieldStatusModal } from '@/components/modal/ToggleFieldStatusModal';
+import { EntryCodeModal } from '@/components/modal/EntryCodeModal';
+import { useUpdateField } from '@/hooks/mutations/useFieldMutations';
+import { KeyRound } from 'lucide-react';
 
 export default function MyFieldsPage() {
   const { user } = useAuth();
@@ -23,6 +26,13 @@ export default function MyFieldsPage() {
 
   // Toggle field status mutation
   const toggleFieldStatusMutation = useToggleFieldStatus();
+
+  // Update field mutation for entry code
+  const updateFieldMutation = useUpdateField();
+
+  // Entry code modal state
+  const [entryCodeModalOpen, setEntryCodeModalOpen] = useState(false);
+  const [selectedFieldForCode, setSelectedFieldForCode] = useState<FieldData | null>(null);
 
   useEffect(() => {
     // Redirect if not a field owner
@@ -67,6 +77,33 @@ export default function MyFieldsPage() {
     setSelectedField(null);
   };
 
+  const handleEntryCodeClick = (field: FieldData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedFieldForCode(field);
+    setEntryCodeModalOpen(true);
+  };
+
+  const handleSaveEntryCode = async (code: string) => {
+    if (!selectedFieldForCode) return;
+
+    try {
+      await updateFieldMutation.mutateAsync({
+        id: selectedFieldForCode.id,
+        data: { entryCode: code }
+      });
+      setEntryCodeModalOpen(false);
+      setSelectedFieldForCode(null);
+      refetch(); // Refresh fields to show updated data if needed
+    } catch (error) {
+      console.error('Failed to update entry code:', error);
+    }
+  };
+
+  const handleCloseEntryCodeModal = () => {
+    setEntryCodeModalOpen(false);
+    setSelectedFieldForCode(null);
+  };
+
   if (fetchingFields) {
     return (
       <UserLayout>
@@ -82,7 +119,7 @@ export default function MyFieldsPage() {
       <div className="w-full mx-auto  px-4 sm:px-6 lg:px-8 xl:px-12 mt-24 py-8 min-h-screen">
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 mt-4">
-        <BackButton showLabel={true} size='lg' label='My Fields' />
+          <BackButton showLabel={true} size='lg' label='My Fields' />
           <button
             onClick={handleAddNewField}
             className="w-full sm:w-auto px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
@@ -134,21 +171,19 @@ export default function MyFieldsPage() {
                     {isSubmitted && (
                       <div className="absolute top-3 right-3 flex flex-col gap-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            field.isClaimed
-                              ? 'bg-green text-white'
-                              : 'bg-yellow-500 text-white'
-                          }`}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${field.isClaimed
+                            ? 'bg-green text-white'
+                            : 'bg-yellow-500 text-white'
+                            }`}
                         >
                           {field.isClaimed ? 'Approved' : 'Pending'}
                         </span>
                         {field.isClaimed && (
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              field.isActive
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-gray-500 text-white'
-                            }`}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${field.isActive
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-500 text-white'
+                              }`}
                           >
                             {field.isActive ? 'Active' : 'Disabled'}
                           </span>
@@ -175,11 +210,10 @@ export default function MyFieldsPage() {
                           <button
                             onClick={(e) => handleToggleStatusClick(field, e)}
                             disabled={togglingFieldId === field.id}
-                            className={`p-2 rounded-full transition-all ${
-                              field.isActive
-                                ? 'text-green hover:bg-green hover:text-white'
-                                : 'text-gray-400 hover:bg-gray-400 hover:text-white'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`p-2 rounded-full transition-all ${field.isActive
+                              ? 'text-green hover:bg-green hover:text-white'
+                              : 'text-gray-400 hover:bg-gray-400 hover:text-white'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
                             title={field.isActive ? 'Disable Field' : 'Enable Field'}
                           >
                             {togglingFieldId === field.id ? (
@@ -209,6 +243,13 @@ export default function MyFieldsPage() {
                         >
                           <Edit className="w-5 h-5" />
                         </button>
+                        <button
+                          onClick={(e) => handleEntryCodeClick(field, e)}
+                          className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
+                          title="Entry Code"
+                        >
+                          <KeyRound className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -222,9 +263,19 @@ export default function MyFieldsPage() {
         isOpen={modalOpen}
         onClose={handleCloseModal}
         onConfirm={handleConfirmToggle}
-        fieldName={selectedField?.name || ''}
-        isActive={selectedField?.isActive || false}
+        field={{
+          id: selectedField?.id || '',
+          name: selectedField?.name || '',
+          isActive: selectedField?.isActive || false
+        }}
         isLoading={toggleFieldStatusMutation.isPending}
+      />
+      <EntryCodeModal
+        isOpen={entryCodeModalOpen}
+        onClose={handleCloseEntryCodeModal}
+        onConfirm={handleSaveEntryCode}
+        initialEntryCode={selectedFieldForCode?.entryCode || ''}
+        isLoading={updateFieldMutation.isPending}
       />
     </UserLayout>
   );

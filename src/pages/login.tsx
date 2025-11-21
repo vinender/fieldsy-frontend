@@ -97,6 +97,18 @@ export default function LoginPage() {
       } else if (error.startsWith('AccessDenied:')) {
         // Extract the actual error message from the error string
         const actualMessage = error.substring('AccessDenied:'.length);
+
+        // Check for OTP verification requirement
+        if (actualMessage.startsWith('REQUIRES_OTP_VERIFICATION')) {
+          const parts = actualMessage.split('|');
+          if (parts.length >= 3) {
+            const email = parts[1];
+            const role = parts[2];
+            router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=social-login`);
+            return; // Skip toast
+          }
+        }
+
         toast.error(actualMessage || 'Sign in failed. Please try again.');
       } else {
         toast.error('Sign in failed. Please try again.');
@@ -138,7 +150,7 @@ export default function LoginPage() {
       sessionStorage.removeItem('returnUrl')
     }
   }, [router])
-  
+
   return (
     <PageWithSkeleton skeleton={<LoginFormSkeleton />}>
       <LoginForm />

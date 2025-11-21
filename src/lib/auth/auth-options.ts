@@ -6,7 +6,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { verifyPassword } from '@/lib/auth/password-utils';
 import { generateTokens, verifyToken } from '@/lib/auth/jwt-utils';
 import { findUserByEmail } from '@/lib/auth/user-store';
-import { parse } from 'cookie';
+
 
 interface ExtendedSession extends Session {
   accessToken?: string;
@@ -16,7 +16,7 @@ interface ExtendedSession extends Session {
     email: string;
     name?: string | null;
     image?: string | null;
-    role?: 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN';
+    role: 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN';
     provider?: string;
   };
 }
@@ -28,39 +28,37 @@ export const authOptions: NextAuthOptions = {
     maxAge: 7 * 24 * 60 * 60, // 7 days
     updateAge: 24 * 60 * 60, // Update session every 24 hours
   },
-  
-  // Reduce session polling
-  refetchInterval: 5 * 60, // 5 minutes instead of default
-  refetchOnWindowFocus: false, // Disable refetch on window focus
-  
+
+
+
   providers: [
     // Only add Google provider if credentials are available
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            authorization: {
-              params: {
-                prompt: "consent",
-                access_type: "offline",
-                response_type: "code",
-              },
+        GoogleProvider({
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          authorization: {
+            params: {
+              prompt: "consent",
+              access_type: "offline",
+              response_type: "code",
             },
-            httpOptions: {
-              timeout: 10000,
-            },
-          }),
-        ]
+          },
+          httpOptions: {
+            timeout: 10000,
+          },
+        }),
+      ]
       : []),
     // Only add Apple provider if credentials are available
     ...(process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
       ? [
-          AppleProvider({
-            clientId: process.env.APPLE_CLIENT_ID,
-            clientSecret: process.env.APPLE_CLIENT_SECRET,
-          }),
-        ]
+        AppleProvider({
+          clientId: process.env.APPLE_CLIENT_ID,
+          clientSecret: process.env.APPLE_CLIENT_SECRET,
+        }),
+      ]
       : []),
     CredentialsProvider({
       name: 'credentials',
@@ -79,7 +77,7 @@ export const authOptions: NextAuthOptions = {
                 'Authorization': `Bearer ${credentials.token}`,
               },
             });
-            
+
             if (response.ok) {
               const data = await response.json();
               return {
@@ -95,7 +93,7 @@ export const authOptions: NextAuthOptions = {
             console.error('Token verification failed:', error);
           }
         }
-        
+
         // Regular login with email and password
         if (credentials?.email && credentials?.password) {
           try {
@@ -109,7 +107,7 @@ export const authOptions: NextAuthOptions = {
                 password: credentials.password,
               }),
             });
-            
+
             if (response.ok) {
               const data = await response.json();
               return {
@@ -125,12 +123,12 @@ export const authOptions: NextAuthOptions = {
             console.error('Login failed:', error);
           }
         }
-        
+
         throw new Error('Invalid credentials');
       }
     })
   ],
-  
+
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
       // Initial sign in
@@ -292,15 +290,9 @@ export const authOptions: NextAuthOptions = {
           // Check if OTP verification is required
           if (data.requiresVerification) {
             console.log('[NextAuth] Social login requires OTP verification, redirecting...');
-            // Store error in sessionStorage to redirect to OTP verification page
-            if (typeof window !== 'undefined') {
-              sessionStorage.setItem('requiresOtpVerification', 'true');
-              sessionStorage.setItem('otpEmail', data.email);
-              sessionStorage.setItem('otpRole', data.role);
-              sessionStorage.setItem('otpType', 'social-login');
-            }
-            // Reject sign-in to prevent session creation
-            throw new Error('REQUIRES_OTP_VERIFICATION');
+            // Throw error with details to trigger redirect to OTP verification page
+            // Format: AccessDenied:REQUIRES_OTP_VERIFICATION|email|role
+            throw new Error(`AccessDenied:REQUIRES_OTP_VERIFICATION|${data.email}|${data.role}`);
           }
 
           // Store the user data for use in JWT callback
@@ -338,10 +330,7 @@ export const authOptions: NextAuthOptions = {
     verifyRequest: '/verify-email',
   },
 
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
+
 
   // Cookie configuration for production
   cookies: {

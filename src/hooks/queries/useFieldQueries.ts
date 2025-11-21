@@ -55,6 +55,7 @@ export interface FieldData {
   bookingRulesCompleted: boolean;
   isSubmitted: boolean;
   isActive: boolean;
+  entryCode?: string;
   [key: string]: any;
 }
 
