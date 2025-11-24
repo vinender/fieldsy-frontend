@@ -51,8 +51,13 @@ export default function App({
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 minute
-            refetchOnWindowFocus: false,
+            staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh longer
+            gcTime: 10 * 60 * 1000, // 10 minutes - keep unused data in cache
+            refetchOnWindowFocus: false, // Don't refetch on window focus
+            refetchOnMount: false, // Don't refetch on component mount if data exists
+            refetchOnReconnect: false, // Don't refetch on reconnect
+            retry: 1, // Only retry once on failure
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
           },
           mutations: {
             // Don't retry mutations by default
@@ -71,10 +76,11 @@ export default function App({
   )
 
   return (
-    <SessionProvider 
+    <SessionProvider
       session={session}
-      refetchInterval={5 * 60} // Refetch session every 5 minutes instead of constantly
+      refetchInterval={15 * 60} // Refetch session every 15 minutes (reduced from 5)
       refetchOnWindowFocus={false} // Disable refetch on window focus
+      refetchWhenOffline={false} // Don't refetch when offline
     >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
