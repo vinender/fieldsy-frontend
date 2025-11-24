@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Star, ThumbsUp, Camera, X } from 'lucide-react';
-import { 
-  useFieldReviews, 
-  useCreateReview, 
-  useUpdateReview, 
+import {
+  useFieldReviews,
+  useCreateReview,
+  useUpdateReview,
   useDeleteReview,
   useMarkHelpful,
   useRespondToReview
@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
+import { formatRating } from '@/utils/formatters';
+import { RatingStars } from '@/components/common/RatingStars';
 
 interface FieldReviewsProps {
   fieldId: string;
@@ -114,9 +116,8 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
           <Star
             key={star}
             size={20}
-            className={`${
-              star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-            } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
+            className={`${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+              } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
             onClick={() => interactive && onChange && onChange(star)}
           />
         ))}
@@ -151,9 +152,9 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
           {/* Overall Rating */}
           <div className="flex items-center gap-4">
             <div className="text-center">
-              <div className="text-4xl font-bold">{stats.averageRating.toFixed(1)}</div>
+              <div className="text-4xl font-bold">{formatRating(stats.averageRating).toFixed(1)}</div>
               <div className="flex justify-center my-2">
-                {renderStars(Math.round(stats.averageRating))}
+                <RatingStars rating={stats.averageRating} size={24} activeColor="#FACC15" />
               </div>
               <div className="text-sm text-gray-600">{stats.totalReviews} reviews</div>
             </div>
@@ -171,12 +172,11 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
                 <div key={rating} className="flex items-center gap-2">
                   <button
                     onClick={() => setFilterRating(filterRating === rating ? undefined : rating)}
-                    className={`flex items-center gap-1 min-w-[40px] ${
-                      filterRating === rating ? 'text-blue-600' : ''
-                    }`}
+                    className={`flex items-center gap-1 min-w-[40px] ${filterRating === rating ? 'text-blue-600' : ''
+                      }`}
                   >
                     <span>{rating}</span>
-                    <img src='/star.svg' size={14} className="fill-current" />
+                    <img src='/star.svg' className="w-3.5 h-3.5 fill-current" />
                   </button>
                   <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
@@ -223,7 +223,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-3">
                 <img
-                  src={getUserImage(review.user)}
+                  src={getUserImage(review.user) || ''}
                   alt={review.user?.name || 'User'}
                   className="w-10 h-10 rounded-full"
                   onError={(e) => {
@@ -244,9 +244,9 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2">
-                {renderStars(review.rating)}
+                <RatingStars rating={review.rating} size={20} activeColor="#FACC15" />
                 {session?.user?.id === review.userId && (
                   <div className="flex gap-2 ml-4">
                     <button
@@ -416,11 +416,11 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
               <h3 className="text-xl font-bold mb-4">
                 {editingReview ? 'Edit Review' : 'Write a Review'}
               </h3>
-              
+
               <form onSubmit={handleSubmitReview}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-2">Rating</label>
-                  {renderStars(reviewForm.rating, true, (rating) => 
+                  {renderStars(reviewForm.rating, true, (rating) =>
                     setReviewForm({ ...reviewForm, rating })
                   )}
                 </div>

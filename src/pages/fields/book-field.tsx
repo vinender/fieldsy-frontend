@@ -801,6 +801,7 @@ const BookFieldPage = () => {
                     </span>
                   )}
                 </label>
+
                 <div className="relative">
                   <Input
                     type="number"
@@ -885,7 +886,7 @@ const BookFieldPage = () => {
                     >
                       {isRefetchingSlots ? (
                         <>
-                          <Spinner size="xs" />
+                          {/* <Spinner size="xs" /> */}
                           <span>Refreshing...</span>
                         </>
                       ) : (

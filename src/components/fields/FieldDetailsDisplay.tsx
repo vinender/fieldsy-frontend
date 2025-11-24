@@ -3,7 +3,7 @@ import { Shield, Heart, ChevronDown, BadgeCheck, CheckCircle } from 'lucide-reac
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/router';
-import { getAmenityLabel, formatOpeningHours } from '@/utils/formatters';
+import { getAmenityLabel, formatOpeningHours, formatRating } from '@/utils/formatters';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 import { RatingStars } from '@/components/common/RatingStars';
 
@@ -56,14 +56,14 @@ export default function FieldDetailsDisplay({
     { label: 'Opening Hours', value: formattedOpeningHours },
   ];
 
-  const fieldImages = field?.images && field.images.length > 0 ? getImageUrls(field.images) : [ 
+  const fieldImages = field?.images && field.images.length > 0 ? getImageUrls(field.images) : [
     'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop',
     'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop'
-  ];  
+  ];
 
   const mapImage = '/field-details/map.svg';
 
@@ -148,9 +148,9 @@ export default function FieldDetailsDisplay({
                     </div>
                   ) : (
                     <>
-                      <img 
-                        src={mapImage} 
-                        alt="Field location map" 
+                      <img
+                        src={mapImage}
+                        alt="Field location map"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute bottom-4 right-4 bg-white rounded-lg p-2 shadow-lg">
@@ -183,7 +183,7 @@ export default function FieldDetailsDisplay({
                     </span>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsLiked(!isLiked)}
                   className="mt-2 sm:mt-0 p-2 bg-white/20 backdrop-blur rounded-full border border-gray-200"
                 >
@@ -205,7 +205,7 @@ export default function FieldDetailsDisplay({
                     inactiveColor="rgba(255,255,255,0.35)"
                     className="gap-[2px]"
                   />
-                  <span className="text-sm font-semibold">{numericRating.toFixed(1)}</span>
+                  <span className="text-sm font-semibold">{formatRating(numericRating).toFixed(1)}</span>
                 </div>
               </div>
             </div>
@@ -276,17 +276,17 @@ export default function FieldDetailsDisplay({
                     </div>
                   </div>
                   <button className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2">
-                   <img src='/msg.svg' className="w-4 h-4 text-[#8FB366] mr-1" />
+                    <img src='/msg.svg' className="w-4 h-4 text-[#8FB366] mr-1" />
                     <span className="text-xs font-semibold text-dark-green">Send a Message</span>
                   </button>
                 </div>
               </div>
             )}
-            
+
             {/* Claim Field CTA - Only show for unclaimed fields and if enabled */}
             {!isClaimed && showClaimField && !isPreview && (
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={() => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
                   className="flex-1 w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
                 >
@@ -302,7 +302,7 @@ export default function FieldDetailsDisplay({
                     <DialogTitle className="text-2xl md:text-3xl font-bold text-dark-green mb-2">What Does "Claim This Field" Mean?</DialogTitle>
                     <p className="text-dark-green/80 mb-6">If you're the rightful owner or manager of a field already listed on Fieldsy, "Claim This Field" allows you to take control of the listing. Once claimed and verified, you'll be able to:</p>
                     <div className="space-y-4">
-                      {["Edit field details and photos","Manage bookings and messages","Track earnings from your dashboard","Set availability and pricing"].map((text)=> (
+                      {["Edit field details and photos", "Manage bookings and messages", "Track earnings from your dashboard", "Set availability and pricing"].map((text) => (
                         <div key={text} className="flex items-start gap-3">
                           <CheckCircle className="w-5 h-5 text-green mt-0.5" />
                           <span className="text-dark-green text-base">{text}</span>
@@ -389,14 +389,14 @@ export default function FieldDetailsDisplay({
 
             {/* Book Now Button */}
             {isPreview ? (
-              <button 
+              <button
                 disabled
                 className="w-full bg-gray-300 text-white font-semibold py-4 rounded-xl cursor-not-allowed"
               >
                 Book Now (Preview Mode)
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => router.push(`/fields/${field?.id}/book`)}
                 className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-xl hover:bg-[#2e5519] transition"
               >
@@ -432,9 +432,9 @@ export default function FieldDetailsDisplay({
       {lightboxOpen && (
         <ImageLightbox
           images={fieldImages}
-          currentIndex={currentImageIndex}
-          onClose={() => setLightboxOpen(false)}
-          onNavigate={setCurrentImageIndex}
+          open={lightboxOpen}
+          initialIndex={currentImageIndex}
+          onOpenChange={setLightboxOpen}
         />
       )}
     </div>

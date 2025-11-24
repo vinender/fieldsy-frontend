@@ -78,25 +78,21 @@ const MessageItem = memo(({
 }) => {
   return (
     <div
-      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${
-        isNewMessage ? styles.newMessage : ''
-      }`}
+      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${isNewMessage ? styles.newMessage : ''
+        }`}
     >
       <div className={`max-w-[70%] sm:max-w-[528px] ${isMyMessage ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
         <div
-          className={`px-4 sm:px-6 py-3 sm:py-4 break-words ${styles.messageBubble} ${
-            isMyMessage
+          className={`px-4 sm:px-6 py-3 sm:py-4 break-words ${styles.messageBubble} ${isMyMessage
               ? 'bg-light-green text-white rounded-tl-[30px] sm:rounded-tl-[60px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-tr-[15px] sm:rounded-tr-[30px] rounded-br-none'
               : 'bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none'
-          } ${
-            isNewMessage ? 'transition-all duration-300' : ''
-          }`}
+            } ${isNewMessage ? 'transition-all duration-300' : ''
+            }`}
         >
           <p className="text-[14px] sm:text-[15px] leading-[20px] sm:leading-[22px] break-words whitespace-pre-wrap">{message.content}</p>
         </div>
-        <span className={`text-[12px] sm:text-[14px] text-gray-text ${
-          isMyMessage ? 'text-right' : 'text-left'
-        } ${isNewMessage ? 'opacity-0 animate-fadeIn' : ''}`}
+        <span className={`text-[12px] sm:text-[14px] text-gray-text ${isMyMessage ? 'text-right' : 'text-left'
+          } ${isNewMessage ? 'opacity-0 animate-fadeIn' : ''}`}
           style={isNewMessage ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}
         >
           {formatMessageTime(message.createdAt)}
@@ -108,7 +104,7 @@ const MessageItem = memo(({
 
 
 const MessagesPage = () => {
-  
+
   const { data: session, status } = useSession();
   const router = useRouter();
   const { socket, sendMessage } = useSocket();
@@ -135,7 +131,7 @@ const MessagesPage = () => {
   const deleteConversationMutation = useDeleteConversation();
   const sendMessageMutation = useSendMessage();
   const unblockUserMutation = useUnblockUser();
-  
+
   // Extract query params, accounting for router not being ready
   // These are optional - only used when navigating with specific conversation/user
   const queryConversationId = router.isReady ? router.query.conversationId as string : undefined;
@@ -184,7 +180,7 @@ const MessagesPage = () => {
         try {
           const user = JSON.parse(currentUser);
           return user.id || user._id;
-        } catch {}
+        } catch { }
       }
     }
     return null;
@@ -278,12 +274,12 @@ const MessagesPage = () => {
       setShowConnectionStatus(false);
     }
   }, [isMessageSocketConnected]);
-  
+
   // Redirect if not logged in
   useEffect(() => {
     // Don't redirect while session is loading
     if (status === 'loading') return;
-    
+
     // Check both session and localStorage for authentication
     const hasAuth = session || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
     if (status === 'unauthenticated' && !hasAuth) {
@@ -295,7 +291,7 @@ const MessagesPage = () => {
   useEffect(() => {
     // Don't load while session is still loading
     if (status === 'loading') return;
-    
+
     // Check if we have any auth token available
     const hasAuth = session || (typeof window !== 'undefined' && localStorage.getItem('authToken'));
     if (hasAuth) {
@@ -309,7 +305,7 @@ const MessagesPage = () => {
       const targetConversation = conversations.find(
         conv => conv.id === queryConversationId
       );
-      
+
       if (targetConversation) {
         handleSelectConversation(targetConversation);
         // Clear the query parameter after selecting
@@ -383,19 +379,19 @@ const MessagesPage = () => {
   const messagesRef = useRef(messages);
   const markAsReadRef = useRef(markAsRead);
   const decrementUnreadCountRef = useRef(decrementUnreadCount);
-  
+
   useEffect(() => {
     selectedConversationRef.current = selectedConversation;
   }, [selectedConversation]);
-  
+
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
-  
+
   useEffect(() => {
     markAsReadRef.current = markAsRead;
   }, [markAsRead]);
-  
+
   useEffect(() => {
     decrementUnreadCountRef.current = decrementUnreadCount;
   }, [decrementUnreadCount]);
@@ -512,11 +508,11 @@ const MessagesPage = () => {
       messageSocket.off('message-error', handleMessageError);
     };
   }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount, safelyUpdateMessages]);
-  
+
   // Listen for new messages and typing indicators
   useEffect(() => {
     if (!socket && !messageSocket) return;
-    
+
     const activeSocket = messageSocket || socket;
 
     const handleNewMessage = (message: Message) => {
@@ -1095,6 +1091,9 @@ const MessagesPage = () => {
     );
   }
 
+  // Determine if we are waiting for a conversation to be selected automatically
+  const isPendingAutoSelection = (router.isReady && (!!queryUserId || !!queryConversationId) && !selectedConversation) || createConversationMutation.isPending;
+
   return (
     <div className="h-screen flex flex-col bg-light pt-16 xl:pt-24">
       {/* Connection Status Indicator */}
@@ -1108,7 +1107,7 @@ const MessagesPage = () => {
       <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-10 xl:px-20 py-4 lg:py-6 xl:py-8 overflow-hidden">
         {/* Page Title - Only show on desktop or when chat list is visible on mobile */}
         <div className={`flex items-center gap-4 mb-4 lg:mb-6 ${showMobileChat ? 'hidden sm:flex' : 'flex'}`}>
-          <button 
+          <button
             onClick={() => router.back()}
             className="w-10 h-10 lg:w-12 lg:h-12 bg-cream rounded-full flex items-center justify-center hover:bg-cream-hover transition-colors"
           >
@@ -1162,9 +1161,8 @@ const MessagesPage = () => {
                       <div
                         key={conversation.id}
                         onClick={() => handleSelectConversation(conversation)}
-                        className={`flex items-center gap-3 lg:gap-4 px-4 lg:px-6 py-3 lg:py-4 hover:bg-gray-50 cursor-pointer transition-colors relative ${
-                          selectedConversation?.id === conversation.id ? 'bg-cream' : ''
-                        }`}
+                        className={`flex items-center gap-3 lg:gap-4 px-4 lg:px-6 py-3 lg:py-4 hover:bg-gray-50 cursor-pointer transition-colors relative ${selectedConversation?.id === conversation.id ? 'bg-cream' : ''
+                          }`}
                       >
                         {/* Active indicator */}
                         {selectedConversation?.id === conversation.id && (
@@ -1211,7 +1209,14 @@ const MessagesPage = () => {
 
           {/* Chat Area - Full width on mobile when open */}
           <div className={`${showMobileChat ? 'flex' : 'hidden'} sm:flex flex-1 flex-col min-w-0`}>
-            {selectedConversation ? (
+            {isPendingAutoSelection ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading conversation...</p>
+                </div>
+              </div>
+            ) : selectedConversation ? (
               <>
                 {/* Chat Header with Back Button on Mobile */}
                 <div className="px-4 lg:px-6 py-4 lg:py-6 border-b border-gray-border bg-white flex-shrink-0">
@@ -1224,7 +1229,7 @@ const MessagesPage = () => {
                       >
                         <ArrowLeft className="w-5 h-5 text-dark-green" />
                       </button>
-                      
+
                       {(() => {
                         const otherUser = getOtherUser(selectedConversation);
                         return otherUser ? (
@@ -1256,7 +1261,7 @@ const MessagesPage = () => {
                       >
                         <MoreVertical className="w-6 h-6 text-dark-green" />
                       </button>
-                      
+
                       {/* Options Dropdown */}
                       {showOptions && (
                         <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 min-w-[180px] z-50">
@@ -1273,15 +1278,14 @@ const MessagesPage = () => {
                               setShowOptions(false);
                             }}
                             disabled={blockStatusData?.data?.isBlocked}
-                            className={`block w-full text-left text-[14px] py-3 px-4 transition-colors ${
-                              blockStatusData?.data?.isBlocked
+                            className={`block w-full text-left text-[14px] py-3 px-4 transition-colors ${blockStatusData?.data?.isBlocked
                                 ? 'text-gray-400 cursor-not-allowed bg-gray-50'
                                 : 'text-dark-green hover:bg-gray-50 cursor-pointer'
-                            }`}
+                              }`}
                           >
                             {blockStatusData?.data?.isBlocked ? 'User Already Blocked' : 'Block User'}
                           </button>
-                          <button 
+                          <button
                             onClick={() => {
                               const otherUser = getOtherUser(selectedConversation);
                               if (otherUser) {
@@ -1295,7 +1299,7 @@ const MessagesPage = () => {
                             Report User
                           </button>
                           <div className="my-1 border-t border-gray-200"></div>
-                          <button 
+                          <button
                             onClick={() => {
                               const otherUser = getOtherUser(selectedConversation);
                               setUserToDelete(otherUser?.name || 'this user');
@@ -1443,11 +1447,10 @@ const MessagesPage = () => {
                         />
                         <button
                           onClick={handleSendMessage}
-                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                            messageInput.trim()
+                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${messageInput.trim()
                               ? 'bg-green hover:bg-green-hover'
                               : 'bg-gray-text'
-                          }`}
+                            }`}
                           disabled={!messageInput.trim()}
                         >
                           <Send className="w-6 h-6 text-white" />
@@ -1455,13 +1458,12 @@ const MessagesPage = () => {
                       </div>
                       {messageInput.length > 0 && (
                         <div className="flex justify-end">
-                          <span className={`text-xs ${
-                            messageInput.length >= MESSAGE_CHAR_LIMIT
+                          <span className={`text-xs ${messageInput.length >= MESSAGE_CHAR_LIMIT
                               ? 'text-red-600 font-semibold'
                               : messageInput.length >= MESSAGE_CHAR_LIMIT * 0.9
-                              ? 'text-orange-600'
-                              : 'text-gray-500'
-                          }`}>
+                                ? 'text-orange-600'
+                                : 'text-gray-500'
+                            }`}>
                             {messageInput.length}/{MESSAGE_CHAR_LIMIT}
                           </span>
                         </div>
@@ -1482,9 +1484,9 @@ const MessagesPage = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Block User Modal */}
-      <BlockUserModal 
+      <BlockUserModal
         isOpen={showBlockModal}
         onClose={() => {
           setShowBlockModal(false);
@@ -1502,9 +1504,9 @@ const MessagesPage = () => {
           await refetchBlockStatus();
         }}
       />
-      
+
       {/* Report User Modal */}
-      <ReportUserModal 
+      <ReportUserModal
         isOpen={showReportModal}
         onClose={() => {
           setShowReportModal(false);
@@ -1516,7 +1518,7 @@ const MessagesPage = () => {
           // The API call is handled inside the ReportUserModal
         }}
       />
-      
+
       {/* Delete Chat Modal */}
       <DeleteChatModal
         isOpen={showDeleteModal}

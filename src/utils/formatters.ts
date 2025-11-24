@@ -237,7 +237,7 @@ export function formatAmenity(amenity: string | any): string {
   if (acronyms[lowerAmenity]) {
     return acronyms[lowerAmenity];
   }
-  
+
   // Handle camelCase and add spaces
   let formatted = amenity
     // Add space before capital letters (but not at the start)
@@ -247,7 +247,7 @@ export function formatAmenity(amenity: string | any): string {
     .replace(/(\d)([a-zA-Z])/g, '$1 $2')
     // Capitalize first letter of each word
     .replace(/\b\w/g, (char) => char.toUpperCase());
-  
+
   // Special formatting for common patterns
   formatted = formatted
     .replace(/\bAnd\b/g, 'and')
@@ -258,7 +258,7 @@ export function formatAmenity(amenity: string | any): string {
     .replace(/\bOn\b/g, 'on')
     .replace(/\bWith\b/g, 'with')
     .replace(/\bFor\b/g, 'for');
-  
+
   // Ensure first letter is always capitalized
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
@@ -413,4 +413,16 @@ export function formatOpeningHours(openingTime: string, closingTime: string): st
   const formattedClosing = formatTimeTo12Hour(closingTime);
 
   return `${formattedOpening} - ${formattedClosing}`;
+}
+
+/**
+ * Format rating to nearest 0.5
+ * e.g., 4.7 -> 4.5
+ * e.g., 4.8 -> 5.0
+ * e.g., 4.2 -> 4.0
+ * e.g., 4.3 -> 4.5
+ */
+export function formatRating(rating: number): number {
+  if (rating === undefined || rating === null) return 0;
+  return Math.round(rating * 2) / 2;
 }

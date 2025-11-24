@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatRating } from '@/utils/formatters';
 
 interface RatingStarsProps {
   rating?: number;
@@ -19,7 +20,8 @@ export function RatingStars({
   activeColor = '#F5C04A',
   inactiveColor = '#D1D5DB',
 }: RatingStarsProps) {
-  const normalizedRating = Math.min(Math.max(rating, 0), max);
+  // Round to nearest 0.5 for display
+  const normalizedRating = Math.min(Math.max(formatRating(rating), 0), max);
 
   const stars = Array.from({ length: max }, (_, index) => {
     const relativeValue = normalizedRating - index;

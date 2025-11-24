@@ -26,7 +26,7 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
     markAllAsRead,
   } = useNotifications();
 
-console.log('notification',notifications);
+  console.log('notification', notifications);
 
   // Get user role from session
   const userRole = (session as any)?.user?.role || 'USER'
@@ -63,7 +63,7 @@ console.log('notification',notifications);
       // Store current scroll position
       const scrollY = window.scrollY;
       const scrollX = window.scrollX;
-      
+
       // Store original styles
       const originalBodyStyle = {
         overflow: document.body.style.overflow,
@@ -71,16 +71,16 @@ console.log('notification',notifications);
         top: document.body.style.top,
         width: document.body.style.width,
       };
-      
+
       const originalHtmlStyle = {
         overflow: document.documentElement.style.overflow,
       };
-      
+
       // Lock body scroll
       document.body.classList.add('sidebar-open');
       document.body.style.top = `-${scrollY}px`;
       document.documentElement.style.overflow = 'hidden';
-      
+
       return () => {
         // Restore original styles
         document.body.classList.remove('sidebar-open');
@@ -89,7 +89,7 @@ console.log('notification',notifications);
         document.body.style.top = originalBodyStyle.top;
         document.body.style.width = originalBodyStyle.width;
         document.documentElement.style.overflow = originalHtmlStyle.overflow;
-        
+
         // Restore scroll position
         window.scrollTo(scrollX, scrollY);
       };
@@ -120,20 +120,20 @@ console.log('notification',notifications);
 
     // Navigate based on notification type and data
     const { type, data, title } = notification
-    
+
     // Debug log to see actual notification type
     console.log('Notification clicked:', { type, title, data, isFieldOwner })
 
     // Check if it's a review success notification by title as well
-    const isReviewSuccess = type?.toLowerCase().includes('review') && 
-                           (title?.toLowerCase().includes('posted') || 
-                            title?.toLowerCase().includes('success') ||
-                            title?.toLowerCase().includes('submitted'))
+    const isReviewSuccess = type?.toLowerCase().includes('review') &&
+      (title?.toLowerCase().includes('posted') ||
+        title?.toLowerCase().includes('success') ||
+        title?.toLowerCase().includes('submitted'))
 
     if (isReviewSuccess && !isFieldOwner) {
       // Handle review posted successfully for dog owners
       const fieldId = data?.fieldId || data?.field?.id || data?.booking?.fieldId || data?.booking?.field?.id
-      
+
       if (fieldId) {
         console.log('Review success - Redirecting to field:', fieldId)
         router.push(`/fields/${fieldId}#reviews`)
@@ -150,7 +150,11 @@ console.log('notification',notifications);
         if (isFieldOwner) {
           router.push('/field-owner/preview')
         } else {
-          router.push('/user/my-bookings')
+          if (data?.bookingId) {
+            router.push(`/user/my-bookings?bookingId=${data.bookingId}`)
+          } else {
+            router.push('/user/my-bookings')
+          }
         }
         break
 
@@ -160,7 +164,8 @@ console.log('notification',notifications);
         // Field owner receives a new review
         if (isFieldOwner) {
           if (data?.fieldId) {
-            router.push(`/field-owner/reviews?field=${data.fieldId}`)
+            // Redirect to the public field page and scroll to reviews section
+            router.push(`/fields/${data.fieldId}#reviews`)
           } else {
             router.push('/field-owner/reviews')
           }
@@ -182,11 +187,11 @@ console.log('notification',notifications);
       case 'REVIEW_CREATED':
         // Dog owner posted a review successfully - show them their review on the field page
         console.log('Review notification data:', data);
-        
+
         if (!isFieldOwner) {
           // Try multiple ways to get the fieldId
           const fieldId = data?.fieldId || data?.field?.id || data?.booking?.fieldId || data?.booking?.field?.id
-          
+
           if (fieldId) {
             console.log('Redirecting to field:', fieldId)
             router.push(`/fields/${fieldId}#reviews`)
@@ -223,7 +228,11 @@ console.log('notification',notifications);
           router.push('/field-owner/preview')
         } else {
           // Dog owners might get this if they have a booking update
-          router.push('/user/my-bookings')
+          if (data?.bookingId) {
+            router.push(`/user/my-bookings?bookingId=${data.bookingId}`)
+          } else {
+            router.push('/user/my-bookings')
+          }
         }
         break
 
@@ -233,7 +242,11 @@ console.log('notification',notifications);
         if (isFieldOwner) {
           router.push('/field-owner/preview')
         } else {
-          router.push('/user/my-bookings?status=cancelled')
+          if (data?.bookingId) {
+            router.push(`/user/my-bookings?status=cancelled&bookingId=${data.bookingId}`)
+          } else {
+            router.push('/user/my-bookings?status=cancelled')
+          }
         }
         break
 
@@ -248,7 +261,7 @@ console.log('notification',notifications);
         break
 
       case 'field_approved':
-        
+
       case 'FIELD_APPROVED':
         // Field owner specific - go to their field or dashboard
         if (data?.fieldId) {
@@ -334,18 +347,16 @@ console.log('notification',notifications);
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/80 z-40 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 bg-black/80 z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={closeSidebar}
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       />
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 h-full w-full sm:max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out overflow-hidden ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed right-0 top-0 h-full w-full sm:max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out overflow-hidden ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         {/* Header */}
         <div className="p-4 sm:p-6">
@@ -376,12 +387,12 @@ console.log('notification',notifications);
                   </button>
                 )}
                 <button
-                onClick={markAllAsRead}
-                className="hidden sm:block p-2 text-green text-[14px] sm:text-[16px] font-[600] underline hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap"
-                title="Clear all"
-              >
-               Mark all as read
-              </button>
+                  onClick={markAllAsRead}
+                  className="hidden sm:block p-2 text-green text-[14px] sm:text-[16px] font-[600] underline hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap"
+                  title="Clear all"
+                >
+                  Mark all as read
+                </button>
                 {/* <button
                   onClick={clearAll}
                   className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -419,13 +430,12 @@ console.log('notification',notifications);
               {notifications?.map((notification) => (
                 <div
                   key={notification.id}
-                  className={` border-b py-2 transition-all cursor-pointer ${
-                    !notification.read 
-                      ? `${getNotificationColor(notification.type)} border-opacity-50` 
-                      : 'border-gray-200 bg-light-cream hover:bg-cream'
-                  }`}
+                  className={` border-b py-2 transition-all cursor-pointer ${!notification.read
+                    ? `${getNotificationColor(notification.type)} border-opacity-50`
+                    : 'border-gray-200 bg-light-cream hover:bg-cream'
+                    }`}
                   onClick={() => handleNotificationClick(notification)}
-                > 
+                >
                   <div className="flex items-start justify-between gap-2 p-3 sm:p-4">
                     <div className="flex gap-2 sm:gap-3 flex-1 min-w-0">
                       {/* <div className="text-2xl">{getNotificationIcon(notification.type)}</div> */}
@@ -459,7 +469,7 @@ console.log('notification',notifications);
                           <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
                       )}
-                        {/* <button
+                      {/* <button
                           onClick={(e) => {
                             e.stopPropagation()
                             handleDelete(notification.id)
