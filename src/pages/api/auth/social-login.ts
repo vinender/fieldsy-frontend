@@ -97,6 +97,20 @@ export default async function handler(
 
       // For duplicate account errors, return with specific error structure and set cookie
       const errorMessage = error.message || error.error || 'Authentication failed';
+
+      // Check for role mismatch errors
+      if (errorMessage.includes('This email is already registered as a')) {
+        // Set a cookie with the error message
+        res.setHeader('Set-Cookie', `authErrorMessage=${encodeURIComponent(errorMessage)}; Path=/; Max-Age=60; HttpOnly=false; SameSite=Lax`);
+
+        return res.status(409).json({
+          error: 'ROLE_MISMATCH',
+          message: errorMessage,
+          details: errorMessage
+        });
+      }
+
+      // Check for duplicate account errors (legacy)
       if (errorMessage.includes('An account already exists with this email as a')) {
         // Set a cookie with the error message
         res.setHeader('Set-Cookie', `authErrorMessage=${encodeURIComponent(errorMessage)}; Path=/; Max-Age=60; HttpOnly=false; SameSite=Lax`);
@@ -106,7 +120,7 @@ export default async function handler(
           message: errorMessage,
           details: errorMessage
         });
-      } 
+      }
 
       return res.status(response.status).json(error);
     }

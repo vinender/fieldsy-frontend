@@ -254,6 +254,13 @@ export const authOptions: NextAuthOptions = {
                 errorMessage = errorData.message || errorData.error || errorMessage;
                 errorDetails = errorData.details || errorData.message || '';
 
+                // Check for role mismatch error
+                if (errorData.error === 'ROLE_MISMATCH' || errorDetails.includes('This email is already registered as a')) {
+                  console.error('[NextAuth] ❌ Role mismatch error:', errorDetails);
+                  // Throw error with the specific message to trigger redirect to error page
+                  throw new Error(`AccessDenied:${errorDetails}`);
+                }
+
                 // Check for duplicate account error
                 if (errorData.error === 'DUPLICATE_ACCOUNT' || errorDetails.includes('An account already exists with this email as a')) {
                   console.error('[NextAuth] ❌ Duplicate account error:', errorDetails);
