@@ -11,6 +11,7 @@ import { getAmenityLabel, formatRating } from "@/utils/formatters"
 import { getImageUrl } from "@/utils/imageUrl"
 import { LazyImage } from "@/components/common/LazyImage"
 
+
 export interface FieldCardProps {
   id: string
   name: string
@@ -58,6 +59,7 @@ export function FieldCard({
   latitude,
   longitude
 }: FieldCardProps) {
+  
   const isExpanded = variant === 'expanded'
   const router = useRouter()
   const { data: session } = useSession()
@@ -196,15 +198,19 @@ export function FieldCard({
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {amenities.slice(0, showAmenityLimit).map((amenity, idx) => (
-                <span
-                  key={idx}
-                  className="bg-neutral-100 text-[11px] text-dark-green px-2 py-1 rounded-md leading-[16px]"
-                >
-                  {typeof amenity === 'string' ? getAmenityLabel(amenity) : amenity.label}
-                </span>
-              ))}
+            <div className="flex flex-wrap gap-1.5 mb-4 min-h-[28px]">
+              {amenities.length > 0 ? (
+                amenities.slice(0, showAmenityLimit).map((amenity, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-neutral-100 text-[11px] text-dark-green px-2 py-1 rounded-md leading-[16px]"
+                  >
+                    {typeof amenity === 'string' ? getAmenityLabel(amenity) : amenity.label}
+                  </span>
+                ))
+              ) : (
+                <span className="invisible text-[11px] px-2 py-1">&nbsp;</span>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -282,15 +288,19 @@ export function FieldCard({
             <span>{location}{displayDistance ? ` • ${displayDistance}` : ''}</span>
           </div>
 
-          <div className="flex gap-1 mb-3 flex-wrap">
-            {amenities.slice(0, showAmenityLimit).map((amenity, index) => (
-              <span
-                key={index}
-                className="text-[9px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full"
-              >
-                {getAmenityLabel(amenity)}
-              </span>
-            ))}
+          <div className="flex gap-1 mb-3 flex-wrap min-h-[22px]">
+            {amenities.length > 0 ? (
+              amenities.slice(0, showAmenityLimit).map((amenity, index) => (
+                <span
+                  key={index}
+                  className="text-[9px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full"
+                >
+                  {getAmenityLabel(amenity)}
+                </span>
+              ))
+            ) : (
+              <span className="invisible text-[9px] px-2 py-0.5">&nbsp;</span>
+            )}
           </div>
 
           <div className="flex gap-2">

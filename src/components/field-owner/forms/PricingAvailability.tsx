@@ -44,10 +44,10 @@ export default function PricingAvailability({ formData, setFormData, validationE
     <div className="space-y-8">
       {/* Header Section */}
       <div>
-        <h1 className="text-3xl font-semibold text-dark-green font-sans">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
           Set Pricing & Availability
         </h1>
-        <p className="text-base text-gray-text font-sans">
+        <p className="text-sm sm:text-base text-gray-text font-sans">
           We require essential information to help you set competitive pricing for your field
         </p>
         {Object.keys(validationErrors).length > 0 && (
@@ -102,7 +102,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
-              $
+              £
             </span>
             <Input
               type="number"
@@ -122,16 +122,19 @@ export default function PricingAvailability({ formData, setFormData, validationE
               min="0"
               step="1"
               placeholder="0"
-              className={`pl-8 pr-40 py-3 ${validationErrors.price ? 'border-red-500' : ''}`}
+              className={`pl-8 pr-4 sm:pr-40 py-3 ${validationErrors.price ? 'border-red-500' : ''}`}
               aria-invalid={!!validationErrors.price}
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <div className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-2">
               <div className="h-6 w-px bg-gray-text" />
               <span className="text-sm font-medium whitespace-nowrap text-dark-green font-sans">
                 Per dog per {formData.bookingDuration === '30min' ? '30 min' : formData.bookingDuration === '1hour' ? 'hour' : 'slot'}
               </span>
             </div>
           </div>
+          <p className="sm:hidden text-xs text-gray-text mt-1 font-sans">
+            Per dog per {formData.bookingDuration === '30min' ? '30 min' : formData.bookingDuration === '1hour' ? 'hour' : 'slot'}
+          </p>
           {validationErrors.price && (
             <p className="text-red-500 text-sm mt-1">{validationErrors.price}</p>
           )}

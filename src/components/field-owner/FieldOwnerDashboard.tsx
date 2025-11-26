@@ -48,7 +48,7 @@ function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
 
   return (
     <div className="w-full lg:w-[432px] bg-white rounded-2xl p-4 sm:p-6 lg:p-8 h-fit lg:sticky lg:top-8">
-      <h2 className="text-lg sm:text-xl font-semibold mb-2 text-dark-green font-sans">
+      <h2 className="text-base sm:text-lg lg:text-xl font-semibold mb-2 text-dark-green font-sans">
         Add your field by following these quick steps.
       </h2>
       
@@ -62,12 +62,12 @@ function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
                 activeSection === section.id ? 'bg-gray-50' : canNavigateTo(section.id) ? 'hover:bg-gray-50 cursor-pointer' : 'opacity-50 cursor-not-allowed'
               }`}
             >
-              <span 
-                className={`font-medium font-sans ${
-                  activeSection === section.id 
-                    ? 'text-dark-green' 
-                    : canNavigateTo(section.id) 
-                      ? 'text-gray-text' 
+              <span
+                className={`text-sm sm:text-base font-medium font-sans ${
+                  activeSection === section.id
+                    ? 'text-dark-green'
+                    : canNavigateTo(section.id)
+                      ? 'text-gray-text'
                       : 'text-gray-400'
                 }`}
               >
@@ -766,7 +766,7 @@ export default function AddYourField() {
               {activeSection !== 'field-details' && !isFirstTimeFieldOwner && (
                 <button
                   onClick={handleBack}
-                  className="w-full sm:flex-1 py-3 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 order-2 sm:order-1"
+                  className="w-full sm:flex-1 py-3 px-4 rounded-full border-2 border-green text-green font-semibold font-sans transition-colors hover:bg-gray-50 order-2 sm:order-1 text-sm sm:text-base"
                 >
                   Back
                 </button>
@@ -774,12 +774,12 @@ export default function AddYourField() {
               <button
                 onClick={handleSaveProgress}
                 disabled={isLoading || (activeSection === 'upload-images' && (formData.images?.length || 0) < 4)}
-                className={`w-full py-3 rounded-full font-semibold font-sans transition-opacity order-1 ${(activeSection === 'field-details' || isFirstTimeFieldOwner) ? '' : 'sm:flex-1 sm:order-2'} ${(isLoading || (activeSection === 'upload-images' && (formData.images?.length || 0) < 4)) ? 'bg-gray-400 cursor-not-allowed opacity-60' : 'bg-green text-white hover:opacity-90'}`}
+                className={`w-full py-3 px-4 rounded-full font-semibold font-sans transition-opacity order-1 text-sm sm:text-base ${(activeSection === 'field-details' || isFirstTimeFieldOwner) ? '' : 'sm:flex-1 sm:order-2'} ${(isLoading || (activeSection === 'upload-images' && (formData.images?.length || 0) < 4)) ? 'bg-gray-400 cursor-not-allowed opacity-60' : 'bg-green text-white hover:opacity-90'}`}
               >
                 {isLoading ?
                   'Saving...'
                   : activeSection === 'upload-images' && (formData.images?.length || 0) < 4
-                    ? `Upload ${4 - (formData.images?.length || 0)} More Image${4 - (formData.images?.length || 0) > 1 ? 's' : ''}`
+                    ? `Upload ${4 - (formData.images?.length || 0)} More`
                     : activeSection === 'booking-rules'
                       ? (isCurrentSectionCompleted() ? 'Update & Preview' : 'Save & Preview')
                       : (isCurrentSectionCompleted() ? 'Update & Next' : 'Save & Next')

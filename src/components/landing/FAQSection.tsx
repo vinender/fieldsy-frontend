@@ -45,7 +45,7 @@ export function FAQSection() {
                 <div 
                   key={index} 
                   className={`border-b border-gray-200 ${index === 0 ? 'border-t' : ''} ${openFaq === index ? 'bg-white -mx-6 px-6 rounded-[20px]' : ''} transition-all duration-300`}
-                >
+                 >
                   <button
                     onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
                     className="flex items-center justify-between w-full text-left py-6 group"
@@ -99,6 +99,7 @@ export function FAQSection() {
               />
             </div>
           </div>
+
         </div>
       </div>
     </section>

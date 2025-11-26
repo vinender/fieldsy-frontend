@@ -39,10 +39,10 @@ export default function UploadImages({ formData, setFormData, validationErrors =
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold text-dark-green font-sans">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
           Upload Images <span className="text-red-500">*</span>
         </h1>
-        <p className="text-base text-gray-text font-sans">
+        <p className="text-sm sm:text-base text-gray-text font-sans">
           Upload photos of your field to showcase its features to potential customers. High-quality images help attract more bookings.
         </p>
 

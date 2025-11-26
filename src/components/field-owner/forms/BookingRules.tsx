@@ -27,10 +27,10 @@ export default function BookingRules({ formData, setFormData, validationErrors =
     <div className="space-y-8">
       {/* Header Section */}
       <div>
-        <h1 className="text-3xl font-semibold text-dark-green font-sans">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
           Set Booking Rules & Policies
         </h1>
-        <p className="text-base text-gray-text font-sans">
+        <p className="text-sm sm:text-base text-gray-text font-sans">
           Set clear guidelines to ensure a smooth, safe, and respectful experience for all visitors.
         </p>
       </div>

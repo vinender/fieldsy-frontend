@@ -103,10 +103,10 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold mb-2 text-dark-green font-sans">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold mb-2 text-dark-green font-sans">
           Tell us about your field
         </h1>
-        <p className="text-base text-gray-text font-sans">
+        <p className="text-sm sm:text-base text-gray-text font-sans">
           Share key details like size, fencing, amenities, and what makes your space perfect for safe, off-lead adventures.
         </p>
         {Object.keys(validationErrors).length > 0 && (
