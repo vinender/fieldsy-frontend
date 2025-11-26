@@ -84,7 +84,7 @@ export function FAQSection() {
                 src="/faq/dog-bg.png"
                 alt="Background"
                 fill
-                className="object-cover"
+                className="object-contain"
               />
             </div>
 

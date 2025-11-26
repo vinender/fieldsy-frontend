@@ -15,31 +15,32 @@ export  function HowItWorksSection() {
       thumbnail: "/how-it-works/dog.webp"
     },
     { 
-      icon: "/how-it-works/icon2.png",
-      title: "Select a Time Slot",
+      icon: "/how-it-works/icon2.svg",
+      title: "Select a Time Slots",
       description: "Choose from available time slots that work for your schedule.",
       image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=600&fit=crop"
     },
     {
-      icon: "/how-it-works/icon3.png",
+      icon: "/how-it-works/icon3.svg",
       title: "Check Field Details",
       description: "Review field information, amenities, and safety features.",
       image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop"
     },
     {
-      icon: "/how-it-works/icon4.png",
+      icon: "/how-it-works/icon4.svg",
       title: "Confirm & Pay Securely",
       description: "Complete your booking with secure payment processing.",
       image: "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&h=600&fit=crop"
     },
     {
-      icon: "/how-it-works/icon5.png",
+      icon: "/how-it-works/icon5.svg",
       title: "Enjoy Off-Lead Freedom",
       description: "Let your dog run, play, and explore in a safe environment.",
       image: "https://images.unsplash.com/photo-1601758124096-1fd661873b95?w=800&h=600&fit=crop"
     }
   ]
 
+  
   // Effect to handle video playback when activeStep changes
   useEffect(() => {
     setVideoError(false); // Reset error state when step changes
@@ -71,7 +72,7 @@ export  function HowItWorksSection() {
             <h2 className="text-5xl font-bold text-dark-green mb-12">
               How Fieldsy Works
             </h2>
-            <div className="space-y-4 ">
+            <div className="space-y-4">
               {steps.map((step, index) => (
                 <div
                   key={index}

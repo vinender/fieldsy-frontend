@@ -11,7 +11,7 @@ import { AddReviewModal } from './AddReviewModal';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
-import { deslugify, formatDateDDMMYYYY } from '@/utils/formatters';
+import { deslugify, formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import Spinner from '@/components/ui/Spinner';
 import { AMENITIES_CONFIG, getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
@@ -302,7 +302,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       <div className="flex items-center gap-1 bg-[#192215] px-1.5 py-1 rounded w-fit">
                         <img src='/star.svg' className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-yellow fill-yellow" />
                         <span className="text-xs sm:text-[14px] font-semibold text-white">
-                          {field.averageRating.toFixed(1)}
+                          {formatRating(field.averageRating).toFixed(1)}
                         </span>
                       </div>
                     ) : (

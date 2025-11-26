@@ -75,7 +75,7 @@ export function PlatformSection() {
               onMouseLeave={() => setHoveredTab(null)}
             >
               {/* Image Container - Fixed heights for consistency */}
-              <div className="h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] xl:h-[400px] p-2 relative overflow-hidden">
+              <div className="h-[200px] bg-[#FFFCF3] sm:h-[250px] md:h-[300px] lg:h-[350px] xl:h-[400px] p-2 relative overflow-hidden">
                 <div className="relative w-full h-full rounded-[24px] overflow-hidden">
                   <Image
                     src={card.image}
@@ -87,7 +87,7 @@ export function PlatformSection() {
               </div>
               
               {/* Content - Flexible height */}
-              <div className="flex-1 px-4 sm:px-6 md:px-8 lg:px-10 xl:px-[40px] pt-4 pb-6 sm:pt-6 sm:pb-8 lg:pt-8 xl:pt-[32px] lg:pb-8 xl:pb-10 flex flex-col relative">
+              <div className="flex-1 bg-[#FFFCF3] px-4 sm:px-6 md:px-8 lg:px-10 xl:px-[40px] pt-4 pb-6 sm:pt-6 sm:pb-8 lg:pt-8 xl:pt-[32px] lg:pb-8 xl:pb-10 flex flex-col relative">
                 <div className="mb-4 lg:mb-6 xl:mb-[16px]">
                   <h3 className="text-base sm:text-[18px] leading-5 sm:leading-[20px] font-[700] text-green mb-2">
                     {card.subtitle}

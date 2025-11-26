@@ -19,6 +19,7 @@ import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
 import { useMaxAdvanceBookingDays } from '@/hooks/usePublicSettings';
+import { formatRating } from '@/utils/formatters';
 
 interface TimeSlot {
   time: string;
@@ -759,7 +760,7 @@ const BookFieldPage = () => {
                   {/* {field.averageRating && ( */}
                     <div className="bg-dark-green w-16 flex justify-between px-2 py-1 rounded-md flex items-center ">
                       <img src='/star.svg' className="w-[20px] h-[20px] text-yellow-400  fill-yellow" />
-                      <span className="text-white text-[14px] font-semibold">{field.averageRating.toFixed(1)}</span>
+                      <span className="text-white text-[14px] font-semibold">{formatRating(field.averageRating || 0).toFixed(1)}</span>
                     </div>
                   {/* )} */}
                 </div>

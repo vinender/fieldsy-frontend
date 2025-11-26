@@ -14,7 +14,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
-import { formatDateDDMMYYYY } from '@/utils/formatters';
+import { formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
 
 // Dynamically import Stripe component to avoid SSR issues
 const StripeCheckout = dynamic(
@@ -294,7 +294,7 @@ const PaymentPage = () => {
                           {field?.averageRating && (
                             <div className="bg-[#192215] px-1.5 py-1 rounded-md flex items-center gap-0.5 w-fit">
                               <img src='/star.svg' alt="star rating" className="w-4 h-4 sm:w-[18px] sm:h-[18px] fill-yellow" />
-                              <span className="text-white text-xs sm:text-[14px] font-semibold">{field.averageRating.toFixed(1)}</span>
+                              <span className="text-white text-xs sm:text-[14px] font-semibold">{formatRating(field.averageRating).toFixed(1)}</span>
                             </div>
                           )}
                         </div>

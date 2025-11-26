@@ -34,7 +34,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // Initialize audio on mount
   useEffect(() => {
     // Create audio element for notification sound
-    audioRef.current = new Audio('/sounds/message-notification.mp3');
+    audioRef.current = new Audio('/sounds/message-notification.wav');
     audioRef.current.volume = 0.5; // Set volume to 50%
     
     // Only load chat data if authenticated and not on public page
