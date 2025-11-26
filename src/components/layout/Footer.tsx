@@ -65,7 +65,7 @@ export function Footer() {
 
           {/* Contact Info */}
           <div className="space-y-6">
-          <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
+           <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
             <ul className="space-y-5 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li className="flex items-start sm:items-center space-x-3">
                 {/* <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0"> */}
