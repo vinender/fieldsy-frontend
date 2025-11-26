@@ -40,20 +40,20 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-light-cream">
      
       <div className="w-full">
-        <div className="grid lg:grid-cols-2 gap-12  lg:gap-16 items-center">
-         
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 lg:items-stretch">
+
           {/* Left Image */}
-          <div className="rounded-2xl sm:rounded-[40px] overflow-hidden -xl mb-8 lg:mb-0">
-            <img 
+          <div className="rounded-2xl sm:rounded-[40px] overflow-hidden mb-8 lg:mb-0 lg:h-full">
+            <img
               src={image}
               alt="Dog jumping over agility obstacle"
-              className="w-full h-full  object-cover"
+              className="w-full h-full object-cover"
             />
           </div>
-          
+
 
           {/* Right Content */}
-          <div className="w-full flex flex-col bg-transparent rounded-2xl h-full space-y-4 justify-between lg:space-y-6 -xl p-4">
+          <div className="w-full flex flex-col bg-transparent rounded-2xl h-full space-y-4 justify-between lg:space-y-6 p-4">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-dark-green  leading-tight lg:leading-[60px]">
               {title}
             </h2>
