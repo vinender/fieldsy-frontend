@@ -68,21 +68,21 @@ export function Footer() {
           <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
             <ul className="space-y-5 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li className="flex items-start sm:items-center space-x-3">
-                <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-4 h-4 text-white" />
-                </div>
+                {/* <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0"> */}
+                  <img src='/footer/call.svg' alt="Call" className="w-10 h-10 text-white" />
+                {/* </div> */}
                 <span className="text-white/80 break-all sm:break-normal">+44 854 635 4582</span>
               </li>
               <li className="flex items-start sm:items-center space-x-3">
-                <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-4 h-4 text-white" />
-                </div>
+                {/* <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0"> */}
+                  <img src='/footer/msg.svg' alt="Email" className="w-10 h-10 text-white" />
+                {/* </div> */}
                 <span className="text-white/80 break-all sm:break-normal">fieldsyz@gmail.com</span>
               </li>
               <li className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-white" />
-                </div>
+                {/* <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0"> */}
+                  <img src='/footer/gps.svg' alt="Location" className="w-10 h-10 text-white" />
+                {/* </div> */}
                 <span className="text-white/80 w-60  text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
               </li>
             </ul>

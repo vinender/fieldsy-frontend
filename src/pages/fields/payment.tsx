@@ -15,6 +15,7 @@ import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
 import { formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
+import { useCancellationWindow } from '@/hooks/usePublicSettings';
 
 // Dynamically import Stripe component to avoid SSR issues
 const StripeCheckout = dynamic(
@@ -31,6 +32,9 @@ const PaymentPage = () => {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // Get cancellation window from settings
+  const cancellationWindowHours = useCancellationWindow();
 
   // Get user location on mount
   useEffect(() => {
@@ -446,8 +450,8 @@ const PaymentPage = () => {
               <div className="text-sm sm:text-base lg:text-[18px] leading-relaxed sm:leading-[24px] lg:leading-[28px]">
                 <span className="font-semibold text-[#D21A00]">Cancellation & Refund Policy: </span>
                 <span className="font-medium text-[#323232]">
-                  You can cancel or reschedule your booking up to 24 hours in advance for a full refund. 
-                  Cancellations made after 24 hours of the booking time may not be eligible for a refund. 
+                  You can cancel or reschedule your booking up to {cancellationWindowHours} hours in advance for a full refund.
+                  Cancellations made within {cancellationWindowHours} hours of the booking time may not be eligible for a refund.
                   Please check individual field listings for specific cancellation terms set by the field owner.
                 </span>
               </div>

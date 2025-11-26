@@ -217,8 +217,8 @@ export default function RegisterForm() {
             </Link>
 
           <div className="text-left mb-3">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">Create your Fieldsy account</h2>
-            <p className="text-gray-500 text-sm">Sign up to find and book secure fields near you.</p>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">Sign Up Now to Join Fieldsy!</h2>
+            <p className="text-gray-500 text-sm">Sign up to find & book secure, off-lead dog fields near you in seconds.</p>
           </div>
 
           {/* Social Login - Original Design */}
