@@ -136,8 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     enabled: (status === 'authenticated') || !!authToken,
   });
 
-  console.log(';; userData', userData)
-
   // Wrap refetch to match the expected type
   const refetchUser = () => {
     refetchUserQuery();

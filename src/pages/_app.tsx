@@ -75,10 +75,13 @@ export default function App({
       })
   )
 
+  // Disable session refetching in development to prevent reload loops
+  const isDevelopment = process.env.NODE_ENV === 'development'
+
   return (
     <SessionProvider
       session={session}
-      refetchInterval={15 * 60} // Refetch session every 15 minutes (reduced from 5)
+      refetchInterval={isDevelopment ? 0 : 15 * 60} // Disable in dev, 15 min in prod
       refetchOnWindowFocus={false} // Disable refetch on window focus
       refetchWhenOffline={false} // Don't refetch when offline
     >

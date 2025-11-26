@@ -394,7 +394,8 @@ export const authOptions: NextAuthOptions = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
+  // Disable debug mode to prevent excessive logging that can cause issues
+  debug: false,
 };
 
 async function refreshAccessToken(token: JWT) {
