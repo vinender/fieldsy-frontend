@@ -21,7 +21,19 @@ interface LocationContextType {
   updateFormattedAddress: (lat: number, lng: number) => Promise<void>;
 }
 
-const LocationContext = createContext<LocationContextType | undefined>(undefined);
+// Default context value for when provider is not available (SSR/initial render)
+const defaultContextValue: LocationContextType = {
+  currentLocation: null,
+  isLocationEnabled: false,
+  isLoadingLocation: false,
+  locationError: null,
+  requestLocation: async () => {},
+  setCurrentLocation: () => {},
+  clearLocation: () => {},
+  updateFormattedAddress: async () => {},
+};
+
+const LocationContext = createContext<LocationContextType>(defaultContextValue);
 
 interface LocationProviderProps {
   children: ReactNode;
@@ -35,6 +47,9 @@ export function LocationProvider({ children }: LocationProviderProps) {
 
   // Load saved location from localStorage on mount
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+
     const savedLocation = localStorage.getItem('userLocation');
     if (savedLocation) {
       try {
@@ -180,9 +195,5 @@ export function LocationProvider({ children }: LocationProviderProps) {
 
 // Custom hook to use location context
 export function useLocation() {
-  const context = useContext(LocationContext);
-  if (context === undefined) {
-    throw new Error('useLocation must be used within a LocationProvider');
-  }
-  return context;
+  return useContext(LocationContext);
 }

@@ -15,6 +15,9 @@ export function UserLayout({ children, requireRole }: UserLayoutProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+
     // Wait for NextAuth to determine session status
     if (status === 'loading') {
       return;

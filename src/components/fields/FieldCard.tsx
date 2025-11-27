@@ -59,16 +59,16 @@ export function FieldCard({
   latitude,
   longitude
 }: FieldCardProps) {
-  
+
   const isExpanded = variant === 'expanded'
   const router = useRouter()
   const { data: session } = useSession()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [loginModalMessage, setLoginModalMessage] = useState('')
-
+  
   // Get user location from context
   const { currentLocation, isLocationEnabled } = useLocation()
-
+  
   // Calculate distance if user location is available
   const calculatedDistance = useMemo(() => {
     if (!isLocationEnabled || !currentLocation) return null

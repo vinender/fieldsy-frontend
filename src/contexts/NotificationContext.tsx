@@ -36,14 +36,23 @@ interface NotificationContextType {
   clearAll: () => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+// Default context value for when provider is not available (SSR/initial render)
+const defaultContextValue: NotificationContextType = {
+  notifications: [],
+  unreadCount: 0,
+  isConnected: false,
+  loading: false,
+  fetchNotifications: () => {},
+  markAsRead: async () => {},
+  markAllAsRead: async () => {},
+  deleteNotification: async () => {},
+  clearAll: async () => {},
+};
+
+const NotificationContext = createContext<NotificationContextType>(defaultContextValue);
 
 export function useNotifications() {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within NotificationProvider');
-  }
-  return context;
+  return useContext(NotificationContext);
 }
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
@@ -67,7 +76,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const { data: unreadData } = useUnreadNotificationsCount({
     enabled: shouldLoadNotifications,
   });
-  console.log('notificationData',notificationData)
+
   // Mutations
   const markNotificationAsReadMutation = useMarkNotificationAsRead();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
@@ -84,27 +93,31 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (session?.accessToken) {
       return session.accessToken;
     }
-    
+
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
     // Try custom auth from localStorage
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       const user = JSON.parse(storedUser);
       return user.token;
     }
-    
+
     // Try from localStorage authToken
     const authToken = localStorage.getItem('authToken');
     if (authToken) {
       return authToken;
     }
-    
+
     return null;
   }, [session?.accessToken]);
 
   // Fetch notifications via socket
   const fetchNotifications = useCallback((page: number = 1, limit: number = 20) => {
     if (socket?.connected) {
-      console.log('[NotificationContext] Fetching notifications via socket');
       socket.emit('fetch-notifications', { page, limit });
     } else {
       // Fallback to REST API if socket not connected
@@ -175,32 +188,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       );
 
       socketInstance.on('connect', () => {
-        console.log('Connected to notification server');
-        console.log('Socket ID:', socketInstance.id);
-        console.log('Auth token being used:', token?.substring(0, 20) + '...');
         setIsConnected(true);
-        
         // Fetch notifications via socket when connected
         socketInstance.emit('fetch-notifications', { page: 1, limit: 20 });
       });
 
       socketInstance.on('disconnect', () => {
-        console.log('Disconnected from notification server');
         setIsConnected(false);
       });
 
       // Handle new notification
       socketInstance.on('notification', (notification: any) => {
-        console.log('=== New Notification Received ===');
-        console.log('Full notification object:', notification);
-        console.log('Notification ID:', notification.id);
-        console.log('For User ID:', notification.userId);
-        console.log('Type:', notification.type);
-        console.log('Title:', notification.title);
-        
         // Refetch notifications to update the list
         refetchNotifications();
-        
+
         // Show toast notification
         toast.success(notification.title || 'New Notification', {
           description: notification.message || 'You have a new notification',
@@ -208,40 +209,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         });
       });
 
-      // Handle notifications fetched via socket - just log, React Query handles the data
-      socketInstance.on('notifications-fetched', (data: {
-        notifications: Notification[];
-        unreadCount: number;
-        pagination: any;
-      }) => {
-        console.log('[NotificationContext] Received notifications from socket:', data);
-        // React Query handles the data, just trigger a refetch
+      // Handle notifications fetched via socket - React Query handles the data
+      socketInstance.on('notifications-fetched', () => {
         refetchNotifications();
       });
 
       // Handle notification read acknowledgment
-      socketInstance.on('notification-read', (data: {
-        notificationId: string;
-        unreadCount: number;
-      }) => {
-        console.log('[NotificationContext] Notification marked as read:', data);
-        // Refetch to get updated data
+      socketInstance.on('notification-read', () => {
         refetchNotifications();
       });
 
       // Handle all notifications read acknowledgment
-      socketInstance.on('all-notifications-read', (data: {
-        unreadCount: number;
-      }) => {
-        console.log('[NotificationContext] All notifications marked as read');
-        // Refetch to get updated data
+      socketInstance.on('all-notifications-read', () => {
         refetchNotifications();
       });
 
-      // Handle errors
-      socketInstance.on('notifications-error', (data: { error: string }) => {
-        console.error('[NotificationContext] Error fetching notifications:', data.error);
-        // Fallback to REST API
+      // Handle errors - fallback to REST API
+      socketInstance.on('notifications-error', () => {
         refetchNotifications();
       });
 

@@ -1,7 +1,7 @@
 import type { AppProps } from "next/app"
 import { SessionProvider } from "next-auth/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { DM_Sans } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
@@ -16,6 +16,7 @@ import { MessageSocketProvider } from "@/contexts/MessageSocketContext"
 import { NavigationLoaderProvider } from "@/contexts/NavigationLoaderContext"
 import { SessionMonitor } from "@/components/auth/SessionMonitor"
 import NavigationLoader from "@/components/common/NavigationLoader"
+import ErrorBoundary from "@/components/common/ErrorBoundary"
 import "@/styles/globals.css"
 import "@/lib/utils/suppress-dev-errors"
 import { useRouter } from "next/router"
@@ -106,44 +107,64 @@ type AppShellProps = {
 function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
   const router = useRouter()
   const { user } = useAuth()
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Wait for client-side mount before rendering providers that use browser APIs
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const isAuthenticated = !!user
   const hideLayout = noLayoutPaths.some(path => router.pathname.startsWith(path))
   const isMessagesPage = router.pathname === '/user/messages'
 
   const pageContent = (
-    <div className={`${fontClassName} font-sans antialiased overflow-x-hidden`}>
-      <div className="min-h-screen flex flex-col overflow-x-hidden">
-        {!hideLayout && <Header />}
-        <main className="flex-grow overflow-x-hidden">
-          {isMessagesPage && isAuthenticated ? (
-            <MessageSocketProvider>
-              <Component {...pageProps} />
-            </MessageSocketProvider>
-          ) : (
-            <Component {...pageProps} />
-          )}
-        </main>
-        {!hideLayout && <Footer />}
+    <ErrorBoundary>
+      <div className={`${fontClassName} font-sans antialiased overflow-x-hidden`} suppressHydrationWarning>
+        <div className="min-h-screen flex flex-col overflow-x-hidden">
+          {!hideLayout && <Header />}
+          <main className="flex-grow overflow-x-hidden">
+            <ErrorBoundary>
+              {isMessagesPage && isAuthenticated ? (
+                <MessageSocketProvider>
+                  <Component {...pageProps} />
+                </MessageSocketProvider>
+              ) : (
+                <Component {...pageProps} />
+              )}
+            </ErrorBoundary>
+          </main>
+          {!hideLayout && <Footer />}
+        </div>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#ffffff',
+              color: '#000000',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              padding: '16px',
+              fontSize: '14px',
+              zIndex: 9999,
+            },
+          }}
+          richColors
+        />
       </div>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#ffffff',
-            color: '#000000',
-            border: '1px solid #e5e5e5',
-            borderRadius: '8px',
-            padding: '16px',
-            fontSize: '14px',
-            zIndex: 9999,
-          },
-        }}
-        richColors
-      />
-    </div>
+    </ErrorBoundary>
   )
+
+  // During SSR, render without socket/notification providers to avoid hydration issues
+  if (!isMounted) {
+    return (
+      <NavigationLoaderProvider>
+        <NavigationLoader />
+        {pageContent}
+      </NavigationLoaderProvider>
+    )
+  }
 
   return (
     <LocationProvider>

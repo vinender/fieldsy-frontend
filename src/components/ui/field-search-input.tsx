@@ -58,6 +58,9 @@ function FieldSearchInputComponent({
 
   // Load recent searches from localStorage on mount and when window gets focus
   const loadRecentSearches = useCallback(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+
     try {
       const stored = localStorage.getItem('fieldsy_recent_searches');
       if (stored) {
@@ -78,6 +81,9 @@ function FieldSearchInputComponent({
   }, []);
 
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+
     loadRecentSearches();
 
     // Reload recent searches when window gets focus (in case they were updated in another tab)

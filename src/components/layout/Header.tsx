@@ -62,10 +62,6 @@ export function Header() {
   // Use authUser from AuthContext if available (has more profile details), otherwise fallback to session user
   const currentUser = authUser || (session?.user as any)
 
-  console.log('[Header] NextAuth status:', status)
-  console.log('[Header] isAuthenticated:', isAuthenticated)
-  console.log('[Header] currentUser:', currentUser)
-
   // Navigation items based on authentication and role
   const navigation = useMemo(() => {
     // Base navigation for non-authenticated users (now includes Search Fields)

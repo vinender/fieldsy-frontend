@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -7,8 +7,15 @@ import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
 
 export function Footer() {
   const { data: session } = useSession();
-  const userRole = session?.user?.role;
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Track client-side mount to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const userRole = isMounted ? session?.user?.role : undefined;
 
   return (
     <>
@@ -65,25 +72,19 @@ export function Footer() {
 
           {/* Contact Info */}
           <div className="space-y-6">
-           <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
+            <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
             <ul className="space-y-5 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li className="flex items-start sm:items-center space-x-3">
-                {/* <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0"> */}
-                  <img src='/footer/call.svg' alt="Call" className="w-10 h-10 text-white" />
-                {/* </div> */}
+                <img src="/footer/call.svg" alt="Call" width={40} height={40} className="w-10 h-10" />
                 <span className="text-white/80 break-all sm:break-normal">+44 854 635 4582</span>
               </li>
               <li className="flex items-start sm:items-center space-x-3">
-                {/* <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0"> */}
-                  <img src='/footer/msg.svg' alt="Email" className="w-10 h-10 text-white" />
-                {/* </div> */}
+                <img src="/footer/msg.svg" alt="Email" width={40} height={40} className="w-10 h-10" />
                 <span className="text-white/80 break-all sm:break-normal">fieldsyz@gmail.com</span>
               </li>
               <li className="flex items-start space-x-3">
-                {/* <div className="w-8 h-8 bg-light-green rounded-full flex items-center justify-center flex-shrink-0"> */}
-                  <img src='/footer/gps.svg' alt="Location" className="w-10 h-10 text-white" />
-                {/* </div> */}
-                <span className="text-white/80 w-60  text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
+                <img src="/footer/gps.svg" alt="Location" width={40} height={40} className="w-10 h-10" />
+                <span className="text-white/80 w-60 text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
               </li>
             </ul>
           </div>

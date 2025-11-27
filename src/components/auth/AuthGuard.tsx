@@ -19,10 +19,13 @@ export function AuthGuard({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+
     // Check localStorage for our custom auth
     const authToken = localStorage.getItem('authToken');
     const currentUser = localStorage.getItem('currentUser');
-    
+
     if (requireAuth) {
       // Check if user is authenticated
       if (!authToken && !session && status !== 'loading') {
@@ -30,7 +33,7 @@ export function AuthGuard({
         router.push(`/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
         return;
       }
-      
+
       // Check role requirements if specified
       if (allowedRoles.length > 0 && currentUser) {
         try {
@@ -46,7 +49,7 @@ export function AuthGuard({
         }
       }
     }
-    
+
     setIsAuthorized(true);
     setIsLoading(false);
   }, [requireAuth, allowedRoles, router, session, status]);

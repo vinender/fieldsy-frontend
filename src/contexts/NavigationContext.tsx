@@ -7,7 +7,13 @@ interface NavigationContextType {
   startNavigation: () => void;
 }
 
-const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
+// Default context value for when provider is not available (SSR/initial render)
+const defaultContextValue: NavigationContextType = {
+  isNavigating: false,
+  startNavigation: () => {},
+};
+
+const NavigationContext = createContext<NavigationContextType>(defaultContextValue);
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isNavigating, setIsNavigating] = useState(false);
@@ -63,9 +69,5 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 };
 
 export const useNavigation = () => {
-  const context = useContext(NavigationContext);
-  if (context === undefined) {
-    throw new Error('useNavigation must be used within a NavigationProvider');
-  }
-  return context;
+  return useContext(NavigationContext);
 };

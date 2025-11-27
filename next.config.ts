@@ -95,8 +95,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Enable strict mode for better error detection
-  reactStrictMode: true,
+  // Disable strict mode in development to prevent hydration issues
+  reactStrictMode: false,
 
   // Module federation for code splitting
   modularizeImports: {
@@ -105,15 +105,20 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // Headers for caching and security
+  // Headers for caching and security - only aggressive caching in production
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
+    const cacheValue = isDev
+      ? 'no-store, must-revalidate'
+      : 'public, max-age=31536000, immutable';
+
     return [
       {
         source: '/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev ? 'no-cache' : cacheValue,
           },
         ],
       },
@@ -122,7 +127,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: cacheValue,
           },
         ],
       },
@@ -131,7 +136,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev ? 'no-cache' : cacheValue,
           },
         ],
       },

@@ -16,7 +16,21 @@ interface ChatContextType {
   markConversationAsUnread: (conversationId: string) => void;
 }
 
-const ChatContext = createContext<ChatContextType | undefined>(undefined);
+// Default context value for when provider is not available (SSR/initial render)
+const defaultContextValue: ChatContextType = {
+  unreadMessagesCount: 0,
+  unreadConversationsCount: 0,
+  setUnreadMessagesCount: () => {},
+  setUnreadConversationsCount: () => {},
+  playMessageSound: () => {},
+  incrementUnreadCount: () => {},
+  decrementUnreadCount: () => {},
+  resetUnreadCount: () => {},
+  markConversationAsRead: () => {},
+  markConversationAsUnread: () => {},
+};
+
+const ChatContext = createContext<ChatContextType>(defaultContextValue);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
@@ -31,12 +45,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const isPublicPage = router.pathname === '/' && !user;
   const shouldLoadChat = !!user && !isPublicPage;
 
-  // Initialize audio on mount
+  // Initialize audio on mount (client-side only)
   useEffect(() => {
-    // Create audio element for notification sound
-    audioRef.current = new Audio('/sounds/message-notification.wav');
-    audioRef.current.volume = 0.5; // Set volume to 50%
-    
+    // Only create Audio element on client-side
+    if (typeof window !== 'undefined') {
+      audioRef.current = new Audio('/sounds/message-notification.wav');
+      audioRef.current.volume = 0.5; // Set volume to 50%
+    }
+
     // Only load chat data if authenticated and not on public page
     if (shouldLoadChat) {
       // Load unread count from localStorage on mount
@@ -50,9 +66,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [shouldLoadChat]);
 
-  // Save unread count to localStorage whenever it changes
+  // Save unread count to localStorage whenever it changes (client-side only)
   useEffect(() => {
-    localStorage.setItem('unreadMessagesCount', unreadMessagesCount.toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('unreadMessagesCount', unreadMessagesCount.toString());
+    }
   }, [unreadMessagesCount]);
 
   // Fetch unread count from API
@@ -205,9 +223,5 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useChat() {
-  const context = useContext(ChatContext);
-  if (context === undefined) {
-    throw new Error('useChat must be used within a ChatProvider');
-  }
-  return context;
+  return useContext(ChatContext);
 }

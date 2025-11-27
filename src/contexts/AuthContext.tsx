@@ -27,39 +27,44 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
 
-  // Optimistic auth state from localStorage - loaded synchronously
-  const [optimisticUser, setOptimisticUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
+  // Optimistic auth state from localStorage - initialized as null to prevent hydration mismatch
+  const [optimisticUser, setOptimisticUser] = useState<User | null>(null);
+
+  // Check for token in localStorage as fallback - initialized as null to prevent hydration mismatch
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  // Load auth state from localStorage after hydration
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
     const storedUser = localStorage.getItem('currentUser');
-    const authToken = localStorage.getItem('authToken');
+    const storedToken = localStorage.getItem('authToken');
 
-    if (storedUser && authToken) {
+    if (storedUser && storedToken) {
       try {
-        return JSON.parse(storedUser) as User;
+        const parsedUser = JSON.parse(storedUser) as User;
+        setOptimisticUser(parsedUser);
+        setAuthToken(storedToken);
+        // Also set the user immediately from localStorage
+        setUser(parsedUser);
+        setIsLoading(false);
       } catch (error) {
         console.error('[AuthContext] Failed to parse stored user:', error);
-        return null;
+        setIsLoading(false);
       }
+    } else if (storedToken) {
+      setAuthToken(storedToken);
+    } else {
+      // No stored auth, stop loading
+      setIsLoading(false);
     }
-    return null;
-  });
-
-  // Check for token in localStorage as fallback
-  const [authToken, setAuthToken] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('authToken');
-  });
+  }, []);
 
   const syncAuthFromStorage = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -141,11 +146,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refetchUserQuery();
   };
 
-  const [user, setUser] = useState<User | null>(optimisticUser);
-  const [isLoading, setIsLoading] = useState(() => {
-    // If we have optimistic user data, we're not loading
-    return !optimisticUser;
-  });
+  // Initialize user and loading state with consistent values for SSR/hydration
+  // We always start with null/true and sync from localStorage via useEffect
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Update local user state when userData changes
   useEffect(() => {

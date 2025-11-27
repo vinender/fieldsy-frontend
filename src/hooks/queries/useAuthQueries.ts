@@ -29,7 +29,6 @@ export function useCurrentUser(options?: Omit<UseQueryOptions<CurrentUserRespons
     queryKey: authQueryKeys.currentUser(),
     queryFn: async () => {
       const response = await axiosClient.get('/auth/me');
-      console.log('[useCurrentUser] Response:', response.data);
       return response.data as CurrentUserResponse;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -37,9 +36,6 @@ export function useCurrentUser(options?: Omit<UseQueryOptions<CurrentUserRespons
     ...options,
   });
 
-  console.log('[useCurrentUser] Query data:', query.data);
-  console.log('[useCurrentUser] Query enabled:', options?.enabled);
-  
   return {
     data: query.data?.data || query.data?.user, // Handle both response formats
     loading: query.isLoading,
