@@ -4,13 +4,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { useNotifications as useNotificationQuery, useUnreadNotificationsCount } from '@/hooks/queries/useNotificationQueries';
-import { 
+import {
   useMarkNotificationAsRead,
   useMarkAllNotificationsAsRead,
   useDeleteNotification,
   useClearAllNotifications
 } from '@/hooks/mutations/useNotificationMutations';
 import { useRouter } from 'next/router';
+
+// Track shown notification IDs to prevent duplicates across tabs/reconnections
+const shownNotificationIds = new Set<string>();
+// Clean up old notification IDs after 30 seconds to prevent memory buildup
+const NOTIFICATION_DEDUP_TTL = 30000;
 
 interface Notification {
   id: string;
@@ -201,6 +206,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       socketInstance.on('notification', (notification: any) => {
         // Refetch notifications to update the list
         refetchNotifications();
+
+        // Deduplicate toast notifications - prevent showing same notification multiple times
+        // This can happen when user has multiple tabs open or socket reconnects
+        const notificationId = notification.id || notification._id;
+        if (notificationId && shownNotificationIds.has(notificationId)) {
+          console.log('[NotificationContext] Duplicate notification suppressed:', notificationId);
+          return;
+        }
+
+        // Mark this notification as shown
+        if (notificationId) {
+          shownNotificationIds.add(notificationId);
+          // Clean up after TTL to prevent memory buildup
+          setTimeout(() => {
+            shownNotificationIds.delete(notificationId);
+          }, NOTIFICATION_DEDUP_TTL);
+        }
 
         // Show toast notification
         toast.success(notification.title || 'New Notification', {

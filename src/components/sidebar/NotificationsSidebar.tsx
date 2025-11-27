@@ -26,7 +26,7 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
     markAllAsRead,
   } = useNotifications();
 
-  console.log('notification', notifications);
+  console.log(';; notification', notifications);
 
   // Get user role from session
   const userRole = (session as any)?.user?.role || 'USER'
@@ -133,10 +133,12 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
     if (isReviewSuccess && !isFieldOwner) {
       // Handle review posted successfully for dog owners
       const fieldId = data?.fieldId || data?.field?.id || data?.booking?.fieldId || data?.booking?.field?.id
+      const reviewId = data?.reviewId || data?.review?.id
 
       if (fieldId) {
-        console.log('Review success - Redirecting to field:', fieldId)
-        router.push(`/fields/${fieldId}#reviews`)
+        console.log('Review success - Redirecting to field:', fieldId, 'reviewId:', reviewId)
+        const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
+        router.push(`/fields/${fieldId}${reviewParam}#reviews`)
         return
       }
     }
@@ -163,9 +165,11 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
       case 'REVIEW_RECEIVED':
         // Field owner receives a new review
         if (isFieldOwner) {
+          const reviewId = data?.reviewId || data?.review?.id
           if (data?.fieldId) {
             // Redirect to the public field page and scroll to reviews section
-            router.push(`/fields/${data.fieldId}#reviews`)
+            const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
+            router.push(`/fields/${data.fieldId}${reviewParam}#reviews`)
           } else {
             router.push('/field-owner/reviews')
           }
@@ -189,12 +193,14 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
         console.log('Review notification data:', data);
 
         if (!isFieldOwner) {
-          // Try multiple ways to get the fieldId
+          // Try multiple ways to get the fieldId and reviewId
           const fieldId = data?.fieldId || data?.field?.id || data?.booking?.fieldId || data?.booking?.field?.id
+          const reviewId = data?.reviewId || data?.review?.id
 
           if (fieldId) {
-            console.log('Redirecting to field:', fieldId)
-            router.push(`/fields/${fieldId}#reviews`)
+            console.log('Redirecting to field:', fieldId, 'reviewId:', reviewId)
+            const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
+            router.push(`/fields/${fieldId}${reviewParam}#reviews`)
           } else if (data?.bookingId) {
             // If we only have bookingId, still try to navigate to field if possible
             console.log('Only bookingId available:', data.bookingId)
