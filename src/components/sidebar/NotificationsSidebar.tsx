@@ -17,7 +17,8 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
   const [isMounted, setIsMounted] = useState(false)
   const [hasMarkedAsRead, setHasMarkedAsRead] = useState(false)
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session } = useSession();
+  
   const {
     notifications,
     unreadCount,
