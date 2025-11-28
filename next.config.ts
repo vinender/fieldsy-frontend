@@ -4,6 +4,24 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
+// Suppress ECONNRESET errors in development (happens when browser cancels requests during hot reload)
+if (process.env.NODE_ENV === 'development') {
+  const originalEmit = process.emit;
+  // @ts-ignore
+  process.emit = function (event: string, error: any) {
+    if (
+      event === 'uncaughtException' &&
+      error?.code === 'ECONNRESET' &&
+      error?.message?.includes('aborted')
+    ) {
+      // Suppress this error - it's harmless in development
+      return false;
+    }
+    // @ts-ignore
+    return originalEmit.apply(process, arguments);
+  };
+}
+
 const nextConfig: NextConfig = {
   eslint: {
     // Warning: This allows production builds to successfully complete even if

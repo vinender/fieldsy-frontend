@@ -10,6 +10,8 @@ interface PublicSettings {
   siteUrl: string;
   supportEmail: string;
   maintenanceMode: boolean;
+  bannerText?: string;
+  highlightedText?: string;
 }
 
 // Fetch public settings (no auth required)

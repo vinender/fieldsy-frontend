@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FieldSearchInput } from '@/components/ui/field-search-input';
 import Image from 'next/image';
+import { usePublicSettings } from '@/hooks/usePublicSettings';
 
 export function HeroSection() {
   const [highResLoaded, setHighResLoaded] = useState(false);
-  const [bannerText, setBannerText] = useState('Find Safe, Private Dog Walking Fields');
-  const [highlightedText, setHighlightedText] = useState('Near You');
-  const [loading, setLoading] = useState(true);
+
+  // Use cached React Query hook instead of direct fetch
+  const { data: settings } = usePublicSettings();
+  const bannerText = settings?.bannerText || 'Find Safe, Private Dog Walking Fields';
+  const highlightedText = settings?.highlightedText || 'Near You';
 
   useEffect(() => {
     // Preload the high-resolution image
@@ -18,28 +21,6 @@ export function HeroSection() {
         setHighResLoaded(true);
       }, 100);
     };
-  }, []);
-
-  useEffect(() => {
-    // Fetch banner settings
-    const fetchBannerSettings = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/public`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.data) {
-            setBannerText(data.data.bannerText || 'Find Safe, Private Dog Walking Fields');
-            setHighlightedText(data.data.highlightedText || 'Near You');
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching banner settings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBannerSettings();
   }, []);
 
   const memoizedSearchInput = useMemo(() => (

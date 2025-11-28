@@ -134,7 +134,7 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
               )}
             </ErrorBoundary>
           </main>
-          {!hideLayout && <Footer />}
+          {!hideLayout && !isMessagesPage && <Footer />}
         </div>
         <Toaster
           position="top-right"
