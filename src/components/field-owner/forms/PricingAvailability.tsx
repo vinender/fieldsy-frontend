@@ -25,6 +25,15 @@ export default function PricingAvailability({ formData, setFormData, validationE
     const priceRegex = /^\d+$/;
 
     if (priceRegex.test(value)) {
+      // Enforce max limit of 100
+      const numValue = parseInt(value, 10);
+      if (numValue > 100) {
+        setFormData((prev: any) => ({
+          ...prev,
+          price: '100'
+        }));
+        return;
+      }
       setFormData((prev: any) => ({
         ...prev,
         price: value
@@ -120,6 +129,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
                 input.value = input.value.replace(/[^0-9]/g, '');
               }}
               min="0"
+              max="100"
               step="1"
               placeholder="0"
               className={`pl-8 pr-4 sm:pr-40 py-3 ${validationErrors.price ? 'border-red-500' : ''}`}
