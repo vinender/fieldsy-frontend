@@ -528,13 +528,18 @@ const BookFieldPage = () => {
   }
 
   // Toggle time slot selection (add or remove from array)
+  // In reschedule mode, only allow single slot selection
   const toggleTimeSlot = (time: string) => {
     setSelectedTimeSlots(prev => {
       if (prev.includes(time)) {
         // Remove if already selected
         return prev.filter(t => t !== time);
       } else {
-        // Add to selection
+        // In reschedule mode, replace the selection (only 1 slot allowed)
+        if (isRescheduleMode) {
+          return [time];
+        }
+        // For new bookings, add to selection (multi-select allowed)
         return [...prev, time];
       }
     });
@@ -1193,9 +1198,11 @@ const BookFieldPage = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-blue-900 mb-1">Select Time Slot(s)</h4>
+                      <h4 className="font-semibold text-blue-900 mb-1">Select Time Slot{isRescheduleMode ? '' : '(s)'}</h4>
                       <p className="text-sm text-blue-700">
-                        Please select one or more available time slots from the options above to continue with your booking.
+                        {isRescheduleMode
+                          ? 'Please select an available time slot from the options above to reschedule your booking.'
+                          : 'Please select one or more available time slots from the options above to continue with your booking.'}
                       </p>
                     </div>
                   </div>
@@ -1227,7 +1234,9 @@ const BookFieldPage = () => {
                     </svg>
                     <div className="flex-1">
                       <h4 className="font-semibold text-green-900 mb-2">
-                        {selectedTimeSlots.length} Time Slot{selectedTimeSlots.length > 1 ? 's' : ''} Selected
+                        {isRescheduleMode
+                          ? 'New Time Slot Selected'
+                          : `${selectedTimeSlots.length} Time Slot${selectedTimeSlots.length > 1 ? 's' : ''} Selected`}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedTimeSlots.map((slot) => (

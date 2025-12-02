@@ -258,6 +258,7 @@ const BookingHistoryPage = () => {
       }
 
       console.log('[RecurringBookings] Fetching from API...');
+      
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/my-recurring`,
         {
