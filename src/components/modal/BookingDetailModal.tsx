@@ -41,16 +41,19 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const cancellationWindowHours = useCancellationWindow();
   
-  // Fetch detailed booking data
-  const { data: bookingDetails, isLoading } = useBookingDetails(
+  // Fetch detailed booking data (in background to get latest info)
+  const { data: bookingDetails, isLoading: isLoadingDetails } = useBookingDetails(
     booking?._id || booking?.id,
     { enabled: isOpen && !!(booking?._id || booking?.id) }
   );
 
-
   // Use fetched data if available, otherwise fall back to passed booking
   // API returns { success: true, data: {...booking...} }
+  // Show modal content immediately with passed booking data, update when API data arrives
   const fullBooking = bookingDetails?.data || booking;
+
+  // Only show loading spinner if we don't have any booking data at all
+  const isLoading = isLoadingDetails && !booking;
   console.log('fullBooking from API:', fullBooking);
   // Calculate if booking can be cancelled (using dynamic cancellation window from settings)
   const canCancelBooking = () => {
@@ -234,15 +237,18 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
 
   return (
     <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black/80 z-50 transition-opacity duration-300"
+      {/* Overlay with fade-in animation */}
+      <div
+        className="fixed inset-0 bg-black/80 z-50 animate-[fadeIn_200ms_ease-out]"
         onClick={onClose}
       />
 
-      {/* Modal */}
+      {/* Modal with slide-up and scale animation */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] flex flex-col overflow-hidden relative animate-in fade-in zoom-in duration-300">
+        <div
+          className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] flex flex-col overflow-hidden relative animate-[modalSlideIn_100ms_ease-out_forwards]"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Close Button - Fixed Position */}
           <button
             onClick={onClose}
@@ -261,9 +267,13 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
               <>
                 {/* Status Badge - Scrollable */}
                 <div className="flex justify-end mb-2 sm:mb-3 pr-10 sm:pr-12">
-                  {fullBooking?.status && (
-                    <div>{getStatusBadge(fullBooking.status)}</div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {/* Small loading indicator when fetching updated data */}
+                    {isLoadingDetails && booking && (
+                      <Spinner size="sm" className="opacity-50" />
+                    )}
+                    {fullBooking?.status && getStatusBadge(fullBooking.status)}
+                  </div>
                 </div>
 
                 {/* Header */}

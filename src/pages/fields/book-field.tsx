@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
-import { ChevronDown, ChevronUp, Star, Calendar } from 'lucide-react';
+import { ChevronDown, ChevronUp, Star, Calendar, X } from 'lucide-react';
 import BackButton from '@/components/common/BackButton';
 import Spinner from '@/components/ui/Spinner';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
 import { useMaxAdvanceBookingDays } from '@/hooks/usePublicSettings';
 import { formatRating } from '@/utils/formatters';
+import axiosClient from '@/lib/api/axios-client';
 
 interface TimeSlot {
   time: string;
@@ -47,12 +48,13 @@ const BookFieldPage = () => {
 
   const [numberOfDogs, setNumberOfDogs] = useState('1');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Start with null
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(''); // User must explicitly select a slot
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]); // Support multiple slots
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
   const [rescheduleData, setRescheduleData] = useState<any>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isClient, setIsClient] = useState(false); // Track if we're on client side for timezone
+  const [isCheckingConflicts, setIsCheckingConflicts] = useState(false); // Loading state for conflict check
 
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
@@ -391,7 +393,7 @@ const BookFieldPage = () => {
         const slot = {
           time: slotData.time,
           available,
-          selected: slotData.time === selectedTimeSlot,
+          selected: selectedTimeSlots.includes(slotData.time),
           isPast,
           isBooked
         };
@@ -453,7 +455,7 @@ const BookFieldPage = () => {
         const slot = {
           time: slotTime,
           available: isAvailable,
-          selected: slotTime === selectedTimeSlot,
+          selected: selectedTimeSlots.includes(slotTime),
           isPast: isPastSlot,
           isBooked: false
         };
@@ -482,7 +484,7 @@ const BookFieldPage = () => {
     availabilityData,
     numberOfDogs,
     selectedDate,
-    selectedTimeSlot,
+    selectedTimeSlots,
     field,
     isClient // Re-calculate when client mount completes to get correct timezone
   ]);
@@ -525,8 +527,22 @@ const BookFieldPage = () => {
     setExpandedSection(expandedSection === section ? null : section);
   }
 
-  const selectTimeSlot = (time: string) => {
-    setSelectedTimeSlot(time);
+  // Toggle time slot selection (add or remove from array)
+  const toggleTimeSlot = (time: string) => {
+    setSelectedTimeSlots(prev => {
+      if (prev.includes(time)) {
+        // Remove if already selected
+        return prev.filter(t => t !== time);
+      } else {
+        // Add to selection
+        return [...prev, time];
+      }
+    });
+  };
+
+  // Remove a specific time slot from selection
+  const removeTimeSlot = (time: string) => {
+    setSelectedTimeSlots(prev => prev.filter(t => t !== time));
   };
 
   // Helper function to check if any available slots exist
@@ -535,14 +551,17 @@ const BookFieldPage = () => {
     return allSlots.some(slot => slot.available && !slot.isPast && !slot.isBooked);
   };
 
-  // Helper function to check if the selected time slot is valid and available
-  const isSelectedSlotValid = () => {
-    if (!selectedTimeSlot) return false;
+  // Helper function to check if all selected time slots are valid and available
+  const areSelectedSlotsValid = () => {
+    if (selectedTimeSlots.length === 0) return false;
 
     const allSlots = [...timeSlots.morning, ...timeSlots.afternoon, ...timeSlots.evening];
-    const slot = allSlots.find(s => s.time === selectedTimeSlot);
 
-    return slot && slot.available && !slot.isPast && !slot.isBooked;
+    // Check that every selected slot is still available
+    return selectedTimeSlots.every(selectedTime => {
+      const slot = allSlots.find(s => s.time === selectedTime);
+      return slot && slot.available && !slot.isPast && !slot.isBooked;
+    });
   };
 
   // Function to check if a date should be disabled in the date picker
@@ -957,22 +976,35 @@ const BookFieldPage = () => {
                         {timeSlots.morning.map((slot, index) => (
                           <div key={index} className="relative group">
                             <button
-                              onClick={() => slot.available && selectTimeSlot(slot.time)}
+                              onClick={() => slot.available && toggleTimeSlot(slot.time)}
                               disabled={!slot.available}
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                                   : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
-                                  : !slot.available 
+                                  : !slot.available
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
-                                  : selectedTimeSlot === slot.time
-                                  ? 'bg-[#8FB366] text-white'
+                                  : selectedTimeSlots.includes(slot.time)
+                                  ? 'bg-[#8FB366] text-white pr-7'
                                   : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                               }`}
                             >
                               {slot.time}
                             </button>
+                            {/* Cross button to deselect */}
+                            {selectedTimeSlots.includes(slot.time) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeTimeSlot(slot.time);
+                                }}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                                title="Remove slot"
+                              >
+                                <X className="w-3 h-3 text-white" />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1000,22 +1032,35 @@ const BookFieldPage = () => {
                         {timeSlots.afternoon.map((slot, index) => (
                           <div key={index} className="relative group">
                             <button
-                              onClick={() => slot.available && selectTimeSlot(slot.time)}
+                              onClick={() => slot.available && toggleTimeSlot(slot.time)}
                               disabled={!slot.available}
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                                   : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
-                                  : !slot.available 
+                                  : !slot.available
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
-                                  : selectedTimeSlot === slot.time
-                                  ? 'bg-[#8FB366] text-white'
+                                  : selectedTimeSlots.includes(slot.time)
+                                  ? 'bg-[#8FB366] text-white pr-7'
                                   : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                               }`}
                             >
                               {slot.time}
                             </button>
+                            {/* Cross button to deselect */}
+                            {selectedTimeSlots.includes(slot.time) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeTimeSlot(slot.time);
+                                }}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                                title="Remove slot"
+                              >
+                                <X className="w-3 h-3 text-white" />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1043,22 +1088,35 @@ const BookFieldPage = () => {
                         {timeSlots.evening.map((slot, index) => (
                           <div key={index} className="relative group">
                             <button
-                              onClick={() => slot.available && selectTimeSlot(slot.time)}
+                              onClick={() => slot.available && toggleTimeSlot(slot.time)}
                               disabled={!slot.available}
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                                   : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
-                                  : !slot.available 
+                                  : !slot.available
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
-                                  : selectedTimeSlot === slot.time
-                                  ? 'bg-[#8FB366] text-white'
+                                  : selectedTimeSlots.includes(slot.time)
+                                  ? 'bg-[#8FB366] text-white pr-7'
                                   : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                               }`}
                             >
                               {slot.time}
                             </button>
+                            {/* Cross button to deselect */}
+                            {selectedTimeSlots.includes(slot.time) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeTimeSlot(slot.time);
+                                }}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                                title="Remove slot"
+                              >
+                                <X className="w-3 h-3 text-white" />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1128,32 +1186,69 @@ const BookFieldPage = () => {
                 </div>
               )}
 
-              {selectedDate && hasAvailableSlots() && !selectedTimeSlot && (
+              {selectedDate && hasAvailableSlots() && selectedTimeSlots.length === 0 && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-blue-900 mb-1">Select a Time Slot</h4>
+                      <h4 className="font-semibold text-blue-900 mb-1">Select Time Slot(s)</h4>
                       <p className="text-sm text-blue-700">
-                        Please select an available time slot from the options above to continue with your booking.
+                        Please select one or more available time slots from the options above to continue with your booking.
                       </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {selectedDate && hasAvailableSlots() && selectedTimeSlot && !isSelectedSlotValid() && (
+              {selectedDate && hasAvailableSlots() && selectedTimeSlots.length > 0 && !areSelectedSlotsValid() && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-red-900 mb-1">Selected Slot Unavailable</h4>
+                      <h4 className="font-semibold text-red-900 mb-1">Selected Slot(s) Unavailable</h4>
                       <p className="text-sm text-red-700">
-                        The time slot you selected is no longer available. Please select another available slot or choose a different date.
+                        One or more of your selected time slots are no longer available. Please update your selection or choose a different date.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Selected slots summary */}
+              {selectedTimeSlots.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-green-900 mb-2">
+                        {selectedTimeSlots.length} Time Slot{selectedTimeSlots.length > 1 ? 's' : ''} Selected
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTimeSlots.map((slot) => (
+                          <span
+                            key={slot}
+                            className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-sm text-green-800 border border-green-200"
+                          >
+                            {slot}
+                            <button
+                              onClick={() => removeTimeSlot(slot)}
+                              className="ml-1 hover:bg-green-100 rounded-full p-0.5 transition-colors"
+                              title="Remove slot"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-sm text-green-700 mt-2">
+                        Total: £{((field.pricePerHour || field.price || 0) * parseInt(numberOfDogs || '1') * selectedTimeSlots.length).toFixed(2)}
+                        {repeatBooking !== 'None' && ` per ${repeatBooking.toLowerCase() === 'everyday' ? 'day' : repeatBooking.toLowerCase() === 'weekly' ? 'week' : 'month'}`}
                       </p>
                     </div>
                   </div>
@@ -1162,16 +1257,16 @@ const BookFieldPage = () => {
 
               {/* Continue Button */}
               <button
-                onClick={() => {
+                onClick={async () => {
                   // Validate time slot selection FIRST for both modes
-                  if (!selectedTimeSlot) {
-                    toast.error('Please select a time slot to continue');
+                  if (selectedTimeSlots.length === 0) {
+                    toast.error('Please select at least one time slot to continue');
                     return;
                   }
 
-                  // Check if the selected time slot is actually available
-                  if (!isSelectedSlotValid()) {
-                    toast.error('The selected time slot is not available. Please choose another slot or change the date.');
+                  // Check if all selected time slots are actually available
+                  if (!areSelectedSlotsValid()) {
+                    toast.error('One or more selected time slots are not available. Please update your selection.');
                     return;
                   }
 
@@ -1201,17 +1296,54 @@ const BookFieldPage = () => {
                       return;
                     }
                   }
-                  
+
+                  // Check for recurring booking conflicts if a recurring option is selected
+                  // Check conflicts for ALL selected time slots
+                  if (repeatBooking && repeatBooking !== 'None' && selectedDate && selectedTimeSlots.length > 0) {
+                    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+
+                    try {
+                      setIsCheckingConflicts(true);
+
+                      // Check conflicts for each selected slot
+                      for (const slot of selectedTimeSlots) {
+                        const [startTime, endTime] = slot.split(' - ');
+                        const response = await axiosClient.get('/bookings/recurring-conflicts', {
+                          params: {
+                            fieldId: fieldIdToUse,
+                            date: formattedDate,
+                            startTime: startTime.trim(),
+                            endTime: endTime.trim(),
+                            interval: repeatBooking.toLowerCase()
+                          }
+                        });
+
+                        if (response.data?.hasConflict) {
+                          toast.error(`Conflict for slot ${slot}: ${response.data.message}`, { duration: 8000 });
+                          setIsCheckingConflicts(false);
+                          return;
+                        }
+                      }
+                    } catch (error: any) {
+                      console.error('Error checking recurring conflicts:', error);
+                      // If the API fails, still allow the user to proceed
+                      // The backend payment controller will catch conflicts as a fallback
+                    } finally {
+                      setIsCheckingConflicts(false);
+                    }
+                  }
+
                   if (isRescheduleMode && rescheduleData) {
-                    // Handle reschedule confirmation
-                    if (!selectedDate || !selectedTimeSlot) {
+                    // Handle reschedule confirmation - only use first slot for reschedule
+                    if (!selectedDate || selectedTimeSlots.length === 0) {
                       alert('Please select a date and time slot');
                       return;
                     }
-                    
-                    const [startTime, endTime] = selectedTimeSlot.split(' - ');
+
+                    // For reschedule, use the first selected slot
+                    const [startTime, endTime] = selectedTimeSlots[0].split(' - ');
                     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-                    
+
                     rescheduleBookingMutation.mutate(
                       {
                         bookingId: rescheduleData.bookingId,
@@ -1223,10 +1355,10 @@ const BookFieldPage = () => {
                       {
                         onSuccess: () => {
                           toast.success('Booking rescheduled successfully!');
-                          
+
                           // Clear reschedule data
                           localStorage.removeItem('rescheduleBooking');
-                          
+
                           // Redirect to bookings page
                           router.push('/user/my-bookings');
                         },
@@ -1237,27 +1369,32 @@ const BookFieldPage = () => {
                     );
                   } else {
                     // Normal booking flow - continue to payment
+                    // Pass timeSlots as JSON string for multiple slots
                     router.push({
                       pathname: '/fields/payment',
                       query: {
                         field_id: fieldIdToUse,
                         numberOfDogs: numberOfDogs,
                         date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
-                        timeSlot: selectedTimeSlot,
+                        timeSlots: JSON.stringify(selectedTimeSlots),
                         repeatBooking: repeatBooking,
                         price: field.pricePerHour || field.price || 0
                       }
                     });
                   }
                 }}
-                disabled={!selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots() || rescheduleBookingMutation.isPending}
+                disabled={selectedTimeSlots.length === 0 || !areSelectedSlotsValid() || !hasAvailableSlots() || rescheduleBookingMutation.isPending || isCheckingConflicts}
                 className={`w-full h-14 rounded-full font-bold text-[16px] transition-colors flex items-center justify-center gap-2 ${
-                  !selectedTimeSlot || !isSelectedSlotValid() || !hasAvailableSlots() || rescheduleBookingMutation.isPending
+                  selectedTimeSlots.length === 0 || !areSelectedSlotsValid() || !hasAvailableSlots() || rescheduleBookingMutation.isPending || isCheckingConflicts
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-[#3A6B22] text-white hover:bg-[#2D5A1B]'
                 }`}>
-                {isRescheduleMode && rescheduleBookingMutation.isPending && <Spinner size="sm" />}
-                {isRescheduleMode ? (rescheduleBookingMutation.isPending ? 'Rescheduling...' : 'Confirm Reschedule') : 'Continue'}
+                {(isRescheduleMode && rescheduleBookingMutation.isPending) || isCheckingConflicts ? <Spinner size="sm" /> : null}
+                {isCheckingConflicts
+                  ? 'Checking availability...'
+                  : isRescheduleMode
+                    ? (rescheduleBookingMutation.isPending ? 'Rescheduling...' : 'Confirm Reschedule')
+                    : 'Continue'}
               </button>
             </div>
           </div>

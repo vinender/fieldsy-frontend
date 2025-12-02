@@ -157,6 +157,18 @@ html:has(body.sidebar-open) {
   }
 }
 
+/* Modal slide-in animation - combines slide up with subtle scale */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Animation utility classes */
 .animate-fadeIn {
   animation: fadeIn 0.7s ease-out forwards;

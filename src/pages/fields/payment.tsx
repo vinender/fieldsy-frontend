@@ -25,13 +25,24 @@ const StripeCheckout = dynamic(
 
 const PaymentPage = () => {
   const router = useRouter();
-  const { field_id, numberOfDogs: dogsFromQuery, date, timeSlot, repeatBooking, price: priceFromQuery } = router.query;
+  const { field_id, numberOfDogs: dogsFromQuery, date, timeSlots: timeSlotsQuery, repeatBooking, price: priceFromQuery } = router.query;
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const [numberOfDogs, setNumberOfDogs] = useState(2);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // Parse time slots from query (JSON string array)
+  const timeSlots: string[] = React.useMemo(() => {
+    if (!timeSlotsQuery) return [];
+    try {
+      return JSON.parse(timeSlotsQuery as string);
+    } catch {
+      // Fallback for single slot (backward compatibility)
+      return [timeSlotsQuery as string];
+    }
+  }, [timeSlotsQuery]);
 
   // Get cancellation window from settings
   const cancellationWindowHours = useCancellationWindow();
@@ -55,10 +66,10 @@ const PaymentPage = () => {
     date as string
   );
   
-  // Get the specific slot details
-  const selectedSlot = availabilityData?.slots?.find(
-    (slot: any) => slot.slotTime === timeSlot
-  );
+  // Get the first slot details (for availability check)
+  const selectedSlot = timeSlots.length > 0 ? availabilityData?.slots?.find(
+    (slot: any) => slot.slotTime === timeSlots[0]
+  ) : null;
   
   // Maximum dogs allowed per booking (from field data or default)
   const maxDogsAllowed = field?.maxDogs || 10;
@@ -183,7 +194,8 @@ const PaymentPage = () => {
   };
 
   const pricePerDog = priceFromQuery ? parseFloat(priceFromQuery as string) : (field?.pricePerHour || field?.price || 0);
-  const total = pricePerDog * numberOfDogs;
+  const numberOfSlots = timeSlots.length || 1;
+  const total = pricePerDog * numberOfDogs * numberOfSlots;
 
   return (
     <UserLayout requireRole="DOG_OWNER">
@@ -314,7 +326,7 @@ const PaymentPage = () => {
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5 bg-white border border-[#8FB366]/40 rounded-[10px] p-2 sm:p-2.5 w-fit">
-                            <button 
+                            <button
                               onClick={handleDecrement}
                               disabled={numberOfDogs <= 1}
                               className={`w-4 h-4 sm:w-5 sm:h-5 ${numberOfDogs <= 1 ? 'opacity-30 cursor-not-allowed' : 'text-[#3A6B22] hover:opacity-70'} transition-opacity`}
@@ -324,7 +336,7 @@ const PaymentPage = () => {
                             <span className="text-sm sm:text-[16px] font-semibold text-[#192215] w-6 text-center">
                               {numberOfDogs}
                             </span>
-                            <button 
+                            <button
                               onClick={handleIncrement}
                               disabled={numberOfDogs >= maxDogsAllowed}
                               className={`w-4 h-4 sm:w-5 sm:h-5 ${numberOfDogs >= maxDogsAllowed ? 'opacity-30 cursor-not-allowed' : 'text-[#3A6B22] hover:opacity-70'} transition-opacity`}
@@ -334,7 +346,18 @@ const PaymentPage = () => {
                           </div>
                         </div>
                         <div className="text-sm sm:text-[16px] text-[#192215]">
-                          {date ? formatDateDDMMYYYY(new Date(date as string)) : 'No date selected'} • {timeSlot || '8:00AM - 9:00AM'}
+                          {date ? formatDateDDMMYYYY(new Date(date as string)) : 'No date selected'}
+                        </div>
+                        {/* Display selected time slots */}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {timeSlots.map((slot, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 bg-[#E8F5E0] text-[#3A6B22] rounded-full text-sm font-medium"
+                            >
+                              {slot}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -347,9 +370,9 @@ const PaymentPage = () => {
                 <h3 className="text-base sm:text-[18px] font-bold text-[#192215] mb-2 sm:mb-2.5">Payment Summary</h3>
                 <div className="bg-white rounded-[12px] sm:rounded-[14px] p-3 sm:p-4 border border-black/6">
                   <div className="space-y-2 sm:space-y-3">
-                    {/* Price per dog */}
+                    {/* Price per dog per slot */}
                     <div className="flex justify-between text-sm sm:text-[16px]">
-                      <span className="text-[#192215] opacity-70">Price per dog</span>
+                      <span className="text-[#192215] opacity-70">Price per dog per slot</span>
                       <span className="font-medium text-[#192215]">£{pricePerDog.toFixed(2)}</span>
                     </div>
 
@@ -358,6 +381,20 @@ const PaymentPage = () => {
                       <span className="text-[#192215] opacity-70">Number of dogs</span>
                       <span className="font-medium text-[#192215]">{numberOfDogs}</span>
                     </div>
+
+                    {/* Number of time slots */}
+                    <div className="flex justify-between text-sm sm:text-[16px]">
+                      <span className="text-[#192215] opacity-70">Time slots selected</span>
+                      <span className="font-medium text-[#192215]">{numberOfSlots}</span>
+                    </div>
+
+                    {/* Subtotal calculation */}
+                    {numberOfSlots > 1 && (
+                      <div className="flex justify-between text-sm sm:text-[16px]">
+                        <span className="text-[#192215] opacity-70">Subtotal ({numberOfDogs} dogs × {numberOfSlots} slots)</span>
+                        <span className="font-medium text-[#192215]">£{total.toFixed(2)}</span>
+                      </div>
+                    )}
 
                     {/* Divider */}
                     <div className="h-px bg-[#E2E2E2]" />
@@ -405,7 +442,7 @@ const PaymentPage = () => {
                         fieldId={field_id as string}
                         numberOfDogs={numberOfDogs}
                         date={date as string}
-                        timeSlot={timeSlot as string}
+                        timeSlots={timeSlots}
                         repeatBooking={repeatBooking as string}
                         paymentMethodId={selectedCard}
                         onProcessingChange={(isProcessing) => {

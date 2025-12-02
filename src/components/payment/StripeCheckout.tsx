@@ -17,7 +17,7 @@ interface CheckoutFormProps {
   fieldId: string;
   numberOfDogs: number;
   date: string;
-  timeSlot: string;
+  timeSlots: string[]; // Array of selected time slots
   repeatBooking: string;
   paymentMethodId?: string | null; // Add saved payment method
   onSuccess?: () => void;
@@ -31,7 +31,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   fieldId,
   numberOfDogs,
   date,
-  timeSlot,
+  timeSlots,
   repeatBooking,
   paymentMethodId,
   onSuccess,
@@ -49,7 +49,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   
   // Use useRef to track if we've already initiated payment for this specific booking
   const paymentInitiatedRef = useRef(false);
-  const bookingKeyRef = useRef(`${fieldId}_${date}_${timeSlot}_${paymentMethodId}`);
+  const bookingKeyRef = useRef(`${fieldId}_${date}_${JSON.stringify(timeSlots)}_${paymentMethodId}`);
 
   // Notify parent of processing state changes
   useEffect(() => {
@@ -57,25 +57,25 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   }, [processing, onProcessingChange]);
 
   useEffect(() => {
-    const currentBookingKey = `${fieldId}_${date}_${timeSlot}_${paymentMethodId}`;
-    
+    const currentBookingKey = `${fieldId}_${date}_${JSON.stringify(timeSlots)}_${paymentMethodId}`;
+
     // Check if this is a different booking (props changed)
     if (bookingKeyRef.current !== currentBookingKey) {
       paymentInitiatedRef.current = false;
       bookingKeyRef.current = currentBookingKey;
     }
-    
+
     // Prevent duplicate payment attempts for the same booking
     if (paymentInitiatedRef.current || apiCallInProgress) {
       return;
     }
-    
+
     // Create PaymentIntent with saved card
     const createPaymentIntent = async () => {
       // Mark payment as initiated to prevent duplicate calls
       paymentInitiatedRef.current = true;
       setApiCallInProgress(true);
-      
+
       try {
         const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
@@ -84,7 +84,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
           setApiCallInProgress(false);
           return;
         }
-        
+
         setProcessing(true);
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/create-payment-intent`, {
           method: 'POST',
@@ -96,7 +96,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
             fieldId,
             numberOfDogs,
             date,
-            timeSlot,
+            timeSlots, // Array of selected time slots
             repeatBooking,
             amount,
             paymentMethodId // Include saved payment method
@@ -105,7 +105,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
 
         if (!response.ok) {
           const errorData = await response.json();
-          
+
           // Check if it's a duplicate booking
           if (errorData.isDuplicate) {
             setSucceeded(true);
@@ -118,22 +118,37 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
             }, 1000);
             return;
           }
-          
+
+          // Check if it's a recurring booking conflict error
+          const isRecurringConflict = errorData.error?.includes('recurring booking') ||
+                                       errorData.error?.includes('existing bookings on');
+
           // Handle specific error codes from backend
           if (errorData.code === 'PAYMENT_METHOD_EXPIRED') {
             toast.error('This payment method is no longer valid. Please select a different payment method.');
-            // Trigger parent component to refresh payment methods
             onError?.('PAYMENT_METHOD_EXPIRED');
           } else if (errorData.code === 'PAYMENT_METHOD_NOT_FOUND') {
             toast.error('Payment method not found. Please select a different payment method.');
             onError?.('PAYMENT_METHOD_NOT_FOUND');
           } else if (errorData.code === 'PAYMENT_METHOD_ERROR') {
             toast.error(errorData.error || 'Unable to process payment method. Please try again.');
+          } else if (isRecurringConflict) {
+            // Handle recurring booking conflict gracefully
+            toast.error(errorData.error || 'This time slot conflicts with existing bookings.', {
+              duration: 6000,
+            });
+            onError?.('RECURRING_CONFLICT');
           } else {
             toast.error(errorData.error || 'Failed to create payment. Please try again.');
           }
-          
-          throw new Error(errorData.error || 'Failed to create payment intent');
+
+          // Set error state and return gracefully instead of throwing
+          setError(errorData.error || 'Failed to create payment intent');
+          setProcessing(false);
+          setApiCallInProgress(false);
+          paymentInitiatedRef.current = false; // Allow retry
+          onError?.(errorData.error || 'Failed to create payment intent');
+          return;
         }
 
         const data = await response.json();
@@ -193,7 +208,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
     if (amount > 0 && paymentMethodId && (session || typeof window !== 'undefined')) {
       createPaymentIntent();
     }
-  }, [fieldId, date, timeSlot, paymentMethodId, amount, numberOfDogs, repeatBooking, session, onSuccess, onError]); // Include all dependencies but use ref to prevent duplicate calls
+  }, [fieldId, date, timeSlots, paymentMethodId, amount, numberOfDogs, repeatBooking, session, onSuccess, onError]); // Include all dependencies but use ref to prevent duplicate calls
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
@@ -240,11 +255,31 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   }
 
   if (error) {
+    const isRecurringConflict = error.includes('recurring booking') || error.includes('existing bookings on');
+
     return (
-      <div className="space-y-6">
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-          {error}
+      <div className="space-y-4">
+        <div className={`px-4 py-3 rounded-md ${
+          isRecurringConflict
+            ? 'bg-amber-50 border border-amber-200 text-amber-800'
+            : 'bg-red-50 border border-red-200 text-red-600'
+        }`}>
+          <div className="flex items-start">
+            <svg className={`w-5 h-5 mr-2 mt-0.5 flex-shrink-0 ${isRecurringConflict ? 'text-amber-500' : 'text-red-500'}`} fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <p className="font-medium">{isRecurringConflict ? 'Booking Conflict' : 'Payment Error'}</p>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
+          </div>
         </div>
+        <button
+          onClick={() => router.back()}
+          className="w-full py-3 px-4 rounded-full font-semibold text-white bg-[#3A6B22] hover:bg-[#2D5A1B] transition-colors"
+        >
+          {isRecurringConflict ? 'Choose Different Time Slot' : 'Go Back'}
+        </button>
       </div>
     );
   }
@@ -265,7 +300,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   fieldId,
   numberOfDogs,
   date,
-  timeSlot,
+  timeSlots,
   repeatBooking,
   onSuccess,
   onError,
@@ -285,7 +320,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   
   // Use useRef to track if we've already initiated payment for this specific booking
   const paymentInitiatedRef = useRef(false);
-  const bookingKeyRef = useRef(`${fieldId}_${date}_${timeSlot}_new_card`);
+  const bookingKeyRef = useRef(`${fieldId}_${date}_${JSON.stringify(timeSlots)}_new_card`);
 
   // Notify parent of processing state changes
   useEffect(() => {
@@ -293,24 +328,24 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   }, [processing, onProcessingChange]);
 
   useEffect(() => {
-    const currentBookingKey = `${fieldId}_${date}_${timeSlot}_new_card`;
-    
+    const currentBookingKey = `${fieldId}_${date}_${JSON.stringify(timeSlots)}_new_card`;
+
     // Check if this is a different booking (props changed)
     if (bookingKeyRef.current !== currentBookingKey) {
       paymentInitiatedRef.current = false;
       bookingKeyRef.current = currentBookingKey;
     }
-    
+
     // Prevent duplicate payment attempts for the same booking
     if (paymentInitiatedRef.current || apiCallInProgress) {
       return;
     }
-    
+
     // Create PaymentIntent as soon as the component loads
     const createPaymentIntent = async () => {
       paymentInitiatedRef.current = true;
       setApiCallInProgress(true);
-      
+
       try {
         const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
@@ -319,7 +354,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
           setApiCallInProgress(false);
           return;
         }
-        
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/create-payment-intent`, {
           method: 'POST',
           headers: {
@@ -330,7 +365,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
             fieldId,
             numberOfDogs,
             date,
-            timeSlot,
+            timeSlots, // Array of selected time slots
             repeatBooking,
             amount
           }),
@@ -338,7 +373,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
 
         if (!response.ok) {
           const errorData = await response.json();
-          
+
           // Check if it's a duplicate booking
           if (errorData.isDuplicate) {
             setSucceeded(true);
@@ -350,15 +385,30 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
             }, 1000);
             return;
           }
-          
+
+          // Check if it's a recurring booking conflict error
+          const isRecurringConflict = errorData.error?.includes('recurring booking') ||
+                                       errorData.error?.includes('existing bookings on');
+
           // Handle specific error codes from backend
           if (errorData.code === 'PAYMENT_PROCESSING_ERROR') {
             toast.error('Unable to process payment. Please try again.');
+          } else if (isRecurringConflict) {
+            // Handle recurring booking conflict gracefully
+            toast.error(errorData.error || 'This time slot conflicts with existing bookings.', {
+              duration: 6000,
+            });
+            onError?.('RECURRING_CONFLICT');
           } else {
             toast.error(errorData.error || 'Failed to create payment. Please try again.');
           }
-          
-          throw new Error(errorData.error || 'Failed to create payment intent');
+
+          // Set error state and return gracefully instead of throwing
+          setError(errorData.error || 'Failed to create payment intent');
+          setApiCallInProgress(false);
+          paymentInitiatedRef.current = false; // Allow retry
+          onError?.(errorData.error || 'Failed to create payment intent');
+          return;
         }
 
         const data = await response.json();
@@ -399,7 +449,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
     if (amount > 0 && (session || typeof window !== 'undefined')) {
       createPaymentIntent();
     }
-  }, [fieldId, date, timeSlot, amount, numberOfDogs, repeatBooking, session, onSuccess, onError]); // Include all dependencies but use ref to prevent duplicate calls
+  }, [fieldId, date, timeSlots, amount, numberOfDogs, repeatBooking, session, onSuccess, onError]); // Include all dependencies but use ref to prevent duplicate calls
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
