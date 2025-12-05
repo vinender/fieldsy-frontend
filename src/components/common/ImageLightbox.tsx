@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, X, Loader2 } from "lucide-react"
 
 interface ImageLightboxProps {
   images: string[]
@@ -14,14 +14,53 @@ interface ImageLightboxProps {
 
 export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: ImageLightboxProps) {
   const [index, setIndex] = useState(initialIndex)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set())
 
   // Navigation functions
-  const goPrev = () => setIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-  const goNext = () => setIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+  const goPrev = () => {
+    const newIndex = index === 0 ? images.length - 1 : index - 1
+    if (!loadedImages.has(newIndex)) {
+      setIsLoading(true)
+    }
+    setIndex(newIndex)
+  }
+  const goNext = () => {
+    const newIndex = index === images.length - 1 ? 0 : index + 1
+    if (!loadedImages.has(newIndex)) {
+      setIsLoading(true)
+    }
+    setIndex(newIndex)
+  }
+
+  // Handle image load complete
+  const handleImageLoad = useCallback(() => {
+    setIsLoading(false)
+    setLoadedImages(prev => new Set(prev).add(index))
+  }, [index])
 
   useEffect(() => {
-    if (open) setIndex(initialIndex)
+    if (open) {
+      setIndex(initialIndex)
+      // Check if the initial image is already loaded
+      if (!loadedImages.has(initialIndex)) {
+        setIsLoading(true)
+      }
+    } else {
+      // Reset loaded images cache when dialog closes to ensure fresh loads on reopen
+      setLoadedImages(new Set())
+      setIsLoading(true)
+    }
   }, [open, initialIndex])
+
+  // Reset loading state when index changes if image not cached
+  useEffect(() => {
+    if (!loadedImages.has(index)) {
+      setIsLoading(true)
+    } else {
+      setIsLoading(false)
+    }
+  }, [index, loadedImages])
 
   // Preload adjacent images when modal opens or index changes
   useEffect(() => {
@@ -84,15 +123,25 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
         <div className="flex flex-col relative w-full border-[10px] rounded-[20px] border-white aspect-video bg-black flex items-center justify-center">
           {/* Main image */}
           <div className="relative w-full h-[80vh] flex items-center justify-center">
+            {/* Loading spinner */}
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50 rounded-[10px]">
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="w-10 h-10 text-white animate-spin" />
+                  <span className="text-white text-sm">Loading image...</span>
+                </div>
+              </div>
+            )}
             <Image
               src={images[index]}
               alt={`Image ${index + 1}`}
               fill
-              className="object-cover select-none rounded-[10px]"
+              className={`object-cover select-none rounded-[10px] transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
               draggable={false}
               quality={90}
               priority
               sizes="(max-width: 1200px) 100vw, 1200px"
+              onLoad={handleImageLoad}
             />
           </div>
 
@@ -107,6 +156,7 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
                   height={800}
                   priority
                   quality={90}
+                  onLoad={() => setLoadedImages(prev => new Set(prev).add(prevIndex))}
                 />
                 <Image
                   src={images[nextIndex]}
@@ -115,6 +165,7 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
                   height={800}
                   priority
                   quality={90}
+                  onLoad={() => setLoadedImages(prev => new Set(prev).add(nextIndex))}
                 />
               </div>
             </>
@@ -146,7 +197,12 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
             {images.map((thumb, i) => (
               <button
                 key={thumb + i}
-                onClick={() => setIndex(i)}
+                onClick={() => {
+                  if (!loadedImages.has(i)) {
+                    setIsLoading(true)
+                  }
+                  setIndex(i)
+                }}
                 className={`relative flex-shrink-0 h-14 w-20 rounded-lg overflow-hidden border-2 ${
                   i === index ? "border-white" : "border-white/20"
                 }`}

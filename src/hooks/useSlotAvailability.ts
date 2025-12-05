@@ -35,14 +35,14 @@ export const useSlotAvailability = (fieldId: string | undefined, date: string | 
       if (!fieldId || !date) {
         throw new Error('Field ID and date are required');
       }
-      
+
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/fields/${fieldId}/slot-availability`,
         {
           params: { date }
         }
       );
-      
+
       return response.data;
     },
     enabled: !!fieldId && !!date,

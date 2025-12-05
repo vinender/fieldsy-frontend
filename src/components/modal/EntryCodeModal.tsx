@@ -79,7 +79,7 @@ export const EntryCodeModal: React.FC<EntryCodeModalProps> = ({
                             onChange={handleInputChange}
                             placeholder="Enter code (3-10 digits)"
                             className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-green'
-                                } focus:ring-0 focus:outline-none transition-colors font-mono text-lg`}
+                                } focus:ring-0 focus:outline-none  bg-white transition-colors font-mono text-lg`}
                             disabled={isLoading}
                             maxLength={10}
                         />

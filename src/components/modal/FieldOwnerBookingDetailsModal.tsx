@@ -26,6 +26,8 @@ interface Booking {
   fieldId?: string;
   // Fee breakdown from API
   platformCommissionRate?: number; // Platform fee percentage (what Fieldsy takes)
+  isCustomCommission?: boolean; // Whether admin has set a custom commission for this field owner
+  defaultCommissionRate?: number; // The default platform commission rate
   stripeFee?: number;
   amountAfterStripeFee?: number;
   fieldOwnerEarnings?: number; // What field owner receives
@@ -101,7 +103,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
         amountAfterStripeFee: booking.amountAfterStripeFee || subTotal,
         fieldsyFee: booking.platformFee, // Platform fee (what Fieldsy keeps)
         total: booking.fieldOwnerEarnings, // What field owner receives
-        platformCommissionRate: booking.platformCommissionRate || 20 // Platform commission percentage
+        platformCommissionRate: booking.platformCommissionRate || 20, // Platform commission percentage
+        isCustomCommission: booking.isCustomCommission || false,
+        defaultCommissionRate: booking.defaultCommissionRate || 20
       };
     }
 
@@ -120,7 +124,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
       amountAfterStripeFee,
       fieldsyFee: platformFee,
       total: fieldOwnerEarnings,
-      platformCommissionRate: defaultPlatformRate
+      platformCommissionRate: defaultPlatformRate,
+      isCustomCommission: false,
+      defaultCommissionRate: defaultPlatformRate
     };
   };
 
@@ -310,7 +316,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                         value={
                           <span className="flex items-center gap-1">
                             <span>-£{fees.fieldsyFee.toFixed(2)}</span>
-                            <span className="text-xs text-gray-500">({fees.platformCommissionRate}%)</span>
+                            <span className="text-xs text-gray-500">
+                              ({fees.platformCommissionRate}%{fees.isCustomCommission ? ' - Custom Rate' : ''})
+                            </span>
                           </span>
                         }
                       />

@@ -4,13 +4,13 @@ import { useRouter } from 'next/router';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useOwnerFields, useToggleFieldStatus } from '@/hooks';
 import { FieldData } from '@/hooks/queries/useFieldQueries';
-import { Eye, Edit, Power } from 'lucide-react';
+import { Eye, Edit, Power, KeyRound } from 'lucide-react';
 import Spinner from '@/components/ui/Spinner';
 import BackButton from '@/components/common/BackButton';
 import { ToggleFieldStatusModal } from '@/components/modal/ToggleFieldStatusModal';
 import { EntryCodeModal } from '@/components/modal/EntryCodeModal';
 import { useUpdateField } from '@/hooks/mutations/useFieldMutations';
-import { KeyRound } from 'lucide-react';
+import FieldStatusBadges from '@/components/field-owner/FieldStatusBadges';
 
 export default function MyFieldsPage() {
   const { user } = useAuth();
@@ -149,6 +149,9 @@ export default function MyFieldsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
             {fields.map((field: FieldData) => {
               const isSubmitted = Boolean(field.isSubmitted);
+              // Determine approval status: if isClaimed is true, consider it approved
+              // This maintains backward compatibility while supporting the new isApproved field
+              const isApproved = field.isApproved !== undefined ? field.isApproved : field.isClaimed;
 
               return (
                 <div
@@ -168,33 +171,16 @@ export default function MyFieldsPage() {
                         <span className="text-gray-400">No image</span>
                       </div>
                     )}
-                    {isSubmitted && (
-                      <div className="absolute top-3 right-3 flex flex-col gap-2">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${field.isClaimed
-                            ? 'bg-green text-white'
-                            : 'bg-yellow-500 text-white'
-                            }`}
-                        >
-                          {field.isClaimed ? 'Approved' : 'Pending'}
-                        </span>
-                        {field.isClaimed && (
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${field.isActive
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-500 text-white'
-                              }`}
-                          >
-                            {field.isActive ? 'Active' : 'Disabled'}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {!isSubmitted && (
-                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold bg-gray-500 text-white">
-                        Draft
-                      </div>
-                    )}
+                    {/* Status Badges */}
+                    <div className="absolute top-3 right-3">
+                      <FieldStatusBadges
+                        isSubmitted={isSubmitted}
+                        isActive={field.isActive}
+                        isApproved={isApproved}
+                        isClaimed={field.isClaimed}
+                        variant="card"
+                      />
+                    </div>
                   </div>
                   <div className="p-4">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">{field.name}</h3>
@@ -203,16 +189,17 @@ export default function MyFieldsPage() {
                     </p>
                     <div className="flex justify-between items-center mt-4">
                       <span className="text-green font-bold text-lg">
-                        £{field.price || field.pricePerDay}/hour
+                        £{field.price || field.pricePerDay}/{field.bookingDuration === '30min' ? '30min' : 'hour'}
                       </span>
-                      <div className="flex gap-2">
-                        {isSubmitted && (
+                      <div className="flex gap-1">
+                        {/* Toggle status - only show when field is submitted and approved */}
+                        {isSubmitted && isApproved && (
                           <button
                             onClick={(e) => handleToggleStatusClick(field, e)}
                             disabled={togglingFieldId === field.id}
                             className={`p-2 rounded-full transition-all ${field.isActive
-                              ? 'text-green hover:bg-green hover:text-white'
-                              : 'text-gray-400 hover:bg-gray-400 hover:text-white'
+                              ? 'text-emerald-600 hover:bg-emerald-100'
+                              : 'text-gray-400 hover:bg-gray-100'
                               } disabled:opacity-50 disabled:cursor-not-allowed`}
                             title={field.isActive ? 'Disable Field' : 'Enable Field'}
                           >
@@ -228,7 +215,7 @@ export default function MyFieldsPage() {
                             e.stopPropagation();
                             handleViewField(field.id);
                           }}
-                          className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
                           title="Preview"
                         >
                           <Eye className="w-5 h-5" />
@@ -238,18 +225,21 @@ export default function MyFieldsPage() {
                             e.stopPropagation();
                             handleEditField(field.id);
                           }}
-                          className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
                           title="Edit"
                         >
                           <Edit className="w-5 h-5" />
                         </button>
-                        <button
-                          onClick={(e) => handleEntryCodeClick(field, e)}
-                          className="p-2 text-green hover:bg-green hover:text-white rounded-full transition-all"
-                          title="Entry Code"
-                        >
-                          <KeyRound className="w-5 h-5" />
-                        </button>
+                        {/* Entry code - only show when field is submitted */}
+                        {isSubmitted && (
+                          <button
+                            onClick={(e) => handleEntryCodeClick(field, e)}
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                            title="Entry Code"
+                          >
+                            <KeyRound className="w-5 h-5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

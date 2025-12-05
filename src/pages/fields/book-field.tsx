@@ -111,15 +111,15 @@ const BookFieldPage = () => {
   
   // Fetch slot availability for the selected date
   const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined;
-  const { 
-    data: availabilityData, 
-    refetch: refetchAvailability, 
-    isRefetching: isRefetchingSlots 
+  const {
+    data: availabilityData,
+    refetch: refetchAvailability,
+    isRefetching: isRefetchingSlots
   } = useSlotAvailability(
     fieldIdToUse as string,
     dateString
   );
-  
+
   // Refetch availability when date changes
   useEffect(() => {
     if (dateString && fieldIdToUse) {

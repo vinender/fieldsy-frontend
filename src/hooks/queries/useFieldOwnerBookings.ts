@@ -32,6 +32,8 @@ export interface Booking {
   rescheduleCount?: number; // Number of times booking has been rescheduled
   // Fee breakdown
   platformCommissionRate?: number; // Platform fee percentage (what Fieldsy takes)
+  isCustomCommission?: boolean; // Whether admin has set a custom commission for this field owner
+  defaultCommissionRate?: number; // The default platform commission rate
   stripeFee?: number;
   amountAfterStripeFee?: number;
   fieldOwnerEarnings?: number; // What field owner receives

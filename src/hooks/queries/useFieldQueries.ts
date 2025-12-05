@@ -53,8 +53,11 @@ export interface FieldData {
   uploadImagesCompleted: boolean;
   pricingAvailabilityCompleted: boolean;
   bookingRulesCompleted: boolean;
-  isSubmitted: boolean;
-  isActive: boolean;
+  // Status fields
+  isSubmitted: boolean;   // True when field form is submitted (not a draft)
+  isActive: boolean;      // Field owner can enable/disable their field
+  isApproved?: boolean;   // Admin approval status
+  isClaimed?: boolean;    // Whether the field is claimed by owner
   entryCode?: string;
   [key: string]: any;
 }
