@@ -67,7 +67,7 @@ export default function FieldsSortFilter({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0px_4px_10px_3px_rgba(0,0,0,0.1)] p-4" style={{ width: '300px' }}>
+    <div className="bg-white rounded-2xl shadow-[0px_4px_10px_3px_rgba(0,0,0,0.1)] p-4" style={{ width: '300px', minWidth: '300px' }}>
       <div className="flex flex-col gap-6">
 
         {/* Ratings Section */}
@@ -87,7 +87,7 @@ export default function FieldsSortFilter({
                   <Check className="w-3 h-3 text-white" strokeWidth={3} />
                 )}
               </div>
-              <h3 className="text-[#192215] text-[15px] font-semibold font-['DM_Sans']">
+              <h3 className="text-[#192215]  text-[15px] font-semibold font-['DM_Sans']">
                 Ratings
               </h3>
             </div>

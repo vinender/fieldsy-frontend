@@ -26,9 +26,16 @@ export interface Booking {
   amount: number;
   date: string;
   fieldName?: string;
+  fieldId?: string;
   fieldAddress?: string;
   notes?: string;
   rescheduleCount?: number; // Number of times booking has been rescheduled
+  // Fee breakdown
+  platformCommissionRate?: number; // Platform fee percentage (what Fieldsy takes)
+  stripeFee?: number;
+  amountAfterStripeFee?: number;
+  fieldOwnerEarnings?: number; // What field owner receives
+  platformFee?: number; // What Fieldsy keeps
 }
 
 export interface BookingStats {

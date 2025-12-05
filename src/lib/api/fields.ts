@@ -6,6 +6,8 @@ export interface NearbyFieldsParams {
   radius?: number;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: string;
 }
 
 export interface PopularFieldsParams {
@@ -35,7 +37,7 @@ export type PopularFieldsResponse = FieldsApiResponse;
  * @returns Promise with nearby fields and pagination
  */
 export async function getNearbyFields(params: NearbyFieldsParams): Promise<NearbyFieldsResponse> {
-  const { lat, lng, radius = 10, page = 1, limit = 9 } = params;
+  const { lat, lng, radius = 10, page = 1, limit = 9, sortBy, sortOrder } = params;
 
   const queryParams = new URLSearchParams({
     lat: String(lat),
@@ -44,6 +46,14 @@ export async function getNearbyFields(params: NearbyFieldsParams): Promise<Nearb
     page: String(page),
     limit: String(limit),
   });
+
+  // Add sort parameters if provided
+  if (sortBy) {
+    queryParams.append('sortBy', sortBy);
+  }
+  if (sortOrder) {
+    queryParams.append('sortOrder', sortOrder);
+  }
 
   const response = await axiosClient.get(`/fields/nearby?${queryParams.toString()}`);
   return response.data;

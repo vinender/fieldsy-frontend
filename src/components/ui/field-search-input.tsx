@@ -7,8 +7,6 @@ import { useResponsiveRouter } from '@/hooks/useResponsiveRouter';
 import { useLocation } from '@/contexts/LocationContext';
 import axiosClient from '@/lib/api/axios-client';
 import { detectPostcodeInQuery, getPostcodeDisplay } from '@/utils/postcode';
-import { LocationPermissionModal } from '@/components/modal/LocationPermissionModal';
-
 interface RecentSearch {
   id: string;
   query: string;
@@ -47,7 +45,6 @@ function FieldSearchInputComponent({
   const [suggestions, setSuggestions] = useState<FieldSuggestion[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const nextRouter = useRouter(); // Direct Next.js router (no loader)
@@ -225,11 +222,7 @@ function FieldSearchInputComponent({
     }
   };
 
-  const handleUseMyLocation = () => {
-    setShowLocationModal(true);
-  };
-
-  const handleConfirmLocation = async () => {
+  const handleUseMyLocation = async () => {
     try {
       await requestLocation();
 
@@ -264,12 +257,6 @@ function FieldSearchInputComponent({
           to { transform: rotate(360deg); }
         }
       `}</style>
-
-      <LocationPermissionModal
-        isOpen={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
-        onConfirm={handleConfirmLocation}
-      />
 
       <input
         type="text"

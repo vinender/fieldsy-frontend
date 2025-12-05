@@ -139,9 +139,13 @@ export function FieldCard({
     }
   }
 
+  const handleCardClick = () => {
+    onViewDetails?.(id)
+  }
+
   const containerClasses = isExpanded
-    ? "bg-white rounded-[20px] border border-black/[0.08] w-full min-w-[280px] overflow-hidden"
-    : "bg-white rounded-[16px] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] hover:shadow-[0px_8px_20px_0px_rgba(0,0,0,0.12)] transition-all min-w-[280px]"
+    ? "bg-white rounded-[20px] border border-black/[0.08] w-full min-w-[280px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+    : "bg-white rounded-[16px] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] hover:shadow-[0px_8px_20px_0px_rgba(0,0,0,0.12)] transition-all min-w-[280px] cursor-pointer"
 
   const imageHeight = isExpanded ? "h-[320px]" : "h-[200px]"
   const imageRoundness = isExpanded ? "rounded-[32px]" : "rounded-[12px]"
@@ -150,11 +154,11 @@ export function FieldCard({
   if (isExpanded) {
     return (
       <>
-        <div className={containerClasses}>
+        <div className={containerClasses} onClick={handleCardClick}>
           <div className={padding}>
             <div className="flex justify-between items-start mb-4">
-              <div className="flex-1 pr-2">
-                <h3 className="text-[15px] h-10  font-bold text-dark-green leading-[20px]">{name}</h3>
+              <div className="flex-1 pr-2 min-w-0">
+                <h3 className="text-[15px] font-bold text-dark-green leading-[20px] line-clamp-2">{name}</h3>
                 {/* <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {owner}</p> */}
               </div>
               <div className="text-right">
@@ -215,7 +219,7 @@ export function FieldCard({
 
             <div className="flex gap-3">
               <button
-                onClick={() => onViewDetails?.(id)}
+                onClick={(e) => { e.stopPropagation(); onViewDetails?.(id); }}
                 className="flex-1 border border-[#3A6B22] text-[#3A6B22] text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#3A6B22] hover:text-white transition-colors"
               >
                 View Details
@@ -242,10 +246,10 @@ export function FieldCard({
 
   return (
     <>
-      <div className={containerClasses}>
+      <div className={containerClasses} onClick={handleCardClick}>
         <div className="px-3 pt-3 pb-2">
           <div className="flex justify-between items-start mb-1">
-            <h3 className="text-[13px] font-semibold text-dark-green flex-1 line-clamp-1">
+            <h3 className="text-[13px] font-semibold text-dark-green flex-1 line-clamp-1 min-w-0 pr-2">
               {name}
             </h3>
             <div className="text-right">
@@ -305,7 +309,7 @@ export function FieldCard({
 
           <div className="flex gap-2">
             <button
-              onClick={() => onViewDetails?.(id)}
+              onClick={(e) => { e.stopPropagation(); onViewDetails?.(id); }}
               className="flex-1 py-1.5 text-[10px] font-medium text-[#3a6b22] border border-[#3a6b22] rounded-full hover:bg-[#3a6b22]/5 transition-colors"
             >
               View Details

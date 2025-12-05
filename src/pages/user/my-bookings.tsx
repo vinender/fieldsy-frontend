@@ -11,7 +11,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
-  X
+  X,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { BookingDetailsModal } from '@/components/modal/BookingDetailModal';
 import { CancelBookingModal } from '@/components/modal/CancelBookingModal';
@@ -30,6 +32,21 @@ import AmenityIcon from '@/components/common/AmenityIcon';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { BookingCardSkeleton } from '@/components/skeletons/SkeletonComponents';
 
+
+// Subscription data for recurring bookings
+interface SubscriptionData {
+  id: string;
+  status: string;
+  interval: string;
+  dayOfWeek?: string;
+  dayOfMonth?: number;
+  nextBillingDate?: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: string;
+  totalPrice: number;
+  stripeSubscriptionId: string;
+}
 
 // MongoDB Document Structure for Bookings
 interface Booking {
@@ -64,36 +81,15 @@ interface Booking {
     rating: number;
     createdAt: string;
   } | null;
+  // Calculated fields from backend for mobile app compatibility
+  isCancellable?: boolean;
+  isReschedulable?: boolean;
+  hoursUntilBooking?: number;
+  cancellationWindow?: number;
+  canCancelSubscriptionImmediately?: boolean;
+  subscription?: SubscriptionData | null; // Subscription data for recurring bookings
 }
 
-// Recurring Booking Interface
-interface RecurringBooking {
-  id: string;
-  fieldId: string;
-  fieldName: string;
-  fieldAddress: string;
-  fieldOwner: string;
-  interval: 'everyday' | 'weekly' | 'monthly';
-  dayOfWeek?: string;
-  dayOfMonth?: number;
-  timeSlot: string;
-  startTime: string;
-  endTime: string;
-  numberOfDogs: number;
-  totalPrice: number;
-  status: string;
-  nextBillingDate?: string;
-  currentPeriodEnd: string;
-  cancelAtPeriodEnd: boolean;
-  canceledAt?: string;
-  recentBookings: Array<{
-    id: string;
-    date: string;
-    status: string;
-    paymentStatus: string;
-  }>;
-  createdAt: string;
-}
 
 
 const BookingHistoryPage = () => {
@@ -112,17 +108,27 @@ const BookingHistoryPage = () => {
 
     if (status) {
       const statusStr = status as string;
-      if (['upcoming', 'previous', 'cancelled', 'recurring'].includes(statusStr)) {
+      if (['upcoming', 'completed', 'cancelled'].includes(statusStr)) {
         setActiveTab(statusStr);
       } else if (statusStr === 'confirmed') {
         setActiveTab('upcoming');
-      } else if (statusStr === 'completed') {
-        setActiveTab('previous');
+      } else if (statusStr === 'previous') {
+        // Support old 'previous' status for backwards compatibility
+        setActiveTab('completed');
+      } else if (statusStr === 'recurring') {
+        // Redirect recurring to upcoming since recurring tab is removed
+        setActiveTab('upcoming');
       }
     } else if (tab) {
       const tabStr = tab as string;
-      if (['upcoming', 'previous', 'cancelled', 'recurring'].includes(tabStr)) {
+      if (['upcoming', 'completed', 'cancelled'].includes(tabStr)) {
         setActiveTab(tabStr);
+      } else if (tabStr === 'previous') {
+        // Support old 'previous' tab for backwards compatibility
+        setActiveTab('completed');
+      } else if (tabStr === 'recurring') {
+        // Redirect recurring to upcoming since recurring tab is removed
+        setActiveTab('upcoming');
       }
     }
   }, [router.isReady, router.query]);
@@ -136,7 +142,6 @@ const BookingHistoryPage = () => {
   const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
   const [bookingToReview, setBookingToReview] = useState<Booking | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [recurringBookings, setRecurringBookings] = useState<RecurringBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -197,13 +202,7 @@ const BookingHistoryPage = () => {
 
   useEffect(() => {
     console.log('[MyBookings] useEffect triggered - activeTab:', activeTab);
-    if (activeTab === 'recurring') {
-      console.log('[MyBookings] Calling fetchRecurringBookings...');
-      fetchRecurringBookings();
-    } else {
-      console.log('[MyBookings] Calling fetchBookings...');
-      fetchBookings();
-    }
+    fetchBookings();
   }, [activeTab, page, session, appliedFilters]);
 
   // Effect to handle deep linking to a specific booking via query param
@@ -229,64 +228,6 @@ const BookingHistoryPage = () => {
       }
     }
   }, [router.query, bookings, isModalOpen]);
-
-  // Get user's current location
-  // Get user's current location - REMOVED as per request
-
-  const fetchRecurringBookings = async () => {
-    console.log('[RecurringBookings] Starting fetch...');
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Get token from session or localStorage
-      let token = (session as any)?.accessToken;
-
-      if (!token) {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          token = user.token;
-        }
-      }
-
-      if (!token) {
-        console.log('[RecurringBookings] No token found');
-        setError('Please login to view bookings');
-        setLoading(false);
-        return;
-      }
-
-      console.log('[RecurringBookings] Fetching from API...');
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/my-recurring`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('[RecurringBookings] API Response:', data);
-        console.log('[RecurringBookings] Setting recurring bookings:', data.data?.length || 0, 'items');
-        setRecurringBookings(data.data || []);
-      } else {
-        const errorData = await response.json();
-        console.log('[RecurringBookings] API Error:', errorData);
-        setError(errorData.message || 'Failed to fetch recurring bookings');
-      }
-    } catch (err) {
-      console.error('[RecurringBookings] Fetch error:', err);
-      setError('Failed to fetch recurring bookings');
-    } finally {
-      setLoading(false);
-      console.log('[RecurringBookings] Fetch complete');
-    }
-  };
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -314,7 +255,7 @@ const BookingHistoryPage = () => {
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', '10');
-      if (activeTab === 'previous') {
+      if (activeTab === 'completed') {
         params.append('status', 'COMPLETED');
         params.append('includeExpired', 'true');
       } else if (activeTab === 'upcoming') {
@@ -420,7 +361,15 @@ const BookingHistoryPage = () => {
             fieldReview: booking.fieldReview || null,
             // Include field data for modal
             field: booking.field,
-            averageRating: booking.field?.averageRating || 0
+            averageRating: booking.field?.averageRating || 0,
+            // Include subscription data for recurring bookings
+            subscription: booking.subscription || null,
+            // Calculated fields from backend for mobile app compatibility
+            isCancellable: booking.isCancellable ?? false,
+            isReschedulable: booking.isReschedulable ?? false,
+            hoursUntilBooking: booking.hoursUntilBooking ?? 0,
+            cancellationWindow: booking.cancellationWindow ?? 24,
+            canCancelSubscriptionImmediately: booking.canCancelSubscriptionImmediately ?? false
           };
         });
 
@@ -549,15 +498,24 @@ const BookingHistoryPage = () => {
   };
 
 
-  const RecurringBookingCard = ({ subscription }: { subscription: RecurringBooking }) => {
-    const [isCancelling, setIsCancelling] = useState(false);
-    const [showCancelModal, setShowCancelModal] = useState(false);
+  const BookingCard = ({ booking }: { booking: Booking }) => {
+    const [showCancelSubModal, setShowCancelSubModal] = useState(false);
+    const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
 
-    const handleCancelRecurring = async (immediately: boolean = false) => {
-      setIsCancelling(true);
+    // Use backend-provided calculated values (for mobile app compatibility)
+    const isCancellable = booking.isCancellable ?? false;
+    const isReschedulable = booking.isReschedulable ?? false;
+    const hoursUntilBooking = booking.hoursUntilBooking ?? 0;
+    const bookingCancellationWindow = booking.cancellationWindow ?? cancellationWindow;
+    const isImmediateCancellationAllowed = booking.canCancelSubscriptionImmediately ?? false;
+
+    // Handle cancel subscription
+    const handleCancelSubscription = async (immediately: boolean = false) => {
+      if (!booking.subscription) return;
+
+      setIsCancellingSubscription(true);
 
       try {
-        // Get token from session or localStorage
         let token = (session as any)?.accessToken;
 
         if (!token) {
@@ -569,7 +527,7 @@ const BookingHistoryPage = () => {
         }
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/${subscription.id}/cancel-recurring`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/cancel-recurring`,
           {
             method: 'POST',
             headers: {
@@ -583,11 +541,13 @@ const BookingHistoryPage = () => {
         if (response.ok) {
           toast.success(
             immediately
-              ? 'Recurring booking canceled immediately'
-              : 'Recurring booking will be canceled at the end of the current period',
+              ? 'Recurring booking cancelled immediately'
+              : 'Recurring booking will be cancelled at the end of the current billing period',
             { position: 'top-center' }
           );
-          fetchRecurringBookings(); // Refresh the list
+          setShowCancelSubModal(false);
+          // Refresh bookings to show updated data
+          fetchBookings();
         } else {
           const errorData = await response.json();
           toast.error(errorData.message || 'Failed to cancel recurring booking', {
@@ -599,304 +559,9 @@ const BookingHistoryPage = () => {
           position: 'top-center',
         });
       } finally {
-        setIsCancelling(false);
-        setShowCancelModal(false);
+        setIsCancellingSubscription(false);
       }
     };
-
-    const formatInterval = () => {
-      if (subscription.interval === 'everyday') {
-        return 'Every Day';
-      } else if (subscription.interval === 'weekly') {
-        return `Every ${subscription.dayOfWeek}`;
-      } else if (subscription.interval === 'monthly') {
-        return `Monthly on day ${subscription.dayOfMonth}`;
-      }
-      return subscription.interval;
-    };
-
-    // Check if immediate cancellation is allowed based on cancellation window
-    const canCancelImmediately = () => {
-      if (!subscription.recentBookings || subscription.recentBookings.length === 0) {
-        return true; // No upcoming bookings, allow cancellation
-      }
-
-      const now = new Date();
-
-      // Find upcoming bookings
-      const upcomingBookings = subscription.recentBookings
-        .filter(b => b.status === 'upcoming' || b.status === 'CONFIRMED')
-        .map(b => {
-          const dateObj = new Date(b.date);
-          return { ...b, dateObj };
-        })
-        .filter(b => b.dateObj > now)
-        .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
-
-      if (upcomingBookings.length === 0) {
-        return true; // No upcoming bookings, allow cancellation
-      }
-
-      // Get next upcoming booking
-      const nextBooking = upcomingBookings[0];
-      const bookingDateTime = new Date(nextBooking.dateObj);
-
-      // Parse start time and add to date
-      if (subscription.startTime) {
-        const [time, period] = subscription.startTime.split(/(?=[AP]M)/);
-        const [hours, minutes] = time.split(':').map(Number);
-        let hour = hours;
-
-        if (period === 'PM' && hour !== 12) hour += 12;
-        if (period === 'AM' && hour === 12) hour = 0;
-
-        bookingDateTime.setHours(hour, minutes || 0, 0, 0);
-      }
-
-      // Calculate hours until booking
-      const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-      // Allow cancellation only if we're outside the cancellation window
-      return hoursUntilBooking >= cancellationWindow;
-    };
-
-    const isImmediateCancellationAllowed = canCancelImmediately();
-
-    return (
-      <>
-        <div className="bg-white rounded-2xl p-5 sm:p-6 mb-4 hover:shadow-lg transition-all duration-200 border-2 border-gray-100 hover:border-[#3a6b22]/20">
-          {/* Header Section */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1 min-w-0 pr-4">
-              <h3 className="text-lg sm:text-xl font-bold text-[#192215] mb-2 truncate">{subscription.fieldName}</h3>
-              <p className="text-sm text-gray-600 flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                <span className="truncate">{subscription.fieldAddress}</span>
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ${subscription.status === 'active'
-                ? 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border border-green-200'
-                : subscription.status === 'canceled'
-                  ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 border border-red-200'
-                  : 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border border-gray-200'
-                }`}>
-                {subscription.status.toUpperCase()}
-              </span>
-            </div>
-          </div>
-
-          {/* Recurring Details Section */}
-          <div className="bg-gradient-to-br from-[#f4ffef] to-[#e8f5df] rounded-xl p-4 mb-4 border border-[#3a6b22]/10">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#3a6b22]" />
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Repeats</span>
-                </div>
-                <p className="text-sm sm:text-base font-bold text-[#192215]">{formatInterval()}</p>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Clock className="w-3.5 h-3.5 text-[#3a6b22]" />
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Time</span>
-                </div>
-                <p className="text-sm sm:text-base font-bold text-[#192215]">{subscription.timeSlot}</p>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Dog className="w-3.5 h-3.5 text-[#3a6b22]" />
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Dogs</span>
-                </div>
-                <p className="text-sm sm:text-base font-bold text-[#192215]">{subscription.numberOfDogs} {subscription.numberOfDogs === 1 ? 'Dog' : 'Dogs'}</p>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Price</span>
-                </div>
-                <p className="text-sm sm:text-base font-bold text-[#3a6b22]">
-                  £{subscription.totalPrice}
-                  <span className="text-xs font-normal text-gray-500">/{subscription.interval === 'everyday' ? 'day' : subscription.interval}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Alerts Section */}
-          <div className="space-y-2 mb-4">
-            {subscription.nextBillingDate && !subscription.cancelAtPeriodEnd && (
-              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                <Calendar className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-blue-900">Next Billing Date</p>
-                  <p className="text-xs text-blue-700 mt-0.5">{formatDateDDMMYYYY(new Date(subscription.nextBillingDate))}</p>
-                </div>
-              </div>
-            )}
-
-            {subscription.cancelAtPeriodEnd && (
-              <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-xs font-bold">!</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-semibold text-amber-900">Cancellation Scheduled</p>
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    Your subscription will end on {formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Actions */}
-          {subscription.status === 'active' && !subscription.cancelAtPeriodEnd && (
-            <div className="pt-4 border-t border-gray-100">
-              <button
-                onClick={() => setShowCancelModal(true)}
-                disabled={isCancelling}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white border-2 border-red-500 text-red-600 rounded-full hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold shadow-sm hover:shadow flex items-center justify-center gap-2"
-              >
-                {isCancelling ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-red-300 border-t-red-600 rounded-full animate-spin"></div>
-                    <span>Cancelling...</span>
-                  </>
-                ) : (
-                  <>
-                    <X className="w-4 h-4" />
-                    <span>Cancel Subscription</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-
-        {/* Cancel Modal */}
-        {showCancelModal && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowCancelModal(false)}
-          >
-            <div
-              className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md mx-4 shadow-2xl animate-fadeIn"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 border-b pb-2">
-                Cancel Recurring Booking
-              </h3>
-              <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                Choose how you want to cancel your recurring booking for{" "}
-                <span className="font-medium text-gray-800">{subscription.fieldName}</span>.
-              </p>
-
-              <div className="space-y-3">
-                {/* Cancel at End of Period */}
-                <button
-                  onClick={() => handleCancelRecurring(false)}
-                  className="w-full px-4 py-3 bg-red-500 hover:bg-red-700 text-white font-medium rounded-xl shadow hover:from-yellow-500 hover:to-yellow-600 active:scale-[0.98] transition-all"
-                >
-                  Cancel at End of Period
-                  <span className="block text-xs mt-1 text-yellow-50/90">
-                    Keep access until{" "}
-                    {subscription.nextBillingDate
-                      ? formatDateDDMMYYYY(new Date(subscription.nextBillingDate))
-                      : formatDateDDMMYYYY(new Date(subscription.currentPeriodEnd))}
-                  </span>
-                </button>
-
-                {/* Cancel Immediately */}
-                <button
-                  onClick={() => handleCancelRecurring(true)}
-                  disabled={!isImmediateCancellationAllowed}
-                  className={`w-full px-4 py-3 font-medium rounded-xl shadow transition-all active:scale-[0.98] ${isImmediateCancellationAllowed
-                    ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
-                    : "bg-gray-200 text-gray-700 border border-gray-300 cursor-not-allowed"
-                    }`}
-                  title={
-                    !isImmediateCancellationAllowed
-                      ? `Cannot cancel immediately — next booking is within ${cancellationWindow}h cancellation window`
-                      : ""
-                  }
-                >
-                  Cancel Immediately
-                  <span
-                    className={`block text-xs mt-1 ${isImmediateCancellationAllowed ? "text-red-50/90" : "text-gray-800/90"
-                      }`}
-                  >
-                    {isImmediateCancellationAllowed
-                      ? "Stop all future bookings now"
-                      : `Next booking is within ${cancellationWindow}h cancellation window`}
-                  </span>
-                </button>
-
-                {/* Keep Subscription */}
-                <button
-                  onClick={() => setShowCancelModal(false)}
-                  className="w-full px-4 py-2 bg-gray-100 text-green font-medium rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all border border-green"
-                >
-                  {`I don't want to cancel`}
-
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-      </>
-    );
-  };
-
-  const BookingCard = ({ booking }: { booking: Booking }) => {
-    // Calculate if booking can be cancelled (using dynamic cancellation window from settings)
-    const canCancel = () => {
-      if (booking.status !== 'upcoming') return false;
-
-      const now = new Date();
-      const bookingDateTime = new Date(booking.rawDate || booking.date);
-
-      // Parse the start time and add it to the booking date
-      if (booking.startTime) {
-        const [time, period] = booking.startTime.split(/(?=[AP]M)/);
-        const [hours, minutes] = time.split(':').map(Number);
-        let hour = hours;
-
-        if (period === 'PM' && hour !== 12) hour += 12;
-        if (period === 'AM' && hour === 12) hour = 0;
-
-        bookingDateTime.setHours(hour, minutes || 0, 0, 0);
-      }
-
-      // Calculate hours until booking
-      const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-      return hoursUntilBooking >= cancellationWindow;
-    };
-
-    const isCancellable = canCancel();
-    const getTimeUntilBooking = () => {
-      const now = new Date();
-      const bookingDateTime = new Date(booking.rawDate || booking.date);
-
-      if (booking.startTime) {
-        const [time, period] = booking.startTime.split(/(?=[AP]M)/);
-        const [hours, minutes] = time.split(':').map(Number);
-        let hour = hours;
-
-        if (period === 'PM' && hour !== 12) hour += 12;
-        if (period === 'AM' && hour === 12) hour = 0;
-
-        bookingDateTime.setHours(hour, minutes || 0, 0, 0);
-      }
-
-      const hoursUntilBooking = Math.floor((bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60));
-      return hoursUntilBooking;
-    };
-
-    console.log('booking', booking);
 
     return (
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-start sm:items-center bg-light py-4 sm:py-6 border-b border-gray-200 last:border-0">
@@ -996,12 +661,42 @@ const BookingHistoryPage = () => {
           </div>
 
           {/* Badges */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Recurring Badge */}
             {booking.recurring && (
               <div className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 bg-[#f4ffef] border border-[#3a6b221a] rounded-full">
+                <RefreshCw className="w-3 h-3 mr-1.5 text-[#3a6b22]" />
                 <span className="text-[11px] sm:text-[13px] font-bold text-[#3a6b22]">{booking.recurring}</span>
               </div>
+            )}
+
+            {/* Subscription Info - Inline with recurring badge */}
+            {booking.subscription && booking.subscription.status === 'active' && (
+              <>
+                {/* Next Billing Date */}
+                {booking.subscription.nextBillingDate && !booking.subscription.cancelAtPeriodEnd && (
+                  <span className="text-[11px] sm:text-[13px] text-gray-600">
+                    Next billing: <span className="font-semibold text-[#192215]">{formatDateDDMMYYYY(new Date(booking.subscription.nextBillingDate))}</span>
+                  </span>
+                )}
+
+                {/* Cancellation Scheduled */}
+                {booking.subscription.cancelAtPeriodEnd && (
+                  <span className="text-[11px] sm:text-[13px] text-amber-600 font-medium">
+                    Ends {formatDateDDMMYYYY(new Date(booking.subscription.currentPeriodEnd))}
+                  </span>
+                )}
+
+                {/* Cancel Subscription Button */}
+                {!booking.subscription.cancelAtPeriodEnd && booking.status === 'upcoming' && (
+                  <button
+                    onClick={() => setShowCancelSubModal(true)}
+                    className="text-[11px] sm:text-[13px] font-semibold text-red-500 hover:text-red-600 transition-colors"
+                  >
+                    Cancel Subscription
+                  </button>
+                )}
+              </>
             )}
 
             {/* Rescheduled Badge */}
@@ -1022,18 +717,17 @@ const BookingHistoryPage = () => {
               <div className="flex flex-row gap-2">
                 {(() => {
                   const rescheduleCount = booking.rescheduleCount || 0;
-                  const canReschedule = isCancellable && rescheduleCount < 3;
-                  const rescheduleTitle = !isCancellable
-                    ? `Cannot reschedule within ${cancellationWindow} hours of booking (${getTimeUntilBooking()} hours remaining)`
-                    : rescheduleCount >= 3
-                      ? 'Maximum reschedule limit (3) reached for this booking'
-                      : `Reschedule booking (${rescheduleCount}/3 used)`;
+                  const rescheduleTitle = !isReschedulable
+                    ? !isCancellable
+                      ? `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`
+                      : 'Maximum reschedule limit (3) reached for this booking'
+                    : `Reschedule booking (${rescheduleCount}/3 used)`;
 
                   return (
                     <button
-                      onClick={() => canReschedule ? handleRescheduleClick(booking) : null}
-                      disabled={!canReschedule}
-                      className={`flex-1 py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${canReschedule
+                      onClick={() => isReschedulable ? handleRescheduleClick(booking) : null}
+                      disabled={!isReschedulable}
+                      className={`flex-1 py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${isReschedulable
                         ? 'bg-[#e8f5ff] border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
                         : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
                         }`}
@@ -1049,7 +743,7 @@ const BookingHistoryPage = () => {
                     ? 'bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer'
                     : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
                     }`}
-                  title={!isCancellable ? `Cannot cancel within ${cancellationWindow} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}>
+                  title={!isCancellable ? `Cannot cancel within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)` : 'Cancel booking'}>
                   Cancel
                 </button>
               </div>
@@ -1104,6 +798,98 @@ const BookingHistoryPage = () => {
             </>
           )}
         </div>
+
+        {/* Cancel Subscription Modal */}
+        {showCancelSubModal && booking.subscription && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowCancelSubModal(false)}
+          >
+            <div
+              className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md mx-4 shadow-2xl animate-fadeIn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 border-b pb-3">
+                Cancel Recurring Booking
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                Choose how you want to cancel your recurring booking for{" "}
+                <span className="font-medium text-gray-800">{booking.name}</span>.
+              </p>
+
+              <div className="space-y-3">
+                {/* Cancel at End of Period */}
+                <button
+                  onClick={() => handleCancelSubscription(false)}
+                  disabled={isCancellingSubscription}
+                  className="w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow transition-all disabled:opacity-50"
+                >
+                  {isCancellingSubscription ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    <>
+                      Cancel at Next Billing Date
+                      <span className="block text-xs mt-1 text-red-100">
+                        Keep access until{" "}
+                        {booking.subscription.nextBillingDate
+                          ? formatDateDDMMYYYY(new Date(booking.subscription.nextBillingDate))
+                          : formatDateDDMMYYYY(new Date(booking.subscription.currentPeriodEnd))}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                {/* Cancel Immediately */}
+                <button
+                  onClick={() => handleCancelSubscription(true)}
+                  disabled={!isImmediateCancellationAllowed || isCancellingSubscription}
+                  className={`w-full px-4 py-3 font-medium rounded-xl shadow transition-all ${
+                    isImmediateCancellationAllowed && !isCancellingSubscription
+                      ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800"
+                      : "bg-gray-200 text-gray-500 border border-gray-300 cursor-not-allowed"
+                  }`}
+                  title={
+                    !isImmediateCancellationAllowed
+                      ? `Cannot cancel immediately — booking is within ${bookingCancellationWindow}h cancellation window`
+                      : ""
+                  }
+                >
+                  {isCancellingSubscription ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-500 rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    <>
+                      Cancel Immediately
+                      <span
+                        className={`block text-xs mt-1 ${
+                          isImmediateCancellationAllowed ? "text-red-100" : "text-gray-500"
+                        }`}
+                      >
+                        {isImmediateCancellationAllowed
+                          ? "Stop all future bookings now"
+                          : `Booking is within ${bookingCancellationWindow}h cancellation window`}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                {/* Keep Subscription */}
+                <button
+                  onClick={() => setShowCancelSubModal(false)}
+                  disabled={isCancellingSubscription}
+                  className="w-full px-4 py-2 bg-gray-100 text-[#3a6b22] font-medium rounded-xl hover:bg-gray-200 transition-all border border-[#3a6b22] disabled:opacity-50"
+                >
+                  Keep My Subscription
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1134,13 +920,13 @@ const BookingHistoryPage = () => {
                 Upcoming
               </button>
               <button
-                onClick={() => setActiveTab('previous')}
-                className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${activeTab === 'previous'
+                onClick={() => setActiveTab('completed')}
+                className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${activeTab === 'completed'
                   ? 'bg-[#8fb366] text-white'
                   : 'bg-transparent text-[#192215] hover:bg-white/50'
                   }`}
               >
-                Previous
+                Completed
               </button>
               <button
                 onClick={() => setActiveTab('cancelled')}
@@ -1150,15 +936,6 @@ const BookingHistoryPage = () => {
                   }`}
               >
                 Cancelled
-              </button>
-              <button
-                onClick={() => setActiveTab('recurring')}
-                className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[14px] font-bold transition-all whitespace-nowrap ${activeTab === 'recurring'
-                  ? 'bg-[#8fb366] text-white'
-                  : 'bg-transparent text-[#192215] hover:bg-white/50'
-                  }`}
-              >
-                Recurring
               </button>
             </div>
 
@@ -1206,35 +983,6 @@ const BookingHistoryPage = () => {
                   Try Again
                 </button>
               </div>
-            ) : activeTab === 'recurring' ? (
-              (() => {
-                console.log('[MyBookings] Rendering recurring tab - recurringBookings.length:', recurringBookings.length);
-                return recurringBookings.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">
-                      No recurring bookings
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      You don't have any recurring bookings set up.
-                    </p>
-                    <button
-                      onClick={() => router.push('/fields')}
-                      className="bg-[#3A6B22] text-white px-6 py-2 rounded-full font-medium hover:bg-[#2e5519] transition"
-                    >
-                      Find Fields
-                    </button>
-                  </div>
-                ) : (
-                  recurringBookings.map((subscription) => (
-                    <RecurringBookingCard key={subscription.id} subscription={subscription} />
-                  ))
-                );
-              })()
             ) : displayBookings.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1250,7 +998,7 @@ const BookingHistoryPage = () => {
                     ? "You don't have any upcoming bookings."
                     : activeTab === 'cancelled'
                       ? "You haven't cancelled any bookings yet."
-                      : "You don't have any previous bookings."}
+                      : "You don't have any completed bookings."}
                 </p>
                 <button
                   onClick={() => router.push('/fields')}
@@ -1267,7 +1015,7 @@ const BookingHistoryPage = () => {
           </div>
 
           {/* Pagination */}
-          {!loading && !error && activeTab !== 'recurring' && displayBookings.length > 0 && (
+          {!loading && !error && displayBookings.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-[12px] sm:text-[14px] font-semibold italic text-[#192215] text-center sm:text-left">
                 Showing {(page - 1) * 10 + 1}-{Math.min(page * 10, totalBookings)} of {totalBookings}

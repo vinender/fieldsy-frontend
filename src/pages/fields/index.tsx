@@ -156,10 +156,11 @@ export default function SearchResults() {
   const [likedFields, setLikedFields] = useState<string[]>([]);
 
   // Sort configuration - supports multiple sort fields
+  // No default selection - empty object shows "Sort By" label
   const [sortConfig, setSortConfig] = useState<{
     rating?: 'asc' | 'desc';
     price?: 'asc' | 'desc';
-  }>({ rating: 'desc' });
+  }>({});
 
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
@@ -213,7 +214,10 @@ export default function SearchResults() {
   console.log('Query Params:', queryParams);
   console.log('Applied Filters:', appliedFilters);
 
-  // Nearby fields parameters
+  // Check if any sort is applied
+  const hasSortApplied = Object.keys(sortConfig).length > 0;
+
+  // Nearby fields parameters - include sort if applied
   const nearbyParams: NearbyFieldsParams | null = currentLocation
     ? {
       lat: currentLocation.lat,
@@ -221,6 +225,11 @@ export default function SearchResults() {
       radius: 10,
       page: currentPage,
       limit: 9,
+      // Include sort parameters if configured
+      ...(hasSortApplied && {
+        sortBy: Object.keys(sortConfig).join(','),
+        sortOrder: Object.keys(sortConfig).map(key => sortConfig[key as keyof typeof sortConfig]).join(',')
+      })
     }
     : null;
 
@@ -413,7 +422,7 @@ export default function SearchResults() {
                   </button>
 
                   {sortDropdownOpen && (
-                    <div className="absolute right-0 mt-2 z-20">
+                    <div className="absolute right-0 mt-2 z-20" style={{ width: '300px', minWidth: '300px' }}>
                       <FieldsSortFilter
                         sortConfig={sortConfig}
                         onSortChange={(newSortConfig) => {

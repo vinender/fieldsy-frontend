@@ -447,13 +447,17 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                       <span className="text-dark-green font-medium ">Availability</span>
                     </div>
 
-                    <button onClick={isSubmitted ? undefined : () => {
-                      if (!session) {
-                        router.push('/login');
-                      } else {
-                        router.push(`/fields/book-field?id=${field?._id || field?.id}`);
-                      }
-                    }} className="text-green hover:underline font-semibold">
+                    <button
+                      onClick={(isSubmitted || isPreview) ? undefined : () => {
+                        if (!session) {
+                          router.push('/login');
+                        } else {
+                          router.push(`/fields/book-field?id=${field?._id || field?.id}`);
+                        }
+                      }}
+                      className={`font-semibold ${(isSubmitted || isPreview) ? 'text-green/60 cursor-default' : 'text-green hover:underline cursor-pointer'}`}
+                      disabled={isSubmitted || isPreview}
+                    >
                       Find availability time
                     </button>
                     {/* <div className="text-[#3A6B22] font-semibold">

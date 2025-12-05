@@ -226,6 +226,8 @@ export const authOptions: NextAuthOptions = {
             provider: account.provider,
             providerId: account.providerAccountId,
             role,
+            // Pass the ID token for server-side verification (security)
+            idToken: account.id_token,
           };
           console.log(JSON.stringify(payload, null, 2));
 

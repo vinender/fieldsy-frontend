@@ -58,10 +58,10 @@ export default function BookingRules({ formData, setFormData, validationErrors =
                 className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${validationErrors.rules ? 'border-red-500' : 'border-gray-border'
                   }`}
                 rows={5}
-                maxLength={1000}
+                maxLength={2000}
               />
               <div className="absolute bottom-4 right-4 text-xs text-gray-400 pointer-events-none">
-                {(formData.rules?.length || 0)}/1000
+                {(formData.rules?.length || 0)}/2000
               </div>
               {validationErrors.rules && (
                 <p className="mt-1 text-sm text-red-500 font-sans">
@@ -96,10 +96,10 @@ export default function BookingRules({ formData, setFormData, validationErrors =
                 className={`w-full min-h-[160px] rounded-2xl border bg-white p-4 text-gray-input placeholder:text-gray-400 font-sans focus:border-green focus:outline-none focus:ring-1 focus:ring-green resize-y ${validationErrors.policies ? 'border-red-500' : 'border-gray-border'
                   }`}
                 rows={5}
-                maxLength={1000}
+                maxLength={2000}
               />
               <div className="absolute bottom-4 right-4 text-xs text-gray-400 pointer-events-none">
-                {(formData.policies?.length || 0)}/1000
+                {(formData.policies?.length || 0)}/2000
               </div>
               {validationErrors.policies && (
                 <p className="mt-1 text-sm text-red-500 font-sans">

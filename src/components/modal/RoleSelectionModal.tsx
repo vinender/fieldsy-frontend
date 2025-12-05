@@ -58,7 +58,7 @@ export function RoleSelectionModal({
             >
               <div className="p-4 flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-green/10 flex items-center justify-center flex-shrink-0 group-hover:bg-green/20 transition-colors">
-                  <img src="/login/dog-owner.svg" alt="Dog Owner" className="w-8 h-8" />
+                  <img src="/login/dog-owner-green.svg" alt="Dog Owner" className="w-8 h-8" />
                 </div>
                 <div className="text-left flex-1">
                   <h3 className="font-semibold text-gray-900 mb-1">Dog Owner</h3>
@@ -79,7 +79,7 @@ export function RoleSelectionModal({
             >
               <div className="p-4 flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-green/10 flex items-center justify-center flex-shrink-0 group-hover:bg-green/20 transition-colors">
-                  <img src="/login/field-owner.svg" alt="Field Owner" className="w-8 h-8" />
+                  <img src="/login/field-owner-green.svg" alt="Field Owner" className="w-8 h-8" />
                 </div>
                 <div className="text-left flex-1">
                   <h3 className="font-semibold text-gray-900 mb-1">Field Owner</h3>

@@ -9,7 +9,7 @@ export default async function handler(
   }
 
   try {
-    const { email, name, image, provider, providerId, role: bodyRole } = req.body;
+    const { email, name, image, provider, providerId, role: bodyRole, idToken } = req.body;
 
     console.log('==================== FRONTEND SOCIAL LOGIN API ====================');
     console.log('📥 Received request body:', JSON.stringify(req.body, null, 2));
@@ -20,6 +20,7 @@ export default async function handler(
     console.log('  - Provider:', provider);
     console.log('  - Provider ID:', providerId);
     console.log('  - Role (from body):', bodyRole);
+    console.log('  - ID Token present:', !!idToken);
 
     // Use the role from the request body (will be passed from NextAuth callback)
     let role = bodyRole || 'DOG_OWNER';
@@ -51,6 +52,8 @@ export default async function handler(
       provider,
       providerId,
       role,
+      // Pass ID token for server-side verification (required for Google)
+      idToken,
     };
 
     console.log('\n📤 Sending payload to backend:');
