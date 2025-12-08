@@ -521,11 +521,19 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                   <div className="space-y-3">
                     {/* Reschedule and Cancel buttons */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <button 
+                      <button
                         onClick={() => {
                           if (isCancellable && onReschedule) {
                             onClose();
-                            onReschedule(fullBooking);
+                            // Map API response fields to expected format for RescheduleBookingModal
+                            const mappedBooking = {
+                              ...fullBooking,
+                              time: fullBooking.timeSlot || `${fullBooking.startTime} - ${fullBooking.endTime}`,
+                              dogs: fullBooking.numberOfDogs || fullBooking.dogs,
+                              price: fullBooking.totalPrice || fullBooking.price,
+                              recurring: fullBooking.repeatBooking || fullBooking.recurring || 'None'
+                            };
+                            onReschedule(mappedBooking);
                           }
                         }}
                         disabled={!isCancellable}

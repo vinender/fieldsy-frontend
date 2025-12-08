@@ -411,6 +411,7 @@ const BookFieldPage = () => {
           slots.evening.push(slot);
         }
       });
+      
     } else {
       // Fallback to basic time slot generation if no availability data
       const openingTime = parseTimeString(field?.openingTime || '6:00AM');
