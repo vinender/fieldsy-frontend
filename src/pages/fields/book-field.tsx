@@ -28,6 +28,8 @@ interface TimeSlot {
   selected: boolean;
   isPast?: boolean;
   isBooked?: boolean;
+  isBookedByRecurring?: boolean;
+  recurringInterval?: string;
 }
 
 interface TimeSlots {
@@ -388,6 +390,7 @@ const BookFieldPage = () => {
         const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes <= currentMinutes;
         const isPast = computedIsPast; // Always use client-side computation, ignore slotData.isPast
         const isBooked = Boolean(slotData.isBooked);
+        const isBookedByRecurring = Boolean(slotData.isBookedByRecurring);
         const available = Boolean(slotData.isAvailable) && !isPast && !isBooked;
 
         const slot = {
@@ -395,7 +398,9 @@ const BookFieldPage = () => {
           available,
           selected: selectedTimeSlots.includes(slotData.time),
           isPast,
-          isBooked
+          isBooked,
+          isBookedByRecurring,
+          recurringInterval: slotData.recurringInterval
         };
 
         if (hour < 12) {
@@ -949,7 +954,30 @@ const BookFieldPage = () => {
                     </p>
                   </div>
                 )}
-                
+
+                {/* Slot Legend */}
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-xs font-medium text-gray-700 mb-2">Slot Status:</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded bg-white border border-dark-green/10"></div>
+                      <span className="text-gray-600">Available</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded bg-red-50 border border-red-200"></div>
+                      <span className="text-gray-600">Booked</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded bg-purple-50 border border-purple-200"></div>
+                      <span className="text-gray-600">Recurring</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded bg-gray-100 border border-gray-200"></div>
+                      <span className="text-gray-600">Past</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className={`space-y-[11px] relative ${isRefetchingSlots ? 'opacity-60 pointer-events-none' : ''}`}>
                   {/* Loading overlay */}
                   {isRefetchingSlots && (
@@ -960,7 +988,7 @@ const BookFieldPage = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Morning Section */}
                   {timeSlots.morning.length > 0 && (
                   <div className={`border rounded-[10px] overflow-hidden ${expandedSection === 'morning' ? 'border-dark-green/10 bg-[#FFFCF3]' : 'border-dark-green/10'}`}>
@@ -983,9 +1011,20 @@ const BookFieldPage = () => {
                             <button
                               onClick={() => slot.available && toggleTimeSlot(slot.time)}
                               disabled={!slot.available}
+                              title={
+                                slot.isBookedByRecurring
+                                  ? `Reserved by ${slot.recurringInterval || 'recurring'} booking`
+                                  : slot.isBooked
+                                  ? 'Already booked'
+                                  : slot.isPast
+                                  ? 'Past time slot'
+                                  : ''
+                              }
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                  : slot.isBookedByRecurring
+                                  ? 'bg-purple-50 text-purple-500 border border-purple-200 cursor-not-allowed'
                                   : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
                                   : !slot.available
@@ -1039,9 +1078,20 @@ const BookFieldPage = () => {
                             <button
                               onClick={() => slot.available && toggleTimeSlot(slot.time)}
                               disabled={!slot.available}
+                              title={
+                                slot.isBookedByRecurring
+                                  ? `Reserved by ${slot.recurringInterval || 'recurring'} booking`
+                                  : slot.isBooked
+                                  ? 'Already booked'
+                                  : slot.isPast
+                                  ? 'Past time slot'
+                                  : ''
+                              }
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                  : slot.isBookedByRecurring
+                                  ? 'bg-purple-50 text-purple-500 border border-purple-200 cursor-not-allowed'
                                   : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
                                   : !slot.available
@@ -1095,9 +1145,20 @@ const BookFieldPage = () => {
                             <button
                               onClick={() => slot.available && toggleTimeSlot(slot.time)}
                               disabled={!slot.available}
+                              title={
+                                slot.isBookedByRecurring
+                                  ? `Reserved by ${slot.recurringInterval || 'recurring'} booking`
+                                  : slot.isBooked
+                                  ? 'Already booked'
+                                  : slot.isPast
+                                  ? 'Past time slot'
+                                  : ''
+                              }
                               className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${
                                 slot.isPast
                                   ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                  : slot.isBookedByRecurring
+                                  ? 'bg-purple-50 text-purple-500 border border-purple-200 cursor-not-allowed'
                                   : slot.isBooked
                                   ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
                                   : !slot.available
