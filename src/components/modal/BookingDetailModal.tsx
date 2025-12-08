@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'next/router';
 import { AddReviewModal } from './AddReviewModal';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
-import { getUserImage, getUserInitials } from '@/utils/getUserImage';
+import { getUserInitials } from '@/utils/getUserImage';
 import { useBookingDetails } from '@/hooks/queries/useBookingQueries';
 import { deslugify, formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
@@ -332,14 +332,16 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                         key={`${amenity.label}-${index}`}
                         className="bg-white border border-black/6 rounded-lg sm:rounded-[14px] px-2 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1 sm:gap-2"
                       >
-                        <img
-                          src={amenity.iconPath}
-                          alt={amenity.label}
-                          className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.src = '/field-details/shield.svg';
-                          }}
-                        />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 ">
+                          <img
+                            src={amenity.iconPath}
+                            alt={amenity.label}
+                            className="w-full h-full object-contain fill-green"
+                            onError={(e) => {
+                              e.currentTarget.src = '/field-details/shield.svg';
+                            }}
+                          />
+                        </div>
                         <span className="text-[11px] sm:text-[14px] font-medium text-[#192215] truncate">
                           {amenity.label}
                         </span>
@@ -356,11 +358,13 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                     </h3>
                     <div className="bg-[#f8f1d7] rounded-lg p-2.5 sm:p-3 flex items-center justify-between">
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <img 
-                          src={getUserImage(owner)} 
+                        {/* Show uploaded image or Google image if exists, otherwise show dummy placeholder */}
+                        <img
+                          src={owner?.image || owner?.googleImage || owner?.profileImage || `https://ui-avatars.com/api/?name=${getUserInitials(owner)}&background=3A6B22&color=fff&size=200`}
                           alt={owner?.name || 'Owner'}
                           className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                           onError={(e) => {
+                            // Fallback to ui-avatars if image fails to load
                             e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(owner)}&background=3A6B22&color=fff&size=200`;
                           }}
                         />

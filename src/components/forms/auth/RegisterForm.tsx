@@ -16,9 +16,10 @@ import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 import { socialRoleStore } from "@/lib/auth/social-role-store"
 import { useRegisterWithOtp } from "@/hooks/mutations/useOtpMutations"
 import { useStorePendingRole } from "@/hooks/mutations/useAuthMutations"
+import { validateUKPhoneNumber } from "@/utils/phoneValidation"
 
 
-const registerSchema = z  
+const registerSchema = z
   .object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email"),
@@ -27,8 +28,12 @@ const registerSchema = z
       .optional()
       .refine((val) => {
         if (!val || val.trim() === "") return true;
-        return val.length >= 7 && /^[0-9\s+()-]+$/.test(val);
-      }, "Phone must be at least 7 digits and only contain digits and +()- characters"),
+        const cleanNumber = val.replace(/[\s\-()]/g, '');
+        const validation = validateUKPhoneNumber(cleanNumber);
+        return validation.isValid;
+      }, {
+        message: "Please enter a valid UK phone number (e.g., 07123456789 for mobile or 0123456789 for landline)"
+      }),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -104,13 +109,18 @@ export default function RegisterForm() {
 
   async function onSubmit(values: RegisterFormData) {
     try {
+      // Clean the phone number by removing spaces, dashes, and parentheses
+      const cleanPhone = values.phoneNumber
+        ? values.phoneNumber.replace(/[\s\-()]/g, '')
+        : undefined;
+
       // Use the mutation to register with OTP
       await registerWithOtpMutation.mutateAsync({
         name: values.fullName,
         email: values.email,
         password: values.password,
         role: values.role,
-        phone: values.phoneNumber ? `+44 ${values.phoneNumber}` : undefined,
+        phone: cleanPhone ? `+44${cleanPhone}` : undefined,
       });
     } catch (error) {
       // Error is already handled by the mutation's onError callback
@@ -342,7 +352,7 @@ export default function RegisterForm() {
                       : ''
                   }`}
                  >
-                  <div className={`px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] text-gray-input border border-gray-300 border-r-0 flex items-center transition-colors ${
+                  <div className={`px-4 bg-white py-2 md:py-2.5 rounded-l-[76px] text-gray-input border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} border-r-0 flex items-center transition-colors ${
                     isPhoneFocused
                       ? 'border-green'
                       : ''
@@ -355,26 +365,30 @@ export default function RegisterForm() {
                     placeholder="Enter phone number"
                     {...register("phoneNumber", {
                       onChange: (e) => {
-                        // Only allow numeric input
-                        const value = e.target.value.replace(/\D/g, '');
+                        // Allow digits, spaces, dashes, and parentheses
+                        const value = e.target.value.replace(/[^\d\s\-()]/g, '');
                         e.target.value = value;
                       }
                     })}
                     onFocus={() => setIsPhoneFocused(true)}
                     onBlur={() => setIsPhoneFocused(false)}
-                    className={`flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-r-[76px] rounded-l-none border border-gray-300 border-l-0 focus:outline-none shadow-none hover:border-gray-300 autofill:bg-white transition-colors ${
+                    className={`flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-r-[76px] rounded-l-none border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} border-l-0 focus:outline-none shadow-none hover:border-gray-300 autofill:bg-white transition-colors ${
                       isPhoneFocused
                         ? 'border-green'
                         : ''
                     }`}
                     autoComplete="tel"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    inputMode="tel"
                   />
-                  
+
                 </div>
-                <div className="h-5">
+                <div className="min-h-[20px]">
                   {errors.phoneNumber && <p className="text-xs text-red-600 mt-1">{errors.phoneNumber.message}</p>}
+                  {!errors.phoneNumber && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      UK phone numbers only (e.g., 07123456789)
+                    </p>
+                  )}
                 </div>
             </div>
 

@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { ProfileSkeleton } from '@/components/skeletons/SkeletonComponents';
 import { DeleteProfileImageModal } from '@/components/modal/DeleteProfileImageModal';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
+import { validateUKPhoneNumber, sanitizePhoneInput } from '@/utils/phoneValidation';
 
 const BIO_PREVIEW_LIMIT = 250;
 
@@ -26,6 +27,7 @@ const MyProfilePage = () => {
   const [isPasswordSidebarOpen, setIsPasswordSidebarOpen] = useState(false);
   const [showDeleteImageModal, setShowDeleteImageModal] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [showFullBio, setShowFullBio] = useState(false);
   
   // Fetch profile data
@@ -76,13 +78,18 @@ const MyProfilePage = () => {
   }, [profile?.bio, showFullBio]);
 
   const handleInputChange = (field: string, value: string) => {
-    // For phone number, only allow digits
+    // For phone number, sanitize and validate
     if (field === 'phoneNumber') {
-      const numericValue = value.replace(/\D/g, '');
+      const sanitizedValue = sanitizePhoneInput(value);
       setFormData(prev => ({
         ...prev,
-        [field]: numericValue
+        [field]: sanitizedValue
       }));
+
+      // Clear phone error when user starts typing
+      if (phoneError) {
+        setPhoneError(null);
+      }
     } else {
       setFormData(prev => ({
         ...prev,
@@ -107,20 +114,33 @@ const MyProfilePage = () => {
         return;
       }
 
+      // Validate phone number if provided
+      if (formData.phoneNumber && formData.phoneNumber.trim()) {
+        const cleanPhoneNumber = formData.phoneNumber.replace(/[\s\-()]/g, '');
+        const validation = validateUKPhoneNumber(cleanPhoneNumber);
+
+        if (!validation.isValid) {
+          setPhoneError(validation.error || 'Invalid phone number');
+          toast.error(validation.error || 'Invalid phone number');
+          return;
+        }
+      }
+
       const updates: any = {};
-      
+
       if (trimmedName !== (profile?.name || '').trim()) {
         updates.name = trimmedName;
       }
-      
+
       if (formData.phoneNumber && formData.phoneNumber !== profile?.phone?.replace('+44', '').trim()) {
-        updates.phone = `${formData.countryCode}${formData.phoneNumber}`;
+        const cleanPhoneNumber = formData.phoneNumber.replace(/[\s\-()]/g, '');
+        updates.phone = `${formData.countryCode}${cleanPhoneNumber}`;
       }
-      
+
       if (formData.bio !== profile?.bio) {
         updates.bio = formData.bio;
       }
-      
+
       if (Object.keys(updates).length > 0) {
         await updateProfileMutation.mutateAsync(updates);
       } else {
@@ -392,7 +412,7 @@ const MyProfilePage = () => {
                   Phone Number
                 </label>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 h-12 sm:h-14 px-3 sm:px-4 bg-white border border-[#e3e3e3] rounded-full">
+                  <div className={`flex items-center flex-1 h-12 sm:h-14 px-3 sm:px-4 bg-white border rounded-full ${phoneError ? 'border-red-500' : 'border-[#e3e3e3]'}`}>
                     <div className="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-3 border-r border-[#8d8d8d]">
                       <span className="text-sm sm:text-[15px] text-[#192215]">{formData.countryCode}</span>
                       {/* <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#192215]" /> */}
@@ -426,6 +446,14 @@ const MyProfilePage = () => {
                     </button>
                   )}
                 </div>
+                {phoneError && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {phoneError}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  UK phone numbers only (e.g., 07123456789 for mobile or 0123456789 for landline)
+                </p>
               </div>
 
               {/* Bio */}

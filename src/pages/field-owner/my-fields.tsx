@@ -142,7 +142,7 @@ export default function MyFieldsPage() {
               onClick={handleAddNewField}
               className="px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
             >
-              Add Your First Field
+              {/* Add Your First Field */}
             </button>
           </div>
         ) : (
@@ -210,16 +210,19 @@ export default function MyFieldsPage() {
                             )}
                           </button>
                         )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewField(field.id);
-                          }}
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
-                          title="Preview"
-                        >
-                          <Eye className="w-5 h-5" />
-                        </button>
+                        {/* Preview - only show when field is submitted */}
+                        {isSubmitted && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewField(field.id);
+                            }}
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                            title="Preview"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

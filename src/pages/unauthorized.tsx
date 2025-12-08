@@ -30,11 +30,11 @@ export default function UnauthorizedPage() {
             )}
           </p>
           
-          <div className="space-y-4">
+          <div className="space-y-4 ">
             {session?.user?.role === 'DOG_OWNER' && (
               <>
                 <Link href="/fields/search">
-                  <button className="w-full py-3 px-4 rounded-full bg-green text-white font-medium hover:opacity-90 transition-opacity">
+                  <button className="w-full py-3 px-4 my-2 rounded-full bg-green text-white font-medium hover:opacity-90 transition-opacity">
                     Search Fields
                   </button>
                 </Link>
@@ -49,12 +49,12 @@ export default function UnauthorizedPage() {
              {session?.user?.role === 'FIELD_OWNER' && (
               <>
                 <Link href="/">
-                  <button className="w-full py-3 px-4 rounded-full bg-green text-white font-medium hover:opacity-90 transition-opacity">
+                  <button className="w-full py-3 px-4 my-2 rounded-full bg-green text-white font-medium hover:opacity-90 transition-opacity">
                     Field Owner Dashboard
                   </button>
                 </Link>
                 <Link href="/">
-                  <button className="w-full py-3 px-4 rounded-full border-2 border-green text-green font-medium hover:bg-green hover:text-white transition-all">
+                  <button className="w-full py-3 px-4 my-2 rounded-full border-2 border-green text-green font-medium hover:bg-green hover:text-white transition-all">
                     Add New Field
                   </button>
                 </Link>
@@ -62,7 +62,7 @@ export default function UnauthorizedPage() {
             )}
             
             <Link href="/">
-              <button className="w-full py-3 px-4 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+              <button className="w-full py-3 my-2 px-4 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
                 Go to Homepage      
                 
               </button>
