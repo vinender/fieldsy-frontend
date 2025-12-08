@@ -47,6 +47,7 @@ function FieldSearchInputComponent({
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const previousSearchQuery = useRef<string>('');
   const nextRouter = useRouter(); // Direct Next.js router (no loader)
   const router = useResponsiveRouter(); // Router with loader for search navigation
 
@@ -270,11 +271,23 @@ function FieldSearchInputComponent({
         type="text"
         value={searchQuery}
         onChange={(e) => {
-          setSearchQuery(e.target.value);
+          const newValue = e.target.value;
+          const previousValue = previousSearchQuery.current;
+
+          setSearchQuery(newValue);
+
+          // If user cleared the input (was not empty, now is empty) and on fields page
+          if (previousValue && !newValue.trim() && nextRouter.pathname === '/fields' && onSearch) {
+            onSearch(''); // Reset search
+          }
+
+          // Update ref for next comparison
+          previousSearchQuery.current = newValue;
+
           // Show dropdown immediately when typing
-          if (e.target.value.trim().length >= 2) {
+          if (newValue.trim().length >= 2) {
             setShowDropdown(true);
-          } else if (e.target.value.trim().length === 0 && showRecentSearches && recentSearches.length > 0) {
+          } else if (newValue.trim().length === 0 && showRecentSearches && recentSearches.length > 0) {
             setShowDropdown(true);
           } else {
             setShowDropdown(false);

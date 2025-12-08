@@ -997,7 +997,7 @@ const BookFieldPage = () => {
                                   : !slot.available
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
                                   : selectedTimeSlots.includes(slot.time)
-                                  ? 'bg-[#8FB366] text-white pr-7'
+                                  ? 'bg-[#8FB366] text-white'
                                   : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                               }`}
                             >
@@ -1053,7 +1053,7 @@ const BookFieldPage = () => {
                                   : !slot.available
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
                                   : selectedTimeSlots.includes(slot.time)
-                                  ? 'bg-[#8FB366] text-white pr-7'
+                                  ? 'bg-[#8FB366] text-white'
                                   : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                               }`}
                             >
@@ -1109,7 +1109,7 @@ const BookFieldPage = () => {
                                   : !slot.available
                                   ? 'bg-[#FFFCF3] text-dark-green opacity-50 border border-dark-green/10 cursor-not-allowed'
                                   : selectedTimeSlots.includes(slot.time)
-                                  ? 'bg-[#8FB366] text-white pr-7'
+                                  ? 'bg-[#8FB366] text-white'
                                   : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                               }`}
                             >
