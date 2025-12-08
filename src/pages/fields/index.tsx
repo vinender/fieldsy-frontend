@@ -14,6 +14,7 @@ import { useFields, FieldsParams, useNearbyFields, usePriceRange } from '@/hooks
 import { NearbyFieldsParams } from '@/lib/api/fields';
 import { useLocation } from '@/contexts/LocationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { detectPostcodeInQuery } from '@/utils/postcode';
 
 
 export default function SearchResults() {
@@ -343,7 +344,30 @@ export default function SearchResults() {
             placeholder="Search by field name, location, or postal code"
             className="w-full pl-4 pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
             onSearch={(query) => {
-              setSearchValue(query);
+              if (!query || query.trim() === '') {
+                // Reset all search parameters when query is cleared
+                setSearchValue('');
+                setZipCode('');
+                setLat(undefined);
+                setLng(undefined);
+                setCurrentPage(1);
+              } else {
+                // Detect if query is a postcode or regular search
+                const postcodeInfo = detectPostcodeInQuery(query);
+
+                if (postcodeInfo.isPostcode) {
+                  // Set as zipCode search
+                  setZipCode(postcodeInfo.formatted || query);
+                  setSearchValue('');
+                } else {
+                  // Set as regular search
+                  setSearchValue(query);
+                  setZipCode('');
+                }
+                setLat(undefined);
+                setLng(undefined);
+                setCurrentPage(1);
+              }
               handleSearch();
             }}
             showRecentSearches={true}
@@ -389,7 +413,7 @@ export default function SearchResults() {
                 <div className="flex flex-col gap-1 flex-1 w-full">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
-                      {activeIsLoading ? 'Loading...' : shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
+                      {shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
                     </h1>
                     {shouldUseNearbyFields && hasNearbyResults && locationDisplay && (
                       <span className="text-sm text-dark-green/70 truncate max-w-full sm:max-w-[360px]">

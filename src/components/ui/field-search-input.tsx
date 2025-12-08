@@ -204,21 +204,29 @@ function FieldSearchInputComponent({
     saveSearchToHistory(searchTerm);
     setShowDropdown(false);
 
-    // Navigate to fields page with search parameters
-    const searchParams = new URLSearchParams();
+    // Check if we're already on the /fields page
+    const isOnFieldsPage = nextRouter.pathname === '/fields';
 
-    // Check if it's a UK postcode
-    if (postcodeInfo.isPostcode) {
-      // Use formatted postcode for search
-      searchParams.append('zipCode', postcodeInfo.formatted || searchTerm.trim());
-    } else {
-      searchParams.append('search', searchTerm.trim());
-    }
-
-    router.push(`/fields?${searchParams.toString()}`);
-
-    if (onSearch) {
+    if (isOnFieldsPage && onSearch) {
+      // If already on fields page, just call onSearch callback to update the list
       onSearch(postcodeInfo.formatted || searchTerm);
+    } else {
+      // Navigate to fields page with search parameters
+      const searchParams = new URLSearchParams();
+
+      // Check if it's a UK postcode
+      if (postcodeInfo.isPostcode) {
+        // Use formatted postcode for search
+        searchParams.append('zipCode', postcodeInfo.formatted || searchTerm.trim());
+      } else {
+        searchParams.append('search', searchTerm.trim());
+      }
+
+      router.push(`/fields?${searchParams.toString()}`);
+
+      if (onSearch) {
+        onSearch(postcodeInfo.formatted || searchTerm);
+      }
     }
   };
 
@@ -300,6 +308,10 @@ function FieldSearchInputComponent({
               setSearchQuery('');
               setSuggestions([]);
               setShowDropdown(false);
+              // Call onSearch with empty string to reset search when on fields page
+              if (nextRouter.pathname === '/fields' && onSearch) {
+                onSearch('');
+              }
             }}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition"
             aria-label="Clear search"

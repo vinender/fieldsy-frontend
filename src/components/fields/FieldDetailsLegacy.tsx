@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useFieldReviews } from '@/hooks/useReviews';
@@ -212,10 +213,14 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
                         aria-label={`Open image ${index + 1}`}
                       >
-                        <img
+                        <Image
                           src={img}
                           alt={`Field view ${index + 1}`}
-                          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${showMoreButton ? 'brightness-75' : ''
+                          fill
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                          priority={index === 0}
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                          className={`object-cover group-hover:scale-105 transition-transform duration-300 ${showMoreButton ? 'brightness-75' : ''
                             }`}
                         />
                         {showMoreButton && (
