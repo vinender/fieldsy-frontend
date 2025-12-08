@@ -32,6 +32,8 @@ const PaymentPage = () => {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showRefreshWarning, setShowRefreshWarning] = useState(false);
+  const [slotsUnavailable, setSlotsUnavailable] = useState(false);
 
   // Parse time slots from query (JSON string array)
   const timeSlots: string[] = React.useMemo(() => {
@@ -98,6 +100,45 @@ const PaymentPage = () => {
       }
     }
   }, [paymentMethods]);
+
+  // Handle page refresh detection and slot availability check
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    // Check if page was refreshed (navigationMode will be reload)
+    const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming;
+    const wasRefreshed = navigationEntry?.type === 'reload';
+
+    if (wasRefreshed && field_id && date && timeSlots.length > 0) {
+      // Show warning modal
+      setShowRefreshWarning(true);
+
+      // Check slot availability
+      if (availabilityData?.slots) {
+        const allSlotsAvailable = timeSlots.every(selectedSlot => {
+          const slot = availabilityData.slots.find((s: any) => s.slotTime === selectedSlot);
+          return slot && slot.available && !slot.isBooked;
+        });
+
+        if (!allSlotsAvailable) {
+          setSlotsUnavailable(true);
+        }
+      }
+    }
+  }, [router.isReady, field_id, date, timeSlots, availabilityData]);
+
+  // Add beforeunload warning when user tries to leave the page
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isProcessingPayment) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isProcessingPayment]);
   
   if (error || (!field && !isLoading)) {
     return (
@@ -509,6 +550,68 @@ const PaymentPage = () => {
         refetchCards();
       }}
     />
+
+    {/* Page Refresh Warning Modal */}
+    {showRefreshWarning && (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+          <div className="flex flex-col items-center text-center">
+            <div className={`w-16 h-16 ${slotsUnavailable ? 'bg-red-100' : 'bg-yellow-100'} rounded-full flex items-center justify-center mb-4`}>
+              <svg
+                className={`w-8 h-8 ${slotsUnavailable ? 'text-red-600' : 'text-yellow-600'}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {slotsUnavailable ? 'Time Slots No Longer Available' : 'Page Was Refreshed'}
+            </h3>
+
+            <p className="text-gray-600 mb-6">
+              {slotsUnavailable
+                ? 'The time slots you selected are no longer available. Please go back and select different time slots.'
+                : 'Refreshing this page may cause issues with your booking. It\'s recommended to start the booking process again to ensure your selected time slots are still available.'
+              }
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              {slotsUnavailable ? (
+                <button
+                  onClick={() => router.push(`/fields/book-field?field_id=${field_id}`)}
+                  className="flex-1 bg-[#3A6B22] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#2d5419] transition"
+                >
+                  Select New Slots
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowRefreshWarning(false)}
+                    className="flex-1 bg-gray-200 text-gray-800 px-6 py-3 rounded-full font-semibold hover:bg-gray-300 transition"
+                  >
+                    Continue Anyway
+                  </button>
+                  <button
+                    onClick={() => router.push(`/fields/book-field?field_id=${field_id}`)}
+                    className="flex-1 bg-[#3A6B22] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#2d5419] transition"
+                  >
+                    Start Over
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Processing Overlay - Disable cursor and interaction during payment */}
     {isProcessingPayment && (
