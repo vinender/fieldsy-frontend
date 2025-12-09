@@ -77,13 +77,13 @@ export  function HowItWorksSection() {
                 <div
                   key={index}
                   onMouseEnter={() => setActiveStep(index)}
-                  className={`p-6 rounded-2xl transition-all border  shadow-sm duration-300 cursor-pointer ${
+                  className={`p-6 rounded-2xl transition-all border   shadow-sm duration-300 cursor-pointer ${
                     activeStep === index
                       ? 'bg-cream shadow-lg'
                       : 'bg-white/50 hover:bg-white/70'
                   }`}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 group rounded-xl flex items-center justify-center text-2xl transition-all duration-300 ${
                       activeStep === index
                         ? 'text-white '

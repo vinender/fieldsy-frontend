@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { getAmenityLabel } from '@/utils/formatters'
 
@@ -27,6 +27,43 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
     date: "",
     availability: ""
   })
+
+  // Calculate which availability options should be disabled based on selected date
+  const availabilityStatus = useMemo(() => {
+    if (!filters.date) {
+      return { morning: false, afternoon: false, evening: false }
+    }
+
+    const selectedDate = new Date(filters.date)
+    const today = new Date()
+
+    // Normalize dates to midnight for comparison
+    selectedDate.setHours(0, 0, 0, 0)
+    today.setHours(0, 0, 0, 0)
+
+    // If selected date is in the past, disable all options
+    if (selectedDate < today) {
+      return { morning: true, afternoon: true, evening: true }
+    }
+
+    // If selected date is in the future, enable all options
+    if (selectedDate > today) {
+      return { morning: false, afternoon: false, evening: false }
+    }
+
+    // If selected date is today, disable past time periods
+    const currentHour = new Date().getHours()
+
+    // Morning: 6 AM - 12 PM
+    // Afternoon: 12 PM - 5 PM
+    // Evening: 5 PM - 10 PM
+
+    return {
+      morning: currentHour >= 12, // Disable if it's past noon
+      afternoon: currentHour >= 17, // Disable if it's past 5 PM
+      evening: currentHour >= 22, // Disable if it's past 10 PM
+    }
+  }, [filters.date])
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
@@ -296,16 +333,55 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
         {expandedSections.availability && (
           <div className="mt-3 space-y-2">
             <div className="grid grid-cols-3 gap-2">
-              <button className="px-2 py-1 text-[11px] border border-gray-300 rounded-full hover:bg-gray-50">
+              <button
+                disabled={availabilityStatus.morning}
+                onClick={() => handleFilterChange({ availability: filters.availability === 'Morning' ? '' : 'Morning' })}
+                className={`px-2 py-1 text-[11px] border rounded-full transition-all ${
+                  availabilityStatus.morning
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : filters.availability === 'Morning'
+                    ? 'border-[#3a6b22] bg-[#3a6b22] text-white'
+                    : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
                 Morning
               </button>
-              <button className="px-2 py-1 text-[11px] border border-gray-300 rounded-full hover:bg-gray-50">
+              <button
+                disabled={availabilityStatus.afternoon}
+                onClick={() => handleFilterChange({ availability: filters.availability === 'Afternoon' ? '' : 'Afternoon' })}
+                className={`px-2 py-1 text-[11px] border rounded-full transition-all ${
+                  availabilityStatus.afternoon
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : filters.availability === 'Afternoon'
+                    ? 'border-[#3a6b22] bg-[#3a6b22] text-white'
+                    : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
                 Afternoon
               </button>
-              <button className="px-2 py-1 text-[11px] border border-gray-300 rounded-full hover:bg-gray-50">
+              <button
+                disabled={availabilityStatus.evening}
+                onClick={() => handleFilterChange({ availability: filters.availability === 'Evening' ? '' : 'Evening' })}
+                className={`px-2 py-1 text-[11px] border rounded-full transition-all ${
+                  availabilityStatus.evening
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : filters.availability === 'Evening'
+                    ? 'border-[#3a6b22] bg-[#3a6b22] text-white'
+                    : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
                 Evening
               </button>
             </div>
+            {filters.date && (
+              <p className="text-[10px] text-gray-500 mt-2">
+                {availabilityStatus.morning && availabilityStatus.afternoon && availabilityStatus.evening
+                  ? 'All time slots have passed for this date'
+                  : availabilityStatus.morning || availabilityStatus.afternoon || availabilityStatus.evening
+                  ? 'Some time slots are disabled (already passed)'
+                  : ''}
+              </p>
+            )}
           </div>
         )}
       </div>
