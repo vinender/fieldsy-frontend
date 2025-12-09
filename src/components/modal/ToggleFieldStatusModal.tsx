@@ -27,7 +27,7 @@ export const ToggleFieldStatusModal: React.FC<ToggleFieldStatusModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md relative">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md relative overflow-visible">
         {/* Loading Overlay */}
         {isLoading && (
           <div className="absolute inset-0 bg-white/90 rounded-2xl sm:rounded-3xl flex items-center justify-center z-10">
@@ -50,9 +50,9 @@ export const ToggleFieldStatusModal: React.FC<ToggleFieldStatusModalProps> = ({
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+          <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
         </button>
 
         {/* Modal Content */}

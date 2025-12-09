@@ -111,12 +111,12 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
   const prevIndex = index === 0 ? images.length - 1 : index - 1
   const nextIndex = index === images.length - 1 ? 0 : index + 1
 
-  return (  
+  return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-w-[95vw] sm:max-w-5xl p-0 overflow-hidden  border-none rounded-2xl">
-        {/* Custom close button with white background in top right */}
-        <DialogClose className="absolute -right-0 -top-0  z-50 rounded-full bg-gray-50 p-2 opacity-90 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/90">
-          <X className="h-5 w-5 text-black" />
+      <DialogContent showCloseButton={false} className="max-w-[95vw] sm:max-w-5xl p-0 overflow-visible border-none rounded-2xl">
+        {/* Custom close button - Half inside, half outside at top right */}
+        <DialogClose className="absolute -right-4 -top-4 sm:-right-2 sm:-top-2 z-50 w-10 h-10 rounded-full outline-none bg-white flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors focus:outline-none ">
+          <X className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
           <span className="sr-only">Close</span>
         </DialogClose>
 

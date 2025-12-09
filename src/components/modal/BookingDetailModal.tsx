@@ -239,26 +239,28 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
     <>
       {/* Overlay with fade-in animation */}
       <div
-        className="fixed inset-0 bg-black/80 z-50 animate-[fadeIn_200ms_ease-out]"
+        className="fixed inset-0 bg-black/80 z-50 "
         onClick={onClose}
       />
 
       {/* Modal with slide-up and scale animation */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
         <div
-          className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] flex flex-col overflow-hidden relative animate-[modalSlideIn_100ms_ease-out_forwards]"
+          className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] flex flex-col overflow-visible relative animate-[modalSlideIn_100ms_ease-out_forwards]"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close Button - Fixed Position */}
+          {/* Close Button - Half inside, half outside */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 sm:right-6 sm:top-6 lg:right-8 lg:top-8 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-[#19221519] hover:bg-gray-50 transition-colors"
+            className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-[60] w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 hover:bg-gray-50 transition-colors shadow-lg"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
           </button>
 
+          {/* Scrollable Content Wrapper */}
+          <div className="overflow-y-auto scrollbar-hide max-h-[90vh]">
           {/* Content */}
-          <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto scrollbar-hide flex-1">
+          <div className="p-4 sm:p-6 lg:p-8">
             {isLoading ? (
               <div className="flex justify-center items-center py-12">
                 <Spinner size="md" />
@@ -619,9 +621,10 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
               </>
             )}
           </div>
+          </div>
         </div>
       </div>
-      
+
       {/* Add Review Modal */}
       <AddReviewModal
         isOpen={isReviewModalOpen}

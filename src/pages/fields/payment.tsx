@@ -101,15 +101,27 @@ const PaymentPage = () => {
     }
   }, [paymentMethods]);
 
+  // Mark that user came from booking page (normal flow)
+  useEffect(() => {
+    if (router.isReady && field_id) {
+      // Set a flag that user is on payment page via normal flow
+      sessionStorage.setItem('payment_page_normal_flow', 'true');
+    }
+  }, [router.isReady, field_id]);
+
   // Handle page refresh detection and slot availability check
   useEffect(() => {
     if (!router.isReady) return;
+
+    // Check if this is the first visit to payment page in this flow
+    const isNormalFlow = sessionStorage.getItem('payment_page_normal_flow') === 'true';
 
     // Check if page was refreshed (navigationMode will be reload)
     const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming;
     const wasRefreshed = navigationEntry?.type === 'reload';
 
-    if (wasRefreshed && field_id && date && timeSlots.length > 0) {
+    // Only show warning if page was actually refreshed (not normal navigation)
+    if (wasRefreshed && !isNormalFlow && field_id && date && timeSlots.length > 0) {
       // Show warning modal
       setShowRefreshWarning(true);
 
@@ -124,6 +136,11 @@ const PaymentPage = () => {
           setSlotsUnavailable(true);
         }
       }
+    }
+
+    // Clear the flag after first check to detect subsequent refreshes
+    if (isNormalFlow) {
+      sessionStorage.removeItem('payment_page_normal_flow');
     }
   }, [router.isReady, field_id, date, timeSlots, availabilityData]);
 
@@ -472,6 +489,22 @@ const PaymentPage = () => {
                             setShowAddCardModal(true);
                             return;
                           }
+
+                          // Check slot availability before proceeding to payment
+                          if (availabilityData?.slots && timeSlots.length > 0) {
+                            const allSlotsAvailable = timeSlots.every(selectedSlot => {
+                              const slot = availabilityData.slots.find((s: any) => s.slotTime === selectedSlot);
+                              return slot && slot.available && !slot.isBooked;
+                            });
+
+                            if (!allSlotsAvailable) {
+                              toast.error('One or more selected time slots are no longer available');
+                              setSlotsUnavailable(true);
+                              setShowRefreshWarning(true);
+                              return;
+                            }
+                          }
+
                           setShowStripeCheckout(true);
                         }}
                         className="w-full sm:w-64 h-12 sm:h-14 bg-[#3A6B22] text-white rounded-full font-bold text-sm sm:text-[16px] hover:bg-[#2D5A1B] transition-colors">

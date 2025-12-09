@@ -240,10 +240,10 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto no-scrollbar p-4 sm:p-6 relative">
-        {/* Loading Overlay */}
+      <div className="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full no-scrollbar p-4 sm:p-6 relative overflow-visible">
+        {/* Loading Overlay - Covers entire modal */}
         {cancelBookingMutation.isPending && (
-          <div className="absolute inset-0 bg-white bg-opacity-90 rounded-xl sm:rounded-2xl flex items-center justify-center z-10">
+          <div className="absolute inset-0 bg-white bg-opacity-95 rounded-xl sm:rounded-2xl flex items-center justify-center z-40">
             <div className="text-center">
               <div className="flex justify-center mb-3">
                 <Spinner size="lg" />
@@ -254,14 +254,17 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           </div>
         )}
 
-        {/* Close Button */}
+        {/* Close Button - Half inside, half outside */}
         <button
           onClick={onClose}
           disabled={cancelBookingMutation.isPending}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute -top-4 -right-4 sm:-top-5 sm:-right-5 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-50"
         >
-          <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+          <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
         </button>
+
+        {/* Scrollable Content Wrapper */}
+        <div className="max-h-[80vh] overflow-y-auto no-scrollbar">
 
         {/* Title */}
         <h2 className="text-xl sm:text-2xl font-bold text-[#192215] mb-3 sm:mb-4 pr-8">Cancel Booking</h2>
@@ -385,6 +388,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
             Our {cancellationWindowHours}-hour advance booking policy: Only bookings made at least {cancellationWindowHours} hours in advance are eligible for refunds upon cancellation.
             If you book less than {cancellationWindowHours} hours before your scheduled time, the booking is non-refundable.
           </p>
+        </div>
         </div>
       </div>
     </div>

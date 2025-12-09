@@ -158,16 +158,18 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8 overflow-visible">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
+        >
+          <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
+        </button>
+
         {/* Header */}
         <div className="flex items-center justify-between p-5 sm:p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-dark-green">Contact Support</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
         </div>
 
         {/* Form */}

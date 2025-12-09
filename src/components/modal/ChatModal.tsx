@@ -278,9 +278,9 @@ export default function ChatModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg h-[600px] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl w-full max-w-lg h-[600px] flex flex-col overflow-visible">
         {/* Header */}
-        <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+        <div className="bg-white border-b px-4 py-3 flex items-center justify-between relative">
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
@@ -315,9 +315,9 @@ export default function ChatModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
 

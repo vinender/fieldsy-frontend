@@ -76,11 +76,15 @@ export function Footer() {
             <ul className="space-y-5 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li className="flex items-start sm:items-center space-x-3">
                 <img src="/footer/call.svg" alt="Call" width={40} height={40} className="w-10 h-10" />
-                <span className="text-white/80 break-all sm:break-normal">+44 854 635 4582</span>
+                <a href="tel:+448546354582" className="text-white/80 break-all sm:break-normal hover:text-white transition-colors">
+                  +44 854 635 4582
+                </a>
               </li>
               <li className="flex items-start sm:items-center space-x-3">
                 <img src="/footer/msg.svg" alt="Email" width={40} height={40} className="w-10 h-10" />
-                <span className="text-white/80 break-all sm:break-normal">fieldsyz@gmail.com</span>
+                <a href="mailto:fieldsyz@gmail.com" className="text-white/80 break-all sm:break-normal hover:text-white transition-colors">
+                  fieldsyz@gmail.com
+                </a>
               </li>
               <li className="flex items-start space-x-3">
                 <img src="/footer/gps.svg" alt="Location" width={40} height={40} className="w-10 h-10" />

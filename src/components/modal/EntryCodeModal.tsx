@@ -56,16 +56,18 @@ export const EntryCodeModal: React.FC<EntryCodeModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl scale-100 animate-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl scale-100 animate-in zoom-in-95 duration-200 relative overflow-visible">
+                {/* Close Button */}
+                <button
+                    onClick={onClose}
+                    className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
+                    disabled={isLoading}
+                >
+                    <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
+                </button>
+
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-bold text-gray-900">Field Entry Code</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
-                        disabled={isLoading}
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
                 </div>
 
                 <form onSubmit={handleSubmit}>

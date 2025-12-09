@@ -14,12 +14,12 @@ export const BookingSuccessModal = ({ isOpen = true, onClose, onCheckHistory, on
       
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="relative bg-white rounded-[20px] sm:rounded-[32px] w-full max-w-[800px] min-h-[400px] sm:min-h-[500px] lg:h-[546px] border border-[#192215]/10 shadow-[0px_22px_70px_0px_rgba(0,0,0,0.06)]">
+        <div className="relative bg-white rounded-[20px] sm:rounded-[32px] w-full max-w-[800px] min-h-[400px] sm:min-h-[500px] lg:h-[546px] border border-[#192215]/10 shadow-[0px_22px_70px_0px_rgba(0,0,0,0.06)] overflow-visible">
           
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute -top-2  -right-2  w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-[#192215]/10 shadow-[0px_6px_16px_0px_rgba(0,0,0,0.1)] hover:bg-gray-50 transition-colors z-10"
+            className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
           </button>

@@ -137,15 +137,25 @@ export default function ReportUserModal({
       />
       
       {/* Modal */}
-      <div 
+      <div
         ref={modalRef}
-        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
-        style={{ 
+        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-visible"
+        style={{
           borderRadius: '32px',
           boxShadow: '0px 22px 70px 0px rgba(0,0,0,0.06)'
         }}
       >
-        <div className="p-10">
+        {/* Close Button */}
+        <button
+          onClick={handleCancel}
+          className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="p-10 overflow-y-auto max-h-[calc(90vh-2rem)]">
           {/* Modal Content */}
           <div className="flex flex-col gap-8">
             {/* Header */}

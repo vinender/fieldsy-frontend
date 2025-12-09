@@ -105,13 +105,13 @@ export const AddReviewModal = ({
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-[32px] max-w-[800px] w-full relative animate-in fade-in zoom-in duration-300">
-          {/* Close Button */}
+        <div className="bg-white rounded-[32px] max-w-[800px] w-full relative overflow-visible animate-in fade-in zoom-in duration-300">
+          {/* Close Button - Half inside, half outside */}
           <button
             onClick={onClose}
-            className="absolute right-8 top-8 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center border border-[#19221519] hover:bg-gray-50 transition-colors"
+            className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
           >
-            <X className="w-6 h-6 text-[#192215]" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
           </button>
 
           {/* Content */}
