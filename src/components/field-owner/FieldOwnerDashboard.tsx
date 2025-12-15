@@ -97,8 +97,6 @@ function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
 
 
 
-
-
 // Main Component
 export default function AddYourField() {
   const router = useRouter();
@@ -208,6 +206,7 @@ export default function AddYourField() {
   // Check if this is first-time field owner (no existing fields)
   const isFirstTimeFieldOwner = !fieldData && !isAddNewMode && !isEditMode;
 
+
   // Check if current section has been completed
   const isCurrentSectionCompleted = () => {
     if (!fieldData) return false;
@@ -222,6 +221,7 @@ export default function AddYourField() {
     return sectionMap[activeSection] || false;
   };
 
+  
   // Set initial active section from query parameter
   useEffect(() => {
     if (stepFromQuery) {

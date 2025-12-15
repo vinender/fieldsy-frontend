@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { X, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { useCheckRefundEligibility } from '@/hooks/useBookingApi';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { useCancelBooking } from '@/hooks/mutations/useBookingMutations';
 import { toast } from 'sonner';
-import Spinner from '@/components/ui/Spinner';
+
+// Inline spinner component for use within modals (doesn't use full-page Spinner)
+const InlineSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg'; className?: string }> = ({
+  size = 'md',
+  className = ''
+}) => {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12'
+  };
+
+  return (
+    <Loader2 className={`${sizeClasses[size]} animate-spin text-[#3a6b22] ${className}`} />
+  );
+};
 
 // Format date to DD/MM/YYYY
 const formatDate = (dateString: string): string => {
@@ -246,7 +261,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           <div className="absolute inset-0 bg-white bg-opacity-95 rounded-xl sm:rounded-2xl flex items-center justify-center z-40">
             <div className="text-center">
               <div className="flex justify-center mb-3">
-                <Spinner size="lg" />
+                <InlineSpinner size="lg" />
               </div>
               <p className="text-sm sm:text-base font-semibold text-[#192215]">Cancelling your booking...</p>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">Please wait</p>
@@ -308,7 +323,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         {/* Refund Eligibility Status */}
         {checkingEligibility ? (
           <div className="flex items-center justify-center py-3 sm:py-4">
-            <Spinner size="md" />
+            <InlineSpinner size="md" />
           </div>
         ) : (
           <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${isRefundEligible
@@ -372,7 +387,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
           >
             {cancelBookingMutation.isPending ? (
               <>
-                <Spinner size="sm" />
+                <InlineSpinner size="sm" />
                 <span>Cancelling...</span>
               </>
             ) : (

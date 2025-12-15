@@ -28,8 +28,7 @@ import { formatAmenities, formatDateDDMMYYYY } from '@/utils/formatters';
 import { calculateDistance, formatDistance } from '@/utils/location';
 import { toast } from 'sonner';
 import { getAmenityBySlug, mapAmenityConfigs } from '@/config/amenities.config';
-import AmenityIcon from '@/components/common/AmenityIcon';
-import { useCancellationWindow } from '@/hooks/usePublicSettings';
+ import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { BookingCardSkeleton } from '@/components/skeletons/SkeletonComponents';
 
 
@@ -144,6 +143,15 @@ const BookingHistoryPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Track if any modal is open or about to open (used to prevent showing loading state during modal operations)
+  // Include booking objects to catch the moment between setting booking and opening modal
+  const isAnyModalOpenOrPending = isCancelModalOpen || isRescheduleModalOpen || isReviewModalOpen || isModalOpen ||
+    bookingToCancel !== null || bookingToReschedule !== null || bookingToReview !== null;
+
+  // Using a ref ensures we always have the latest value in async functions
+  const isAnyModalOpenRef = React.useRef(false);
+  isAnyModalOpenRef.current = isAnyModalOpenOrPending;
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
@@ -229,8 +237,11 @@ const BookingHistoryPage = () => {
     }
   }, [router.query, bookings, isModalOpen]);
 
-  const fetchBookings = async () => {
-    setLoading(true);
+  const fetchBookings = async (showLoading = true) => {
+    // Only show loading state if no modal is open (prevents full page refresh when modal triggers refetch)
+    if (showLoading && !isAnyModalOpenRef.current) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -455,9 +466,9 @@ const BookingHistoryPage = () => {
           setIsCancelModalOpen(false);
           setBookingToCancel(null);
 
-          // Also refresh from server to ensure consistency
+          // Also refresh from server in background to ensure consistency (no loading state)
           setTimeout(() => {
-            fetchBookings();
+            fetchBookings(false);
           }, 500);
         },
         onError: (error: any) => {
@@ -482,9 +493,9 @@ const BookingHistoryPage = () => {
           setIsRescheduleModalOpen(false);
           setBookingToReschedule(null);
 
-          // Refresh bookings to show updated data
+          // Refresh bookings in background to show updated data (no loading state)
           setTimeout(() => {
-            fetchBookings();
+            fetchBookings(false);
           }, 500);
         },
         onError: (error: any) => {
@@ -539,15 +550,11 @@ const BookingHistoryPage = () => {
         );
 
         if (response.ok) {
-          toast.success(
-            immediately
-              ? 'Recurring booking cancelled immediately'
-              : 'Recurring booking will be cancelled at the end of the current billing period',
-            { position: 'top-center' }
-          );
+          // Note: Success toast is handled by NotificationContext via socket notification
+          // Don't show a duplicate toast here
           setShowCancelSubModal(false);
-          // Refresh bookings to show updated data
-          fetchBookings();
+          // Refresh bookings in background to show updated data (no loading state)
+          fetchBookings(false);
         } else {
           const errorData = await response.json();
           toast.error(errorData.message || 'Failed to cancel recurring booking', {
@@ -961,7 +968,7 @@ const BookingHistoryPage = () => {
 
           {/* Bookings List */}
           <div className="bg-light rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6">
-            {loading ? (
+            {loading && !isAnyModalOpenOrPending ? (
               <div className="space-y-4">
                 {/* Show skeleton cards while loading API data */}
                 {[1, 2, 3, 4].map((index) => (
@@ -1105,9 +1112,9 @@ const BookingHistoryPage = () => {
               setIsCancelModalOpen(false);
               setBookingToCancel(null);
 
-              // Refresh from server to ensure consistency
+              // Refresh from server in background to ensure consistency (no loading state)
               setTimeout(() => {
-                fetchBookings();
+                fetchBookings(false);
               }, 500);
             }}
           />
@@ -1148,8 +1155,8 @@ const BookingHistoryPage = () => {
               );
               setIsReviewModalOpen(false);
               setBookingToReview(null);
-              // Also refresh bookings from server to get the actual review data
-              await fetchBookings();
+              // Also refresh bookings in background from server to get the actual review data
+              await fetchBookings(false);
             }}
           />
         )}

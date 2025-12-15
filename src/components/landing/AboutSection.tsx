@@ -45,11 +45,11 @@ export function AboutSection() {
                   {dogIcons.slice(0, 5).map((icon, index) => (
                     <div
                       key={index}
-                      className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 rounded-full overflow-hidden flex items-center justify-center relative ${
-                        index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-8' : ''
+                      className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-18 xl:h-18 rounded-full overflow-hidden flex items-center justify-center relative ${
+                        index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-6' : ''
                       }`}
                     >
-                      <Image src={icon} alt={`Dog ${index + 1}`} fill className="object-cover" />
+                      <Image src={icon} alt={`Dog ${index + 1}`} fill className="object-cover border-2 border-white rounded-full" />
                     </div>
                   ))}
                 </div>

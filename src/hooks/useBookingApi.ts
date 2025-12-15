@@ -35,6 +35,7 @@ const cancelBooking = async ({ bookingId, reason }: { bookingId: string; reason?
   return response.data;
 };
 
+
 const rescheduleBooking = async ({
   bookingId,
   date,
@@ -54,6 +55,7 @@ const rescheduleBooking = async ({
   );
   return response.data;
 };
+
 
 // React Query Hooks
 

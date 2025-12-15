@@ -20,6 +20,7 @@ interface CheckoutFormProps {
   timeSlots: string[]; // Array of selected time slots
   repeatBooking: string;
   paymentMethodId?: string | null; // Add saved payment method
+  duration?: string; // '30min' or '60min' - booking duration
   onSuccess?: () => void;
   onError?: (error: string) => void;
   onProcessingChange?: (isProcessing: boolean) => void; // Callback for processing state
@@ -34,6 +35,7 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
   timeSlots,
   repeatBooking,
   paymentMethodId,
+  duration,
   onSuccess,
   onError,
   onProcessingChange
@@ -99,7 +101,8 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
             timeSlots, // Array of selected time slots
             repeatBooking,
             amount,
-            paymentMethodId // Include saved payment method
+            paymentMethodId, // Include saved payment method
+            duration // Include booking duration (30min or 60min)
           }),
         });
 
@@ -225,33 +228,14 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
     router.push('/');
   };
 
+  // Don't show inline loader - parent component handles the full-page processing overlay
+  // Just return null while processing, the parent's isProcessingPayment state shows the overlay
   if (succeeded && !showSuccessModal) {
-    return (
-      <div className="space-y-6">
-        <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md">
-          Payment successful! Booking confirmed.
-        </div>
-        <div className="text-center">
-          <div className="mx-auto flex justify-center">
-            <Spinner size="md" />
-          </div>
-          <p className="mt-2 text-sm text-gray-600">Processing your booking...</p>
-        </div>
-      </div>
-    );
+    return null; // Parent shows processing overlay
   }
 
   if (processing) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <div className="mx-auto flex justify-center">
-            <Spinner size="md" />
-          </div>
-          <p className="mt-2 text-sm text-gray-600">Processing payment with saved card...</p>
-        </div>
-      </div>
-    );
+    return null; // Parent shows processing overlay via onProcessingChange callback
   }
 
   if (error) {
@@ -302,6 +286,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   date,
   timeSlots,
   repeatBooking,
+  duration,
   onSuccess,
   onError,
   onProcessingChange
@@ -367,7 +352,8 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
             date,
             timeSlots, // Array of selected time slots
             repeatBooking,
-            amount
+            amount,
+            duration // Include booking duration (30min or 60min)
           }),
         });
 
@@ -620,13 +606,10 @@ interface StripeCheckoutProps extends CheckoutFormProps {}
 
 const StripeCheckout: React.FC<StripeCheckoutProps> = (props) => {
   const { data: session, status } = useSession();
-  
+
+  // Don't show inline loader - parent component handles the full-page processing overlay
   if (status === 'loading') {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <Spinner size="md" />
-      </div>
-    );
+    return null; // Parent shows loading state
   }
   
   if (status === 'unauthenticated' && typeof window !== 'undefined' && !localStorage.getItem('authToken')) {

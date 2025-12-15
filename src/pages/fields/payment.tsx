@@ -25,7 +25,10 @@ const StripeCheckout = dynamic(
 
 const PaymentPage = () => {
   const router = useRouter();
-  const { field_id, numberOfDogs: dogsFromQuery, date, timeSlots: timeSlotsQuery, repeatBooking, price: priceFromQuery } = router.query;
+  const { field_id, numberOfDogs: dogsFromQuery, date, timeSlots: timeSlotsQuery, repeatBooking, price: priceFromQuery, duration: durationFromQuery } = router.query;
+
+  // Parse duration from query (default to 60min if not provided)
+  const bookingDuration = (durationFromQuery as string) || '60min';
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const [numberOfDogs, setNumberOfDogs] = useState(2);
@@ -62,15 +65,16 @@ const PaymentPage = () => {
   const { data: fieldData, isLoading, error } = useFieldDetails(field_id as string, { userLocation });
   const field = fieldData?.data || fieldData;
   
-  // Fetch slot availability
-  const { data: availabilityData } = useSlotAvailability(
+  // Fetch slot availability with duration to match the booking
+  const { data: availabilityData, isLoading: isLoadingAvailability } = useSlotAvailability(
     field_id as string,
-    date as string
+    date as string,
+    bookingDuration as '30min' | '60min' | '1hour'
   );
   
   // Get the first slot details (for availability check)
-  const selectedSlot = timeSlots.length > 0 ? availabilityData?.slots?.find(
-    (slot: any) => slot.slotTime === timeSlots[0]
+  const selectedSlot = timeSlots.length > 0 ? availabilityData?.data?.slots?.find(
+    (slot: any) => slot.time === timeSlots[0]
   ) : null;
   
   // Maximum dogs allowed per booking (from field data or default)
@@ -101,53 +105,78 @@ const PaymentPage = () => {
     }
   }, [paymentMethods]);
 
-  // Mark that user came from booking page (normal flow)
+  // Track if this is a fresh navigation (not a refresh)
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+  // Handle page refresh detection - mark session on first load
   useEffect(() => {
-    if (router.isReady && field_id) {
-      // Set a flag that user is on payment page via normal flow
-      sessionStorage.setItem('payment_page_normal_flow', 'true');
-    }
-  }, [router.isReady, field_id]);
+    if (!router.isReady || !field_id || !date || timeSlots.length === 0) return;
 
-  // Handle page refresh detection and slot availability check
-  useEffect(() => {
-    if (!router.isReady) return;
+    // Use a unique session key based on the booking parameters
+    const sessionKey = `payment_session_${field_id}_${date}_${timeSlots.join('_')}`;
+    const existingSession = sessionStorage.getItem(sessionKey);
 
-    // Check if this is the first visit to payment page in this flow
-    const isNormalFlow = sessionStorage.getItem('payment_page_normal_flow') === 'true';
-
-    // Check if page was refreshed (navigationMode will be reload)
+    // Check navigation type using Performance API
     const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming;
-    const wasRefreshed = navigationEntry?.type === 'reload';
+    const navigationType = navigationEntry?.type;
 
-    // Only show warning if page was actually refreshed (not normal navigation)
-    if (wasRefreshed && !isNormalFlow && field_id && date && timeSlots.length > 0) {
-      // Show warning modal
+    // A page is refreshed if:
+    // 1. Navigation type is 'reload' AND
+    // 2. We already have a session marker (meaning user was here before)
+    const wasRefreshed = navigationType === 'reload' && existingSession === 'active';
+
+    if (wasRefreshed) {
+      // Show warning modal - but don't check availability yet, wait for data
       setShowRefreshWarning(true);
+      setIsFirstLoad(false);
+    } else {
+      // Mark this session as active for future refresh detection
+      sessionStorage.setItem(sessionKey, 'active');
+      setIsFirstLoad(false);
+    }
 
-      // Check slot availability
-      if (availabilityData?.slots) {
-        const allSlotsAvailable = timeSlots.every(selectedSlot => {
-          const slot = availabilityData.slots.find((s: any) => s.slotTime === selectedSlot);
-          return slot && slot.available && !slot.isBooked;
-        });
+    // Cleanup: remove session marker when navigating away
+    return () => {
+      // Clear session marker when component unmounts (user navigated away)
+      sessionStorage.removeItem(sessionKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, field_id, date, timeSlots.length]); // Run when params are ready
 
-        if (!allSlotsAvailable) {
-          setSlotsUnavailable(true);
-        }
+  // Check slot availability AFTER data loads (only if refresh warning is shown)
+  useEffect(() => {
+    // Only check availability if:
+    // 1. Refresh warning is shown (user refreshed the page)
+    // 2. Availability data has loaded
+    // 3. We have time slots to check
+    if (!showRefreshWarning || !availabilityData?.data?.slots || timeSlots.length === 0) return;
+
+    // Check if ALL selected slots are still available
+    const unavailableSlots: string[] = [];
+
+    timeSlots.forEach(selectedTime => {
+      const slot = availabilityData.data.slots.find((s: any) => s.time === selectedTime);
+      // A slot is unavailable if:
+      // 1. It doesn't exist in the API response
+      // 2. It exists but isAvailable is false
+      // 3. It exists but isBooked is true (already taken by someone else)
+      if (!slot || !slot.isAvailable || slot.isBooked) {
+        unavailableSlots.push(selectedTime);
       }
-    }
+    });
 
-    // Clear the flag after first check to detect subsequent refreshes
-    if (isNormalFlow) {
-      sessionStorage.removeItem('payment_page_normal_flow');
+    // Only mark as unavailable if we actually found unavailable slots
+    if (unavailableSlots.length > 0) {
+      console.log('[Payment] Slots no longer available:', unavailableSlots);
+      setSlotsUnavailable(true);
     }
-  }, [router.isReady, field_id, date, timeSlots, availabilityData]);
+  }, [showRefreshWarning, availabilityData, timeSlots]);
 
-  // Add beforeunload warning when user tries to leave the page
+  // Add beforeunload warning only when payment is actively being processed
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!isProcessingPayment) {
+      // Only warn if payment is currently being processed
+      if (isProcessingPayment) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -255,13 +284,30 @@ const PaymentPage = () => {
   const numberOfSlots = timeSlots.length || 1;
   const total = pricePerDog * numberOfDogs * numberOfSlots;
 
+  // Show unified loader when initial data is loading
+  const isInitialLoading = isLoading && isLoadingCards;
+
+  // Full page loading state
+  if (isInitialLoading) {
+    return (
+      <UserLayout requireRole="DOG_OWNER">
+        <div className="min-h-screen bg-[#FFFCF3] w-full flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size="lg" className="text-[#3A6B22]" />
+            <p className="text-gray-600 text-sm">Loading payment details...</p>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
   return (
     <UserLayout requireRole="DOG_OWNER">
       <div className="min-h-screen bg-[#FFFCF3] w-full">
         {/* Main Container */}
         <div className="max-w-[1920px] mx-auto mt-16 xl:mt-24">
           <div className="px-4 sm:px-6 lg:px-20 py-6 sm:py-8 lg:py-10">
-          
+
           {/* Back Button and Title */}
           <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
             <BackButton size="lg" showLabel={true} label='Payment' variant="cream" />
@@ -269,17 +315,17 @@ const PaymentPage = () => {
 
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[408px,1fr] gap-6 sm:gap-8 lg:gap-10">
-            
+
             {/* Left Column - Credit Cards */}
             <div className="bg-white rounded-[16px] sm:rounded-[22px] p-4 sm:p-6 lg:p-10 h-fit border border-black/6">
-              
+
               <div className='flex items-center justify-between mb-3 sm:mb-4'>
                   <h2 className="text-[16px] sm:text-[18px] font-bold text-[#192215]">
                     Credit/Debit card
                   </h2>
 
                   {/* Add New Card Button */}
-                  <button 
+                  <button
                     onClick={() => setShowAddCardModal(true)}
                     className="flex items-center text-[#3A6B22] font-bold text-[13px] sm:text-[15px] hover:opacity-80 transition-opacity"
                   >
@@ -289,8 +335,8 @@ const PaymentPage = () => {
               </div>
 
               <div className="space-y-4">
-                {/* Loading State */}
-                {isLoadingCards && (
+                {/* Loading State for cards only (when field is already loaded) */}
+                {isLoadingCards && !isLoading && (
                   <div className="flex justify-center py-8">
                     <Spinner size="lg" />
                   </div>
@@ -491,10 +537,10 @@ const PaymentPage = () => {
                           }
 
                           // Check slot availability before proceeding to payment
-                          if (availabilityData?.slots && timeSlots.length > 0) {
+                          if (availabilityData?.data?.slots && timeSlots.length > 0) {
                             const allSlotsAvailable = timeSlots.every(selectedSlot => {
-                              const slot = availabilityData.slots.find((s: any) => s.slotTime === selectedSlot);
-                              return slot && slot.available && !slot.isBooked;
+                              const slot = availabilityData.data.slots.find((s: any) => s.time === selectedSlot);
+                              return slot && slot.isAvailable && !slot.isBooked;
                             });
 
                             if (!allSlotsAvailable) {
@@ -521,6 +567,7 @@ const PaymentPage = () => {
                         timeSlots={timeSlots}
                         repeatBooking={repeatBooking as string}
                         paymentMethodId={selectedCard}
+                        duration={bookingDuration}
                         onProcessingChange={(isProcessing) => {
                           setIsProcessingPayment(isProcessing);
                         }}
@@ -649,23 +696,33 @@ const PaymentPage = () => {
     {/* Processing Overlay - Disable cursor and interaction during payment */}
     {isProcessingPayment && (
       <div
-        className="fixed inset-0 bg-black/20 z-50 cursor-wait"
+        className="fixed inset-0 bg-black/50 z-50 cursor-wait"
         style={{ pointerEvents: 'all' }}
       >
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm mx-4">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md mx-4">
             <div className="flex flex-col items-center space-y-4">
-              <Spinner size="lg" />
+              <div className="w-16 h-16 bg-[#3A6B22]/10 rounded-full flex items-center justify-center">
+                <Spinner size="lg" className="text-[#3A6B22]" />
+              </div>
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   Processing Payment
                 </h3>
-                <p className="text-sm text-gray-600">
-                  Please wait while we process your payment...
+                <p className="text-sm text-gray-600 mb-3">
+                  Please wait while we securely process your payment...
                 </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Do not close this window
-                </p>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-sm font-medium text-yellow-800 flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Please don&apos;t refresh the page
+                  </p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Your payment is being processed. Refreshing may cause issues.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

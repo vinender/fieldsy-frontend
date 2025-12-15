@@ -51,12 +51,12 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
 
             {/* Green App Download Card */}
             <div className="relative z-10 w-full max-w-[340px] xs:max-w-[380px] sm:max-w-[420px] md:max-w-[460px] lg:max-w-[500px] bg-[#8FB366] rounded-[20px] sm:rounded-[24px] lg:rounded-[26px] p-6 pt-8 xs:p-7 xs:pt-10 sm:p-8 sm:pt-12 md:p-10 md:pt-14 text-center shadow-xl">
-              <h2 className="text-white text-2xl xs:text-[26px] sm:text-3xl md:text-4xl font-bold leading-tight mb-5 sm:mb-6 md:mb-8">
+              <h2 className="text-white text-[44px] font-bold leading-[47px] mb-5 sm:mb-6 md:mb-8">
                 Download The <br />
                 Fieldsy App Today!
               </h2>
 
-              <div className="flex  xs:flex-row items-center justify-center gap-3 sm:gap-4">
+              <div className="flex xs:flex-row items-center justify-center gap-3 sm:gap-4">
                  {/* Google Play Button */}
                  <button className="transition-transform hover:scale-105 active:scale-95 w-full xs:w-auto">
                     <img
@@ -65,7 +65,6 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
                       className="h-11 xs:h-12 sm:h-13 md:h-14 object-contain mx-auto"
                     />
                  </button>
-
                  {/* App Store Button */}
                  <button className="transition-transform hover:scale-105 active:scale-95 w-full xs:w-auto">
                     <img
@@ -73,8 +72,10 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
                       alt="Download on the App Store"
                       className="h-11 xs:h-12 sm:h-13 md:h-14 object-contain mx-auto"
                     />
-                 </button>
+                 </button>  
+
               </div>
+
             </div>
 
           </div>

@@ -10,9 +10,9 @@ const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className }) => {
   const spinnerSizes = {
     xs: 'w-6 h-6 border-2',
     sm: 'w-8 h-8 border-2',
-    md: 'w-12 h-12 border-3',
-    lg: 'w-16 h-16 border-4',
-    xl: 'w-20 h-20 border-4',
+    md: 'w-8 h-8 border-2',
+    lg: 'w-8 h-8 border-2',
+    xl: 'w-8 h-8 border-3',
     'full-screen': 'w-16 h-16 border-4',
   };
 

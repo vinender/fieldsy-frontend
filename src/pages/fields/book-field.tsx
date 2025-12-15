@@ -9,7 +9,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
-import { useSlotAvailability } from '@/hooks/useSlotAvailability';
+import { useSlotAvailability, BookingDuration } from '@/hooks/useSlotAvailability';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
 import { format } from 'date-fns';
 import { useRescheduleBooking } from '@/hooks/useBookingApi';
@@ -41,8 +41,8 @@ interface TimeSlots {
 const BookFieldPage = () => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { id, mode, bookingId, recurring: recurringFromUrl } = router.query;
-  const fieldIdToUse = id ; // Support both query parameters
+  const { id, field_id, mode, bookingId, recurring: recurringFromUrl } = router.query;
+  const fieldIdToUse = (field_id || id) as string | undefined; // Support both query parameters
   const isRescheduleMode = mode === 'reschedule';
 
   // Get max advance booking days from system settings
@@ -57,6 +57,7 @@ const BookFieldPage = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isClient, setIsClient] = useState(false); // Track if we're on client side for timezone
   const [isCheckingConflicts, setIsCheckingConflicts] = useState(false); // Loading state for conflict check
+  const [selectedDuration, setSelectedDuration] = useState<BookingDuration>('60min'); // Default to 60 minutes
 
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
@@ -111,7 +112,7 @@ const BookFieldPage = () => {
     }
   }, [router.isReady, isRescheduleMode, recurringFromUrl]);
   
-  // Fetch slot availability for the selected date
+  // Fetch slot availability for the selected date with duration
   const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined;
   const {
     data: availabilityData,
@@ -119,15 +120,21 @@ const BookFieldPage = () => {
     isRefetching: isRefetchingSlots
   } = useSlotAvailability(
     fieldIdToUse as string,
-    dateString
+    dateString,
+    selectedDuration
   );
 
-  // Refetch availability when date changes
+  // Refetch availability when date or duration changes
   useEffect(() => {
     if (dateString && fieldIdToUse) {
       refetchAvailability();
     }
-  }, [dateString, fieldIdToUse, refetchAvailability]);
+  }, [dateString, fieldIdToUse, selectedDuration, refetchAvailability]);
+
+  // Clear selected time slots when duration changes (since slots will be different)
+  useEffect(() => {
+    setSelectedTimeSlots([]);
+  }, [selectedDuration]);
 
   // Function to find the next available date
   const findNextAvailableDate = (startDate: Date, maxDays: number = 90): Date | null => {
@@ -880,6 +887,48 @@ const BookFieldPage = () => {
               </div>
               )}
 
+              {/* Session Duration Selector */}
+              <div>
+                <label className="text-[18px] font-semibold text-dark-green block mb-2">
+                  Session Duration
+                </label>
+                <p className="text-sm text-gray-600 mb-3">
+                  Select your preferred session length. Includes 5 minutes buffer time for field preparation.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setSelectedDuration('30min')}
+                    className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${
+                      selectedDuration === '30min'
+                        ? 'bg-[#8FB366] text-white border-[#8FB366]'
+                        : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-lg font-bold">30 min</span>
+                      <span className={`text-xs ${selectedDuration === '30min' ? 'text-white/80' : 'text-gray-500'}`}>
+                        (25 min play time)
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setSelectedDuration('60min')}
+                    className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${
+                      selectedDuration === '60min'
+                        ? 'bg-[#8FB366] text-white border-[#8FB366]'
+                        : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-lg font-bold">60 min</span>
+                      <span className={`text-xs ${selectedDuration === '60min' ? 'text-white/80' : 'text-gray-500'}`}>
+                        (55 min play time)
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
               {/* Choose Date */}
               <div>
                 <label className="text-[18px] font-semibold text-dark-green block mb-2">
@@ -1393,7 +1442,8 @@ const BookFieldPage = () => {
                         date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
                         timeSlots: JSON.stringify(selectedTimeSlots),
                         repeatBooking: repeatBooking,
-                        price: field.pricePerHour || field.price || 0
+                        price: field.pricePerHour || field.price || 0,
+                        duration: selectedDuration // Pass the selected duration (30min or 60min)
                       }
                     });
                   }
