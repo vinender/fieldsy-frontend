@@ -28,7 +28,7 @@ export const usePaymentMethods = () => {
   });
 };
 
-// Set default payment method
+// Set default payment method with optimistic update
 export const useSetDefaultPaymentMethod = () => {
   const queryClient = useQueryClient();
 
@@ -37,13 +37,41 @@ export const useSetDefaultPaymentMethod = () => {
       const response = await axiosClient.put(`/payment-methods/${paymentMethodId}/set-default`);
       return response.data;
     },
+    // Optimistic update - immediately update UI before API call completes
+    onMutate: async (paymentMethodId: string) => {
+      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ['payment-methods'] });
+
+      // Snapshot the previous value
+      const previousMethods = queryClient.getQueryData<PaymentMethod[]>(['payment-methods']);
+
+      // Optimistically update: set new default, unset others
+      if (previousMethods) {
+        queryClient.setQueryData<PaymentMethod[]>(['payment-methods'],
+          previousMethods.map(method => ({
+            ...method,
+            isDefault: method.id === paymentMethodId
+          }))
+        );
+      }
+
+      // Return context with previous value for rollback
+      return { previousMethods };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payment-methods'] });
       // Use toast ID to prevent duplicate toasts
       toast.success('Default payment method updated', { id: 'set-default-card' });
     },
-    onError: (error: any) => {
+    onError: (error: any, _paymentMethodId, context) => {
+      // Rollback to previous state on error
+      if (context?.previousMethods) {
+        queryClient.setQueryData(['payment-methods'], context.previousMethods);
+      }
       toast.error(error.response?.data?.error || 'Failed to update default payment method', { id: 'set-default-card-error' });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure data is in sync
+      queryClient.invalidateQueries({ queryKey: ['payment-methods'] });
     },
   });
 };

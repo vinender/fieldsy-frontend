@@ -16,6 +16,7 @@ import FieldLocation from '@/components/fields/FieldLocation';
 import { getUserLocation } from '@/utils/getUserLocation';
 import { formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
+import { DeleteCardConfirmationModal } from '@/components/modal/DeleteCardConfirmationModal';
 
 // Dynamically import Stripe component to avoid SSR issues
 const StripeCheckout = dynamic(
@@ -37,6 +38,8 @@ const PaymentPage = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showRefreshWarning, setShowRefreshWarning] = useState(false);
   const [slotsUnavailable, setSlotsUnavailable] = useState(false);
+  const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<{ id: string; brand: string | null; last4: string } | null>(null);
 
   // Parse time slots from query (JSON string array)
   const timeSlots: string[] = React.useMemo(() => {
@@ -230,18 +233,24 @@ const PaymentPage = () => {
     }
   };
 
-  const handleDeleteCard = async (cardId: string) => {
-    if (!confirm('Delete Card?')) {
-      return;
-    }
-    
+  const handleDeleteCard = (card: { id: string; brand: string | null; last4: string }) => {
+    setCardToDelete(card);
+    setShowDeleteCardModal(true);
+  };
+
+  const confirmDeleteCard = async () => {
+    if (!cardToDelete) return;
+
     try {
-      await deleteMutation.mutateAsync(cardId);
-      if (selectedCard === cardId) {
+      await deleteMutation.mutateAsync(cardToDelete.id);
+      if (selectedCard === cardToDelete.id) {
         setSelectedCard(null);
       }
     } catch (error) {
       console.error('Error deleting card:', error);
+    } finally {
+      setShowDeleteCardModal(false);
+      setCardToDelete(null);
     }
   };
 
@@ -348,7 +357,7 @@ const PaymentPage = () => {
                     key={card.id}
                     card={card}
                     onToggleDefault={() => handleSetDefault(card.id)}
-                    onDelete={() => handleDeleteCard(card.id)}
+                    onDelete={() => handleDeleteCard({ id: card.id, brand: card.brand, last4: card.last4 })}
                     showCheckbox={true}
                   />
                 ))}
@@ -629,6 +638,18 @@ const PaymentPage = () => {
         setShowAddCardModal(false);
         refetchCards();
       }}
+    />
+
+    {/* Delete Card Confirmation Modal */}
+    <DeleteCardConfirmationModal
+      isOpen={showDeleteCardModal}
+      onClose={() => {
+        setShowDeleteCardModal(false);
+        setCardToDelete(null);
+      }}
+      onConfirm={confirmDeleteCard}
+      cardLast4={cardToDelete?.last4}
+      cardBrand={cardToDelete?.brand || undefined}
     />
 
     {/* Page Refresh Warning Modal */}

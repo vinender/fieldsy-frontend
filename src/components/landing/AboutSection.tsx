@@ -1,5 +1,64 @@
 import Image from "next/image"
 import { usePublicAboutSettings } from '@/hooks/queries/useAboutSettings';
+import { useEffect, useState, useRef } from 'react';
+
+// Animated counter component with meter-style animation
+function AnimatedCounter({
+  end,
+  suffix = '',
+  duration = 2000
+}: {
+  end: number;
+  suffix?: string;
+  duration?: number
+}) {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+
+          const startTime = performance.now();
+          const animate = (currentTime: number) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Easing function for smooth deceleration
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            const currentCount = Math.floor(easeOutQuart * end);
+
+            setCount(currentCount);
+
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              setCount(end);
+            }
+          };
+
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [end, duration, hasAnimated]);
+
+  return (
+    <div ref={ref}>
+      {count}{suffix}
+    </div>
+  );
+}
 
 export function AboutSection() {
   const { settings, loading } = usePublicAboutSettings();
@@ -37,12 +96,12 @@ export function AboutSection() {
                 Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK—quickly and effortlessly.
               </p>
               <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
-                Whether your pup is reactive, in training, or just loves wide-open spaces, we&apos;re here to make your walks safer, calmer, and more joyful.
+                {`Whether your pup is reactive, in training, or just loves wide-open spaces, we&apos;re here to make your walks safer, calmer, and more joyful.`}
               </p>
 
               {/* Dog Profile Pictures */}
                 <div className="flex justify-center">
-                  {dogIcons.slice(0, 5).map((icon, index) => (
+                  {dogIcons?.slice(0, 5).map((icon, index) => (
                     <div
                       key={index}
                       className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-18 xl:h-18 rounded-full overflow-hidden flex items-center justify-center relative ${
@@ -84,19 +143,27 @@ export function AboutSection() {
         {/* Statistics Section */}
        <div className="grid grid-cols-2  md:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">500+</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+              <AnimatedCounter end={500} suffix="+" duration={2000} />
+            </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Early Access Signups</div>
           </div>
           <div className="text-center border-r-0 md:border-r border-dark-green/20 pr-0 xl:pr-8">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">200+</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+              <AnimatedCounter end={200} suffix="+" duration={2000} />
+            </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Private Fields Being Onboarded</div>
           </div>
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">50+</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+              <AnimatedCounter end={50} suffix="+" duration={1500} />
+            </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Cities Covered Across the UK</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">100%</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+              <AnimatedCounter end={100} suffix="%" duration={1800} />
+            </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Safe, Secure & Fenced Spaces</div>
           </div>
         </div> 

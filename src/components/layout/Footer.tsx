@@ -21,9 +21,9 @@ export function Footer() {
     <>
     <footer className="bg-dark-green text-white px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
       <div className="mx-auto w-full   py-8 sm:py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr] gap-8 xl:gap-16">
           {/* Company Information */}
-          <div className="flex flex-col justify-evenly space-y-10">
+          <div className="flex flex-col space-y-4">
             <div className="flex items-center justify-start">
               <Image className='object-contain w-32 h-10 sm:w-42 sm:h-12' src='/logo/logo-cream.png' alt="Fieldsy logo" width={168} height={48}/>
             </div>
@@ -39,9 +39,9 @@ export function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Quick Links</h3>
-            <ul className="space-y-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
+            <ul className="flex flex-col gap-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li><Link href="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link></li>
               <li><Link href="/how-it-works" className="text-white/80 hover:text-white transition-colors">How It Works</Link></li>
               {userRole === 'FIELD_OWNER' ? (
@@ -53,9 +53,9 @@ export function Footer() {
           </div>
 
           {/* Other Links */}
-          <div className="space-y-6">
-          <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Other Links</h3>
-            <ul className="space-y-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
+          <div className="flex flex-col gap-6">
+            <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Other Links</h3>
+            <ul className="flex flex-col gap-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li><Link href="/faqs" className="text-white/80 hover:text-white transition-colors">FAQ&apos;s</Link></li>
               <li><Link href="/terms-conditions" className="text-white/80 hover:text-white transition-colors">Terms & Conditions</Link></li>
               <li><Link href="/privacy-policy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link></li>
@@ -71,9 +71,9 @@ export function Footer() {
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
-            <ul className="space-y-5 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
+            <ul className="flex flex-col gap-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li className="flex items-start sm:items-center space-x-3">
                 <img src="/footer/call.svg" alt="Call" width={40} height={40} className="w-10 h-10" />
                 <a href="tel:+448546354582" className="text-white/80 break-all sm:break-normal hover:text-white transition-colors">
@@ -88,7 +88,7 @@ export function Footer() {
               </li>
               <li className="flex items-start space-x-3">
                 <img src="/footer/gps.svg" alt="Location" width={40} height={40} className="w-10 h-10" />
-                <span className="text-white/80 w-60 text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
+                <span className="text-white/80 text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
               </li>
             </ul>
           </div>
