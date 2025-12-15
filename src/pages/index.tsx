@@ -54,14 +54,16 @@ const FAQSectionWithImage = dynamic(
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
-  // Only use session hook if we're checking for authentication
-  const { status } = useSession({
+  // Use session hook to get authentication status and session data (includes role)
+  const { data: session, status } = useSession({
     required: false,
     onUnauthenticated() {
       // Do nothing - we allow unauthenticated access to landing page
     },
   });
 
+  // Get role from either AuthContext user or session (session is faster after login)
+  const userRole = user?.role || (session?.user as any)?.role;
 
   useEffect(() => {
     // Only track performance in development
@@ -72,14 +74,14 @@ export default function HomePage() {
       }
     }
   }, [isLoading, status])
-  
+
 
   useEffect(() => {
     // Mark the start of page load
     if (process.env.NODE_ENV === 'development') {
       PerformanceMonitor.mark('home-page-start');
     }
-    
+
     return () => {
       // Clean up performance marks when component unmounts
       if (process.env.NODE_ENV === 'development') {
@@ -93,8 +95,13 @@ export default function HomePage() {
     return <HomePageSkeleton />
   }
 
+  // When authenticated but role not yet loaded, show skeleton to avoid flash of wrong content
+  if (status === 'authenticated' && !userRole) {
+    return <HomePageSkeleton />
+  }
+
   // Show field owner dashboard on index route if authenticated as field owner
-  if (status === 'authenticated' && user && user.role === 'FIELD_OWNER') {
+  if (status === 'authenticated' && userRole === 'FIELD_OWNER') {
     return <FieldOwnerHome />
   }
 

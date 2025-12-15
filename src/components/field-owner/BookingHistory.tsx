@@ -12,7 +12,7 @@ import { useCancelledBookings } from '@/hooks/queries/useBookingQueries';
 export default function BookingHistory() {
   const router = useRouter();
   const [activeView, setActiveView] = useState<'bookings' | 'earnings'>('bookings');
-  const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'previous' | 'cancelled'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'completed' | 'cancelled'>('today');
   const [currentPage, setCurrentPage] = useState(1);
   const [cancelledPage, setCancelledPage] = useState(1);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -204,15 +204,15 @@ export default function BookingHistory() {
               <span className="sm:hidden">Upcoming</span>
             </button>
             <button
-              onClick={() => setActiveTab('previous')}
+              onClick={() => setActiveTab('completed')}
               className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${
-                activeTab === 'previous'
+                activeTab === 'completed'
                   ? 'bg-light-green text-white'
                   : 'bg-cream text-dark-green hover:bg-cream/80'
               }`}
             >
-              <span className="hidden sm:inline">Previous Bookings</span>
-              <span className="sm:hidden">Previous</span>
+              <span className="hidden sm:inline">Completed Bookings</span>
+              <span className="sm:hidden">Completed</span>
             </button>
             <button
               onClick={() => setActiveTab('cancelled')}
@@ -310,7 +310,7 @@ export default function BookingHistory() {
                     ? "You don't have any upcoming bookings."
                     : activeTab === 'cancelled'
                     ? "You don't have any cancelled bookings."
-                    : "You don't have any previous bookings."}
+                    : "You don't have any completed bookings."}
                 </p>
                 <p className="text-xs sm:text-sm text-gray-500 font-sans">
                   Bookings will appear here once customers start booking your field.
@@ -381,7 +381,7 @@ export default function BookingHistory() {
                   
                   {/* Action Buttons or Status */}
                   <div className="flex gap-2">
-                    {activeTab === 'previous' || activeTab === 'cancelled' ? (
+                    {activeTab === 'completed' || activeTab === 'cancelled' ? (
                       <>
                         <div className={`flex-1 py-2 px-3 border rounded-full text-xs font-medium font-sans flex items-center justify-center gap-1.5 ${
                           displayBooking.status === 'completed' ? 'bg-green/10 text-green' :

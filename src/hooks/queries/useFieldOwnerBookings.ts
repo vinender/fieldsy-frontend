@@ -6,7 +6,7 @@ export const fieldOwnerBookingKeys = {
   all: ['field-owner-bookings'] as const,
   today: (page: number = 1) => ['field-owner-bookings', 'today', page] as const,
   upcoming: (page: number = 1) => ['field-owner-bookings', 'upcoming', page] as const,
-  previous: (page: number = 1) => ['field-owner-bookings', 'previous', page] as const,
+  completed: (page: number = 1) => ['field-owner-bookings', 'completed', page] as const,
   recent: () => ['field-owner-bookings', 'recent'] as const,
 };
 
@@ -98,21 +98,21 @@ export function useUpcomingBookings(
   });
 }
 
-// Hook for previous bookings
-export function usePreviousBookings(
+// Hook for completed bookings (only COMPLETED status)
+export function useCompletedBookings(
   page: number = 1,
   options?: Omit<UseQueryOptions<BookingResponse, Error>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: fieldOwnerBookingKeys.previous(page),
+    queryKey: fieldOwnerBookingKeys.completed(page),
     queryFn: async () => {
-      const response = await axiosClient.get(`/fields/owner/bookings/previous?page=${page}&limit=12`);
+      const response = await axiosClient.get(`/fields/owner/bookings/completed?page=${page}&limit=12`);
       return response.data as BookingResponse;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 15 * 60 * 1000, // 15 minutes
     refetchOnWindowFocus: true,
-    refetchOnMount: false, // Previous bookings don't change as often
+    refetchOnMount: false, // Completed bookings don't change as often
     ...options,
   });
 }
@@ -137,7 +137,7 @@ export function useRecentBookings(
 
 // Hook to get the appropriate booking query based on tab
 export function useFieldOwnerBookings(
-  tab: 'today' | 'upcoming' | 'previous',
+  tab: 'today' | 'upcoming' | 'completed',
   page: number = 1,
   options?: Omit<UseQueryOptions<BookingResponse, Error>, 'queryKey' | 'queryFn'>
 ) {
@@ -146,8 +146,8 @@ export function useFieldOwnerBookings(
       return useTodayBookings(page, options);
     case 'upcoming':
       return useUpcomingBookings(page, options);
-    case 'previous':
-      return usePreviousBookings(page, options);
+    case 'completed':
+      return useCompletedBookings(page, options);
     default:
       return useTodayBookings(page, options);
   }

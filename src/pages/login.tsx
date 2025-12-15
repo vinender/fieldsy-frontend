@@ -10,29 +10,26 @@ export default function LoginPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  // Redirect logged-in users - go back or to their dashboard
+  // Redirect logged-in users to their role-specific dashboard
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
-      // Check if there's history to go back to
-      if (window.history.length > 1 && document.referrer) {
-        // Go back to previous page
-        router.back();
-      } else {
-        // No history, redirect to role-specific dashboard
-        const role = session.user.role;
-        let redirectPath = '/';
+      const role = session.user.role;
 
-        if (role === 'ADMIN') {
-          redirectPath = '/admin/dashboard';
-        } else if (role === 'FIELD_OWNER') {
-          redirectPath = '/field-owner/my-fields';
-        } else if (role === 'DOG_OWNER') {
-          redirectPath = '/user/my-bookings';
-        }
+      // If role is not yet available, wait for it
+      if (!role) return;
 
-        router.replace(redirectPath);
+      // Redirect based on role - always use role-based redirect for consistency
+      let redirectPath = '/';
+
+      if (role === 'ADMIN') {
+        redirectPath = '/admin/dashboard';
+      } else if (role === 'FIELD_OWNER') {
+        redirectPath = '/field-owner/my-fields';
+      } else if (role === 'DOG_OWNER') {
+        redirectPath = '/user/my-bookings';
       }
-      return;
+
+      router.replace(redirectPath);
     }
   }, [status, session, router])
 

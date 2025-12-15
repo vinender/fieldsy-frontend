@@ -58,9 +58,27 @@ export function LoginForm() {
       });
 
       if (signInResult?.ok) {
-        // Redirect based on callback URL
-        const callbackUrl = router.query.callbackUrl as string || '/';
-        router.push(callbackUrl);
+        // Get the user's role from the login response
+        const userRole = result.data?.user?.role;
+
+        // Check for callback URL first (for protected route redirects)
+        const callbackUrl = router.query.callbackUrl as string;
+
+        // If there's a specific callback URL (not just '/'), use it
+        if (callbackUrl && callbackUrl !== '/') {
+          router.push(callbackUrl);
+        } else {
+          // Otherwise, redirect based on role
+          let redirectPath = '/';
+          if (userRole === 'ADMIN') {
+            redirectPath = '/admin/dashboard';
+          } else if (userRole === 'FIELD_OWNER') {
+            redirectPath = '/field-owner/my-fields';
+          } else if (userRole === 'DOG_OWNER') {
+            redirectPath = '/user/my-bookings';
+          }
+          router.push(redirectPath);
+        }
       } else {
         toast.error('Session creation failed. Please try again.');
       }
