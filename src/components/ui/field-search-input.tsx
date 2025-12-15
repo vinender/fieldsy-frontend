@@ -202,6 +202,15 @@ function FieldSearchInputComponent({
 
     const postcodeInfo = detectPostcodeInQuery(searchTerm);
 
+    // Cancel any pending suggestion requests
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Clear suggestions and stop loading
+    setSuggestions([]);
+    setIsLoadingSuggestions(false);
+
     saveSearchToHistory(searchTerm);
     setShowDropdown(false);
 
