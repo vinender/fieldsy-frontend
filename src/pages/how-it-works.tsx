@@ -60,7 +60,7 @@ export default function HowItWorksPage() {
           threshold={0.01}
           rootMargin="500px"
         >
-          <ForLandownersSection />
+          <ForLandownersSection hideClaimButton={user?.role === 'FIELD_OWNER'} />
         </LazySection>
       )}
 

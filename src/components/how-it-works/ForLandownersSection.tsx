@@ -1,7 +1,11 @@
 import { MapPin, Calendar } from "lucide-react"
 import Link from "next/link"
 
-export function ForLandownersSection() {
+interface ForLandownersSectionProps {
+  hideClaimButton?: boolean;
+}
+
+export function ForLandownersSection({ hideClaimButton = false }: ForLandownersSectionProps) {
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-green">
       <div className="w-full">
@@ -59,12 +63,14 @@ export function ForLandownersSection() {
               </div>
             </div>
             
-            <Link
-              href="/fields"
-              className="inline-flex w-full justify-center mt-8 py-4 rounded-full text-white font-[600] bg-green hover:bg-dark-green transition-colors"
-            >
-              Claim Your Field
-            </Link>
+{!hideClaimButton && (
+              <Link
+                href="/fields"
+                className="inline-flex w-full justify-center mt-8 py-4 rounded-full text-white font-[600] bg-green hover:bg-dark-green transition-colors"
+              >
+                Claim Your Field
+              </Link>
+            )}
           </div>
         </div>
       </div>
