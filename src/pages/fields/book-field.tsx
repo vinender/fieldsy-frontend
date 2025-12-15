@@ -1366,18 +1366,45 @@ const BookFieldPage = () => {
                   if (repeatBooking && repeatBooking !== 'None' && selectedDate && selectedTimeSlots.length > 0) {
                     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
+                    // Helper functions to calculate actual end time
+                    const parseTimeToMinutesForConflict = (timeStr: string): number => {
+                      const match = timeStr.match(/(\d+):(\d+)(AM|PM)/i);
+                      if (!match) return 0;
+                      let hours = parseInt(match[1]);
+                      const minutes = parseInt(match[2]);
+                      const period = match[3].toUpperCase();
+                      if (period === 'PM' && hours !== 12) hours += 12;
+                      if (period === 'AM' && hours === 12) hours = 0;
+                      return hours * 60 + minutes;
+                    };
+
+                    const minutesToTimeStrForConflict = (totalMinutes: number): string => {
+                      const hours = Math.floor(totalMinutes / 60);
+                      const minutes = totalMinutes % 60;
+                      const period = hours >= 12 ? 'PM' : 'AM';
+                      const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+                      return `${displayHour}:${minutes.toString().padStart(2, '0')}${period}`;
+                    };
+
+                    const conflictDurationMinutes = selectedDuration === '30min' ? 30 : 60;
+
                     try {
                       setIsCheckingConflicts(true);
 
                       // Check conflicts for each selected slot
                       for (const slot of selectedTimeSlots) {
-                        const [startTime, endTime] = slot.split(' - ');
+                        const [startTime, displayEndTime] = slot.split(' - ');
+                        // Calculate actual end time for conflict check
+                        const slotStartMinutes = parseTimeToMinutesForConflict(startTime.trim());
+                        const actualEndMinutes = slotStartMinutes + conflictDurationMinutes;
+                        const actualEndTime = minutesToTimeStrForConflict(actualEndMinutes);
+
                         const response = await axiosClient.get('/bookings/recurring-conflicts', {
                           params: {
                             fieldId: fieldIdToUse,
                             date: formattedDate,
                             startTime: startTime.trim(),
-                            endTime: endTime.trim(),
+                            endTime: actualEndTime, // Use actual end time, not display time
                             interval: repeatBooking.toLowerCase()
                           }
                         });
@@ -1405,7 +1432,34 @@ const BookFieldPage = () => {
                     }
 
                     // For reschedule, use the first selected slot
-                    const [startTime, endTime] = selectedTimeSlots[0].split(' - ');
+                    const [startTime, displayEndTime] = selectedTimeSlots[0].split(' - ');
+
+                    // Calculate actual end time based on duration (not display time with 5-min buffer)
+                    // Display time shows 25min or 55min, but actual slot is 30min or 60min
+                    const parseTimeToMinutes = (timeStr: string): number => {
+                      const match = timeStr.match(/(\d+):(\d+)(AM|PM)/i);
+                      if (!match) return 0;
+                      let hours = parseInt(match[1]);
+                      const minutes = parseInt(match[2]);
+                      const period = match[3].toUpperCase();
+                      if (period === 'PM' && hours !== 12) hours += 12;
+                      if (period === 'AM' && hours === 12) hours = 0;
+                      return hours * 60 + minutes;
+                    };
+
+                    const minutesToTimeStr = (totalMinutes: number): string => {
+                      const hours = Math.floor(totalMinutes / 60);
+                      const minutes = totalMinutes % 60;
+                      const period = hours >= 12 ? 'PM' : 'AM';
+                      const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+                      return `${displayHour}:${minutes.toString().padStart(2, '0')}${period}`;
+                    };
+
+                    const actualDurationMinutes = selectedDuration === '30min' ? 30 : 60;
+                    const startMinutes = parseTimeToMinutes(startTime);
+                    const actualEndMinutes = startMinutes + actualDurationMinutes;
+                    const endTime = minutesToTimeStr(actualEndMinutes);
+
                     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
                     rescheduleBookingMutation.mutate(

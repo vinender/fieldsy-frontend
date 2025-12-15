@@ -500,7 +500,11 @@ export default function SearchResults() {
                 </div>
               ) : (
                 <div className="w-full">
-                  <div className="grid grid-cols-1 sm:grid-cols-2  xl:grid-cols-3 2xl:grid-cols-3 gap-4 md:gap-6 justify-center">
+                  <div className={`grid gap-4 md:gap-6 ${
+                    fields.length === 1
+                      ? 'grid-cols-1 max-w-[400px]'
+                      : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3'
+                  }`}>
                     {(fields.length > 0 ? fields : mockData.fields).map((field: any, index: number) => (
                       <LazyFieldCard
                         key={field.id}
