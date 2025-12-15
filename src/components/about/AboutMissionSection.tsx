@@ -14,21 +14,18 @@ export function AboutMissionSection({ data, loading }: AboutMissionSectionProps)
   const description = data?.description || "At Fieldsy, we're on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces."
 
   return (
-    <div className="relative py-10 " >
-     
-      
+    <div className="relative pt-20 pb-10">
+      {/* Top glow effect - positioned above the card, spreading upward */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-4 w-[60%] max-w-[800px] h-20 pointer-events-none z-0"
+        style={{
+          background: 'radial-gradient(ellipse 100% 100% at 50% 100%, rgba(143, 179, 102, 0.8) 0%, rgba(143, 179, 102, 0.5) 30%, transparent 70%)',
+          filter: 'blur(20px)',
+        }}
+      />
+
       {/* Main content card */}
-      <section className="relative max-w-[1620px] rounded-[40px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-white overflow-hidden" style={{ boxShadow: '0 -20px 60px -10px rgba(143, 179, 102, 0.6), 0 0 0 0 transparent' }}>
-        {/* Inner top glow - subtle light bleeding into the card */}
-        <div 
-          className="absolute top-0 left-0 right-0 h-24"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(143, 179, 102, 0.05) 0%, transparent 100%)',
-            filter: 'blur(10px)'
-          }}
-        />
-        
-        <div className="relative ">
+      <section className="relative max-w-[1300px] rounded-[40px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-white z-10">
+        <div className="relative">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-center text-dark-green mb-6 sm:mb-8 md:mb-10 lg:mb-12 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[60px]">
             {title}
           </h2>

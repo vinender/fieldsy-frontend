@@ -20,7 +20,7 @@ export function Footer() {
   return (
     <>
     <footer className="bg-dark-green text-white px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
-      <div className="mx-auto w-full   py-8 sm:py-10">
+      <div className="mx-auto w-full py-8 sm:py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr] gap-8 xl:gap-16">
           {/* Company Information */}
           <div className="flex flex-col space-y-4">
