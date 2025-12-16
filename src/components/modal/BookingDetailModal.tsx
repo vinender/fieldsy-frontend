@@ -368,7 +368,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             e.currentTarget.src = `https://ui-avatars.com/api/?name=${getUserInitials(owner)}&background=3A6B22&color=fff&size=200`;
                           }}
                         />
-                        <div>
+                        <div> 
                           <div className="flex items-center gap-1">
                             <span className="text-sm sm:text-[16px] font-medium text-[#090f1f]">
                               {owner?.name || 'Field Owner'}
@@ -547,7 +547,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                         }`}
                         title={!isCancellable ? `Cannot reschedule within ${cancellationWindowHours} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}
-                      >
+                       >
                         Reschedule Booking
                       </button>
                       <button 
