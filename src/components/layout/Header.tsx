@@ -204,7 +204,7 @@ export function Header() {
                       : "hover:bg-cream"
                   )}
                   aria-label="Messages"
-                >
+                 >
                   <Image src='/header/msg.svg' alt="Messages" width={24} height={24} className={cn("h-6 w-6", textColor)} />
                   {unreadConversationsCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blue-500 rounded-full shadow-md">

@@ -138,12 +138,12 @@ export default function MyFieldsPage() {
         {!fields || fields.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-lg shadow-sm">
             <p className="text-gray-500 text-lg mb-4">You haven't added any fields yet</p>
-            <button
+            {/* <button
               onClick={handleAddNewField}
               className="px-6 py-3 bg-green text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
             >
-              {/* Add Your First Field */}
-            </button>
+              Add Your First Field
+            </button> */}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
