@@ -56,7 +56,7 @@ export default function SavedFieldsPage() {
   return (
     <UserLayout requireRole="DOG_OWNER">
       <div className="min-h-screen bg-[#FFFCF3] pt-32">
-        <div className="w-full px-4 sm:px-6 lg:px-20 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-20 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#192215]">Saved Fields</h1>

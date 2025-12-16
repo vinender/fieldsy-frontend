@@ -83,7 +83,7 @@ const EarningsHistory: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fffcf3] py-8 px-4 sm:px-6 lg:px-20">
+    <div className="min-h-screen bg-[#fffcf3] py-8 px-4 sm:px-6 lg:px-8 xl:px-20">
       <div className="max-w-[1920px] mx-auto">
         {/* Header Section */}
         <div className="space-y-4 mb-10">

@@ -72,7 +72,7 @@ export function AboutSection() {
 
   return (
 
-    <section className="py-10 px-4 sm:py-16 sm:px-8 xl:py-20 xl:px-20 bg-light-cream">
+    <section className="py-10 px-4 sm:py-16 sm:px-6 lg:px-8 xl:py-20 xl:px-20 bg-light-cream">
       <div className="mx-auto w-full  ">
         {/* Headline */}
         <div className="text-center mb-8 sm:mb-12 xl:mb-16">

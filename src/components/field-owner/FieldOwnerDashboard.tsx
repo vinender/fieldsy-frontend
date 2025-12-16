@@ -738,7 +738,7 @@ export default function AddYourField() {
 
   return (
     <div className="min-h-screen bg-light py-4 sm:py-6 lg:py-8 mt-20 sm:mt-24 lg:mt-32">
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
         {/* Page Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 lg:mb-8">
           {activeSection !== 'field-details' && !isFirstTimeFieldOwner && <BackButton size='lg' />}

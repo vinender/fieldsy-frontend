@@ -59,9 +59,9 @@ export default function PreviewPage() {
   useEffect(() => {
     // Redirect if not a field owner
     if (user && user.role !== 'FIELD_OWNER') {
-      router.push('/');
+      router.replace('/');
     }
-  }, [user, router]);
+  }, [user]);
 
   const handleEdit = () => {
     const editFieldId = fieldData?.id;

@@ -18,7 +18,7 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FA
     : defaultFaqs.slice(0, 6)
 
   return (
-    <section className="relative px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden bg-cream max-w-full">
+    <section className="relative px-4 sm:px-6 lg:px-8 xl:px-20 py-10 sm:py-12 md:py-16 lg:py-20 overflow-hidden bg-cream max-w-full">
       
       <div className="w-full relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">

@@ -99,7 +99,7 @@ const TermsConditions = () => {
   return (
     <div className="min-h-screen  bg-[#FFFCF3] mt-20 font-sans">
       {/* Main Container */}
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-20 py-8 lg:py-10">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 py-8 lg:py-10">
         
         {/* Back Button and Title */}
         <div className="flex items-center mt-[20px]  gap-4 mb-8 lg:mb-10">

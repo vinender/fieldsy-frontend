@@ -39,7 +39,7 @@ export function FeaturesSection() {
   ]
  
   return (
-    <section className="py-20 px-8 lg:px-20 bg-white ">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 xl:px-20 bg-white ">
       <div className="mx-auto w-full">
         {/* Header */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between border-b pb-[24px] mb-16">

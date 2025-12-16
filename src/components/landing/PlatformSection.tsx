@@ -19,7 +19,7 @@ export function PlatformSection() {
   // Show loading state or skeleton if data is loading
   if (loading) {
     return (
-      <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-[80px] px-4 sm:px-6 md:px-12 lg:px-16 xl:px-20 bg-light-green overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-[80px] px-4 sm:px-6 lg:px-8 xl:px-20 bg-light-green overflow-hidden">
         <div className="mx-auto w-full max-w-full animate-pulse">
           <div className="h-12 bg-white/20 rounded-lg w-3/4 mx-auto mb-12"></div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
@@ -56,7 +56,7 @@ export function PlatformSection() {
   ]
 
   return (
-    <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-[80px] px-4 sm:px-6 md:px-12 lg:px-16 xl:px-20 bg-light-green overflow-hidden">
+    <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-[80px] px-4 sm:px-6 lg:px-8 xl:px-20 bg-light-green overflow-hidden">
       <div className="mx-auto w-full max-w-full">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12 lg:mb-14 xl:mb-16">

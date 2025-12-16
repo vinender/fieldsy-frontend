@@ -142,7 +142,7 @@ export function Header() {
 
   return (
     <header className={cn(
-      "fixed py-3 sm:py-4 xl:py-[24px] top-0 left-0 right-0 z-40 px-4 sm:px-6 xl:px-20 transition-all duration-300",
+      "fixed py-3 sm:py-4 xl:py-[24px] top-0 left-0 right-0 z-40 px-4 sm:px-6 lg:px-8 xl:px-20 transition-all duration-300",
       headerBg
     )}>
       <nav className="mx-auto w-full">

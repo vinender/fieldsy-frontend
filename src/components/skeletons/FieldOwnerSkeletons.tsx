@@ -152,22 +152,22 @@ export const EarningsDashboardSkeleton = () => {
 export const BookingHistoryPageSkeleton = () => {
   return (
     <div className="min-h-screen bg-light py-4 sm:py-6 lg:py-8 mt-20 sm:mt-24 lg:mt-32">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
         {/* Page header */}
         <div className="flex items-center gap-4 mb-6">
           <Skeleton className="h-10 w-10 rounded-full" />
           <Skeleton className="h-8 w-48" />
         </div>
-        
+
         {/* View toggle */}
         <div className="flex gap-4 mb-6">
           <Skeleton className="h-10 w-32 rounded-full" />
           <Skeleton className="h-10 w-32 rounded-full" />
         </div>
-        
+
         {/* Stats cards */}
         <StatsCardsSkeleton />
-        
+
         {/* Booking tabs */}
         <BookingTabsSkeleton />
       </div>
@@ -179,13 +179,13 @@ export const BookingHistoryPageSkeleton = () => {
 export const FieldOwnerDashboardPageSkeleton = () => {
   return (
     <div className="min-h-screen bg-light py-4 sm:py-6 lg:py-8 mt-20 sm:mt-24 lg:mt-32">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
         {/* Page header */}
         <div className="flex items-center gap-3 mb-6 lg:mb-8">
           <Skeleton className="h-10 w-10 rounded-full" />
           <Skeleton className="h-8 w-48" />
         </div>
-        
+
         {/* Main content */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           <AddFieldSidebarSkeleton />

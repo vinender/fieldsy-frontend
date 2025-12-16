@@ -196,7 +196,7 @@ const EarningsHistory: React.FC = () => {
 
   if (historyError) {
     return (
-      <div className="min-h-screen bg-[#fffcf3] py-8 px-4 mt-28 sm:px-6 lg:px-20">
+      <div className="min-h-screen bg-[#fffcf3] py-8 px-4 mt-28 sm:px-6 lg:px-8 xl:px-20">
         <div className="max-w-7xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-red-600">Error loading earnings data. Please try again later.</p>
@@ -207,7 +207,7 @@ const EarningsHistory: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#fffcf3] py-8 px-4 mt-28 sm:px-6 lg:px-20">
+    <div className="min-h-screen bg-[#fffcf3] py-8 px-4 mt-28 sm:px-6 lg:px-8 xl:px-20">
       <div className="max-w-[1920px] mx-auto">
         {/* Header Section */}
         <div className="space-y-4 mb-10">

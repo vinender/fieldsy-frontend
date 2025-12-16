@@ -64,7 +64,7 @@ export  function HowItWorksSection() {
   }, [activeStep]);
 
   return (
-    <section className="py-20 px-8 lg:px-20  bg-light-cream">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 xl:px-20 bg-light-cream">
       <div className="mx-auto w-full">
         <div className="grid grid-cols-1 h-full  lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Section - Process Steps */}

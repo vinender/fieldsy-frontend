@@ -92,6 +92,7 @@ export function Footer() {
               </li>
             </ul>
           </div>
+          
         </div>
 
         {/* Copyright */}

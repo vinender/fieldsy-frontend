@@ -30,13 +30,6 @@ export default function FieldOwnerHome() {
   const isEditMode = router.query.edit === 'true';
   const isAddNewMode = router.query.addNew === 'true';
 
-  // Debug logging
-  console.log('FieldOwnerHome - field data:', field);
-  console.log('FieldOwnerHome - isSubmitted:', field?.isSubmitted);
-  console.log('FieldOwnerHome - showAddForm:', showAddForm);
-  console.log('FieldOwnerHome - isEditMode:', isEditMode);
-  console.log('FieldOwnerHome - isAddNewMode:', isAddNewMode);
-
   if (isLoading) {
     // Show appropriate skeleton based on what we expect to load
     if (!field || showAddForm || isEditMode || isAddNewMode) {
@@ -47,7 +40,6 @@ export default function FieldOwnerHome() {
 
   // If addNew mode is explicitly set, show fresh form for adding new field
   if (isAddNewMode) {
-    console.log('Showing FieldOwnerDashboard - add new mode');
     return (
       <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
         <FieldOwnerDashboard />
@@ -57,7 +49,6 @@ export default function FieldOwnerHome() {
 
   // If no field exists or showAddForm is true, show add-field flow
   if (!field || showAddForm) {
-    console.log('Showing FieldOwnerDashboard - no field or showAddForm');
     return (
       <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
         <FieldOwnerDashboard />
@@ -67,26 +58,23 @@ export default function FieldOwnerHome() {
 
   // If edit mode is explicitly set, show the dashboard form for editing
   if (isEditMode) {
-    console.log('Showing FieldOwnerDashboard - edit mode');
     return (
       <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
         <FieldOwnerDashboard />
       </Suspense>
     );
   }
-  
+
   // If field submitted, show quick stats dashboard
   if (field?.isSubmitted) {
-    console.log('Showing BookingHistory - field is submitted');
     return (
       <Suspense fallback={<BookingHistoryPageSkeleton />}>
         <BookingHistory />
       </Suspense>
     );
   }
-  
+
   // Otherwise show add-field flow for incomplete fields
-  console.log('Showing FieldOwnerDashboard - field not submitted');
   return (
     <Suspense fallback={<FieldOwnerDashboardPageSkeleton />}>
       <FieldOwnerDashboard />

@@ -3,7 +3,7 @@ import { GridSkeleton } from '@/components/skeletons/SkeletonComponents';
 export default function FieldsLoading() {
   return (
     <div className="min-h-screen bg-[#FFFCF3] w-full">
-      <div className="px-4 sm:px-6 lg:px-20 py-6 lg:py-10">
+      <div className="px-4 sm:px-6 lg:px-8 xl:px-20 py-6 lg:py-10">
         <div className="animate-pulse space-y-6">
           {/* Search bar skeleton */}
           <div className="h-14 bg-gray-200 rounded-full" />

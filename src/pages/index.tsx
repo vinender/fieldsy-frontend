@@ -122,7 +122,7 @@ export default function HomePage() {
         delay={50}
         fallback={
           <div className="py-20 bg-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
               <Skeleton className="h-12 w-64 mx-auto mb-8" />
               <div className="grid md:grid-cols-3 gap-8">
                 {[1, 2, 3].map((i) => (
@@ -144,7 +144,7 @@ export default function HomePage() {
         delay={100}
         fallback={
           <div className="py-20 bg-light-cream">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
               <Skeleton className="h-12 w-48 mx-auto mb-8" />
               <div className="grid md:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map((i) => (
@@ -166,7 +166,7 @@ export default function HomePage() {
         delay={100}
         fallback={
           <div className="py-20 bg-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
               <div className="grid lg:grid-cols-2 gap-12 items-center">
                 <Skeleton className="aspect-video rounded-2xl" />
                 <div className="space-y-4">
@@ -190,7 +190,7 @@ export default function HomePage() {
         delay={100}
         fallback={
           <div className="py-20 bg-light-cream">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
               <Skeleton className="h-10 w-72 mx-auto mb-8" />
               <div className="grid md:grid-cols-2 gap-8">
                 <Skeleton className="aspect-video rounded-2xl" />
@@ -213,7 +213,7 @@ export default function HomePage() {
           delay={100}
           fallback={
             <div className="py-20 bg-white">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
                 <Skeleton className="h-10 w-64 mx-auto mb-8" />
                 <div className="grid md:grid-cols-3 gap-6">
                   {[1, 2, 3].map((i) => (
@@ -236,7 +236,7 @@ export default function HomePage() {
         delay={100}
         fallback={
           <div className="py-20 bg-light-cream">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
               <Skeleton className="h-10 w-48 mx-auto mb-8" />
               <div className="max-w-3xl mx-auto space-y-4">
                 {[1, 2, 3, 4, 5].map((i) => (

@@ -339,7 +339,7 @@ export default function SearchResults() {
     <UserLayout>
       <div className="min-h-screen bg-[#FFFCF3] w-full">
         {/* Search Bar - Sticky below header */}
-        <div className="bg-light-cream my-10 sticky top-[80px] md:top-[120px] z-30 px-4 sm:px-6 lg:px-20 py-4">
+        <div className="bg-light-cream my-10 sticky top-[80px] md:top-[120px] z-30 px-4 sm:px-6 lg:px-8 xl:px-20 py-4">
           <FieldSearchInput
             placeholder="Search by field name, location, or postal code"
             className="w-full pl-4 pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
@@ -375,7 +375,7 @@ export default function SearchResults() {
         </div>
 
         {/* Main Content */}
-        <div className="px-4 sm:px-6 lg:px-20 py-6 lg:py-10">
+        <div className="px-4 sm:px-6 lg:px-8 xl:px-20 py-6 lg:py-10">
 
           {/* Mobile Filter Button */}
           <div className="lg:hidden mb-4">

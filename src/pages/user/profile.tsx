@@ -219,7 +219,7 @@ const MyProfilePage = () => {
   if (error || !profile) {
     return (
       <div className="min-h-screen bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 text-center">
           <p className="text-red-500 text-sm sm:text-base">Failed to load profile. Please try again.</p>
           <button 
             onClick={() => router.back()}
@@ -244,7 +244,7 @@ const MyProfilePage = () => {
 
   return (
     <div className="h-full bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-20">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
         {/* Page Title with Back Button */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-10">
           <button 

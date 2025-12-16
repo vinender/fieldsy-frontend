@@ -160,8 +160,10 @@ export function useOwnerField(options?: Omit<UseQueryOptions<OwnerFieldResponse,
       const response = await axiosClient.get('/fields/owner/field');
       return response.data as OwnerFieldResponse;
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache
+    staleTime: 30 * 1000, // 30 seconds - prevent constant refetching
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnMount: false, // Don't refetch on every mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     ...options,
   });
 
@@ -187,8 +189,10 @@ export function useOwnerFields(options?: Omit<UseQueryOptions<OwnerFieldsRespons
       const response = await axiosClient.get('/fields/my-fields');
       return response.data as OwnerFieldsResponse;
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache
+    staleTime: 30 * 1000, // 30 seconds - prevent constant refetching
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnMount: false, // Don't refetch on every mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     ...options,
   });
 

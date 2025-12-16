@@ -11,9 +11,9 @@ export default function TestimonialsPage() {
   useEffect(() => {
     // Redirect if not a field owner
     if (user && user.role !== 'FIELD_OWNER') {
-      router.push('/');
+      router.replace('/');
     }
-  }, [user, router]);
+  }, [user]);
 
   const testimonials: Testimonial[] = [
     {
@@ -79,7 +79,7 @@ export default function TestimonialsPage() {
   return (
     <UserLayout>
       <div className="min-h-screen bg-light py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 mt-20 sm:mt-24 lg:mt-28">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 xl:px-20">
           {/* Page Header */}
           <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] xl:text-[56px] leading-tight font-bold text-dark-green mb-4">

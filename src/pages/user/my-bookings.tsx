@@ -904,7 +904,7 @@ const BookingHistoryPage = () => {
   return (
     <UserLayout>
       <div className="min-h-screen bg-light xl:mt-24 mt-16">
-        <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-20 py-6 sm:py-10">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 py-6 sm:py-10">
           {/* Page Title with Back Button */}
           <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
             <button className="w-10 h-10 sm:w-12 sm:h-12 bg-[#f8f1d7] rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors">

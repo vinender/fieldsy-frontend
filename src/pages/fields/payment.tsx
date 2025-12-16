@@ -315,7 +315,7 @@ const PaymentPage = () => {
       <div className="min-h-screen bg-[#FFFCF3] w-full">
         {/* Main Container */}
         <div className="max-w-[1920px] mx-auto mt-16 xl:mt-24">
-          <div className="px-4 sm:px-6 lg:px-20 py-6 sm:py-8 lg:py-10">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-20 py-6 sm:py-8 lg:py-10">
 
           {/* Back Button and Title */}
           <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">

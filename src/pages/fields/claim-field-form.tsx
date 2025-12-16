@@ -279,7 +279,7 @@ const ClaimFieldPage = () => {
    
 
       {/* Main Content */}
-      <main className="w-full mt-16 md:mt-[100px]  py-4 lg:py-10 px-4 sm:px-6 lg:px-20">
+      <main className="w-full mt-16 md:mt-[100px]  py-4 lg:py-10 px-4 sm:px-6 lg:px-8 xl:px-20">
         {/* Back Button and Title */}
 
             <BackButton size="lg" showLabel={true} label="Back to Field" onClick={handleBackClick} />

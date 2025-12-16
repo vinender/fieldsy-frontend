@@ -27,8 +27,6 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
     markAllAsRead,
   } = useNotifications();
 
-  console.log(';; notification', notifications);
-
   // Get user role from session
   const userRole = (session as any)?.user?.role || 'USER'
   const isFieldOwner = userRole === 'FIELD_OWNER'

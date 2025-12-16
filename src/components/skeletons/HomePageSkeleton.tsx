@@ -6,7 +6,7 @@ export function HomePageSkeleton() {
     <div className="bg-light-cream">
       {/* Hero Section Skeleton */}
       <div className="relative min-h-[600px] md:min-h-[700px] lg:min-h-[800px] bg-gradient-to-b from-light-cream to-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20 pt-32 pb-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 pt-32 pb-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-6">
@@ -31,7 +31,7 @@ export function HomePageSkeleton() {
 
       {/* About Section Skeleton */}
       <div className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
           <div className="text-center mb-12">
             <Skeleton className="h-12 w-64 mx-auto mb-4" />
             <Skeleton className="h-6 w-96 mx-auto" />
@@ -51,7 +51,7 @@ export function HomePageSkeleton() {
 
       {/* How It Works Section Skeleton */}
       <div className="py-20 bg-light-cream">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
           <div className="text-center mb-12">
             <Skeleton className="h-12 w-48 mx-auto mb-4" />
             <Skeleton className="h-6 w-80 mx-auto" />
@@ -70,7 +70,7 @@ export function HomePageSkeleton() {
 
       {/* Features Section Skeleton */}
       <div className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <Skeleton className="aspect-video rounded-2xl" />
             <div className="space-y-6">
@@ -91,7 +91,7 @@ export function HomePageSkeleton() {
 
       {/* Platform Section Skeleton */}
       <div className="py-20 bg-light-cream">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
           <div className="text-center mb-12">
             <Skeleton className="h-10 w-72 mx-auto mb-4" />
             <Skeleton className="h-6 w-96 mx-auto" />
@@ -105,7 +105,7 @@ export function HomePageSkeleton() {
 
       {/* Testimonials Section Skeleton */}
       <div className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
           <div className="text-center mb-12">
             <Skeleton className="h-10 w-64 mx-auto mb-4" />
             <Skeleton className="h-6 w-80 mx-auto" />
@@ -134,7 +134,7 @@ export function HomePageSkeleton() {
 
       {/* FAQ Section Skeleton */}
       <div className="py-20 bg-light-cream">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
           <div className="text-center mb-12">
             <Skeleton className="h-10 w-48 mx-auto mb-4" />
             <Skeleton className="h-6 w-80 mx-auto" />
