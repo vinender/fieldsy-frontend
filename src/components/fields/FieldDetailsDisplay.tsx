@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { getAmenityLabel, formatOpeningHours, formatRating } from '@/utils/formatters';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 import { RatingStars } from '@/components/common/RatingStars';
+import { SvgIcon } from '@/components/ui/SvgIcon';
 
 interface FieldDetailsDisplayProps {
   field: any;
@@ -242,18 +243,17 @@ export default function FieldDetailsDisplay({
                 return (
                   <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
                     {iconPath ? (
-                      <img
+                      <SvgIcon
                         src={iconPath}
+                        color="#3A6B22"
+                        size={16}
                         alt={label}
-                        className="w-4 h-4 mr-2 object-contain"
-                        onError={(e) => {
-                          // Fallback to Shield icon if image fails to load
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
+                        className="mr-2 flex-shrink-0"
+                        fallback={<Shield className="w-4 h-4 text-[#3A6B22] mr-2" />}
                       />
-                    ) : null}
-                    <Shield className={`w-4 h-4 text-[#3A6B22] mr-2 ${iconPath ? 'hidden' : ''}`} />
+                    ) : (
+                      <Shield className="w-4 h-4 text-[#3A6B22] mr-2" />
+                    )}
                     <span className="text-sm text-dark-green">{label}</span>
                   </div>
                 );

@@ -334,16 +334,14 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                         key={`${amenity.label}-${index}`}
                         className="bg-white border border-black/6 rounded-lg sm:rounded-[14px] px-2 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1 sm:gap-2"
                       >
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 ">
-                          <img
-                            src={amenity.iconPath}
-                            alt={amenity.label}
-                            className="w-full h-full object-contain fill-green"
-                            onError={(e) => {
-                              e.currentTarget.src = '/field-details/shield.svg';
-                            }}
-                          />
-                        </div>
+                        <img
+                          src={amenity.iconPath}
+                          alt={amenity.label}
+                          className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.src = '/field-details/shield.svg';
+                          }}
+                        />
                         <span className="text-[11px] sm:text-[14px] font-medium text-[#192215] truncate">
                           {amenity.label}
                         </span>

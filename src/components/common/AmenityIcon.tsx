@@ -1,5 +1,6 @@
 import React from 'react';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
+import { SvgIcon } from '@/components/ui/SvgIcon';
 
 interface AmenityIconProps {
   amenity: string;  // The amenity slug
@@ -7,33 +8,33 @@ interface AmenityIconProps {
   className?: string;
   iconClassName?: string;
   labelClassName?: string;
+  iconColor?: string;  // Color for the icon (e.g., "#3a6b22" or "text-green")
   size?: 'sm' | 'md' | 'lg';
 }
 
 /**
  * Reusable component to display amenity icon with optional label
+ * Uses SvgIcon for proper fill color control
  */
-
 export const AmenityIcon: React.FC<AmenityIconProps> = ({
   amenity,
   showLabel = true,
   className = '',
   iconClassName = '',
   labelClassName = '',
+  iconColor = '#3a6b22',  // Default to green
   size = 'md'
 }) => {
-
   const iconPath = getAmenityIcon(amenity);
   const label = getAmenityLabel(amenity);
-  
-  
+
   // Size classes for the icon
-  const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-6 h-6'
+  const sizeMap = {
+    sm: 16,
+    md: 20,
+    lg: 24
   };
-  
+
   const textSizeClasses = {
     sm: 'text-xs',
     md: 'text-sm',
@@ -42,10 +43,18 @@ export const AmenityIcon: React.FC<AmenityIconProps> = ({
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <img 
-        src={iconPath} 
+      <SvgIcon
+        src={iconPath}
+        size={sizeMap[size]}
+        color={iconColor}
         alt={label}
-        className={`${sizeClasses[size]} ${iconClassName}`}
+        className={iconClassName}
+        fallback={
+          <div
+            className={`bg-gray-200 rounded`}
+            style={{ width: sizeMap[size], height: sizeMap[size] }}
+          />
+        }
       />
       {showLabel && (
         <span className={`${textSizeClasses[size]} ${labelClassName}`}>
@@ -61,6 +70,7 @@ interface AmenitiesListProps {
   className?: string;
   itemClassName?: string;
   iconSize?: 'sm' | 'md' | 'lg';
+  iconColor?: string;
   showLabels?: boolean;
   columns?: 1 | 2 | 3 | 4;
 }
@@ -73,6 +83,7 @@ export const AmenitiesList: React.FC<AmenitiesListProps> = ({
   className = '',
   itemClassName = '',
   iconSize = 'md',
+  iconColor = '#3a6b22',
   showLabels = true,
   columns = 2
 }) => {
@@ -91,6 +102,7 @@ export const AmenitiesList: React.FC<AmenitiesListProps> = ({
           amenity={amenity}
           showLabel={showLabels}
           size={iconSize}
+          iconColor={iconColor}
           className={itemClassName}
         />
       ))}
@@ -102,6 +114,7 @@ interface AmenityBadgeProps {
   amenity: string;
   className?: string;
   variant?: 'default' | 'outlined' | 'filled';
+  iconColor?: string;
 }
 
 /**
@@ -110,7 +123,8 @@ interface AmenityBadgeProps {
 export const AmenityBadge: React.FC<AmenityBadgeProps> = ({
   amenity,
   className = '',
-  variant = 'default'
+  variant = 'default',
+  iconColor = '#3a6b22'
 }) => {
   const variantClasses = {
     default: 'bg-white border border-black/6',
@@ -124,9 +138,45 @@ export const AmenityBadge: React.FC<AmenityBadgeProps> = ({
         amenity={amenity}
         showLabel={true}
         size="sm"
-        iconClassName="text-[#3a6b22]"
+        iconColor={iconColor}
         labelClassName="font-medium text-[#192215]"
       />
     </div>
+  );
+};
+
+interface AmenitySvgIconProps {
+  iconPath: string;
+  label?: string;
+  color?: string;
+  size?: number;
+  className?: string;
+}
+
+/**
+ * Direct SVG icon component for amenities when you have the icon path
+ * Useful when amenity data comes from API with iconUrl
+ */
+export const AmenitySvgIcon: React.FC<AmenitySvgIconProps> = ({
+  iconPath,
+  label = 'Amenity',
+  color = '#3a6b22',
+  size = 20,
+  className = ''
+}) => {
+  return (
+    <SvgIcon
+      src={iconPath}
+      size={size}
+      color={color}
+      alt={label}
+      className={className}
+      fallback={
+        <div
+          className="bg-gray-200 rounded"
+          style={{ width: size, height: size }}
+        />
+      }
+    />
   );
 };

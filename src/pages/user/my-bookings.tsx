@@ -28,8 +28,9 @@ import { formatAmenities, formatDateDDMMYYYY } from '@/utils/formatters';
 import { calculateDistance, formatDistance } from '@/utils/location';
 import { toast } from 'sonner';
 import { getAmenityBySlug, mapAmenityConfigs } from '@/config/amenities.config';
- import { useCancellationWindow } from '@/hooks/usePublicSettings';
+import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { BookingCardSkeleton } from '@/components/skeletons/SkeletonComponents';
+import { SvgIcon } from '@/components/ui/SvgIcon';
 
 
 // Subscription data for recurring bookings
@@ -621,7 +622,8 @@ const BookingHistoryPage = () => {
                       <img
                         src={iconPath}
                         alt={label}
-                        className="w-4 h-4 brightness-0"
+                        className="w-4 h-4 flex-shrink-0"
+                        style={{ filter: 'brightness(0)' }}
                       />
                     )}
                     <span className="text-[14px] font-medium text-[#192215]">
@@ -1205,6 +1207,7 @@ const BookingHistoryPage = () => {
                               src={iconPath}
                               alt={label}
                               className="w-6 h-6"
+                              style={{ filter: 'brightness(0)' }}
                             />
                           </div>
                         )}

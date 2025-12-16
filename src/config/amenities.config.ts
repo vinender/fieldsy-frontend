@@ -249,16 +249,107 @@ export const AMENITIES_CONFIG: AmenityConfig[] = [
     label: 'Night Lighting',
     iconPath: '/add-field/clock.svg',
     category: 'other'
+  },
+  // Database value aliases (for backwards compatibility)
+  {
+    slug: 'dog-agility',
+    label: 'Dog Agility',
+    iconPath: '/add-field/dog-agility.svg',
+    category: 'activities'
+  },
+  {
+    slug: 'toilet',
+    label: 'Toilet',
+    iconPath: '/field-details/home.svg',
+    category: 'facilities'
+  },
+  {
+    slug: 'fence',
+    label: 'Fence',
+    iconPath: '/field-details/fence.svg',
+    category: 'security'
+  },
+  {
+    slug: 'home',
+    label: 'Home',
+    iconPath: '/field-details/home.svg',
+    category: 'facilities'
+  },
+  {
+    slug: 'calender',
+    label: 'Calendar',
+    iconPath: '/field-details/clock.svg',
+    category: 'other'
+  },
+  {
+    slug: 'demo',
+    label: 'Demo',
+    iconPath: '/field-details/shield.svg',
+    category: 'other'
   }
 ];
 
 /**
+ * Normalize an amenity value to a consistent slug format
+ * Handles: camelCase, PascalCase, "With Spaces", "with-dashes", "with_underscores"
+ */
+function normalizeAmenitySlug(value: string): string {
+  if (!value) return '';
+
+  return value
+    // Convert camelCase/PascalCase to kebab-case
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    // Replace spaces and underscores with dashes
+    .replace(/[\s_]+/g, '-')
+    // Convert to lowercase
+    .toLowerCase()
+    // Remove any non-alphanumeric characters except dashes
+    .replace(/[^a-z0-9-]/g, '')
+    // Remove leading/trailing dashes
+    .replace(/^-+|-+$/g, '')
+    // Replace multiple dashes with single dash
+    .replace(/-+/g, '-');
+}
+
+/**
  * Get amenity configuration by slug
- * @param slug - The amenity slug (e.g., "water-access")
+ * Handles various formats: slug, camelCase, "With Spaces", etc.
+ * @param slug - The amenity value (e.g., "water-access", "dogAgility", "Dog Agility")
  * @returns The amenity configuration or undefined
  */
 export function getAmenityBySlug(slug: string): AmenityConfig | undefined {
-  return AMENITIES_CONFIG.find(amenity => amenity.slug === slug);
+  if (!slug) return undefined;
+
+  // First, try exact match
+  const exactMatch = AMENITIES_CONFIG.find(amenity => amenity.slug === slug);
+  if (exactMatch) return exactMatch;
+
+  // Normalize the input and try again
+  const normalizedInput = normalizeAmenitySlug(slug);
+
+  // Try matching against normalized slug
+  const normalizedMatch = AMENITIES_CONFIG.find(
+    amenity => normalizeAmenitySlug(amenity.slug) === normalizedInput
+  );
+  if (normalizedMatch) return normalizedMatch;
+
+  // Try matching against normalized label
+  const labelMatch = AMENITIES_CONFIG.find(
+    amenity => normalizeAmenitySlug(amenity.label) === normalizedInput
+  );
+  if (labelMatch) return labelMatch;
+
+  // Try partial match (for cases like "dogAgility" -> "agility-equipment")
+  const partialMatch = AMENITIES_CONFIG.find(amenity => {
+    const normalizedSlug = normalizeAmenitySlug(amenity.slug);
+    const normalizedLabel = normalizeAmenitySlug(amenity.label);
+    return normalizedSlug.includes(normalizedInput) ||
+           normalizedInput.includes(normalizedSlug) ||
+           normalizedLabel.includes(normalizedInput) ||
+           normalizedInput.includes(normalizedLabel);
+  });
+
+  return partialMatch;
 }
 
 /**
