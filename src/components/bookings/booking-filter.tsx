@@ -25,7 +25,7 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ isOpen, onClose, onApplyF
     { id: 'thisWeek', label: 'This Week' },
     { id: 'thisMonth', label: 'This Month' },
     { id: 'thisYear', label: 'This Year' },
-    { id: 'customDate', label: 'Custom Date Range' }
+    { id: 'customDate', label: 'Custom Date Range'},
   ];
 
   // Close dropdown when clicking outside (but not on the filter button itself)

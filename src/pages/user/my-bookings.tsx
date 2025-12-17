@@ -263,7 +263,7 @@ const BookingHistoryPage = () => {
         return;
       }
 
-      // Prepare query params - include CANCELLED in both tabs
+      // Prepare query params based on active tab
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', '10');
