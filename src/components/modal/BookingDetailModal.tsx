@@ -245,11 +245,9 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
 
       {/* Modal with slide-up and scale animation */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-        <div
-          className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] max-w-[800px] w-full max-h-[90vh] flex flex-col overflow-visible relative animate-[modalSlideIn_100ms_ease-out_forwards]"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Close Button - Half inside, half outside */}
+        {/* Wrapper for positioning close button outside overflow */}
+        <div className="relative max-w-[800px] w-full" onClick={(e) => e.stopPropagation()}>
+          {/* Close Button - Half inside, half outside (outside overflow container) */}
           <button
             onClick={onClose}
             className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-[60] w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 hover:bg-gray-50 transition-colors shadow-lg"
@@ -257,15 +255,23 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
           </button>
 
-          {/* Scrollable Content Wrapper */}
-          <div className="overflow-y-auto scrollbar-hide max-h-[90vh]">
-          {/* Content */}
-          <div className="p-4 sm:p-6 lg:p-8">
-            {isLoading ? (
-              <div className="flex justify-center items-center py-12">
+          {/* Modal Container */}
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl lg:rounded-[32px] w-full max-h-[90vh] min-h-[300px] flex flex-col overflow-hidden animate-[modalSlideIn_100ms_ease-out_forwards]"
+          >
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="flex-1 flex items-center justify-center min-h-[300px]">
+              <div className="text-center">
                 <Spinner size="md" />
+                <p className="text-sm text-gray-500 mt-3">Loading booking details...</p>
               </div>
-            ) : (
+            </div>
+          ) : (
+            /* Scrollable Content Wrapper - Only rendered when not loading */
+            <div className="overflow-y-auto scrollbar-hide max-h-[90vh]">
+            {/* Content */}
+            <div className="p-4 sm:p-6 lg:p-8">
               <>
                 {/* Status Badge - Scrollable */}
                 <div className="flex justify-end mb-2 sm:mb-3 pr-10 sm:pr-12">
@@ -617,8 +623,9 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                   </button>
                 )}
               </>
-            )}
-          </div>
+            </div>
+            </div>
+          )}
           </div>
         </div>
       </div>
