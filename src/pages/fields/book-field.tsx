@@ -1328,7 +1328,7 @@ const BookFieldPage = () => {
                     return;
                   }
 
-                  // Check if all selected time slots are actually available
+                  // Check if all selected time slots are actually available (local check)
                   if (!areSelectedSlotsValid()) {
                     toast.error('One or more selected time slots are not available. Please update your selection.');
                     return;
@@ -1339,6 +1339,50 @@ const BookFieldPage = () => {
                     toast.error('No available time slots for the selected date. Please choose a different date.');
                     return;
                   }
+
+                  // ============================================================
+                  // REAL-TIME AVAILABILITY CHECK - Prevent race conditions
+                  // Re-check with server to ensure slots weren't booked by another user
+                  // ============================================================
+                  if (selectedDate && selectedTimeSlots.length > 0 && fieldIdToUse) {
+                    try {
+                      setIsCheckingConflicts(true);
+                      const formattedDateForCheck = format(selectedDate, 'yyyy-MM-dd');
+
+                      // Check if selected slots are still available using dedicated API
+                      const availabilityResponse = await axiosClient.post('/bookings/check-slots-availability', {
+                        fieldId: fieldIdToUse,
+                        date: formattedDateForCheck,
+                        slots: selectedTimeSlots,
+                        duration: selectedDuration
+                      }, {
+                        headers: {
+                          'Cache-Control': 'no-cache, no-store, must-revalidate',
+                          'Pragma': 'no-cache',
+                          'Expires': '0'
+                        }
+                      });
+
+                      const { available, message, unavailableSlots } = availabilityResponse.data;
+
+                      console.log('[book-field] Slot availability check:', { available, message, unavailableSlots });
+
+                      if (!available) {
+                        toast.error(message || 'Selected slots are no longer available. Please select different times.', { duration: 6000 });
+                        setIsCheckingConflicts(false);
+                        // Trigger a refetch of availability data
+                        router.replace(router.asPath);
+                        return;
+                      }
+                      console.log('[book-field] All selected slots are available, proceeding...');
+                    } catch (error) {
+                      console.error('Error checking real-time availability:', error);
+                      // If the check fails, still allow proceeding - backend will catch conflicts
+                    } finally {
+                      setIsCheckingConflicts(false);
+                    }
+                  }
+                  // ============================================================
 
                   // Only validate dog count if not in reschedule mode
                   if (!isRescheduleMode) {
@@ -1406,6 +1450,11 @@ const BookFieldPage = () => {
                             startTime: startTime.trim(),
                             endTime: actualEndTime, // Use actual end time, not display time
                             interval: repeatBooking.toLowerCase()
+                          },
+                          headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
                           }
                         });
 

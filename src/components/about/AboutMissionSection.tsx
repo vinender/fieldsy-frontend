@@ -40,6 +40,7 @@ export function AboutMissionSection({ data, loading }: AboutMissionSectionProps)
           />
         </div>
       </section>
+      
     </div>
   )
 }

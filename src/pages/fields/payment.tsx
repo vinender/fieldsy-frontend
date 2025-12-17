@@ -603,6 +603,15 @@ const PaymentPage = () => {
                             // Handle authentication error
                             setShowStripeCheckout(false);
                             toast.error('Please log in to continue with payment');
+                          } else if (error === 'SLOT_UNAVAILABLE' || error === 'RECURRING_SLOT_CONFLICT') {
+                            // Slot is no longer available - redirect back to booking page
+                            setShowStripeCheckout(false);
+                            setSlotsUnavailable(true);
+                            toast.error('The selected time slot is no longer available. Redirecting to select a different time...', { duration: 5000 });
+                            // Redirect back to booking page after delay
+                            setTimeout(() => {
+                              router.push(`/fields/book-field?id=${field_id}`);
+                            }, 2000);
                           } else {
                             // Generic error handling
                             setShowStripeCheckout(false);

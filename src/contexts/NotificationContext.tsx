@@ -224,7 +224,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           }, NOTIFICATION_DEDUP_TTL);
         }
 
-        // Show toast notification
+        // Suppress toast for booking confirmations - the BookingSuccessModal handles this
+        // This prevents the toast from appearing before the modal when payment completes
+        const suppressedTypes = [
+          'BOOKING_CONFIRMATION',
+          'booking_confirmed',
+          'booking_received'
+        ];
+
+        if (suppressedTypes.includes(notification.type)) {
+          console.log('[NotificationContext] Booking notification toast suppressed, modal will handle:', notification.type);
+          return;
+        }
+
+        // Show toast notification for other types
         toast.success(notification.title || 'New Notification', {
           description: notification.message || 'You have a new notification',
           duration: 5000,

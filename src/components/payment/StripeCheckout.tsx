@@ -135,6 +135,18 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
             onError?.('PAYMENT_METHOD_NOT_FOUND');
           } else if (errorData.code === 'PAYMENT_METHOD_ERROR') {
             toast.error(errorData.error || 'Unable to process payment method. Please try again.');
+          } else if (errorData.code === 'SLOT_UNAVAILABLE') {
+            // Slot is no longer available - another user booked it
+            toast.error(errorData.message || 'The selected time slot is no longer available. Please select a different time.', {
+              duration: 6000,
+            });
+            onError?.('SLOT_UNAVAILABLE');
+          } else if (errorData.code === 'RECURRING_SLOT_CONFLICT') {
+            // Recurring booking conflict
+            toast.error(errorData.message || 'This slot is reserved by a recurring booking.', {
+              duration: 6000,
+            });
+            onError?.('RECURRING_SLOT_CONFLICT');
           } else if (isRecurringConflict) {
             // Handle recurring booking conflict gracefully
             toast.error(errorData.error || 'This time slot conflicts with existing bookings.', {
@@ -379,6 +391,18 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
           // Handle specific error codes from backend
           if (errorData.code === 'PAYMENT_PROCESSING_ERROR') {
             toast.error('Unable to process payment. Please try again.');
+          } else if (errorData.code === 'SLOT_UNAVAILABLE') {
+            // Slot is no longer available - another user booked it
+            toast.error(errorData.message || 'The selected time slot is no longer available. Please select a different time.', {
+              duration: 6000,
+            });
+            onError?.('SLOT_UNAVAILABLE');
+          } else if (errorData.code === 'RECURRING_SLOT_CONFLICT') {
+            // Recurring booking conflict
+            toast.error(errorData.message || 'This slot is reserved by a recurring booking.', {
+              duration: 6000,
+            });
+            onError?.('RECURRING_SLOT_CONFLICT');
           } else if (isRecurringConflict) {
             // Handle recurring booking conflict gracefully
             toast.error(errorData.error || 'This time slot conflicts with existing bookings.', {
