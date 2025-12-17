@@ -14,7 +14,7 @@ export function AboutMissionSection({ data, loading }: AboutMissionSectionProps)
   const description = data?.description || "At Fieldsy, we're on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces."
 
   return (
-    <div className="relative pt-20 pb-10">
+    <div className="relative pt-20 pb-10 px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
       {/* Top glow effect - positioned above the card, spreading upward */}
       <div className="absolute left-1/2 -translate-x-1/2 top-4 w-[60%] max-w-[800px] h-20 pointer-events-none z-0"
         style={{
@@ -23,17 +23,17 @@ export function AboutMissionSection({ data, loading }: AboutMissionSectionProps)
         }}
       />
 
-      {/* Main content card */}
-      <section className="relative max-w-[1300px] rounded-[40px] mx-auto px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-white z-10">
-        <div className="relative">
+      {/* Main content card - full width within padding */}
+      <section className="relative w-full rounded-[24px] sm:rounded-[32px] lg:rounded-[40px] px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-10 sm:py-12 md:py-16 lg:py-20 bg-white z-10">
+        <div className="relative max-w-full mx-auto">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[48px] font-[700] text-center text-dark-green mb-6 sm:mb-8 md:mb-10 lg:mb-12 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[60px]">
             {title}
           </h2>
-          
-          <p className="text-base sm:text-lg md:text-2xl lg:text-[32px] text-center text-dark-green/80 max-w-6xl mx-auto leading-relaxed sm:leading-[1.6] md:leading-[1.5] lg:leading-[46px] font-[400]" 
-             dangerouslySetInnerHTML={{ 
+
+          <p className="text-base sm:text-lg  md:text-2xl lg:text-[32px] text-center text-dark-green/80 leading-relaxed sm:leading-[1.6] md:leading-[1.5] lg:leading-[46px] font-[400]"
+             dangerouslySetInnerHTML={{
                __html: description.replace(
-                 'every dog can enjoy off-lead freedom', 
+                 'every dog can enjoy off-lead freedom',
                  '<span class="font-[600] text-green">every dog can enjoy off-lead freedom</span>'
                )
              }}

@@ -2,7 +2,77 @@ import { Play, Apple } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DownloadAppButton } from "@/components/ui/download-app-button"
 import Image from "next/image"
+import { useEffect, useState, useRef } from 'react'
 
+// Animated counter component with meter-style animation
+function AnimatedCounter({
+  end,
+  suffix = '',
+  duration = 2000
+}: {
+  end: number;
+  suffix?: string;
+  duration?: number
+}) {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+
+          const startTime = performance.now();
+          const animate = (currentTime: number) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Easing function for smooth deceleration
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            const currentCount = Math.floor(easeOutQuart * end);
+
+            setCount(currentCount);
+
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              setCount(end);
+            }
+          };
+
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [end, duration, hasAnimated]);
+
+  return (
+    <div ref={ref}>
+      {count}{suffix}
+    </div>
+  );
+}
+
+// Helper function to parse stat value into number and suffix
+function parseStatValue(value: string): { number: number; suffix: string } {
+  const match = value.match(/^(\d+)(.*)$/);
+  if (match) {
+    return {
+      number: parseInt(match[1], 10),
+      suffix: match[2] || ''
+    };
+  }
+  return { number: 0, suffix: value };
+}
 
 interface AboutHeroSectionProps {
   data?: {
@@ -124,21 +194,24 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
         
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-dark-green/20">
-          {sortedStats.map((stat, index) => (
-            <div 
-              key={index} 
-              className={`text-center ${
-                index < sortedStats.length - 1 ? 'border-r border-dark-green/20 pr-4 sm:pr-6 lg:pr-8' : ''
-              } ${index === 1 ? 'border-r-0 md:border-r' : ''}`}
-            >
-              <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] font-[400] text-dark-green mb-1 sm:mb-2 leading-tight xl:leading-[76px]">
-                {stat.value}
-              </h3>
-              <p className="text-xs sm:text-sm lg:text-[18px] text-dark-green/80 font-[400]">
-                {stat.label}
-              </p>
-            </div>
-          ))}
+          {sortedStats.map((stat, index) => {
+            const { number, suffix } = parseStatValue(stat.value);
+            return (
+              <div
+                key={index}
+                className={`text-center ${
+                  index < sortedStats.length - 1 ? 'border-r border-dark-green/20 pr-4 sm:pr-6 lg:pr-8' : ''
+                } ${index === 1 ? 'border-r-0 md:border-r' : ''}`}
+              >
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] font-[400] text-dark-green mb-1 sm:mb-2 leading-tight xl:leading-[76px]">
+                  <AnimatedCounter end={number} suffix={suffix} duration={2000} />
+                </h3>
+                <p className="text-xs sm:text-sm lg:text-[18px] text-dark-green/80 font-[400]">
+                  {stat.label}
+                </p>
+              </div>
+            );
+          })}
         </div>
         
       </div>

@@ -272,7 +272,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             <div className="overflow-y-auto scrollbar-hide max-h-[90vh]">
             {/* Content */}
             <div className="p-4 sm:p-6 lg:p-8">
-              <>
+              <>  
                 {/* Status Badge - Scrollable */}
                 <div className="flex justify-end mb-2 sm:mb-3 pr-10 sm:pr-12">
                   <div className="flex items-center gap-2">
