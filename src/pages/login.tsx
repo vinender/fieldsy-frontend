@@ -1,14 +1,16 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/router"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { LoginForm } from "@/components/forms/auth/LoginForm"
 import { PageWithSkeleton } from "@/components/common/PageWithSkeleton"
 import { LoginFormSkeleton } from "@/components/skeletons/PageSkeletons"
+import axiosClient from "@/lib/axios"
 
 export default function LoginPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const isCheckingFieldsRef = useRef(false)
 
   // Redirect logged-in users to their role-specific dashboard
   useEffect(() => {
@@ -19,17 +21,33 @@ export default function LoginPage() {
       if (!role) return;
 
       // Redirect based on role - always use role-based redirect for consistency
-      let redirectPath = '/';
-
       if (role === 'ADMIN') {
-        redirectPath = '/admin/dashboard';
+        router.replace('/admin/dashboard');
       } else if (role === 'FIELD_OWNER') {
-        redirectPath = '/field-owner/my-fields';
+        // Check if field owner has any fields
+        if (!isCheckingFieldsRef.current) {
+          isCheckingFieldsRef.current = true;
+          axiosClient.get('/fields/my-fields')
+            .then((response) => {
+              const fields = response.data?.data || [];
+              if (fields.length === 0) {
+                // No fields - redirect to add field form on home
+                router.replace('/');
+              } else {
+                // Has fields - redirect to my-fields
+                router.replace('/field-owner/my-fields');
+              }
+            })
+            .catch(() => {
+              // On error, default to add field form on home
+              router.replace('/');
+            });
+        }
       } else if (role === 'DOG_OWNER') {
-        redirectPath = '/user/my-bookings';
+        router.replace('/user/my-bookings');
+      } else {
+        router.replace('/');
       }
-
-      router.replace(redirectPath);
     }
   }, [status, session, router])
 
