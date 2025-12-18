@@ -21,12 +21,8 @@ export default function LoginPage() {
       // Redirect based on role - always use role-based redirect for consistency
       if (role === 'ADMIN') {
         router.replace('/admin/dashboard');
-      } else if (role === 'FIELD_OWNER') {
-        // Always redirect field owners to home
-        router.replace('/');
-      } else if (role === 'DOG_OWNER') {
-        router.replace('/user/my-bookings');
       } else {
+        // All other roles (FIELD_OWNER, DOG_OWNER) redirect to home
         router.replace('/');
       }
     }
