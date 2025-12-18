@@ -83,6 +83,7 @@ const ClaimFieldPage = () => {
 
     fetchFieldAndCheckEligibility();
   }, [field_id]);
+  
 
   // Cleanup function to delete uploaded files from S3
   const deleteUploadedFiles = async () => {

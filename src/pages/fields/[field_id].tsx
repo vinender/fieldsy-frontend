@@ -60,7 +60,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
 
     const data = await response.json();
-
+    console.log(';;;fields data',data);
+    
     return {
       props: {
         fieldId,

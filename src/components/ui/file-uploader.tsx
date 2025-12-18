@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { s3Uploader, UploadProgress } from '@/utils/s3Upload';
@@ -190,8 +190,24 @@ export function FileUploader({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Track if we need to notify parent of changes
+  const [shouldNotifyParent, setShouldNotifyParent] = useState(false);
+
   // Check if max files limit is reached
   const isMaxFilesReached = uploadedFiles.length >= maxFiles;
+
+  // Use effect to notify parent component of changes - prevents setState during render
+  useEffect(() => {
+    if (shouldNotifyParent && onChange) {
+      if (returnUrls) {
+        const urls = uploadedFiles.filter(f => f.uploaded && f.url).map(f => f.url!);
+        onChange(urls);
+      } else {
+        onChange(uploadedFiles);
+      }
+      setShouldNotifyParent(false);
+    }
+  }, [shouldNotifyParent, uploadedFiles, onChange, returnUrls]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -282,25 +298,16 @@ export function FileUploader({
       });
 
       // Update file with success status using functional update
-      setUploadedFiles(prev => {
-        const newFiles = prev.map(f =>
+      setUploadedFiles(prev =>
+        prev.map(f =>
           f.id === fileId
             ? { ...f, url: fileUrl, uploaded: true, progress: 100 }
             : f
-        );
+        )
+      );
 
-        // Notify parent component with updated files
-        if (onChange) {
-          if (returnUrls) {
-            const urls = newFiles.filter(f => f.uploaded && f.url).map(f => f.url!);
-            onChange(urls);
-          } else {
-            onChange(newFiles);
-          }
-        }
-
-        return newFiles;
-      });
+      // Trigger parent notification via useEffect (prevents setState during render)
+      setShouldNotifyParent(true);
 
       onUploadComplete?.(fileUrl, fileToUpload);
     } catch (error) {
@@ -425,15 +432,8 @@ export function FileUploader({
     const newFiles = uploadedFiles.filter((_, i) => i !== index);
     setUploadedFiles(newFiles);
 
-    // Notify parent component
-    if (onChange) {
-      if (returnUrls) {
-        const urls = newFiles.filter(f => f.uploaded && f.url).map(f => f.url!);
-        onChange(urls);
-      } else {
-        onChange(newFiles);
-      }
-    }
+    // Trigger parent notification via useEffect
+    setShouldNotifyParent(true);
 
     onRemove?.(file);
   };
