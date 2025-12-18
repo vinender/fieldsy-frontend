@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
 import { useRouter } from 'next/router';
+import axiosClient from '@/lib/api/axios-client';
 
 interface ChatContextType {
   unreadMessagesCount: number;
@@ -76,31 +77,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // Fetch unread count from API
   const fetchUnreadCount = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token || !user || !shouldLoadChat) return;
+      if (!user || !shouldLoadChat) return;
 
       // Fetch unread conversations count (number of chats with unread messages)
-      const conversationsResponse = await fetch('/api/chat/unread-conversations-count', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (conversationsResponse.ok) {
-        const conversationsData = await conversationsResponse.json();
-        setUnreadConversationsCount(conversationsData.unreadConversationsCount || 0);
+      try {
+        const conversationsResponse = await axiosClient.get('/chat/unread-conversations-count');
+        setUnreadConversationsCount(conversationsResponse.data?.unreadConversationsCount || 0);
+      } catch (err) {
+        // Silently handle error for conversations count
       }
 
       // Also fetch total unread messages count for backward compatibility
-      const messagesResponse = await fetch('/api/chat/unread-count', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (messagesResponse.ok) {
-        const messagesData = await messagesResponse.json();
-        setUnreadMessagesCount(messagesData.count || 0);
+      try {
+        const messagesResponse = await axiosClient.get('/chat/unread-count');
+        setUnreadMessagesCount(messagesResponse.data?.count || 0);
+      } catch (err) {
+        // Silently handle error for messages count
       }
     } catch (error) {
       console.error('Error fetching unread count:', error);
