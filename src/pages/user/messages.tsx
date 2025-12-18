@@ -936,6 +936,11 @@ const MessagesPage = () => {
           if (response.blocked) {
             setIsBlocked(true);
             setBlockMessage(response.error || 'Cannot send messages to this user.');
+          } else if (response.queued) {
+            // Message was queued for retry - don't show error, just info
+            toast.info('Message queued. Will retry when connection is restored.');
+            // Don't restore input - message is queued
+            return;
           } else if (response.timeout) {
             toast.error('Message send timeout. Please check your connection and try again.');
           } else {

@@ -2,6 +2,16 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useSession } from 'next-auth/react'
 import io, { Socket } from 'socket.io-client'
 
+interface PendingMessage {
+  conversationId: string
+  content: string
+  receiverId: string
+  correlationId: string
+  timestamp: number
+  timeoutId?: NodeJS.Timeout
+  callback?: (response: any) => void
+}
+
 interface MessageSocketContextType {
   socket: Socket | null
   isConnected: boolean
@@ -12,6 +22,7 @@ interface MessageSocketContextType {
   emitTyping: (conversationId: string, isTyping: boolean) => void
   connect: () => void
   disconnect: () => void
+  hasPendingMessages: boolean
 }
 
 const MessageSocketContext = createContext<MessageSocketContextType>({
@@ -23,7 +34,8 @@ const MessageSocketContext = createContext<MessageSocketContextType>({
   markAsRead: () => {},
   emitTyping: () => {},
   connect: () => {},
-  disconnect: () => {}
+  disconnect: () => {},
+  hasPendingMessages: false
 })
 
 export const useMessageSocket = () => useContext(MessageSocketContext)
@@ -32,14 +44,74 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const { data: session } = useSession()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const [hasPendingMessages, setHasPendingMessages] = useState(false)
   const socketRef = useRef<Socket | null>(null)
-  
+  const pendingMessagesRef = useRef<Map<string, PendingMessage>>(new Map())
+  const isDisconnectingRef = useRef(false)
+
   // Get auth token from session or localStorage
   const getAuthToken = useCallback(() => {
     const sessionToken = (session as any)?.accessToken
     const localToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null
     return sessionToken || localToken
   }, [session])
+
+  // Update pending messages state
+  const updatePendingState = useCallback(() => {
+    setHasPendingMessages(pendingMessagesRef.current.size > 0)
+  }, [])
+
+  // Clear all pending message timeouts without triggering callbacks
+  const clearAllPendingTimeouts = useCallback(() => {
+    pendingMessagesRef.current.forEach((pending) => {
+      if (pending.timeoutId) {
+        clearTimeout(pending.timeoutId)
+      }
+    })
+  }, [])
+
+  // Retry pending messages after reconnection
+  const retryPendingMessages = useCallback(() => {
+    if (!socketRef.current?.connected) return
+
+    const pendingMessages = Array.from(pendingMessagesRef.current.values())
+    console.log(`[MessageSocket] Retrying ${pendingMessages.length} pending messages`)
+
+    pendingMessages.forEach((pending) => {
+      // Clear existing timeout
+      if (pending.timeoutId) {
+        clearTimeout(pending.timeoutId)
+      }
+
+      // Set new timeout
+      const newTimeoutId = setTimeout(() => {
+        console.error(`[MessageSocket] Retry ACK timeout for ${pending.correlationId}`)
+        pendingMessagesRef.current.delete(pending.correlationId)
+        updatePendingState()
+        if (pending.callback && !isDisconnectingRef.current) {
+          pending.callback({ success: false, error: 'Server timeout after retry', timeout: true })
+        }
+      }, 10000) // Longer timeout for retries
+
+      pending.timeoutId = newTimeoutId
+
+      // Re-emit the message
+      socketRef.current!.emit('send-message', {
+        conversationId: pending.conversationId,
+        content: pending.content,
+        receiverId: pending.receiverId,
+        correlationId: pending.correlationId
+      }, (response: any) => {
+        clearTimeout(newTimeoutId)
+        pendingMessagesRef.current.delete(pending.correlationId)
+        updatePendingState()
+        console.log(`[MessageSocket] Retry ACK received for ${pending.correlationId}:`, response)
+        if (pending.callback) {
+          pending.callback(response)
+        }
+      })
+    })
+  }, [updatePendingState])
 
   // Connect to socket (called when messages page is opened)
   const connect = useCallback(async () => {
@@ -112,8 +184,15 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     newSocket.on('connect', () => {
       console.log('[MessageSocket] Connected')
+      isDisconnectingRef.current = false
       setIsConnected(true)
       newSocket.emit('join-conversations')
+
+      // Retry any pending messages after reconnection
+      if (pendingMessagesRef.current.size > 0) {
+        console.log('[MessageSocket] Retrying pending messages after connect')
+        setTimeout(() => retryPendingMessages(), 500) // Small delay to ensure connection is stable
+      }
     })
     
     newSocket.on('connect_error', (error) => {
@@ -143,7 +222,14 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     newSocket.on('reconnect', (attemptNumber) => {
       console.log('[MessageSocket] Reconnected after', attemptNumber, 'attempts')
+      isDisconnectingRef.current = false
       setIsConnected(true)
+
+      // Retry any pending messages after reconnection
+      if (pendingMessagesRef.current.size > 0) {
+        console.log('[MessageSocket] Retrying pending messages after reconnect')
+        setTimeout(() => retryPendingMessages(), 500)
+      }
     })
 
     newSocket.on('reconnect_attempt', (attemptNumber) => {
@@ -161,18 +247,31 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     socketRef.current = newSocket
     setSocket(newSocket)
-  }, [getAuthToken])
+  }, [getAuthToken, retryPendingMessages])
 
   // Disconnect from socket (called when leaving messages page)
   const disconnect = useCallback(() => {
     if (socketRef.current) {
       console.log('[MessageSocket] Disconnecting...')
+
+      // Mark that we're intentionally disconnecting to suppress error toasts
+      isDisconnectingRef.current = true
+
+      // Clear all pending message timeouts to prevent false error callbacks
+      clearAllPendingTimeouts()
+
+      // Don't clear the pending messages map - keep them for potential retry on reconnect
+      // But do clear callbacks since the component will unmount
+      pendingMessagesRef.current.forEach((pending) => {
+        pending.callback = undefined
+      })
+
       socketRef.current.disconnect()
       socketRef.current = null
       setSocket(null)
       setIsConnected(false)
     }
-  }, [])
+  }, [clearAllPendingTimeouts])
 
   // Join a conversation and get message history
   const joinConversation = useCallback((conversationId: string) => {
@@ -201,16 +300,36 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(`[MessageSocket] Correlation ID:`, correlationId)
       console.log(`[MessageSocket] Emitting 'send-message' event...`)
 
-      // Set timeout for ACK (5 seconds)
+      // Set timeout for ACK (8 seconds - longer to account for network latency)
       const ackTimeout = setTimeout(() => {
-        console.error('[MessageSocket] ACK timeout - server did not respond in 5 seconds')
-        if (callback) {
-          callback({ success: false, error: 'Server timeout', timeout: true })
+        console.error('[MessageSocket] ACK timeout - server did not respond in 8 seconds')
+        // Only trigger callback if we're not intentionally disconnecting
+        if (!isDisconnectingRef.current) {
+          pendingMessagesRef.current.delete(correlationId)
+          updatePendingState()
+          if (callback) {
+            callback({ success: false, error: 'Server timeout', timeout: true })
+          }
         }
-      }, 5000)
+      }, 8000)
+
+      // Track this pending message
+      const pendingMessage: PendingMessage = {
+        conversationId,
+        content,
+        receiverId,
+        correlationId,
+        timestamp: Date.now(),
+        timeoutId: ackTimeout,
+        callback
+      }
+      pendingMessagesRef.current.set(correlationId, pendingMessage)
+      updatePendingState()
 
       socketRef.current.emit('send-message', { conversationId, content, receiverId, correlationId }, (response: any) => {
         clearTimeout(ackTimeout)
+        pendingMessagesRef.current.delete(correlationId)
+        updatePendingState()
         console.log(`[MessageSocket] ACK received:`, response)
         if (callback) {
           callback(response)
@@ -220,11 +339,36 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       console.error('[MessageSocket] Socket not connected! Cannot send message')
       console.error('[MessageSocket] Socket state:', socketRef.current)
-      if (callback) {
-        callback({ success: false, error: 'Socket not connected' })
+
+      // Queue the message for retry when connection is restored
+      const pendingMessage: PendingMessage = {
+        conversationId,
+        content,
+        receiverId,
+        correlationId,
+        timestamp: Date.now(),
+        callback
       }
+      pendingMessagesRef.current.set(correlationId, pendingMessage)
+      updatePendingState()
+      console.log(`[MessageSocket] Message queued for retry: ${correlationId}`)
+
+      // Don't call error callback immediately - let it retry on reconnect
+      // But set a longer timeout for offline scenario
+      const offlineTimeout = setTimeout(() => {
+        if (pendingMessagesRef.current.has(correlationId) && !isDisconnectingRef.current) {
+          pendingMessagesRef.current.delete(correlationId)
+          updatePendingState()
+          if (callback) {
+            callback({ success: false, error: 'Connection lost. Message queued for retry.', queued: true })
+          }
+        }
+      }, 30000) // 30 second timeout for offline messages
+
+      // Store the timeout ID
+      pendingMessage.timeoutId = offlineTimeout
     }
-  }, [])
+  }, [updatePendingState])
 
   // Mark messages as read
   const markAsRead = useCallback((messageIds: string[]) => {
@@ -243,11 +387,17 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   // Clean up on unmount
   useEffect(() => {
     return () => {
+      // Mark as disconnecting to suppress error toasts
+      isDisconnectingRef.current = true
+
+      // Clear all pending message timeouts
+      clearAllPendingTimeouts()
+
       if (socketRef.current) {
         socketRef.current.disconnect()
       }
     }
-  }, [])
+  }, [clearAllPendingTimeouts])
 
   return (
     <MessageSocketContext.Provider
@@ -260,7 +410,8 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         markAsRead,
         emitTyping,
         connect,
-        disconnect
+        disconnect,
+        hasPendingMessages
       }}
     >
       {children}
