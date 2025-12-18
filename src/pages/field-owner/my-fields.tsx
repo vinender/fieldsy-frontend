@@ -20,7 +20,7 @@ export default function MyFieldsPage() {
   const [selectedField, setSelectedField] = useState<FieldData | null>(null);
 
   // Fetch all fields owned by the user
-  const { data: fields, isLoading: fetchingFields, refetch, error, isError } = useOwnerFields({
+  const { data: fields, isLoading: fetchingFields, refetch, error, isError, isSuccess } = useOwnerFields({
     enabled: !!user && user.role === 'FIELD_OWNER',
   });
 
@@ -104,11 +104,16 @@ export default function MyFieldsPage() {
     setSelectedFieldForCode(null);
   };
 
-  if (fetchingFields) {
+  // Show loading state while fetching fields or before data is loaded
+  // This prevents the flash of "no fields" message before data loads
+  if (fetchingFields || (!isSuccess && !isError)) {
     return (
       <UserLayout>
         <div className="flex justify-center items-center min-h-[400px]">
-          <p className="text-gray-600">Loading fields...</p>
+          <div className="text-center">
+            <Spinner size="lg" />
+            <p className="text-gray-600 mt-4">Loading fields...</p>
+          </div>
         </div>
       </UserLayout>
     );

@@ -39,6 +39,21 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
     }));
   };
 
+  const handleMaxDogsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow numbers
+    if (value === '' || /^\d+$/.test(value)) {
+      const numValue = parseInt(value, 10);
+      // Limit to max 10
+      if (value === '' || (numValue >= 1 && numValue <= 10)) {
+        setFormData((prev: any) => ({
+          ...prev,
+          maxDogs: value,
+        }));
+      }
+    }
+  };
+
   // Helper function to convert time string to minutes
   const timeToMinutes = (timeStr: string): number => {
     if (!timeStr) return 0;
@@ -239,11 +254,14 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               </label>
               <Input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 name="maxDogs"
                 value={formData.maxDogs}
-                onChange={handleInputChange}
-                placeholder="Enter max number of dogs allowed"
-                className={`py-3 appearance-none ${validationErrors.maxDogs ? 'border-red-500' : ''}`}
+                onChange={handleMaxDogsChange}
+                placeholder="Enter max number of dogs (1-10)"
+                maxLength={2}
+                className={`py-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${validationErrors.maxDogs ? 'border-red-500' : ''}`}
                 aria-invalid={!!validationErrors.maxDogs}
               />
               {validationErrors.maxDogs && (
