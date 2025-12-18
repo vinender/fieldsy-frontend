@@ -5,7 +5,8 @@ import { toast } from "sonner"
 import { LoginForm } from "@/components/forms/auth/LoginForm"
 import { PageWithSkeleton } from "@/components/common/PageWithSkeleton"
 import { LoginFormSkeleton } from "@/components/skeletons/PageSkeletons"
-import axiosClient from "@/lib/axios"
+import axiosClient from "@/lib/api/axios-client"
+// import axiosClient from "@/lib/axios"
 
 export default function LoginPage() {
   const router = useRouter()
