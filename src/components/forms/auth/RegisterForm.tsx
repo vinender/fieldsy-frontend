@@ -28,11 +28,10 @@ const registerSchema = z
       .optional()
       .refine((val) => {
         if (!val || val.trim() === "") return true;
-        const cleanNumber = val.replace(/[\s\-()]/g, '');
-        const validation = validateUKPhoneNumber(cleanNumber);
+        const validation = validateUKPhoneNumber(val);
         return validation.isValid;
       }, {
-        message: "Please enter a valid UK phone number (e.g., 07123456789 for mobile or 0123456789 for landline)"
+        message: "Please enter a valid UK phone number (e.g., 07123456789, +447123456789, or 7123456789)"
       }),
     password: z
       .string()

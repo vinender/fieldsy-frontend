@@ -116,8 +116,7 @@ const MyProfilePage = () => {
 
       // Validate phone number if provided
       if (formData.phoneNumber && formData.phoneNumber.trim()) {
-        const cleanPhoneNumber = formData.phoneNumber.replace(/[\s\-()]/g, '');
-        const validation = validateUKPhoneNumber(cleanPhoneNumber);
+        const validation = validateUKPhoneNumber(formData.phoneNumber);
 
         if (!validation.isValid) {
           setPhoneError(validation.error || 'Invalid phone number');

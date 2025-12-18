@@ -17,6 +17,15 @@ interface ValidationErrors {
   message?: string
 }
 
+// Character limits for each field
+const CHAR_LIMITS = {
+  name: 50,
+  email: 100,
+  phone: 20,
+  subject: 100,
+  message: 1000
+}
+
 export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProps) {
   const [formData, setFormData] = useState({
     name: "",
@@ -157,17 +166,26 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8 overflow-visible">
-        {/* Close Button */}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      {/* Wrapper for positioning close button outside overflow */}
+      <div
+        className="relative max-w-2xl w-full my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button - Positioned relative to wrapper */}
         <button
           onClick={onClose}
-          className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
+          className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-[60] w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
         >
           <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
         </button>
 
-        {/* Header */}
+        {/* Modal Content */}
+        <div className="bg-white rounded-3xl shadow-2xl w-full overflow-hidden">
+          {/* Header */}
         <div className="flex items-center justify-between p-5 sm:p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-dark-green">Contact Support</h2>
         </div>
@@ -176,9 +194,12 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
           {/* Name Field */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-dark-green font-semibold">
-              Name <span className="text-red-500">*</span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="name" className="text-dark-green font-semibold">
+                Name <span className="text-red-500">*</span>
+              </Label>
+              <span className="text-xs text-gray-400">{formData.name.length}/{CHAR_LIMITS.name}</span>
+            </div>
             <Input
               id="name"
               name="name"
@@ -188,6 +209,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               onChange={handleChange}
               onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
+              maxLength={CHAR_LIMITS.name}
               className={touched.name && errors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}
             />
             {touched.name && errors.name && (
@@ -197,9 +219,12 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
 
           {/* Email Field */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-dark-green font-semibold">
-              Email <span className="text-red-500">*</span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="email" className="text-dark-green font-semibold">
+                Email <span className="text-red-500">*</span>
+              </Label>
+              <span className="text-xs text-gray-400">{formData.email.length}/{CHAR_LIMITS.email}</span>
+            </div>
             <Input
               id="email"
               name="email"
@@ -209,6 +234,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               onChange={handleChange}
               onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
+              maxLength={CHAR_LIMITS.email}
               className={touched.email && errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}
             />
             {touched.email && errors.email && (
@@ -218,9 +244,12 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
 
           {/* Phone Field */}
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-dark-green font-semibold">
-              Phone <span className="text-gray-400 text-sm">(Optional)</span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="phone" className="text-dark-green font-semibold">
+                Phone <span className="text-gray-400 text-sm">(Optional)</span>
+              </Label>
+              <span className="text-xs text-gray-400">{formData.phone.length}/{CHAR_LIMITS.phone}</span>
+            </div>
             <Input
               id="phone"
               name="phone"
@@ -229,14 +258,18 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               value={formData.phone}
               onChange={handleChange}
               disabled={createQueryMutation.isPending}
+              maxLength={CHAR_LIMITS.phone}
             />
           </div>
 
           {/* Subject Field */}
           <div className="space-y-2">
-            <Label htmlFor="subject" className="text-dark-green font-semibold">
-              Subject <span className="text-red-500">*</span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="subject" className="text-dark-green font-semibold">
+                Subject <span className="text-red-500">*</span>
+              </Label>
+              <span className="text-xs text-gray-400">{formData.subject.length}/{CHAR_LIMITS.subject}</span>
+            </div>
             <Input
               id="subject"
               name="subject"
@@ -246,6 +279,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               onChange={handleChange}
               onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
+              maxLength={CHAR_LIMITS.subject}
               className={touched.subject && errors.subject ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}
             />
             {touched.subject && errors.subject && (
@@ -255,9 +289,12 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
 
           {/* Message Field */}
           <div className="space-y-2">
-            <Label htmlFor="message" className="text-dark-green font-semibold">
-              Message <span className="text-red-500">*</span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="message" className="text-dark-green font-semibold">
+                Message <span className="text-red-500">*</span>
+              </Label>
+              <span className="text-xs text-gray-400">{formData.message.length}/{CHAR_LIMITS.message}</span>
+            </div>
             <textarea
               id="message"
               name="message"
@@ -267,6 +304,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
               onBlur={handleBlur}
               disabled={createQueryMutation.isPending}
               rows={4}
+              maxLength={CHAR_LIMITS.message}
               className={`flex w-full rounded-2xl border bg-white px-4 py-3 text-base text-gray-800 shadow-sm transition-all duration-200 focus:outline-none focus:ring-1 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none ${
                 touched.message && errors.message
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
@@ -306,6 +344,7 @@ export function ContactSupportModal({ isOpen, onClose }: ContactSupportModalProp
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )

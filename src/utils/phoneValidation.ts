@@ -10,10 +10,12 @@
  *
  * Valid formats:
  * - Mobile: 07xxx xxxxxx (11 digits starting with 07)
+ * - Mobile without leading 0: 7xxx xxxxxx (10 digits starting with 7)
  * - Landline: 01xxx xxx xxx, 02x xxxx xxxx, 03xx xxx xxxx (10-11 digits)
- * - Can be provided with or without +44 prefix
+ * - With +44 prefix: +44 7xxx xxxxxx or +447xxxxxxxxx
+ * - Any valid UK number format with spaces, dashes, or parentheses
  *
- * @param phoneNumber - The phone number to validate (without country code)
+ * @param phoneNumber - The phone number to validate
  * @returns Object with isValid flag and error message if invalid
  */
 export const validateUKPhoneNumber = (phoneNumber: string): { isValid: boolean; error?: string } => {
@@ -22,10 +24,22 @@ export const validateUKPhoneNumber = (phoneNumber: string): { isValid: boolean; 
     return { isValid: true };
   }
 
-  // Remove spaces, dashes, and parentheses for validation
-  const cleanNumber = phoneNumber.replace(/[\s\-()]/g, '');
+  // Remove spaces, dashes, parentheses, and + for validation
+  let cleanNumber = phoneNumber.replace(/[\s\-()]/g, '');
 
-  // Check if it contains only digits
+  // Handle +44 or 44 prefix - convert to 0 prefix
+  if (cleanNumber.startsWith('+44')) {
+    cleanNumber = '0' + cleanNumber.slice(3);
+  } else if (cleanNumber.startsWith('44') && cleanNumber.length > 10) {
+    cleanNumber = '0' + cleanNumber.slice(2);
+  }
+
+  // If number starts with 7, 1, 2, or 3 (without leading 0), add the 0
+  if (/^[7123]\d{9}$/.test(cleanNumber)) {
+    cleanNumber = '0' + cleanNumber;
+  }
+
+  // Check if it contains only digits after processing
   if (!/^\d+$/.test(cleanNumber)) {
     return { isValid: false, error: 'Phone number should only contain digits' };
   }
@@ -55,7 +69,7 @@ export const validateUKPhoneNumber = (phoneNumber: string): { isValid: boolean; 
 
   return {
     isValid: false,
-    error: 'Please enter a valid UK phone number (e.g., 07123456789 for mobile or 0123456789 for landline)'
+    error: 'Please enter a valid UK phone number (e.g., 07123456789, +447123456789, or 7123456789)'
   };
 };
 
@@ -97,12 +111,12 @@ export const formatUKPhoneNumber = (phoneNumber: string): string => {
 };
 
 /**
- * Sanitizes phone number input - removes non-numeric characters except spaces, dashes, and parentheses
+ * Sanitizes phone number input - removes non-numeric characters except spaces, dashes, parentheses, and + for international
  *
  * @param input - The raw input string
  * @returns Sanitized phone number string
  */
 export const sanitizePhoneInput = (input: string): string => {
-  // Remove everything except digits, spaces, dashes, and parentheses
-  return input.replace(/[^\d\s\-()]/g, '');
+  // Remove everything except digits, spaces, dashes, parentheses, and + (for international format)
+  return input.replace(/[^\d\s\-()+]/g, '');
 };

@@ -1,21 +1,11 @@
-import { useState, useEffect } from "react"
-import { Facebook, Twitter, Youtube, Instagram, Phone, Mail, MapPin } from "lucide-react"
+import { useState } from "react"
+import { Facebook, Twitter, Youtube, Instagram } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useSession } from "next-auth/react"
 import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
 
 export function Footer() {
-  const { data: session } = useSession();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Track client-side mount to prevent hydration mismatch
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const userRole = isMounted ? session?.user?.role : undefined;
 
   return (
     <>
@@ -44,11 +34,7 @@ export function Footer() {
             <ul className="flex flex-col gap-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li><Link href="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link></li>
               <li><Link href="/how-it-works" className="text-white/80 hover:text-white transition-colors">How It Works</Link></li>
-              {userRole === 'FIELD_OWNER' ? (
-                <li><Link href="/field-owner/dashboard" className="text-white/80 hover:text-white transition-colors">Field Owner</Link></li>
-              ) : (
-                <li><Link href="/fields" className="text-white/80 hover:text-white transition-colors">Dog Owner</Link></li>
-              )}
+              <li><Link href="/fields" className="text-white/80 hover:text-white transition-colors">Find Fields</Link></li>
             </ul>
           </div>
 
