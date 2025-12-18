@@ -496,7 +496,10 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                             </div>
                             <div>
                               <p className="text-[16px] font-[700] text-dark-green">Minimum visit duration per booking</p>
-                              <p className="text-sm font-medium text-dark-green">{field?.minBookingDuration || '30'} </p>
+                              <p className="text-sm font-medium text-dark-green">
+                                {/* {field?.minBookingDuration || '30'} */}
+                                30 min
+                                 </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">
