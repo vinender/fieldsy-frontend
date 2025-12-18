@@ -14,6 +14,7 @@ import BackButton from '@/components/common/BackButton';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
+import { AmenityIcon } from '@/components/ui/AmenityIcon';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 import { RatingStars } from '@/components/common/RatingStars';
 import { formatRating } from '@/utils/formatters';
@@ -331,17 +332,14 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
 
                   return (
                     <div key={index} className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2">
-                      <img
-                        src={iconPath}
-                        alt={label}
-                        className="w-4 h-4 mr-2 object-contain"
-                        onError={(e) => {
-                          // Fallback to Shield icon if image fails to load
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                      <Shield className="w-4 h-4 text-[#3A6B22] mr-2 hidden" />
+                      <div className="w-4 h-4 mr-2 flex-shrink-0">
+                        <AmenityIcon
+                          src={iconPath}
+                          alt={label}
+                          active={true}
+                          size={16}
+                        />
+                      </div>
                       <span className="text-sm text-dark-green">{label}</span>
                     </div>
                   );
@@ -497,8 +495,8 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                               <img src="/field-details/clock.svg" alt="clock" className="w-6 h-6" />
                             </div>
                             <div>
-                              <p className="text-[16px] font-[700] text-dark-green">Maximum visit duration per booking</p>
-                              <p className="text-sm font-medium text-dark-green">{field?.minBookingDuration || '30'} min</p>
+                              <p className="text-[16px] font-[700] text-dark-green">Minimum visit duration per booking</p>
+                              <p className="text-sm font-medium text-dark-green">{field?.minBookingDuration || '30'} </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">

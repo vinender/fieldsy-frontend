@@ -1,6 +1,5 @@
 import React from 'react';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
-import { SvgIcon } from '@/components/ui/SvgIcon';
 
 interface AmenityIconProps {
   amenity: string;  // The amenity slug
@@ -10,11 +9,12 @@ interface AmenityIconProps {
   labelClassName?: string;
   iconColor?: string;  // Color for the icon (e.g., "#3a6b22" or "text-green")
   size?: 'sm' | 'md' | 'lg';
+  active?: boolean;  // Whether to show active (green) color
 }
 
 /**
  * Reusable component to display amenity icon with optional label
- * Uses SvgIcon for proper fill color control
+ * Uses img tag with CSS filter for proper color control
  */
 export const AmenityIcon: React.FC<AmenityIconProps> = ({
   amenity,
@@ -23,7 +23,8 @@ export const AmenityIcon: React.FC<AmenityIconProps> = ({
   iconClassName = '',
   labelClassName = '',
   iconColor = '#3a6b22',  // Default to green
-  size = 'md'
+  size = 'md',
+  active = true  // Default to active (green) color
 }) => {
   const iconPath = getAmenityIcon(amenity);
   const label = getAmenityLabel(amenity);
@@ -41,20 +42,26 @@ export const AmenityIcon: React.FC<AmenityIconProps> = ({
     lg: 'text-base'
   };
 
+  // Determine filter based on color
+  const isGreen = iconColor === '#3a6b22' || iconColor === '#3A6B22' || active;
+  const filter = isGreen
+    ? 'brightness(0) saturate(100%) invert(27%) sepia(89%) saturate(497%) hue-rotate(75deg) brightness(97%) contrast(88%)'
+    : 'brightness(0)';
+
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <SvgIcon
+      <img
         src={iconPath}
-        size={sizeMap[size]}
-        color={iconColor}
         alt={label}
-        className={iconClassName}
-        fallback={
-          <div
-            className={`bg-gray-200 rounded`}
-            style={{ width: sizeMap[size], height: sizeMap[size] }}
-          />
-        }
+        className={`object-contain ${iconClassName}`}
+        style={{
+          width: sizeMap[size],
+          height: sizeMap[size],
+          filter: filter,
+        }}
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = 'none';
+        }}
       />
       {showLabel && (
         <span className={`${textSizeClasses[size]} ${labelClassName}`}>

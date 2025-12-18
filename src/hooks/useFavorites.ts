@@ -16,7 +16,8 @@ interface FavoriteField {
   averageRating: number;
   reviewCount: number;
   bookingCount: number;
-  isFavorited: boolean;
+  isLiked: boolean;
+  isFavorited?: boolean; // Keep for backwards compatibility
   owner?: {
     id: string;
     name: string;
@@ -60,8 +61,9 @@ export function useToggleFavorite(fieldId: string) {
       queryClient.invalidateQueries({ queryKey: ['favorite-status', fieldId] });
       queryClient.invalidateQueries({ queryKey: ['saved-fields'] });
       queryClient.invalidateQueries({ queryKey: ['field', fieldId] });
-      
-      toast.success(data.isFavorited ? 'Field saved successfully' : 'Field removed from saved');
+      queryClient.invalidateQueries({ queryKey: ['active-fields'] });
+
+      toast.success(data.isLiked ? 'Field saved successfully' : 'Field removed from saved');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update favorite');
@@ -96,7 +98,7 @@ export function useFavoriteStatus(fieldId: string | undefined) {
       }
 
       const data = await response.json();
-      return data.isFavorited;
+      return data.isLiked ?? data.isFavorited; // Use isLiked, fall back to isFavorited for backwards compatibility
     },
     enabled: !!session && !!fieldId,
   });

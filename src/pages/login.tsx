@@ -1,17 +1,14 @@
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/router"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { LoginForm } from "@/components/forms/auth/LoginForm"
 import { PageWithSkeleton } from "@/components/common/PageWithSkeleton"
 import { LoginFormSkeleton } from "@/components/skeletons/PageSkeletons"
-import axiosClient from "@/lib/api/axios-client"
-// import axiosClient from "@/lib/axios"
 
 export default function LoginPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
-  const isCheckingFieldsRef = useRef(false)
 
   // Redirect logged-in users to their role-specific dashboard
   useEffect(() => {
@@ -25,25 +22,8 @@ export default function LoginPage() {
       if (role === 'ADMIN') {
         router.replace('/admin/dashboard');
       } else if (role === 'FIELD_OWNER') {
-        // Check if field owner has any fields
-        if (!isCheckingFieldsRef.current) {
-          isCheckingFieldsRef.current = true;
-          axiosClient.get('/fields/my-fields')
-            .then((response) => {
-              const fields = response.data?.data || [];
-              if (fields.length === 0) {
-                // No fields - redirect to add field form on home
-                router.replace('/');
-              } else {
-                // Has fields - redirect to my-fields
-                router.replace('/field-owner/my-fields');
-              }
-            })
-            .catch(() => {
-              // On error, default to add field form on home
-              router.replace('/');
-            });
-        }
+        // Always redirect field owners to home
+        router.replace('/');
       } else if (role === 'DOG_OWNER') {
         router.replace('/user/my-bookings');
       } else {

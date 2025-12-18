@@ -543,7 +543,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
 
   const handleGoHome = () => {
     setShowSuccessModal(false);
-    router.push('/user/my-bookings');
+    router.push('/');
   };
 
   const cardStyle = {

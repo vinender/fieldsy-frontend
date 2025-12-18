@@ -237,6 +237,9 @@ export function FileUploader({
   };
 
   const uploadFile = async (file: File) => {
+    // Generate unique ID for this file upload
+    const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     try {
       // Convert image files to AVIF format
       const fileToUpload = await convertToAVIF(file);
@@ -248,7 +251,7 @@ export function FileUploader({
       }
 
       const tempFile: UploadedFile = {
-        id: `${Date.now()}-${Math.random()}`,
+        id: fileId,
         name: fileToUpload.name,
         size: formatFileSize(fileToUpload.size),
         uploaded: false,
@@ -257,19 +260,19 @@ export function FileUploader({
         preview: previewUrl,
       };
 
-      // Add file to list with initial state
+      // Add file to list with initial state - use functional update to avoid stale state
       setUploadedFiles(prev => [...prev, tempFile]);
-      const fileIndex = uploadedFiles.length;
 
       setIsUploading(true);
       onUploadStart?.(fileToUpload);
-      
+
       const fileUrl = await s3Uploader.uploadFile({
         file: fileToUpload,
         onProgress: (progress: UploadProgress) => {
-          setUploadedFiles(prev => 
-            prev.map((f, i) => 
-              i === fileIndex 
+          // Update progress by file ID, not index
+          setUploadedFiles(prev =>
+            prev.map(f =>
+              f.id === fileId
                 ? { ...f, progress: progress.percentage }
                 : f
             )
@@ -278,43 +281,40 @@ export function FileUploader({
         }
       });
 
-      // Update file with success status
-      const updatedFiles = uploadedFiles.map((f, i) => 
-        i === fileIndex 
-          ? { ...f, url: fileUrl, uploaded: true, progress: 100 }
-          : f
-      );
-      
-      const newFiles = [...updatedFiles, { ...tempFile, url: fileUrl, uploaded: true, progress: 100 }];
-      setUploadedFiles(newFiles);
-      
-      // Notify parent component
-      if (onChange) {
-        if (returnUrls) {
-          const urls = newFiles.filter(f => f.uploaded && f.url).map(f => f.url!);
-          onChange(urls);
-        } else {
-          onChange(newFiles);
+      // Update file with success status using functional update
+      setUploadedFiles(prev => {
+        const newFiles = prev.map(f =>
+          f.id === fileId
+            ? { ...f, url: fileUrl, uploaded: true, progress: 100 }
+            : f
+        );
+
+        // Notify parent component with updated files
+        if (onChange) {
+          if (returnUrls) {
+            const urls = newFiles.filter(f => f.uploaded && f.url).map(f => f.url!);
+            onChange(urls);
+          } else {
+            onChange(newFiles);
+          }
         }
-      }
-      
+
+        return newFiles;
+      });
+
       onUploadComplete?.(fileUrl, fileToUpload);
     } catch (error) {
-      // Update file with error status
+      // Update file with error status using file ID
       const errorMessage = error instanceof Error ? error.message : 'Upload failed';
-      
-      // Only update if file was added to list
-      if (uploadedFiles.length > 0) {
-        const fileIndex = uploadedFiles.length - 1;
-        setUploadedFiles(prev => 
-          prev.map((f, i) => 
-            i === fileIndex 
-              ? { ...f, error: errorMessage, uploaded: false }
-              : f
-          )
-        );
-      }
-      
+
+      setUploadedFiles(prev =>
+        prev.map(f =>
+          f.id === fileId
+            ? { ...f, error: errorMessage, uploaded: false }
+            : f
+        )
+      );
+
       onUploadError?.(errorMessage, file);
       console.error('Upload error:', error);
     } finally {
@@ -326,55 +326,92 @@ export function FileUploader({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (disabled) return;
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const files = Array.from(e.dataTransfer.files);
-      for (const file of files) {
+
+      // Calculate how many files can still be uploaded
+      const currentCount = uploadedFiles.length;
+      const availableSlots = maxFiles - currentCount;
+
+      if (!multiple && currentCount >= 1) {
+        alert('You can only upload one file');
+        return;
+      }
+
+      if (multiple && availableSlots <= 0) {
+        alert(`Maximum ${maxFiles} files allowed`);
+        return;
+      }
+
+      // Limit files to available slots
+      const filesToUpload = multiple ? files.slice(0, availableSlots) : [files[0]];
+
+      if (files.length > filesToUpload.length) {
+        alert(`Only ${availableSlots} more file(s) can be uploaded. First ${filesToUpload.length} file(s) will be uploaded.`);
+      }
+
+      // Validate all files first
+      const validFiles: File[] = [];
+      for (const file of filesToUpload) {
         const error = validateFile(file);
         if (error) {
-          alert(error);
+          alert(`${file.name}: ${error}`);
           continue;
         }
-        
-        if (!multiple && uploadedFiles.length >= 1) {
-          alert('You can only upload one file');
-          break;
-        }
-        
-        if (multiple && uploadedFiles.length >= maxFiles) {
-          alert(`Maximum ${maxFiles} files allowed`);
-          break;
-        }
-        
-        await uploadFile(file);
+        validFiles.push(file);
       }
+
+      // Upload all valid files in parallel
+      await Promise.all(validFiles.map(file => uploadFile(file)));
     }
   };
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const files = Array.from(e.target.files);
-      for (const file of files) {
+
+      // Calculate how many files can still be uploaded
+      const currentCount = uploadedFiles.length;
+      const availableSlots = maxFiles - currentCount;
+
+      if (!multiple && currentCount >= 1) {
+        alert('You can only upload one file');
+        return;
+      }
+
+      if (multiple && availableSlots <= 0) {
+        alert(`Maximum ${maxFiles} files allowed`);
+        return;
+      }
+
+      // Limit files to available slots
+      const filesToUpload = multiple ? files.slice(0, availableSlots) : [files[0]];
+
+      if (files.length > filesToUpload.length) {
+        alert(`Only ${availableSlots} more file(s) can be uploaded. First ${filesToUpload.length} file(s) will be uploaded.`);
+      }
+
+      // Validate all files first
+      const validFiles: File[] = [];
+      for (const file of filesToUpload) {
         const error = validateFile(file);
         if (error) {
-          alert(error);
+          alert(`${file.name}: ${error}`);
           continue;
         }
-        
-        if (!multiple && uploadedFiles.length >= 1) {
-          alert('You can only upload one file');
-          break;
-        }
-        
-        if (multiple && uploadedFiles.length >= maxFiles) {
-          alert(`Maximum ${maxFiles} files allowed`);
-          break;
-        }
-        
-        await uploadFile(file);
+        validFiles.push(file);
       }
+
+      // Upload all valid files (can be parallel or sequential)
+      await Promise.all(validFiles.map(file => uploadFile(file)));
+    }
+
+    // Reset input value to allow selecting same files again
+    if (e.target) {
+      e.target.value = '';
     }
   };
 

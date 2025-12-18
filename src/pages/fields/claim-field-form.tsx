@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { ChevronLeft, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { AlertCircle } from 'lucide-react';
 import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import { Input } from '@/components/ui/input';
-import mockData from '@/data/mock-data.json';
 import { DocumentUploader } from '@/components/ui/image-grid-uploader';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useSubmitFieldClaim } from '@/hooks/useFieldClaim';
 import { ClaimSuccessModal } from '@/components/modal/ClaimSuccessModal';
 import BackButton from '@/components/common/BackButton';
+import axiosClient from '@/lib/api/axios-client';
+import { toast } from 'sonner';
 
 const ClaimFieldPage = () => {
   const router = useRouter();
@@ -24,7 +25,7 @@ const ClaimFieldPage = () => {
     phoneNumber: '',
     isLegalOwner: true
   });
-  
+
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState<{
@@ -43,6 +44,45 @@ const ClaimFieldPage = () => {
   }>({});
   const [showValidationError, setShowValidationError] = useState(false);
   const submitClaimMutation = useSubmitFieldClaim();
+
+  // Field data state
+  const [field, setField] = useState<any>(null);
+  const [isLoadingField, setIsLoadingField] = useState(true);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+
+  // Fetch field data and check claim eligibility
+  useEffect(() => {
+    const fetchFieldAndCheckEligibility = async () => {
+      if (!field_id) return;
+
+      setIsLoadingField(true);
+      setFieldError(null);
+
+      try {
+        // Fetch field data
+        const fieldResponse = await axiosClient.get(`/fields/${field_id}`);
+        const fieldData = fieldResponse.data?.data || fieldResponse.data;
+        setField(fieldData);
+
+        // Check claim eligibility using the backend endpoint
+        const eligibilityResponse = await axiosClient.get(`/claims/check-eligibility/${field_id}`);
+        const eligibility = eligibilityResponse.data;
+
+        if (!eligibility.canClaim) {
+          setFieldError(eligibility.reason || 'This field cannot be claimed.');
+          toast.error(eligibility.reason || 'This field cannot be claimed.');
+        }
+      } catch (error: any) {
+        console.error('Error fetching field or checking eligibility:', error);
+        setFieldError('Failed to load field information.');
+        toast.error('Failed to load field information.');
+      } finally {
+        setIsLoadingField(false);
+      }
+    };
+
+    fetchFieldAndCheckEligibility();
+  }, [field_id]);
 
   // Cleanup function to delete uploaded files from S3
   const deleteUploadedFiles = async () => {
@@ -214,10 +254,13 @@ const ClaimFieldPage = () => {
     }));
   };
 
-  // Get field data based on field_id
-  const field = field_id ? mockData.fields.find(f => f.id === field_id) : null;
-
   const handleSubmit = async () => {
+    // Check if there's an error (field cannot be claimed)
+    if (fieldError) {
+      toast.error(fieldError);
+      return;
+    }
+
     // Mark all fields as touched to show validation errors
     setTouched({
       fullName: true,
@@ -273,17 +316,64 @@ const ClaimFieldPage = () => {
     }
   };
 
+  // Show loading state
+  if (isLoadingField) {
+    return (
+      <UserLayout>
+        <div className="min-h-screen bg-light flex items-center justify-center">
+          <div className="text-center">
+            <Spinner size="lg" />
+            <p className="mt-4 text-gray-600">Loading field information...</p>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
+  // Show error if field cannot be claimed
+  if (fieldError) {
+    return (
+      <UserLayout>
+        <div className="min-h-screen bg-light">
+          <main className="w-full mt-16 md:mt-[100px] py-4 lg:py-10 px-4 sm:px-6 lg:px-8 xl:px-20">
+            <BackButton size="lg" showLabel={true} label="Back to Field" onClick={() => router.push(`/fields/${field_id}`)} />
+
+            <div className="mt-8 max-w-2xl mx-auto">
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <h2 className="text-xl font-bold text-red-800 mb-2">
+                  Cannot Claim This Field
+                </h2>
+                <p className="text-red-600 mb-6">
+                  {fieldError}
+                </p>
+                <button
+                  onClick={() => router.push(`/fields/${field_id}`)}
+                  className="px-6 py-3 bg-[#3A6B22] text-white rounded-full font-semibold hover:bg-[#2D5A1B] transition-colors"
+                >
+                  Back to Field Details
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </UserLayout>
+    );
+  }
+
   return (
     <UserLayout>
       <div className="min-h-screen bg-light">
-   
+
 
       {/* Main Content */}
       <main className="w-full mt-16 md:mt-[100px]  py-4 lg:py-10 px-4 sm:px-6 lg:px-8 xl:px-20">
         {/* Back Button and Title */}
 
             <BackButton size="lg" showLabel={true} label="Back to Field" onClick={handleBackClick} />
-            
+
         {/* Validation Error Alert */}
         {showValidationError && (
           <div className="mt-4 mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">

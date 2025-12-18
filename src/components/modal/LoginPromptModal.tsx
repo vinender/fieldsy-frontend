@@ -28,12 +28,12 @@ export function LoginPromptModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+      <DialogContent className="sm:max-w-[425px] p-0 rounded-3xl animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Visually hidden title for accessibility */}
         <DialogTitle className="sr-only">Welcome to Fieldsy - Login or Sign Up</DialogTitle>
-        <div className="relative">
+        <div className="relative overflow-hidden rounded-3xl">
           {/* Header with gradient background */}
-          <div className="bg-gradient-to-r from-[#3A6B22] to-[#8FB366] p-6 text-white">
+          <div className="bg-gradient-to-r from-[#3A6B22] to-[#8FB366] p-6 text-white rounded-t-3xl">
             <div className="flex justify-center mb-4">
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
                 <Image 
