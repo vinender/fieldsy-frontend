@@ -28,13 +28,16 @@ export default function FieldDetailsScreen({
   headerContent,
   initialData,
 }: FieldDetailsScreenProps) {
-  // Use initial data if available (from SSG), otherwise fetch
-  const shouldFetch = !providedField && !initialData && !!fieldId;
+  // Always fetch fresh data if fieldId is available and no providedField
+  // This ensures we get the latest isClaimed status and other dynamic data
+  const shouldFetch = !providedField && !!fieldId;
   const { data: fetchedField, isLoading, error } = useFieldDetails(shouldFetch ? (fieldId as string) : undefined as any);
 
-  const field = providedField || initialData || fetchedField?.data || fetchedField;
+  // Use fetched data if available, fall back to initialData (from SSG) during loading
+  const field = providedField || fetchedField?.data || fetchedField || initialData;
 
-  if (shouldFetch && isLoading) {
+  // Show skeleton only if we're loading AND have no initial data to display
+  if (shouldFetch && isLoading && !initialData) {
     return <FieldDetailsSkeleton />;
   }
 
