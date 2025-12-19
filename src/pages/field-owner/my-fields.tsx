@@ -194,7 +194,7 @@ export default function MyFieldsPage() {
                     </p>
                     <div className="flex justify-between items-center mt-4">
                       <span className="text-green font-bold text-lg">
-                        £{field.price || field.pricePerDay}/{field.bookingDuration === '30min' ? '30min' : 'hour'}
+                        £{field.price30min || field.price || 0}/30min • £{field.price1hr || field.price || 0}/hr
                       </span>
                       <div className="flex gap-1">
                         {/* Toggle status - only show when field is submitted and approved */}

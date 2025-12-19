@@ -260,9 +260,10 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                       {field?.name || field?.fieldName || 'Field'}
                     </h1>
                     <span className="text-xl lg:text-2xl text-dark-green">•</span>
-                    <div className="flex items-baseline">
-                      <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.pricePerHour || field.price || 0}</span>
-                      <span className="text-sm lg:text-base text-gray-500 ml-1">/dog/{field.bookingDuration}</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.price30min || field.price || 0}/30min</span>
+                      <span className="text-xl lg:text-2xl text-dark-green">•</span>
+                      <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.price1hr || field.price || 0}/hr</span>
                     </div>
                   </div>
                   <button

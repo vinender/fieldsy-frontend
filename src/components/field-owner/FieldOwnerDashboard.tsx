@@ -132,6 +132,8 @@ export default function AddYourField() {
     addressVerified: boolean;
     images: string[];
     price: string;
+    price30min: string;
+    price1hr: string;
     bookingDuration: string;
     instantBooking: boolean;
     requireDeposit: boolean;
@@ -157,9 +159,11 @@ export default function AddYourField() {
     postalCode: '',
     country: '',
     addressVerified: false,
-    images: [], // Add images field
+    images: [],
     // Pricing fields
     price: '',
+    price30min: '',
+    price1hr: '',
     bookingDuration: '30min',
     instantBooking: false,
     requireDeposit: false,
@@ -332,6 +336,8 @@ export default function AddYourField() {
         addressVerified: Boolean(fieldData.address || fieldData.streetAddress || fieldData.location),
         images: fieldData.images || [],
         price: fieldData.price?.toString() || fieldData.pricePerHour?.toString() || '',
+        price30min: fieldData.price30min?.toString() || '',
+        price1hr: fieldData.price1hr?.toString() || '',
         bookingDuration: fieldData.bookingDuration || '30min',
         instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
@@ -379,10 +385,12 @@ export default function AddYourField() {
         break;
         
       case 'pricing-availability':
-        if (!formData.price || parseFloat(formData.price) <= 0) {
-          errors.price = 'Please enter a valid price (must be greater than 0)';
+        if (!formData.price30min || parseFloat(formData.price30min) <= 0) {
+          errors.price30min = 'Please enter a valid price for 30 minute bookings (must be greater than 0)';
         }
-        if (!formData.bookingDuration) errors.bookingDuration = 'Please select a booking duration';
+        if (!formData.price1hr || parseFloat(formData.price1hr) <= 0) {
+          errors.price1hr = 'Please enter a valid price for 1 hour bookings (must be greater than 0)';
+        }
         break;
         
       case 'booking-rules':

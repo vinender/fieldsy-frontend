@@ -111,12 +111,13 @@ export default function SavedFieldsPage() {
               <div className="w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(280px,400px))] gap-4 md:gap-6">
                   {savedFields.map((field) => (
-                    <FieldCard 
+                    <FieldCard
                     key={field.id}
                     id={field.id}
                     name={field.name || 'Unnamed Field'}
                     price={field.price || 0}
-                    priceUnit={field.bookingDuration === '30min' ? 'dog/30min' : 'dog/hour'}
+                    price30min={field.price30min}
+                    price1hr={field.price1hr}
                     location={field.city ? `${field.city}, ${field.state || ''}` : 'Location'}
                     rating={field.averageRating || 4.5}
                     amenities={field.amenities || []}

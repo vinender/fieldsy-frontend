@@ -18,7 +18,8 @@ export interface FieldCardProps {
   location: string
   distance?: string
   price: number
-  priceUnit?: string
+  price30min?: number
+  price1hr?: number
   rating: number
   image: string
   amenities?: (string | { label: string; value: string })[]
@@ -42,7 +43,7 @@ export function FieldCard({
   location,
   distance: providedDistance,
   price,
-  priceUnit = "dog/hour",
+  price30min,
   rating,
   image,
   amenities = [],
@@ -59,6 +60,8 @@ export function FieldCard({
   latitude,
   longitude
 }: FieldCardProps) {
+  // Use new price fields if available, fallback to legacy price
+  const displayPrice = price30min || price || 0
 
   const isExpanded = variant === 'expanded'
   const router = useRouter()
@@ -162,8 +165,9 @@ export function FieldCard({
                 {/* <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {owner}</p> */}
               </div>
               <div className="text-right">
-                <p className="text-[16px] font-bold text-[#3A6B22] leading-[20px]">£{price}</p>
-                <p className="text-[13px] text-[#8d8d8d] leading-[16px]">/{priceUnit}</p>
+                <p className="text-[14px] font-bold text-[#3A6B22] leading-[18px]">
+                  From £{displayPrice}
+                </p>
               </div>
             </div>
 
@@ -253,8 +257,7 @@ export function FieldCard({
               {name}
             </h3>
             <div className="text-right">
-              <span className="text-[16px] font-bold text-dark-green">£{price}</span>
-              <span className="text-[10px] text-gray-500 block">/{priceUnit}</span>
+              <span className="text-[12px] font-bold text-dark-green block">From £{displayPrice}</span>
             </div>
           </div>
           {/* <p className="text-[10px] text-gray-500">Posted by: {owner}</p> */}

@@ -196,6 +196,10 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     instantBooking: formData?.instantBooking,
     maxDogs: formData?.maxDogs,
     minBookingDuration: formData?.bookingDuration,
+    // Pricing fields
+    price: formData?.price,
+    price30min: formData?.price30min,
+    price1hr: formData?.price1hr,
     // Add missing fields for preview sections
     bufferTime: formData?.bufferTime || 30,
     bookingPolicies: formData?.bookingPolicies || [],

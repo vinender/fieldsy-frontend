@@ -10,6 +10,9 @@ interface FavoriteField {
   address?: string;
   city?: string;
   state?: string;
+  price?: number;
+  price30min?: number;
+  price1hr?: number;
   pricePerHour?: number;
   pricePerDay?: number;
   images: string[];
@@ -18,6 +21,10 @@ interface FavoriteField {
   bookingCount: number;
   isLiked: boolean;
   isFavorited?: boolean; // Keep for backwards compatibility
+  amenities?: string[];
+  location?: any;
+  latitude?: number;
+  longitude?: number;
   owner?: {
     id: string;
     name: string;

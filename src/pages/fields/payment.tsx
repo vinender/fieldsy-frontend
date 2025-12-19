@@ -407,7 +407,7 @@ const PaymentPage = () => {
                           </h3>
                           <div className="flex items-baseline gap-1 sm:block sm:text-right">
                             <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">£{pricePerDog}</span>
-                            <span className="text-sm sm:text-[16px] text-[#192215] opacity-70">/dog/{field?.bookingDuration === '30min' ? '30min' : 'hour'}</span>
+                            <span className="text-sm sm:text-[16px] text-[#192215] opacity-70">/dog/{bookingDuration === '30min' ? '30min' : 'hr'}</span>
                           </div>
                         </div>
                         
@@ -485,6 +485,12 @@ const PaymentPage = () => {
                 <h3 className="text-base sm:text-[18px] font-bold text-[#192215] mb-2 sm:mb-2.5">Payment Summary</h3>
                 <div className="bg-white rounded-[12px] sm:rounded-[14px] p-3 sm:p-4 border border-black/6">
                   <div className="space-y-2 sm:space-y-3">
+                    {/* Session duration */}
+                    <div className="flex justify-between text-sm sm:text-[16px]">
+                      <span className="text-[#192215] opacity-70">Session duration</span>
+                      <span className="font-medium text-[#192215]">{bookingDuration === '30min' ? '30 min' : '60 min'}</span>
+                    </div>
+
                     {/* Price per dog per slot */}
                     <div className="flex justify-between text-sm sm:text-[16px]">
                       <span className="text-[#192215] opacity-70">Price per dog per slot</span>

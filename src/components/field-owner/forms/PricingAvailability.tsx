@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 
 interface PricingAvailabilityProps {
@@ -8,20 +8,17 @@ interface PricingAvailabilityProps {
 }
 
 export default function PricingAvailability({ formData, setFormData, validationErrors = {} }: PricingAvailabilityProps) {
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
+  const handlePriceChange = (field: 'price30min' | 'price1hr', value: string) => {
     // Allow empty value
     if (value === '') {
       setFormData((prev: any) => ({
         ...prev,
-        price: ''
+        [field]: ''
       }));
       return;
     }
 
     // Only allow whole numbers (no decimals)
-    // Pattern: one or more digits only
     const priceRegex = /^\d+$/;
 
     if (priceRegex.test(value)) {
@@ -30,23 +27,29 @@ export default function PricingAvailability({ formData, setFormData, validationE
       if (numValue > 100) {
         setFormData((prev: any) => ({
           ...prev,
-          price: '100'
+          [field]: '100'
         }));
         return;
       }
       setFormData((prev: any) => ({
         ...prev,
-        price: value
+        [field]: value
       }));
     }
     // If pattern doesn't match, ignore the input
   };
 
-  const handleDurationChange = (duration: string) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      bookingDuration: duration
-    }));
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Prevent 'e', 'E', '-', '+', and '.' (decimal point) keys
+    if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
+      e.preventDefault();
+    }
+  };
+
+  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
+    // Extra protection: remove any non-digit characters
+    const input = e.target as HTMLInputElement;
+    input.value = input.value.replace(/[^0-9]/g, '');
   };
 
   return (
@@ -70,112 +73,86 @@ export default function PricingAvailability({ formData, setFormData, validationE
 
       {/* Pricing Section */}
       <div className="space-y-8">
-        {/* Booking Duration - Moved before Price */}
-        <div>
-          <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-            Choose your preferred booking slot duration <span className="text-red-500">*</span>
+        {/* Price Inputs for both durations */}
+        <div className="space-y-6">
+          <label className="block text-sm font-medium text-dark-green font-sans">
+            Set your pricing for each booking duration <span className="text-red-500">*</span>
           </label>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              type="button"
-              onClick={() => handleDurationChange('30min')}
-              className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all shadow-sm ${
-                formData.bookingDuration === '30min'
-                  ? 'bg-light-green text-white'
-                  : 'bg-white border border-gray-300 text-gray-text hover:border-gray-400'
-              }`}
-            >
-              30 Minutes
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDurationChange('1hour')}
-              className={`flex-1 py-3 px-4 rounded-full font-medium font-sans transition-all shadow-sm ${
-                formData.bookingDuration === '1hour'
-                  ? 'bg-light-green text-white'
-                  : 'bg-white border border-gray-300 text-gray-text hover:border-gray-400'
-              }`}
-            >
-              1 Hour
-            </button>
-          </div>
-          {validationErrors.bookingDuration && (
-            <p className="text-red-500 text-sm mt-1">{validationErrors.bookingDuration}</p>
-          )}
-        </div>
 
-        {/* Price Input - Now after Duration */}
-        <div>
-          <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-            How much do you want to charge per dog, per {formData.bookingDuration === '30min' ? '30 minutes' : formData.bookingDuration === '1hour' ? 'hour' : 'slot'}? <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
-              £
-            </span>
-            <Input
-              type="number"
-              value={formData.price || ''}
-              onChange={handlePriceChange}
-              onKeyDown={(e) => {
-                // Prevent 'e', 'E', '-', '+', and '.' (decimal point) keys
-                if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
-                  e.preventDefault();
-                }
-              }}
-              onInput={(e) => {
-                // Extra protection: remove any non-digit characters
-                const input = e.target as HTMLInputElement;
-                input.value = input.value.replace(/[^0-9]/g, '');
-              }}
-              min="0"
-              max="100"
-              step="1"
-              placeholder="0"
-              className={`pl-8 pr-4 sm:pr-40 py-3 ${validationErrors.price ? 'border-red-500' : ''}`}
-              aria-invalid={!!validationErrors.price}
-            />
-            <div className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-2">
-              <div className="h-6 w-px bg-gray-text" />
-              <span className="text-sm font-medium whitespace-nowrap text-dark-green font-sans">
-                Per dog per {formData.bookingDuration === '30min' ? '30 min' : formData.bookingDuration === '1hour' ? 'hour' : 'slot'}
+          {/* 30 Minutes Price */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+              30 Minutes Booking <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
+                £
               </span>
-            </div>
-          </div>
-          <p className="sm:hidden text-xs text-gray-text mt-1 font-sans">
-            Per dog per {formData.bookingDuration === '30min' ? '30 min' : formData.bookingDuration === '1hour' ? 'hour' : 'slot'}
-          </p>
-          {validationErrors.price && (
-            <p className="text-red-500 text-sm mt-1">{validationErrors.price}</p>
-          )}
-        </div>
-
-        {/* Instant Booking Toggle */}
-        {/* <div className="space-y-4 border-t border-gray-200 pt-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="block text-sm font-medium text-dark-green font-sans">
-                Enable Instant Booking
-              </label>
-              <p className="text-xs text-gray-text mt-1 font-sans">
-                Allow users to book immediately without approval
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFormData((prev: any) => ({ ...prev, instantBooking: !prev.instantBooking }))}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                formData.instantBooking ? 'bg-green' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  formData.instantBooking ? 'translate-x-6' : 'translate-x-1'
-                }`}
+              <Input
+                type="number"
+                value={formData.price30min || ''}
+                onChange={(e) => handlePriceChange('price30min', e.target.value)}
+                onKeyDown={handleKeyDown}
+                onInput={handleInput}
+                min="0"
+                max="100"
+                step="1"
+                placeholder="0"
+                className={`pl-8 pr-4 sm:pr-40 py-3 ${validationErrors.price30min ? 'border-red-500' : ''}`}
+                aria-invalid={!!validationErrors.price30min}
               />
-            </button>
+              <div className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-2">
+                <div className="h-6 w-px bg-gray-text" />
+                <span className="text-sm font-medium whitespace-nowrap text-dark-green font-sans">
+                  Per dog per 30 min
+                </span>
+              </div>
+            </div>
+            <p className="sm:hidden text-xs text-gray-text mt-1 font-sans">
+              Per dog per 30 min
+            </p>
+            {validationErrors.price30min && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.price30min}</p>
+            )}
           </div>
-        </div> */}
+
+          {/* 1 Hour Price */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+              1 Hour Booking <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
+                £
+              </span>
+              <Input
+                type="number"
+                value={formData.price1hr || ''}
+                onChange={(e) => handlePriceChange('price1hr', e.target.value)}
+                onKeyDown={handleKeyDown}
+                onInput={handleInput}
+                min="0"
+                max="100"
+                step="1"
+                placeholder="0"
+                className={`pl-8 pr-4 sm:pr-40 py-3 ${validationErrors.price1hr ? 'border-red-500' : ''}`}
+                aria-invalid={!!validationErrors.price1hr}
+              />
+              <div className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-2">
+                <div className="h-6 w-px bg-gray-text" />
+                <span className="text-sm font-medium whitespace-nowrap text-dark-green font-sans">
+                  Per dog per hour
+                </span>
+              </div>
+            </div>
+            <p className="sm:hidden text-xs text-gray-text mt-1 font-sans">
+              Per dog per hour
+            </p>
+            {validationErrors.price1hr && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.price1hr}</p>
+            )}
+          </div>
+        </div>
 
         {/* Cancellation Policy Section */}
         <div className="mt-10 pt-10 border-t border-gray-200">

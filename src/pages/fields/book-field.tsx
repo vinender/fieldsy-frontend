@@ -778,9 +778,8 @@ const BookFieldPage = () => {
                     {field.name}
                   </h2>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">£{field.pricePerHour || field.price || 0}</span>
-                    <span className="text-sm sm:text-[16px] text-dark-green/70">
-                      /dog/{field.bookingDuration === '30min' ? '30min' : 'hour'}
+                    <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">
+                      From £{field.price30min || field.price || 0}
                     </span>
                   </div>
                 </div>
@@ -906,6 +905,9 @@ const BookFieldPage = () => {
                   >
                     <div className="flex flex-col items-center gap-1">
                       <span className="text-lg font-bold">30 min</span>
+                      <span className={`text-sm font-semibold ${selectedDuration === '30min' ? 'text-white' : 'text-[#3A6B22]'}`}>
+                        £{field.price30min || field.price || 0}/dog
+                      </span>
                       <span className={`text-xs ${selectedDuration === '30min' ? 'text-white/80' : 'text-gray-500'}`}>
                         (25 min play time)
                       </span>
@@ -921,6 +923,9 @@ const BookFieldPage = () => {
                   >
                     <div className="flex flex-col items-center gap-1">
                       <span className="text-lg font-bold">60 min</span>
+                      <span className={`text-sm font-semibold ${selectedDuration === '60min' ? 'text-white' : 'text-[#3A6B22]'}`}>
+                        £{field.price1hr || field.price || 0}/dog
+                      </span>
                       <span className={`text-xs ${selectedDuration === '60min' ? 'text-white/80' : 'text-gray-500'}`}>
                         (55 min play time)
                       </span>
@@ -1311,7 +1316,7 @@ const BookFieldPage = () => {
                         ))}
                       </div>
                       <p className="text-sm text-green-700 mt-2">
-                        Total: £{((field.pricePerHour || field.price || 0) * parseInt(numberOfDogs || '1') * selectedTimeSlots.length).toFixed(2)}
+                        Total: £{((selectedDuration === '30min' ? (field.price30min || field.price || 0) : (field.price1hr || field.price || 0)) * parseInt(numberOfDogs || '1') * selectedTimeSlots.length).toFixed(2)}
                         {repeatBooking !== 'None' && ` per ${repeatBooking.toLowerCase() === 'everyday' ? 'day' : repeatBooking.toLowerCase() === 'weekly' ? 'week' : 'month'}`}
                       </p>
                     </div>
@@ -1537,6 +1542,11 @@ const BookFieldPage = () => {
                   } else {
                     // Normal booking flow - continue to payment
                     // Pass timeSlots as JSON string for multiple slots
+                    // Use the correct price based on selected duration
+                    const priceForDuration = selectedDuration === '30min'
+                      ? (field.price30min || field.price || 0)
+                      : (field.price1hr || field.price || 0);
+
                     router.push({
                       pathname: '/fields/payment',
                       query: {
@@ -1545,7 +1555,7 @@ const BookFieldPage = () => {
                         date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
                         timeSlots: JSON.stringify(selectedTimeSlots),
                         repeatBooking: repeatBooking,
-                        price: field.pricePerHour || field.price || 0,
+                        price: priceForDuration,
                         duration: selectedDuration // Pass the selected duration (30min or 60min)
                       }
                     });

@@ -513,7 +513,8 @@ export default function SearchResults() {
                           id: field.id,
                           name: field.name,
                           price: field.price,
-                          priceUnit: field.duration === '30min' ? 'dog/30min' : 'dog/hour',
+                          price30min: field.price30min,
+                          price1hr: field.price1hr,
                           location: field.locationDisplay || `${field.location?.city}, ${field.location?.state}`,
                           distance: field.distanceDisplay, // Pre-calculated distance from API
                           rating: field.rating || 0,
