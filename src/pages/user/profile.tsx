@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { ProfileSkeleton } from '@/components/skeletons/SkeletonComponents';
 import { DeleteProfileImageModal } from '@/components/modal/DeleteProfileImageModal';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
-import { validateUKPhoneNumber, sanitizePhoneInput } from '@/utils/phoneValidation';
+import { validateUKPhoneNumber, sanitizePhoneInput, UK_PHONE_MAX_LENGTH } from '@/utils/phoneValidation';
 
 const BIO_PREVIEW_LIMIT = 250;
 
@@ -421,6 +421,7 @@ const MyProfilePage = () => {
                       value={formData.phoneNumber}
                       onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                       placeholder="Enter phone number"
+                      maxLength={UK_PHONE_MAX_LENGTH + 3}
                       className="flex-1 ml-2 sm:ml-3 bg-white text-sm sm:text-[15px] border-none outline-none focus:outline-none focus:ring-0 focus:border-none"
                     />
                   </div>

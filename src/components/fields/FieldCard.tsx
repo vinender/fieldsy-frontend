@@ -68,7 +68,8 @@ export function FieldCard({
   const { data: session } = useSession()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [loginModalMessage, setLoginModalMessage] = useState('')
-  
+  const imageAspect = "aspect-[61/48]"
+
   // Get user location from context - Distance calculation disabled
   // const { currentLocation, isLocationEnabled } = useLocation()
 
@@ -172,14 +173,15 @@ export function FieldCard({
             </div>
 
             <div className="relative mb-4 ">
-              <div className={imageHeight + " w-full"}>
-                <LazyImage
-                  src={getImageUrl(image)}
-                  alt={name}
-                  className={`w-full h-full object-cover ${imageRoundness}`}
-                  placeholder="/placeholder-field.jpg"
-                />
-              </div>
+            <div className={`relative w-full ${imageAspect} overflow-hidden ${imageRoundness}`}>
+              <LazyImage
+                src={getImageUrl(image)}
+                alt={name}
+                className="absolute inset-0 w-full h-full object-cover"
+                placeholder="/placeholder-field.jpg"
+              />
+            </div>
+
               <button
                 onClick={handleToggleFavorite}
                 disabled={toggleFavoriteMutation.isPending}

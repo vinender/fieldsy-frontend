@@ -5,6 +5,12 @@
  * Supports various UK phone number formats
  */
 
+// UK phone number length limits (excluding +44 country code)
+// Mobile: 10-11 digits (7xxxxxxxxx or 07xxxxxxxxx)
+// Landline: 10-11 digits
+export const UK_PHONE_MAX_LENGTH = 11; // Maximum digits excluding country code
+export const UK_PHONE_MIN_LENGTH = 10; // Minimum digits excluding country code
+
 /**
  * Validates UK phone number format
  *
@@ -114,9 +120,38 @@ export const formatUKPhoneNumber = (phoneNumber: string): string => {
  * Sanitizes phone number input - removes non-numeric characters except spaces, dashes, parentheses, and + for international
  *
  * @param input - The raw input string
+ * @param enforceMaxLength - Whether to enforce the max length limit (default: true)
  * @returns Sanitized phone number string
  */
-export const sanitizePhoneInput = (input: string): string => {
+export const sanitizePhoneInput = (input: string, enforceMaxLength: boolean = true): string => {
   // Remove everything except digits, spaces, dashes, parentheses, and + (for international format)
-  return input.replace(/[^\d\s\-()+]/g, '');
+  let sanitized = input.replace(/[^\d\s\-()+]/g, '');
+
+  if (enforceMaxLength) {
+    // Count only digits (excluding formatting characters)
+    const digitsOnly = sanitized.replace(/\D/g, '');
+
+    // If exceeds max length, truncate to max allowed digits
+    if (digitsOnly.length > UK_PHONE_MAX_LENGTH) {
+      // Keep only max allowed digits
+      let digitCount = 0;
+      let truncatedIndex = 0;
+
+      for (let i = 0; i < sanitized.length; i++) {
+        if (/\d/.test(sanitized[i])) {
+          digitCount++;
+          if (digitCount === UK_PHONE_MAX_LENGTH) {
+            truncatedIndex = i + 1;
+            break;
+          }
+        } else {
+          truncatedIndex = i + 1;
+        }
+      }
+
+      sanitized = sanitized.substring(0, truncatedIndex);
+    }
+  }
+
+  return sanitized;
 };

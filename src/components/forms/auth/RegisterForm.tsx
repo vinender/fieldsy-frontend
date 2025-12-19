@@ -16,7 +16,7 @@ import { RoleSelectionModal } from "@/components/modal/RoleSelectionModal"
 import { socialRoleStore } from "@/lib/auth/social-role-store"
 import { useRegisterWithOtp } from "@/hooks/mutations/useOtpMutations"
 import { useStorePendingRole } from "@/hooks/mutations/useAuthMutations"
-import { validateUKPhoneNumber } from "@/utils/phoneValidation"
+import { validateUKPhoneNumber, sanitizePhoneInput, UK_PHONE_MAX_LENGTH } from "@/utils/phoneValidation"
 
 
 const registerSchema = z
@@ -364,13 +364,14 @@ export default function RegisterForm() {
                     placeholder="Enter phone number"
                     {...register("phoneNumber", {
                       onChange: (e) => {
-                        // Allow digits, spaces, dashes, and parentheses
-                        const value = e.target.value.replace(/[^\d\s\-()]/g, '');
+                        // Sanitize and enforce UK phone number max length (11 digits)
+                        const value = sanitizePhoneInput(e.target.value);
                         e.target.value = value;
                       }
                     })}
                     onFocus={() => setIsPhoneFocused(true)}
                     onBlur={() => setIsPhoneFocused(false)}
+                    maxLength={UK_PHONE_MAX_LENGTH + 3} // Allow for spaces/dashes formatting
                     className={`flex-1 px-3 md:px-4 bg-white py-2 md:py-2.5 rounded-r-[76px] rounded-l-none border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} border-l-0 focus:outline-none shadow-none hover:border-gray-300 autofill:bg-white transition-colors ${
                       isPhoneFocused
                         ? 'border-green'
