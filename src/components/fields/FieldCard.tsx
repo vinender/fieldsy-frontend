@@ -1,12 +1,12 @@
 import { MapPin, Star } from "lucide-react"
 import Image from "next/image"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 import { useToggleFavorite, useFavoriteStatus } from "@/hooks/useFavorites"
 import { LoginPromptModal } from "@/components/modal/LoginPromptModal"
-import { useLocation } from "@/contexts/LocationContext"
-import { calculateDistance, formatDistance, getFieldCoordinates } from "@/utils/location"
+// import { useLocation } from "@/contexts/LocationContext" // Distance calculation disabled
+// import { calculateDistance, formatDistance, getFieldCoordinates } from "@/utils/location" // Distance calculation disabled
 import { getAmenityLabel, formatRating } from "@/utils/formatters"
 import { getImageUrl } from "@/utils/imageUrl"
 import { LazyImage } from "@/components/common/LazyImage"
@@ -69,35 +69,35 @@ export function FieldCard({
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [loginModalMessage, setLoginModalMessage] = useState('')
   
-  // Get user location from context
-  const { currentLocation, isLocationEnabled } = useLocation()
-  
-  // Calculate distance if user location is available
-  const calculatedDistance = useMemo(() => {
-    if (!isLocationEnabled || !currentLocation) return null
+  // Get user location from context - Distance calculation disabled
+  // const { currentLocation, isLocationEnabled } = useLocation()
 
-    // Try to get field coordinates from various sources
-    let fieldCoords = getFieldCoordinates(fieldLocation)
+  // Calculate distance if user location is available - Distance calculation disabled
+  // const calculatedDistance = useMemo(() => {
+  //   if (!isLocationEnabled || !currentLocation) return null
 
-    // Fallback to legacy latitude/longitude fields
-    if (!fieldCoords && latitude && longitude) {
-      fieldCoords = { lat: latitude, lng: longitude }
-    }
+  //   // Try to get field coordinates from various sources
+  //   let fieldCoords = getFieldCoordinates(fieldLocation)
 
-    if (!fieldCoords) return null
+  //   // Fallback to legacy latitude/longitude fields
+  //   if (!fieldCoords && latitude && longitude) {
+  //     fieldCoords = { lat: latitude, lng: longitude }
+  //   }
 
-    const distance = calculateDistance(
-      currentLocation.lat,
-      currentLocation.lng,
-      fieldCoords.lat,
-      fieldCoords.lng
-    )
+  //   if (!fieldCoords) return null
 
-    return formatDistance(distance)
-  }, [currentLocation, isLocationEnabled, fieldLocation, latitude, longitude])
+  //   const distance = calculateDistance(
+  //     currentLocation.lat,
+  //     currentLocation.lng,
+  //     fieldCoords.lat,
+  //     fieldCoords.lng
+  //   )
 
-  // Use calculated distance if available, otherwise fall back to provided distance
-  const displayDistance = calculatedDistance || providedDistance
+  //   return formatDistance(distance)
+  // }, [currentLocation, isLocationEnabled, fieldLocation, latitude, longitude])
+
+  // Use calculated distance if available, otherwise fall back to provided distance - Distance calculation disabled
+  // const displayDistance = calculatedDistance || providedDistance
 
   // Favorite status and toggle
   const { data: isFavorited } = useFavoriteStatus(id)
@@ -161,7 +161,7 @@ export function FieldCard({
           <div className={padding}>
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1 pr-2 min-w-0">
-                <h3 className="text-[15px] font-bold text-dark-green leading-[20px] line-clamp-2">{name}</h3>
+                <h3 className="text-[15px] font-bold text-dark-green  leading-[20px] line-clamp-1 ">{name}</h3>
                 {/* <p className="text-[12px] text-[#8d8d8d] leading-[16px]">Posted by {owner}</p> */}
               </div>
               <div className="text-right">
@@ -197,7 +197,7 @@ export function FieldCard({
               <div className="flex items-center gap-1 flex-1 pr-2">
                 <img src="/location.svg" alt="Location" className="w-5 h-5 text-[#3A6B22] flex-shrink-0" />
                 <span className="text-[12px] text-dark-green leading-[16px]">
-                  {location}{displayDistance ? ` • ${displayDistance}` : ''}
+                  {location}
                 </span>
               </div>
               <div className="bg-dark-green rounded-md px-1.5 py-1 flex items-center gap-0.5">
@@ -292,7 +292,7 @@ export function FieldCard({
         <div className="px-3 pb-3">
           <div className="flex items-center gap-1 text-[10px] text-gray-500 mb-2">
             <MapPin className="w-3 h-3" />
-            <span>{location}{displayDistance ? ` • ${displayDistance}` : ''}</span>
+            <span>{location}</span>
           </div>
 
           <div className="flex gap-1 mb-3 flex-wrap min-h-[22px]">
