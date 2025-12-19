@@ -197,6 +197,40 @@ export const PageHeaderSkeleton: React.FC = () => (
     </div>
   </div>
 );
+
+// Time Slots Skeleton for booking page
+export const TimeSlotsSkeleton: React.FC = () => (
+  <div className="space-y-[11px]">
+    {/* Morning Section Skeleton */}
+    <div className="border border-dark-green/10 rounded-[10px] overflow-hidden bg-[#FFFCF3]">
+      <div className="p-4 flex justify-between items-center">
+        <Skeleton className="h-5 w-20" />
+        <Skeleton className="h-5 w-5" />
+      </div>
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Skeleton key={index} className="w-[132px] h-10 rounded-[14px]" />
+        ))}
+      </div>
+    </div>
+
+    {/* Afternoon Section Skeleton */}
+    <div className="border border-dark-green/10 rounded-[10px] overflow-hidden">
+      <div className="p-4 flex justify-between items-center">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-5 w-5" />
+      </div>
+    </div>
+
+    {/* Evening Section Skeleton */}
+    <div className="border border-dark-green/10 rounded-[10px] overflow-hidden">
+      <div className="p-4 flex justify-between items-center">
+        <Skeleton className="h-5 w-20" />
+        <Skeleton className="h-5 w-5" />
+      </div>
+    </div>
+  </div>
+);
 // 
 // Loading Wrapper Component
 export const LoadingWrapper: React.FC<{

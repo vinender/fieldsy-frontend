@@ -11,13 +11,14 @@ import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
 import { useSlotAvailability, BookingDuration } from '@/hooks/useSlotAvailability';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
+import { TimeSlotsSkeleton } from '@/components/skeletons/SkeletonComponents';
 import { format } from 'date-fns';
 import { useRescheduleBooking } from '@/hooks/useBookingApi';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
-import { getUserLocation } from '@/utils/getUserLocation';
+// import { getUserLocation } from '@/utils/getUserLocation'; // Distance calculation disabled
 import { useMaxAdvanceBookingDays } from '@/hooks/usePublicSettings';
 import { formatRating } from '@/utils/formatters';
 import axiosClient from '@/lib/api/axios-client';
@@ -54,7 +55,7 @@ const BookFieldPage = () => {
   const [repeatBooking, setRepeatBooking] = useState('None');
   const [expandedSection, setExpandedSection] = useState<string | null>('morning');
   const [rescheduleData, setRescheduleData] = useState<any>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // Distance calculation disabled
   const [isClient, setIsClient] = useState(false); // Track if we're on client side for timezone
   const [isCheckingConflicts, setIsCheckingConflicts] = useState(false); // Loading state for conflict check
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>('60min'); // Default to 60 minutes
@@ -67,22 +68,22 @@ const BookFieldPage = () => {
     setIsClient(true);
   }, []);
 
-  // Get user location on mount
-  useEffect(() => {
-    getUserLocation().then(location => {
-      if (location) {
-        setUserLocation(location);
-      }
-    });
-  }, []);
+  // Get user location on mount - Distance calculation disabled
+  // useEffect(() => {
+  //   getUserLocation().then(location => {
+  //     if (location) {
+  //       setUserLocation(location);
+  //     }
+  //   });
+  // }, []);
 
-  // Fetch field details using the hook with optimizations and user location
+  // Fetch field details using the hook with optimizations (distance calculation disabled)
   const { data: fieldData, isLoading, error } = useFieldDetails(fieldIdToUse as string, {
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
     refetchOnMount: false, // Don't refetch on mount if cached
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    userLocation: userLocation
+    // userLocation: userLocation // Distance calculation disabled
   });
   
   const field = fieldData?.data || fieldData;
@@ -117,12 +118,17 @@ const BookFieldPage = () => {
   const {
     data: availabilityData,
     refetch: refetchAvailability,
-    isRefetching: isRefetchingSlots
+    isRefetching: isRefetchingSlots,
+    isLoading: isLoadingSlots,
+    isFetching: isFetchingSlots
   } = useSlotAvailability(
     fieldIdToUse as string,
     dateString,
     selectedDuration
   );
+
+  // Combined loading state for slots
+  const isSlotsLoading = isLoadingSlots || isFetchingSlots;
 
   // Refetch availability when date or duration changes
   useEffect(() => {
@@ -998,20 +1004,27 @@ const BookFieldPage = () => {
                   All times shown in 12-hour format (AM/PM)
                 </p>
                 
-                {/* Show message if no time slots available */}
-                {timeSlots.morning.length === 0 && timeSlots.afternoon.length === 0 && timeSlots.evening.length === 0 && (
+                {/* Show skeleton when loading slots */}
+                {isSlotsLoading && (
+                  <TimeSlotsSkeleton />
+                )}
+
+                {/* Show message if no time slots available (only when not loading) */}
+                {!isSlotsLoading && timeSlots.morning.length === 0 && timeSlots.afternoon.length === 0 && timeSlots.evening.length === 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800">
                     <p className="text-sm font-medium">No time slots available for the selected date.</p>
                     <p className="text-sm mt-1">
-                      {field?.operatingDays && field.operatingDays.length > 0 
+                      {field?.operatingDays && field.operatingDays.length > 0
                         ? `This field operates on: ${field.operatingDays.join(', ')}`
                         : 'Please select another date or contact the field owner.'}
                     </p>
                   </div>
                 )}
 
+                {/* Show time slots when not loading */}
+                {!isSlotsLoading && (
                 <div className={`space-y-[11px] relative ${isRefetchingSlots ? 'opacity-60 pointer-events-none' : ''}`}>
-                  {/* Loading overlay */}
+                  {/* Loading overlay for refetching */}
                   {isRefetchingSlots && (
                     <div className="absolute inset-0 flex items-center justify-center z-10">
                       <div className="bg-white rounded-lg px-4 py-2 shadow-lg flex items-center gap-2">
@@ -1189,6 +1202,7 @@ const BookFieldPage = () => {
                   </div>
                   )}
                 </div>
+                )}
               </div>
 
               {/* Repeat Booking - Now shown in reschedule mode too */}
