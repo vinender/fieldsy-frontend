@@ -208,6 +208,7 @@ export function FieldCard({
               </div>
             </div>
 
+            {/* Amenities tags - temporarily hidden
             <div className="flex flex-wrap gap-1.5 mb-4 min-h-[28px]">
               {amenities.length > 0 ? (
                 amenities.slice(0, showAmenityLimit).map((amenity, idx) => (
@@ -222,6 +223,7 @@ export function FieldCard({
                 <span className="invisible text-[11px] px-2 py-1">&nbsp;</span>
               )}
             </div>
+            */}
 
             <div className="flex gap-3">
               <button
@@ -297,6 +299,7 @@ export function FieldCard({
             <span>{location}</span>
           </div>
 
+          {/* Amenities tags - temporarily hidden
           <div className="flex gap-1 mb-3 flex-wrap min-h-[22px]">
             {amenities.length > 0 ? (
               amenities.slice(0, showAmenityLimit).map((amenity, index) => (
@@ -311,6 +314,7 @@ export function FieldCard({
               <span className="invisible text-[9px] px-2 py-0.5">&nbsp;</span>
             )}
           </div>
+          */}
 
           <div className="flex gap-2">
             <button

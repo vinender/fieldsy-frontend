@@ -914,9 +914,6 @@ const BookFieldPage = () => {
                       <span className={`text-sm font-semibold ${selectedDuration === '30min' ? 'text-white' : 'text-[#3A6B22]'}`}>
                         £{field.price30min || field.price || 0}/dog
                       </span>
-                      <span className={`text-xs ${selectedDuration === '30min' ? 'text-white/80' : 'text-gray-500'}`}>
-                        (25 min play time)
-                      </span>
                     </div>
                   </button>
                   <button
@@ -932,12 +929,12 @@ const BookFieldPage = () => {
                       <span className={`text-sm font-semibold ${selectedDuration === '60min' ? 'text-white' : 'text-[#3A6B22]'}`}>
                         £{field.price1hr || field.price || 0}/dog
                       </span>
-                      <span className={`text-xs ${selectedDuration === '60min' ? 'text-white/80' : 'text-gray-500'}`}>
-                        (55 min play time)
-                      </span>
                     </div>
                   </button>
                 </div>
+                <p className="text-sm text-gray-600 mt-3">
+                  While you book for {selectedDuration === '60min' ? '1 hr' : '30 min'} you actually get {selectedDuration === '60min' ? '50 mins' : '25 mins'}
+                </p>
               </div>
 
               {/* Choose Date */}
