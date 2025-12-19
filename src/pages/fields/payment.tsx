@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import Spinner from '@/components/ui/Spinner';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import FieldLocation from '@/components/fields/FieldLocation';
-import { getUserLocation } from '@/utils/getUserLocation';
+// import { getUserLocation } from '@/utils/getUserLocation'; // Location request disabled
 import { formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { DeleteCardConfirmationModal } from '@/components/modal/DeleteCardConfirmationModal';
@@ -34,7 +34,7 @@ const PaymentPage = () => {
   const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const [numberOfDogs, setNumberOfDogs] = useState(2);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // Location request disabled
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showRefreshWarning, setShowRefreshWarning] = useState(false);
   const [slotsUnavailable, setSlotsUnavailable] = useState(false);
@@ -55,17 +55,17 @@ const PaymentPage = () => {
   // Get cancellation window from settings
   const cancellationWindowHours = useCancellationWindow();
 
-  // Get user location on mount
-  useEffect(() => {
-    getUserLocation().then(location => {
-      if (location) {
-        setUserLocation(location);
-      }
-    });
-  }, []);
+  // Get user location on mount - Location request disabled
+  // useEffect(() => {
+  //   getUserLocation().then(location => {
+  //     if (location) {
+  //       setUserLocation(location);
+  //     }
+  //   });
+  // }, []);
 
-  // Fetch field details using the hook with user location
-  const { data: fieldData, isLoading, error } = useFieldDetails(field_id as string, { userLocation });
+  // Fetch field details using the hook (location request disabled)
+  const { data: fieldData, isLoading, error } = useFieldDetails(field_id as string);
   const field = fieldData?.data || fieldData;
   
   // Fetch slot availability with duration to match the booking
