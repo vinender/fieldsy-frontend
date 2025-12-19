@@ -113,6 +113,7 @@ export default function AddYourField() {
   const [formData, setFormData] = useState<{
     fieldName: string;
     fieldSize: string;
+    customFieldSizeAcres: string;
     terrainType: string;
     fenceType: string;
     fenceSize: string;
@@ -133,7 +134,6 @@ export default function AddYourField() {
     images: string[];
     price: string;
     price30min: string;
-    price1hr: string;
     bookingDuration: string;
     instantBooking: boolean;
     requireDeposit: boolean;
@@ -142,6 +142,7 @@ export default function AddYourField() {
   }>({
     fieldName: '',
     fieldSize: '',
+    customFieldSizeAcres: '',
     terrainType: '',
     fenceType: '',
     fenceSize: '',
@@ -163,7 +164,6 @@ export default function AddYourField() {
     // Pricing fields
     price: '',
     price30min: '',
-    price1hr: '',
     bookingDuration: '30min',
     instantBooking: false,
     requireDeposit: false,
@@ -243,6 +243,7 @@ export default function AddYourField() {
       setFormData({
         fieldName: '',
         fieldSize: '',
+        customFieldSizeAcres: '',
         terrainType: '',
         fenceType: '',
         fenceSize: '',
@@ -260,10 +261,9 @@ export default function AddYourField() {
         postalCode: '',
         country: '',
         addressVerified: false,
-        latitude: null,
-        longitude: null,
         images: [],
         price: '',
+        price30min: '',
         bookingDuration: '30min',
         instantBooking: false,
         requireDeposit: false,
@@ -288,10 +288,15 @@ export default function AddYourField() {
       console.log('[FieldForm] Saved images ref initialized from DB:', currentImages);
 
       // Pre-populate form data
+      // Check if field size looks like a custom value (contains "acres" but isn't a preset option)
+      const isCustomSize = fieldData.size && fieldData.size.includes('acres') && /^\d+(\.\d+)?\s*acres$/i.test(fieldData.size);
+      const customAcres = isCustomSize ? fieldData.size.replace(/\s*acres$/i, '') : '';
+
       setFormData(prev => ({
         ...prev,
         fieldName: fieldData.name || '',
         fieldSize: fieldData.size || '',
+        customFieldSizeAcres: customAcres,
         terrainType: fieldData.terrainType || '',
         fenceType: fieldData.fenceType || '',
         fenceSize: fieldData.fenceSize || '',
@@ -337,7 +342,6 @@ export default function AddYourField() {
         images: fieldData.images || [],
         price: fieldData.price?.toString() || fieldData.pricePerHour?.toString() || '',
         price30min: fieldData.price30min?.toString() || '',
-        price1hr: fieldData.price1hr?.toString() || '',
         bookingDuration: fieldData.bookingDuration || '30min',
         instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
@@ -387,9 +391,6 @@ export default function AddYourField() {
       case 'pricing-availability':
         if (!formData.price30min || parseFloat(formData.price30min) <= 0) {
           errors.price30min = 'Please enter a valid price for 30 minute bookings (must be greater than 0)';
-        }
-        if (!formData.price1hr || parseFloat(formData.price1hr) <= 0) {
-          errors.price1hr = 'Please enter a valid price for 1 hour bookings (must be greater than 0)';
         }
         break;
         

@@ -8,12 +8,12 @@ interface PricingAvailabilityProps {
 }
 
 export default function PricingAvailability({ formData, setFormData, validationErrors = {} }: PricingAvailabilityProps) {
-  const handlePriceChange = (field: 'price30min' | 'price1hr', value: string) => {
+  const handlePriceChange = (value: string) => {
     // Allow empty value
     if (value === '') {
       setFormData((prev: any) => ({
         ...prev,
-        [field]: ''
+        price30min: ''
       }));
       return;
     }
@@ -27,13 +27,13 @@ export default function PricingAvailability({ formData, setFormData, validationE
       if (numValue > 100) {
         setFormData((prev: any) => ({
           ...prev,
-          [field]: '100'
+          price30min: '100'
         }));
         return;
       }
       setFormData((prev: any) => ({
         ...prev,
-        [field]: value
+        price30min: value
       }));
     }
     // If pattern doesn't match, ignore the input
@@ -91,7 +91,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
               <Input
                 type="number"
                 value={formData.price30min || ''}
-                onChange={(e) => handlePriceChange('price30min', e.target.value)}
+                onChange={(e) => handlePriceChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onInput={handleInput}
                 min="0"
@@ -116,42 +116,6 @@ export default function PricingAvailability({ formData, setFormData, validationE
             )}
           </div>
 
-          {/* 1 Hour Price */}
-          <div>
-            <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              1 Hour Booking <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
-                £
-              </span>
-              <Input
-                type="number"
-                value={formData.price1hr || ''}
-                onChange={(e) => handlePriceChange('price1hr', e.target.value)}
-                onKeyDown={handleKeyDown}
-                onInput={handleInput}
-                min="0"
-                max="100"
-                step="1"
-                placeholder="0"
-                className={`pl-8 pr-4 sm:pr-40 py-3 ${validationErrors.price1hr ? 'border-red-500' : ''}`}
-                aria-invalid={!!validationErrors.price1hr}
-              />
-              <div className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-2">
-                <div className="h-6 w-px bg-gray-text" />
-                <span className="text-sm font-medium whitespace-nowrap text-dark-green font-sans">
-                  Per dog per hour
-                </span>
-              </div>
-            </div>
-            <p className="sm:hidden text-xs text-gray-text mt-1 font-sans">
-              Per dog per hour
-            </p>
-            {validationErrors.price1hr && (
-              <p className="text-red-500 text-sm mt-1">{validationErrors.price1hr}</p>
-            )}
-          </div>
         </div>
 
         {/* Cancellation Policy Section */}

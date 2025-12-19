@@ -171,13 +171,47 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Field Size <span className="text-red-500">*</span>
               </label>
-              <CustomSelect
-                name="fieldSize"
-                value={formData.fieldSize}
-                onChange={(value) => handleInputChange({ target: { name: 'fieldSize', value } } as any)}
-                placeholder="Select size"
-                options={fieldSizeOptions}
-              />
+              <div className="space-y-2">
+                <CustomSelect
+                  name="fieldSize"
+                  value={formData.customFieldSizeAcres ? '' : formData.fieldSize}
+                  onChange={(value) => {
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      fieldSize: value,
+                      customFieldSizeAcres: '' // Clear custom input when selecting from dropdown
+                    }));
+                  }}
+                  placeholder="Select size"
+                  options={fieldSizeOptions}
+                />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">or</span>
+                  <div className="flex-1 flex items-center gap-2">
+                    <Input
+                      type="number"
+                      name="customFieldSizeAcres"
+                      value={formData.customFieldSizeAcres || ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow positive numbers with up to 2 decimal places
+                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            customFieldSizeAcres: value,
+                            fieldSize: value ? `${value} acres` : '' // Update fieldSize or clear it
+                          }));
+                        }
+                      }}
+                      placeholder="Custom size"
+                      className="flex-1 h-10 rounded-full text-sm"
+                      min="0.1"
+                      step="0.1"
+                    />
+                    <span className="text-sm text-gray-600 font-medium">acres</span>
+                  </div>
+                </div>
+              </div>
               {validationErrors.fieldSize && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.fieldSize}</p>
               )}
@@ -339,21 +373,16 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   const calculateAutoEndTime = (startTime: string): string => {
                     if (!startTime) return '';
 
-                    const [time, period] = startTime.split(/(?=[AP]M)/i);
-                    const [hours, minutes] = time.split(':').map(Number);
-
-                    // Convert to 24-hour format
-                    let startHours = hours;
-                    if (period === 'PM' && hours !== 12) startHours += 12;
-                    if (period === 'AM' && hours === 12) startHours = 0;
+                    // Parse 24-hour format from TimeInput
+                    const [hours, minutes] = startTime.split(':').map(Number);
 
                     // Add minimum operating hours
-                    let endHours = startHours + minimumOperatingHours;
+                    let endHours = hours + minimumOperatingHours;
                     let endMinutes = minutes || 0;
 
-                    // Handle day overflow (if end time goes past 24:00)
+                    // Handle overflow past midnight
                     if (endHours >= 24) {
-                      endHours = endHours % 24;
+                      endHours = endHours - 24;
                     }
 
                     // Return in 24-hour format (HH:MM) for TimeInput component
@@ -371,6 +400,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   validateTimeDifference(value, autoEndTime);
                 }}
                 placeholder="Select start time"
+                isStartTime={true}
               />
               {validationErrors.startTime && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.startTime}</p>

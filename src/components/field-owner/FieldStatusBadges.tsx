@@ -37,7 +37,7 @@ const statusConfigs: Record<StatusType, StatusConfig> = {
   approved: {
     label: 'Approved',
     bgColor: 'bg-green-100',
-    textColor: 'text-green-700',
+    textColor: 'text-white bg-green',
     icon: <CheckCircle className="w-3 h-3" />,
     tooltip: 'Your field has been approved by admin.',
   },

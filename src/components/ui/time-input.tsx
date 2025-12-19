@@ -13,6 +13,7 @@ interface TimeInputProps {
   minHoursDifference?: number; // Minimum hours difference for end time
   startTime?: string; // Start time in 24-hour format (for end time validation)
   isEndTime?: boolean; // Whether this is an end time selector
+  isStartTime?: boolean; // Whether this is a start time selector (restricts hours)
 }
 
 // Helper function to format 24-hour time to 12-hour with AM/PM
@@ -40,7 +41,8 @@ export function TimeInput({
   disabled = false,
   minHoursDifference = 0,
   startTime,
-  isEndTime = false
+  isEndTime = false,
+  isStartTime = false
 }: TimeInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState('');
@@ -87,26 +89,53 @@ export function TimeInput({
     setSelectedHour(hour);
     setSelectedMinute(minute);
     setSelectedPeriod(period);
-    
-    // Convert to 24-hour format for storage
+
+    // Convert to 12-hour format hour to 24-hour format for storage
     let hour24 = parseInt(hour);
     if (period === 'PM' && hour24 !== 12) {
       hour24 += 12;
     } else if (period === 'AM' && hour24 === 12) {
       hour24 = 0;
     }
-    
+
     const formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
     onChange(formattedTime);
     setIsOpen(false);
   };
 
-  const displayValue = selectedHour && selectedMinute 
+  const displayValue = selectedHour && selectedMinute
     ? `${selectedHour}:${selectedMinute} ${selectedPeriod}`
     : '';
 
-  const hours = Array.from({ length: 12 }, (_, i) => i === 0 ? 12 : i);
+  // Get hours based on whether this is start/end time and selected period
+  const getFilteredHours = (): number[] => {
+    if (isStartTime) {
+      if (selectedPeriod === 'AM') {
+        // AM: 7, 8, 9, 10, 11
+        return [7, 8, 9, 10, 11];
+      } else {
+        // PM: 1, 2, 3, 4, 5, 6, 7, 8
+        return [1, 2, 3, 4, 5, 6, 7, 8];
+      }
+    }
+    if (isEndTime && selectedPeriod === 'PM') {
+      // End time PM: 12, 1, 2, 3, 4, 5, 6, 7, 8 (max 8 PM)
+      return [12, 1, 2, 3, 4, 5, 6, 7, 8];
+    }
+    // Default: all hours (12, 1, 2, 3, ... 11)
+    return Array.from({ length: 12 }, (_, i) => i === 0 ? 12 : i);
+  };
+
+  const hours = getFilteredHours();
   const minutes = ['00', '15', '30', '45'];
+
+  // Get default hour when switching periods for start time
+  const getDefaultHourForPeriod = (period: string): string => {
+    if (isStartTime) {
+      return period === 'AM' ? '7' : '1';
+    }
+    return selectedHour || '12';
+  };
   
   // Calculate disabled hours for end time based on start time and minimum hours
   const isHourDisabled = (hour: number, period: string): boolean => {
@@ -225,19 +254,25 @@ export function TimeInput({
                 <div className="text-xs font-semibold text-gray-500 mb-2">Period</div>
                 <div className="space-y-1">
                   {['AM', 'PM'].map(period => {
-                    const disabled = selectedHour && isHourDisabled(parseInt(selectedHour), period);
+                    // Disable AM for end time if start time is PM
+                    const isAMDisabledForEndTime = isEndTime && startTime && period === 'AM' && (() => {
+                      const [startHours] = startTime.split(':').map(Number);
+                      return startHours >= 12; // Start time is PM (12:00 or later)
+                    })();
+
+                    const periodDisabled = isAMDisabledForEndTime || (selectedHour && isHourDisabled(parseInt(selectedHour), period));
                     return (
                       <button
                         key={period}
                         type="button"
-                        onClick={() => !disabled && handleTimeSelect(selectedHour || '12', selectedMinute || '00', period)}
-                        disabled={disabled}
+                        onClick={() => !periodDisabled && handleTimeSelect(getDefaultHourForPeriod(period), selectedMinute || '00', period)}
+                        disabled={!!periodDisabled}
                         className={`
                           w-full px-2 py-1.5 text-sm rounded-lg transition-colors
-                          ${disabled
+                          ${periodDisabled
                             ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                            : selectedPeriod === period 
-                              ? 'bg-light-green text-white font-medium' 
+                            : selectedPeriod === period
+                              ? 'bg-light-green text-white font-medium'
                               : 'hover:bg-gray-100 text-gray-700'}
                         `}
                       >

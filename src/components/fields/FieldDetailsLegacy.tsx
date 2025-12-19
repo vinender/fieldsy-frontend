@@ -17,7 +17,8 @@ import FieldLocation from '@/components/fields/FieldLocation';
 import { AmenityIcon } from '@/components/ui/AmenityIcon';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 import { RatingStars } from '@/components/common/RatingStars';
-import { formatRating } from '@/utils/formatters';
+import { formatRating, formatOpeningHours } from '@/utils/formatters';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 interface FieldDetailsLegacyProps {
@@ -36,6 +37,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   const reviewsRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginModalMessage, setLoginModalMessage] = useState('');
   const [rulesOpen, setRulesOpen] = useState(true);  // Expanded by default
@@ -145,7 +147,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
     {
       label: 'Opening Hours',
       value: field?.openingTime && field?.closingTime
-        ? `${field.openingTime} - ${field.closingTime}`
+        ? formatOpeningHours(field.openingTime, field.closingTime)
         : 'Not specified'
     },
   ];
@@ -205,6 +207,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                     const hasMoreImages = fieldImages.length > 4;
                     const showMoreButton = isLastImage && hasMoreImages;
                     const remainingCount = fieldImages.length - 4;
+                    const isImageLoaded = imagesLoaded[index];
 
                     return (
                       <button
@@ -214,6 +217,10 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
                         aria-label={`Open image ${index + 1}`}
                       >
+                        {/* Skeleton loader */}
+                        {!isImageLoaded && (
+                          <Skeleton className="absolute inset-0 w-full h-full rounded-lg" />
+                        )}
                         <Image
                           src={img}
                           alt={`Field view ${index + 1}`}
@@ -221,10 +228,10 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
                           priority={index === 0}
                           loading={index === 0 ? 'eager' : 'lazy'}
-                          className={`object-cover group-hover:scale-105 transition-transform duration-300 ${showMoreButton ? 'brightness-75' : ''
-                            }`}
+                          onLoad={() => setImagesLoaded(prev => ({ ...prev, [index]: true }))}
+                          className={`object-cover group-hover:scale-105 transition-transform duration-300 ${showMoreButton ? 'brightness-75' : ''} ${!isImageLoaded ? 'opacity-0' : 'opacity-100'}`}
                         />
-                        {showMoreButton && (
+                        {showMoreButton && isImageLoaded && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/50 transition-colors">
                             <span className="text-white text-2xl font-semibold">
                               +{remainingCount}
@@ -260,11 +267,10 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                       {field?.name || field?.fieldName || 'Field'}
                     </h1>
                     <span className="text-xl lg:text-2xl text-dark-green">•</span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.price30min || field.price || 0}/30min</span>
-                      <span className="text-xl lg:text-2xl text-dark-green">•</span>
-                      <span className="text-xl lg:text-2xl font-bold text-[#3A6B22]">£{field?.price1hr || field.price || 0}/hr</span>
-                    </div>
+                    <span className="text-xl lg:text-[24px]">
+                      <span className="font-bold text-[#3A6B22]">£{field?.price30min || field.price || 0}</span>
+                      <span className="font-light text-[16px] text-gray-500">/dog/30min</span>
+                    </span>
                   </div>
                   <button
                     onClick={isSubmitted || isPreview ? undefined : handleToggleFavorite}

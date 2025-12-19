@@ -7,6 +7,7 @@ import { getAmenityLabel, formatOpeningHours, formatRating } from '@/utils/forma
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 import { RatingStars } from '@/components/common/RatingStars';
 import { AmenityIcon } from '@/components/ui/AmenityIcon';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FieldDetailsDisplayProps {
   field: any;
@@ -31,6 +32,7 @@ export default function FieldDetailsDisplay({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
   const [rulesOpen, setRulesOpen] = useState(true);
   const [bookingOpen, setBookingOpen] = useState(true);
   const numericRating = typeof field?.rating === 'number' ? field.rating : Number(field?.rating) || 0;
@@ -123,21 +125,29 @@ export default function FieldDetailsDisplay({
             <div className="h-full flex flex-col space-y-4 lg:sticky lg:top-24">
               {/* Image Grid */}
               <div className="grid grid-cols-2 gap-3 lg:gap-4">
-                {fieldImages.slice(0, 6).map((img: string, index: number) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className="aspect-square rounded-lg overflow-hidden group"
-                    onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
-                    aria-label={`Open image ${index + 1}`}
-                  >
-                    <img
-                      src={img}
-                      alt={`Field view ${index + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </button>
-                ))}
+                {fieldImages.slice(0, 6).map((img: string, index: number) => {
+                  const isImageLoaded = imagesLoaded[index];
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      className="aspect-square rounded-lg overflow-hidden group relative"
+                      onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
+                      aria-label={`Open image ${index + 1}`}
+                    >
+                      {/* Skeleton loader */}
+                      {!isImageLoaded && (
+                        <Skeleton className="absolute inset-0 w-full h-full rounded-lg" />
+                      )}
+                      <img
+                        src={img}
+                        alt={`Field view ${index + 1}`}
+                        onLoad={() => setImagesLoaded(prev => ({ ...prev, [index]: true }))}
+                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${!isImageLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      />
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Map - Show in left column only for claimed fields or preview */}

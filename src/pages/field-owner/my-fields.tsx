@@ -193,9 +193,20 @@ export default function MyFieldsPage() {
                       {field.address}, {field.city}
                     </p>
                     <div className="flex justify-between items-center mt-4">
-                      <span className="text-green font-bold text-lg">
-                        £{field.price30min || field.price || 0}/30min • £{field.price1hr || field.price || 0}/hr
-                      </span>
+                      <div className="flex flex-col">
+                          <div>
+                            <span className="text-green font-bold text-lg">
+                              £{field.price30min || field.price || 0}
+                            </span>
+                            <span className="text-gray-500 font-light text-sm">/dog/30min</span>
+                          </div>
+                          <div>
+                            <span className="text-green font-bold text-lg">
+                              £{field.price1hr || field.price || 0}
+                            </span>
+                            <span className="text-gray-500 font-light text-sm">/dog/1hr</span>
+                          </div>
+                      </div>
                       <div className="flex gap-1">
                         {/* Toggle status - only show when field is submitted and approved */}
                         {isSubmitted && isApproved && (

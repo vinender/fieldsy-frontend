@@ -8,6 +8,10 @@ import { toast } from 'sonner';
 import ThankYouModal from '@/components/modal/ThankYouModal';
 import axiosClient from '@/lib/api/axios-client';
 import { FieldData } from '@/hooks/queries/useFieldQueries';
+import Spinner from '@/components/ui/Spinner';
+import { Skeleton } from '@/components/ui/skeleton';
+import { GridSkeleton } from '@/components/skeletons/SkeletonComponents';
+import { Loader } from 'lucide-react';
 
 
 
@@ -18,12 +22,12 @@ export default function PreviewPage() {
   const { fieldId } = router.query;
 
   // If fieldId is provided in query, fetch that specific field from the list
-  const { data: fields, isLoading: fetchingFields, refetch, isFetching: isFetchingFields } = useOwnerFields({
+  const { data: fields, isLoading: fetchingFields, refetch, isFetching: isFetchingFields, isSuccess: fieldsSuccess } = useOwnerFields({
     enabled: !!user && user.role === 'FIELD_OWNER' && !!fieldId,
   });
 
   // Also support legacy behavior - fetch single field if no fieldId in query
-  const { data: legacyField, isLoading: fetchingLegacyField, refetch: refetchLegacy, isFetching: isFetchingLegacy } = useOwnerField({
+  const { data: legacyField, isLoading: fetchingLegacyField, refetch: refetchLegacy, isFetching: isFetchingLegacy, isSuccess: legacySuccess } = useOwnerField({
     enabled: !!user && user.role === 'FIELD_OWNER' && !fieldId,
   });
 
@@ -32,7 +36,15 @@ export default function PreviewPage() {
     ? fields?.find((f: FieldData) => f.id === fieldId)
     : legacyField;
 
-  const isLoading = fetchingFields || fetchingLegacyField;
+  // Check if we're still waiting for data
+  const isQueryEnabled = !!user && user.role === 'FIELD_OWNER';
+  const isWaitingForData = isQueryEnabled && (
+    (fieldId && !fieldsSuccess) || // Waiting for fields query
+    (!fieldId && !legacySuccess)   // Waiting for legacy query
+  );
+
+  // Include all loading states: initial load, fetching, and waiting for user/router/data
+  const isLoading = fetchingFields || fetchingLegacyField || isFetchingFields || isFetchingLegacy || !router.isReady || !user || isWaitingForData;
 
   // Debug: Log field data to verify isSubmitted is being fetched
   useEffect(() => {
@@ -135,20 +147,16 @@ export default function PreviewPage() {
 
   const formData = fieldData ? transformFieldToFormData(fieldData) : null;
 
+  // Show spinner while loading (user not ready, router not ready, or fetching data)
   if (isLoading) {
-    return (
-      <UserLayout>
-        <div className="flex justify-center items-center min-h-[400px]">
-          <p className="text-gray-600">Loading preview...</p>
-        </div>
-      </UserLayout>
-    );
+    return <Spinner size="sm" />;
   }
 
+  // Only show "no field data" after loading is complete and still no data
   if (!formData) {
     return (
       <UserLayout>
-        <div className="text-center py-10">
+        <div className="text-center py-10 mt-60">
           <p className="text-gray-text">No field data found. Please complete the field setup first.</p>
           <button
             onClick={() => router.push('/')}
