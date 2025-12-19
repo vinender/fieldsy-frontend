@@ -185,17 +185,17 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   placeholder="Select size"
                   options={fieldSizeOptions}
                 />
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">or</span>
-                  <div className="flex-1 flex items-center gap-2">
+                <div className="flex items-center gap-3 mt-3">
+                  <span className="text-sm text-gray-500 whitespace-nowrap">Or enter custom:</span>
+                  <div className="flex-1 relative">
                     <Input
                       type="number"
                       name="customFieldSizeAcres"
                       value={formData.customFieldSizeAcres || ''}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Only allow positive numbers with up to 2 decimal places
-                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                        // Only allow whole numbers (no decimals), max 5 digits
+                        if (value === '' || (/^\d{1,5}$/.test(value))) {
                           setFormData((prev: any) => ({
                             ...prev,
                             customFieldSizeAcres: value,
@@ -203,12 +203,24 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                           }));
                         }
                       }}
-                      placeholder="Custom size"
-                      className="flex-1 h-10 rounded-full text-sm"
-                      min="0.1"
-                      step="0.1"
+                      onKeyDown={(e) => {
+                        // Prevent 'e', 'E', '-', '+', '.' keys (only allow whole numbers)
+                        if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
+                          e.preventDefault();
+                        }
+                      }}
+                      onInput={(e) => {
+                        // Extra protection: remove any non-digit characters and limit to 5 digits
+                        const input = e.target as HTMLInputElement;
+                        input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
+                      }}
+                      maxLength={5}
+                      placeholder="Enter size in acres"
+                      className="py-3 pr-16"
+                      min="1"
+                      step="1"
                     />
-                    <span className="text-sm text-gray-600 font-medium">acres</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">acres</span>
                   </div>
                 </div>
               </div>
