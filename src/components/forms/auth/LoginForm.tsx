@@ -90,11 +90,15 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginFormData) {
     try {
+      // Trim whitespace from inputs
+      const trimmedEmail = data.email.trim();
+      const trimmedPassword = data.password.trim();
+
       // Use the mutation to login with OTP check
       // Don't send role - the backend will return the user's role from database
       await loginWithOtpCheckMutation.mutateAsync({
-        email: data.email,
-        password: data.password,
+        email: trimmedEmail,
+        password: trimmedPassword,
       });
     } catch (error: any) {
       // The mutation hook's onError already displays toast messages for errors

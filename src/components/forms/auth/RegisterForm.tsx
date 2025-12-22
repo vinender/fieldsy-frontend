@@ -108,16 +108,21 @@ export default function RegisterForm() {
 
   async function onSubmit(values: RegisterFormData) {
     try {
+      // Trim whitespace from inputs
+      const trimmedName = values.fullName.trim();
+      const trimmedEmail = values.email.trim();
+      const trimmedPassword = values.password.trim();
+
       // Clean the phone number by removing spaces, dashes, and parentheses
       const cleanPhone = values.phoneNumber
-        ? values.phoneNumber.replace(/[\s\-()]/g, '')
+        ? values.phoneNumber.trim().replace(/[\s\-()]/g, '')
         : undefined;
 
       // Use the mutation to register with OTP
       await registerWithOtpMutation.mutateAsync({
-        name: values.fullName,
-        email: values.email,
-        password: values.password,
+        name: trimmedName,
+        email: trimmedEmail,
+        password: trimmedPassword,
         role: values.role,
         phone: cleanPhone ? `+44${cleanPhone}` : undefined,
       });

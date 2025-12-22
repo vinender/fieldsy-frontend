@@ -28,8 +28,6 @@ interface Booking {
   platformCommissionRate?: number; // Platform fee percentage (what Fieldsy takes)
   isCustomCommission?: boolean; // Whether admin has set a custom commission for this field owner
   defaultCommissionRate?: number; // The default platform commission rate
-  stripeFee?: number;
-  amountAfterStripeFee?: number;
   fieldOwnerEarnings?: number; // What field owner receives
   platformFee?: number; // What Fieldsy keeps
 }
@@ -88,33 +86,20 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
   };
 
   // Calculate fees - field owner perspective
-  // Uses pre-calculated values from API which account for:
-  // 1. Stripe processing fee (deducted first)
-  // 2. Platform commission (what Fieldsy takes)
-  // Total = what field owner receives (remainder after fees)
+  // Calculation order: Stripe fee first, then platform commission on remaining amount
   const calculateFees = () => {
     const subTotal = booking?.amount || 0; // Booking amount (what customer paid)
+    const platformCommissionRate = booking?.platformCommissionRate || 5; // Default 5% platform commission
+    const isCustomCommission = booking?.isCustomCommission || false;
+    const defaultCommissionRate = booking?.defaultCommissionRate || 5;
 
-    // Use pre-calculated values from API if available
-    if (booking?.fieldOwnerEarnings !== undefined && booking?.platformFee !== undefined) {
-      return {
-        subTotal,
-        stripeFee: booking.stripeFee || 0,
-        amountAfterStripeFee: booking.amountAfterStripeFee || subTotal,
-        fieldsyFee: booking.platformFee, // Platform fee (what Fieldsy keeps)
-        total: booking.fieldOwnerEarnings, // What field owner receives
-        platformCommissionRate: booking.platformCommissionRate || 20, // Platform commission percentage
-        isCustomCommission: booking.isCustomCommission || false,
-        defaultCommissionRate: booking.defaultCommissionRate || 20
-      };
-    }
-
-    // Fallback calculation if API values not available (shouldn't happen normally)
-    const defaultPlatformRate = 20; // Platform takes 20% by default
+    // Calculate Stripe fee (1.5% + £0.20)
     const stripeFee = subTotal > 0 ? Math.round(((subTotal * 0.015) + 0.20) * 100) / 100 : 0;
     const amountAfterStripeFee = Math.round((subTotal - stripeFee) * 100) / 100;
-    // Platform fee = what Fieldsy takes (commission percentage)
-    const platformFee = Math.round((amountAfterStripeFee * defaultPlatformRate) / 100 * 100) / 100;
+
+    // Platform fee is calculated on amount after Stripe fee
+    const platformFee = Math.round((amountAfterStripeFee * platformCommissionRate) / 100 * 100) / 100;
+
     // Field owner gets the remainder
     const fieldOwnerEarnings = Math.round((amountAfterStripeFee - platformFee) * 100) / 100;
 
@@ -124,9 +109,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
       amountAfterStripeFee,
       fieldsyFee: platformFee,
       total: fieldOwnerEarnings,
-      platformCommissionRate: defaultPlatformRate,
-      isCustomCommission: false,
-      defaultCommissionRate: defaultPlatformRate
+      platformCommissionRate,
+      isCustomCommission,
+      defaultCommissionRate
     };
   };
 
@@ -300,12 +285,17 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                     <h3 className="text-base font-bold text-[#192215]">Order Summary</h3>
                     <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
                       <DetailRow
-                        label="Sub total"
+                        label="Booking Amount"
                         value={`£${fees.subTotal.toFixed(2)}`}
                       />
                       <DetailRow
                         label="Stripe Processing Fee"
-                        value={`-£${fees.stripeFee.toFixed(2)}`}
+                        value={
+                          <span className="flex items-center gap-1">
+                            <span className="text-red-600">-£{fees.stripeFee.toFixed(2)}</span>
+                            <span className="text-xs text-gray-500">(1.5% + £0.20)</span>
+                          </span>
+                        }
                       />
                       <DetailRow
                         label="Net (After Stripe)"
@@ -315,9 +305,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                         label="Fieldsy Fee"
                         value={
                           <span className="flex items-center gap-1">
-                            <span>-£{fees.fieldsyFee.toFixed(2)}</span>
+                            <span className="text-red-600">-£{fees.fieldsyFee.toFixed(2)}</span>
                             <span className="text-xs text-gray-500">
-                              ({fees.platformCommissionRate}%{fees.isCustomCommission ? ' - Custom Rate' : ''})
+                              ({fees.platformCommissionRate}% of net{fees.isCustomCommission ? ' - Custom Rate' : ''})
                             </span>
                           </span>
                         }
@@ -329,13 +319,12 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                       {/* Total */}
                       <div className="flex justify-between items-start">
                         <span className="text-base font-bold text-[#192215]">
-                          Total (You Receive)
+                          Your Earnings
                         </span>
                         <span className="flex items-center gap-2">
                           <span className="text-lg font-bold text-[#3a6b22]">
                             £{fees.total.toFixed(2)}
                           </span>
-                          <span className="text-xs text-gray-500">({100 - fees.platformCommissionRate}%)</span>
                         </span>
                       </div>
                     </div>
