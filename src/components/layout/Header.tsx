@@ -498,7 +498,7 @@ export function Header() {
                     className={cn(
                       "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
                       pathname === item.href
-                        ? "bg-green-100 text-green-900"
+                        ? "bg-green-100 text-green"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     )}
                     onClick={() => setMobileMenuOpen(false)}
@@ -520,7 +520,7 @@ export function Header() {
                         className={cn(
                           "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
                           pathname === item.href
-                            ? "bg-green-100 text-green-900"
+                            ? "bg-green-100 text-green"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                         )}
                         onClick={() => setMobileMenuOpen(false)}
@@ -552,7 +552,7 @@ export function Header() {
                         {currentUser?.email}
                       </div>
                       {currentUser?.role && (
-                        <div className="text-xs font-medium text-green-600">
+                        <div className="text-xs font-medium text-green">
                           {currentUser.role.replace('_', ' ')}
                         </div>
                       )}

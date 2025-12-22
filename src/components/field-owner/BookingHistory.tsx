@@ -108,7 +108,7 @@ export default function BookingHistory() {
               onClick={() => setActiveView('bookings')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                 activeView === 'bookings'
-                  ? 'bg-white text-green-600 shadow-sm'
+                  ? 'bg-white text-green shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -118,7 +118,7 @@ export default function BookingHistory() {
               onClick={() => setActiveView('earnings')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                 activeView === 'earnings'
-                  ? 'bg-white text-green-600 shadow-sm'
+                  ? 'bg-white text-green shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >

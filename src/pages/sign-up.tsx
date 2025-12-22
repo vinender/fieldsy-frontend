@@ -8,21 +8,33 @@ export default function SignUpPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  // Redirect logged-in users - go back or to their dashboard
+  // Redirect logged-in users - use callbackUrl, go back, or to their dashboard
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
+      const role = session.user.role;
+      const callbackUrl = router.query.callbackUrl as string;
+
+      // ADMIN always goes to admin dashboard
+      if (role === 'ADMIN') {
+        router.replace('/admin/dashboard');
+        return;
+      }
+
+      // If callbackUrl is provided, redirect there after signup
+      if (callbackUrl) {
+        router.replace(callbackUrl);
+        return;
+      }
+
       // Check if there's history to go back to
       if (window.history.length > 1 && document.referrer) {
         // Go back to previous page
         router.back();
       } else {
         // No history, redirect to role-specific dashboard
-        const role = session.user.role;
         let redirectPath = '/';
 
-        if (role === 'ADMIN') {
-          redirectPath = '/admin/dashboard';
-        } else if (role === 'FIELD_OWNER') {
+        if (role === 'FIELD_OWNER') {
           redirectPath = '/field-owner/my-fields';
         } else if (role === 'DOG_OWNER') {
           redirectPath = '/user/my-bookings';

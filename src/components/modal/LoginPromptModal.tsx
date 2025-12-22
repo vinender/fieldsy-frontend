@@ -7,23 +7,35 @@ interface LoginPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
   message?: string;
+  redirectUrl?: string; // URL to redirect to after login
 }
 
-export function LoginPromptModal({ 
-  isOpen, 
-  onClose, 
-  message = "Please login or sign up to continue" 
+export function LoginPromptModal({
+  isOpen,
+  onClose,
+  message = "Please login or sign up to continue",
+  redirectUrl
 }: LoginPromptModalProps) {
   const router = useRouter();
 
   const handleLogin = () => {
     onClose();
-    router.push('/login');
+    // Pass redirect URL as callbackUrl query param if provided
+    if (redirectUrl) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(redirectUrl)}`);
+    } else {
+      router.push('/login');
+    }
   };
 
   const handleSignup = () => {
     onClose();
-    router.push('/sign-up');
+    // Pass redirect URL as callbackUrl query param if provided
+    if (redirectUrl) {
+      router.push(`/sign-up?callbackUrl=${encodeURIComponent(redirectUrl)}`);
+    } else {
+      router.push('/sign-up');
+    }
   };
 
   return (

@@ -52,7 +52,7 @@ export function FieldCard({
   isClaimed = true,
   onLike,
   onViewDetails,
-  onBookNow,
+  onBookNow: _onBookNow, // Unused - navigating directly via router
   onClaimField,
   owner = "Owner",
   variant = 'compact',
@@ -136,11 +136,10 @@ export function FieldCard({
     if (!isClaimed) {
       // For unclaimed fields, allow claiming without login
       onClaimField?.(id)
-    } else if (!session) {
-      setLoginModalMessage('Please login or sign up to book this field')
-      setShowLoginModal(true)
     } else {
-      onBookNow?.(id)
+      // Navigate directly to book-field page for all users (logged in or not)
+      // Login prompt will be shown on book-field page when they click Continue
+      router.push(`/fields/book-field?id=${id}`)
     }
   }
 

@@ -558,7 +558,7 @@ const ClaimFieldPage = () => {
                 </div>
               )}
               {uploadedFiles.length > 0 && !errors.documents && (
-                <p className="mt-2 text-sm text-green-600 flex items-center gap-1">
+                <p className="mt-2 text-sm text-green flex items-center gap-1">
                   ✓ {uploadedFiles.length} document{uploadedFiles.length > 1 ? 's' : ''} uploaded successfully
                 </p>
               )}
@@ -583,7 +583,7 @@ const ClaimFieldPage = () => {
           >
             {submitClaimMutation.isPending ? (
               <>
-                <Spinner size="sm" />
+                <Spinner size="sm" inline />
                 Submitting...
               </>
             ) : (

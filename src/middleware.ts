@@ -23,7 +23,8 @@ const AUTH_ONLY_PATHS = new Set([
 ]);
 
 const PUBLIC_PATH_PREFIXES = [
-  "/fields", // Public field listing (except add-field and book-field)
+  "/fields/book-field", // Book field page - allows unauthorized users to browse slots
+  "/fields", // Public field listing
   "/api/public", // Public API routes
 ];
 
@@ -32,17 +33,31 @@ const PROTECTED_PATH_PREFIXES = [
   "/field-owner",
   "/admin",
   "/fields/add-field",
-  "/fields/book-field",
+  // Note: /fields/book-field is intentionally NOT protected
+  // Unauthorized users can browse and select time slots
+  // Login prompt is shown when they click "Continue" button
 ];
 
 // Cache for path checks to avoid repeated computations
+// Note: Cache is disabled in development to ensure changes take effect immediately
 const pathCache = new Map<string, boolean>();
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  // Clear cache in development to ensure middleware changes take effect
+  if (process.env.NODE_ENV === 'development') {
+    pathCache.clear();
+  }
+
   // Early return for static assets and API routes (except auth)
   if (path.startsWith('/_next/') || path.startsWith('/api/') && !path.startsWith('/api/auth')) {
+    return NextResponse.next();
+  }
+
+  // EXPLICIT EARLY RETURN: Allow book-field page without ANY authentication checks
+  // This must come BEFORE token checks to ensure unauthenticated users can access
+  if (path.startsWith('/fields/book-field')) {
     return NextResponse.next();
   }
 

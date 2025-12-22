@@ -17,6 +17,7 @@ import { useRescheduleBooking } from '@/hooks/useBookingApi';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import OwnerInformation from '@/components/fields/OwnerInformation';
+import { LoginPromptModal } from '@/components/modal/LoginPromptModal';
 import FieldLocation from '@/components/fields/FieldLocation';
 // import { getUserLocation } from '@/utils/getUserLocation'; // Distance calculation disabled
 import { useMaxAdvanceBookingDays } from '@/hooks/usePublicSettings';
@@ -59,6 +60,7 @@ const BookFieldPage = () => {
   const [isClient, setIsClient] = useState(false); // Track if we're on client side for timezone
   const [isCheckingConflicts, setIsCheckingConflicts] = useState(false); // Loading state for conflict check
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>('60min'); // Default to 60 minutes
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false); // Show login prompt for unauthorized users
 
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
@@ -82,7 +84,7 @@ const BookFieldPage = () => {
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     gcTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
     refetchOnMount: false, // Don't refetch on mount if cached
-    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnWindowFocus: true, // Don't refetch on window focus
     // userLocation: userLocation // Distance calculation disabled
   });
   
@@ -1025,7 +1027,7 @@ const BookFieldPage = () => {
                   {isRefetchingSlots && (
                     <div className="absolute inset-0 flex items-center justify-center z-10">
                       <div className="bg-white rounded-lg px-4 py-2 shadow-lg flex items-center gap-2">
-                        <Spinner size="sm" />
+                        <Spinner size="sm" inline />
                         <span className="text-sm text-[#3A6B22]">Updating availability...</span>
                       </div>
                     </div>
@@ -1300,11 +1302,11 @@ const BookFieldPage = () => {
               {selectedTimeSlots.length > 0 && (
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-green mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-green-900 mb-2">
+                      <h4 className="font-semibold text-green mb-2">
                         {isRescheduleMode
                           ? 'New Time Slot Selected'
                           : `${selectedTimeSlots.length} Time Slot${selectedTimeSlots.length > 1 ? 's' : ''} Selected`}
@@ -1313,7 +1315,7 @@ const BookFieldPage = () => {
                         {selectedTimeSlots.map((slot) => (
                           <span
                             key={slot}
-                            className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-sm text-green-800 border border-green-200"
+                            className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-sm text-green border border-green-200"
                           >
                             {slot}
                             <button
@@ -1326,7 +1328,7 @@ const BookFieldPage = () => {
                           </span>
                         ))}
                       </div>
-                      <p className="text-sm text-green-700 mt-2">
+                      <p className="text-sm text-green mt-2">
                         Total: £{((selectedDuration === '30min' ? (field.price30min || field.price || 0) : (field.price1hr || field.price || 0)) * parseInt(numberOfDogs || '1') * selectedTimeSlots.length).toFixed(2)}
                         {repeatBooking !== 'None' && ` per ${repeatBooking.toLowerCase() === 'everyday' ? 'day' : repeatBooking.toLowerCase() === 'weekly' ? 'week' : 'month'}`}
                       </p>
@@ -1338,6 +1340,12 @@ const BookFieldPage = () => {
               {/* Continue Button */}
               <button
                 onClick={async () => {
+                  // Check if user is logged in first (for non-reschedule mode)
+                  if (!isRescheduleMode && !session) {
+                    setShowLoginPrompt(true);
+                    return;
+                  }
+
                   // Validate time slot selection FIRST for both modes
                   if (selectedTimeSlots.length === 0) {
                     toast.error('Please select at least one time slot to continue');
@@ -1578,7 +1586,7 @@ const BookFieldPage = () => {
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-[#3A6B22] text-white hover:bg-[#2D5A1B]'
                 }`}>
-                {(isRescheduleMode && rescheduleBookingMutation.isPending) || isCheckingConflicts ? <Spinner size="sm" /> : null}
+                {(isRescheduleMode && rescheduleBookingMutation.isPending) || isCheckingConflicts ? <Spinner size="sm" inline /> : null}
                 {isCheckingConflicts
                   ? 'Checking availability...'
                   : isRescheduleMode
@@ -1590,6 +1598,13 @@ const BookFieldPage = () => {
         </div>
       </div>
     </div>
+
+    {/* Login Prompt Modal for unauthorized users */}
+    <LoginPromptModal
+      isOpen={showLoginPrompt}
+      onClose={() => setShowLoginPrompt(false)}
+      message="Please login or sign up to book this field"
+    />
     </UserLayout>
   );
 };

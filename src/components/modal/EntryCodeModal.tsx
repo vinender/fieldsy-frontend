@@ -110,7 +110,7 @@ export const EntryCodeModal: React.FC<EntryCodeModalProps> = ({
                         >
                             {isLoading ? (
                                 <>
-                                    <Spinner size="sm" className="mr-2" />
+                                    <Spinner size="sm" inline className="mr-2" />
                                     Saving...
                                 </>
                             ) : (

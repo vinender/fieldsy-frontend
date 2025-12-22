@@ -62,7 +62,7 @@ const EarningsHistory: React.FC = () => {
         return {
           bg: 'bg-green-100',
           border: 'border-green-200',
-          text: 'text-green-700',
+          text: 'text-green',
           label: 'Completed'
         };
       case 'refunded':

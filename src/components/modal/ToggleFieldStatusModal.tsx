@@ -35,7 +35,7 @@ export const ToggleFieldStatusModal: React.FC<ToggleFieldStatusModalProps> = ({
               <div className="relative">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-green/20 rounded-full"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Spinner size="md" />
+                  <Spinner size="md" inline />
                 </div>
               </div>
               <p className="text-sm sm:text-base font-semibold text-[#192215]">

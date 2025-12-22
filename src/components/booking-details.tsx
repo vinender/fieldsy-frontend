@@ -39,7 +39,7 @@ const Card = ({ children, className = '', ...props }) => {
 const Badge = ({ children, variant = 'default', className = '' }) => {
   const variants = {
     default: 'bg-gray-100 text-gray-700',
-    success: 'bg-green-100 text-green-700',
+    success: 'bg-green-100 text-green',
     warning: 'bg-yellow-100 text-yellow-700',
     danger: 'bg-red-100 text-red-700'
   };
@@ -81,7 +81,7 @@ const Sidebar = ({ activeItem = 'Fields' }) => {
               <button
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   item.active 
-                    ? 'bg-green-50 text-green-600' 
+                    ? 'bg-green-50 text-green' 
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >

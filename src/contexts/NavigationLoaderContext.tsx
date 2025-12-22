@@ -15,6 +15,7 @@ const NavigationLoaderContext = createContext<NavigationLoaderContextType>({
   stopNavigation: () => {},
 });
 
+
 export const useNavigationLoader = () => useContext(NavigationLoaderContext);
 
 export const NavigationLoaderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -25,11 +26,15 @@ export const NavigationLoaderProvider: React.FC<{ children: React.ReactNode }> =
 
   useEffect(() => {
     const handleStart = (url: string) => {
+      // Don't show full-screen loader when navigating to/from payment page
+      // Payment page has its own loading states
+      const isPaymentPage = url.includes('/fields/payment') || router.asPath.includes('/fields/payment');
+
       // Only show spinner for actual page navigation, not for shallow routing
-      if (url !== router.asPath) {
+      if (url !== router.asPath && !isPaymentPage) {
         setIsNavigating(true);
         setIsPageTransitioning(true);
-        
+
         // Clear any existing timeout
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);

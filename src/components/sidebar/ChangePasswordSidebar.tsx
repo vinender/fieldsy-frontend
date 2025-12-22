@@ -295,7 +295,7 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
             >
               {changePasswordMutation.isPending ? (
                 <>
-                  <Spinner size="sm" />
+                  <Spinner size="sm" inline />
                   <span>Submitting...</span>
                 </>
               ) : (

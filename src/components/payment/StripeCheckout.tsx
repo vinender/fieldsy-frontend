@@ -583,7 +583,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
         )}
 
         {succeeded && (
-          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md">
+          <div className="bg-green-50 border border-green-200 text-green px-4 py-3 rounded-md">
             Payment successful! Redirecting to your booking confirmation...
           </div>
         )}
@@ -599,7 +599,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
         >
           {processing ? (
             <span className="flex items-center justify-center gap-2">
-              <Spinner size="sm" className="!border-gray-200 !border-t-white" />
+              <Spinner size="sm" inline className="!border-gray-200 !border-t-white" />
               Processing...
             </span>
           ) : succeeded ? (

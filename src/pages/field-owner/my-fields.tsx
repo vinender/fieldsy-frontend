@@ -220,7 +220,7 @@ export default function MyFieldsPage() {
                             title={field.isActive ? 'Disable Field' : 'Enable Field'}
                           >
                             {togglingFieldId === field.id ? (
-                              <Spinner size="sm" />
+                              <Spinner size="sm" inline />
                             ) : (
                               <Power className="w-5 h-5" />
                             )}

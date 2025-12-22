@@ -40,7 +40,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const cancellationWindowHours = useCancellationWindow();
-  
+
   // Fetch detailed booking data (in background to get latest info)
   const { data: bookingDetails, isLoading: isLoadingDetails } = useBookingDetails(
     booking?._id || booking?.id,
@@ -54,60 +54,13 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
 
   // Only show loading spinner if we don't have any booking data at all
   const isLoading = isLoadingDetails && !booking;
-  console.log('fullBooking from API:', fullBooking);
-  // Calculate if booking can be cancelled (using dynamic cancellation window from settings)
-  const canCancelBooking = () => {
-    if (!fullBooking || fullBooking.status !== 'CONFIRMED') return false;
-    
-    const now = new Date();
-    const bookingDateTime = new Date(fullBooking.date);
-    
-    // Parse the start time and add it to the booking date
-    if (fullBooking.startTime) {
-      const timeMatch = fullBooking.startTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (timeMatch) {
-        let hours = parseInt(timeMatch[1]);
-        const minutes = parseInt(timeMatch[2]);
-        const period = timeMatch[3].toUpperCase();
-        
-        if (period === 'PM' && hours !== 12) hours += 12;
-        if (period === 'AM' && hours === 12) hours = 0;
-        
-        bookingDateTime.setHours(hours, minutes, 0, 0);
-      }
-    }
-    
-    // Calculate hours until booking
-    const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
-    return hoursUntilBooking >= cancellationWindowHours;
-  };
-  
-  const getTimeUntilBooking = () => {
-    if (!fullBooking) return 0;
-    
-    const now = new Date();
-    const bookingDateTime = new Date(fullBooking.date);
-    
-    if (fullBooking.startTime) {
-      const timeMatch = fullBooking.startTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (timeMatch) {
-        let hours = parseInt(timeMatch[1]);
-        const minutes = parseInt(timeMatch[2]);
-        const period = timeMatch[3].toUpperCase();
-        
-        if (period === 'PM' && hours !== 12) hours += 12;
-        if (period === 'AM' && hours === 12) hours = 0;
-        
-        bookingDateTime.setHours(hours, minutes, 0, 0);
-      }
-    }
-    
-    const hoursUntilBooking = Math.floor((bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60));
-    return hoursUntilBooking;
-  };
-  
-  const isCancellable = canCancelBooking();
+
+  // Use backend-provided cancellation eligibility values for consistency
+  // The backend properly calculates these based on the booking date/time and cancellation window
+  // Fallback to false if not provided (e.g., cancelled/completed bookings)
+  const isCancellable = fullBooking?.isCancellable ?? false;
+  const isReschedulable = fullBooking?.isReschedulable ?? false;
+  const hoursUntilBooking = fullBooking?.hoursUntilBooking ?? 0;
 
   // Format date helper (removed - using utility function)
 
@@ -278,7 +231,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                   <div className="flex items-center gap-2">
                     {/* Small loading indicator when fetching updated data */}
                     {isLoadingDetails && booking && (
-                      <Spinner size="sm" className="opacity-50" />
+                      <Spinner size="sm" inline className="opacity-50" />
                     )}
                     {fullBooking?.status && getStatusBadge(fullBooking.status)}
                   </div>
@@ -533,7 +486,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
                         onClick={() => {
-                          if (isCancellable && onReschedule) {
+                          if (isReschedulable && onReschedule) {
                             onClose();
                             // Map API response fields to expected format for RescheduleBookingModal
                             const mappedBooking = {
@@ -546,17 +499,17 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             onReschedule(mappedBooking);
                           }
                         }}
-                        disabled={!isCancellable}
+                        disabled={!isReschedulable}
                         className={`w-full sm:flex-1 h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${
-                          isCancellable
+                          isReschedulable
                             ? 'bg-[#e8f5ff] border-2 border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
                             : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                         }`}
-                        title={!isCancellable ? `Cannot reschedule within ${cancellationWindowHours} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Reschedule booking'}
+                        title={!isReschedulable ? `Cannot reschedule within ${cancellationWindowHours} hours of booking (${hoursUntilBooking} hours remaining)` : 'Reschedule booking'}
                        >
                         Reschedule Booking
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           if (isCancellable && onCancel) {
                             onClose();
@@ -569,20 +522,20 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             ? 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
                             : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                         }`}
-                        title={!isCancellable ? `Cannot cancel within ${cancellationWindowHours} hours of booking (${getTimeUntilBooking()} hours remaining)` : 'Cancel booking'}
+                        title={!isCancellable ? `Cannot cancel within ${cancellationWindowHours} hours of booking (${hoursUntilBooking} hours remaining)` : 'Cancel booking'}
                       >
                         Cancel Booking
                       </button>
                     </div>
-                    
+
                     {/* Warning message if within cancellation window */}
-                    {!isCancellable && (
+                    {(!isCancellable || !isReschedulable) && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 sm:p-3">
                         <p className="text-xs sm:text-sm text-yellow-800 text-center">
                           <Clock className="inline w-4 h-4 mr-1" />
                           Cancellation and rescheduling are not available within {cancellationWindowHours} hours of your booking.
                           <br />
-                          <span className="font-semibold">{getTimeUntilBooking()} hours remaining until booking.</span>
+                          <span className="font-semibold">{hoursUntilBooking} hours remaining until booking.</span>
                         </p>
                       </div>
                     )}

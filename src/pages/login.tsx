@@ -10,7 +10,7 @@ export default function LoginPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  // Redirect logged-in users to their role-specific dashboard
+  // Redirect logged-in users to their role-specific dashboard or callbackUrl
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
       const role = session.user.role;
@@ -18,9 +18,15 @@ export default function LoginPage() {
       // If role is not yet available, wait for it
       if (!role) return;
 
-      // Redirect based on role - always use role-based redirect for consistency
+      // Check for callbackUrl in query params
+      const callbackUrl = router.query.callbackUrl as string;
+
+      // Redirect based on role - ADMIN always goes to admin dashboard
       if (role === 'ADMIN') {
         router.replace('/admin/dashboard');
+      } else if (callbackUrl) {
+        // If callbackUrl is provided, redirect there after login
+        router.replace(callbackUrl);
       } else {
         // All other roles (FIELD_OWNER, DOG_OWNER) redirect to home
         router.replace('/');

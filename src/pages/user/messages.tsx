@@ -1101,11 +1101,10 @@ const MessagesPage = () => {
 
   return (
     <div className="h-screen flex flex-col bg-light pt-16 xl:pt-24">
-      {/* Connection Status Indicator */}
+      {/* Connection Status Indicator - Show subtle spinner instead of text */}
       {showConnectionStatus && !isMessageSocketConnected && (
-        <div className="bg-amber-500 text-white px-4 py-2 text-center text-sm">
-          <Circle className="inline-block w-2 h-2 mr-2 animate-pulse" fill="currentColor" />
-          Connecting to message server...
+        <div className="bg-amber-500/10 px-4 py-2 flex items-center justify-center gap-2">
+          <Spinner size="sm" inline className="text-amber-600" />
         </div>
       )}
 

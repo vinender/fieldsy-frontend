@@ -337,7 +337,7 @@ const MyProfilePage = () => {
                   />
                   {uploadImageMutation.isPending ? (
                     <span className="flex items-center gap-2">
-                      <Spinner size="sm" />
+                      <Spinner size="sm" inline />
                       Uploading...
                     </span>
                   ) : (
@@ -352,7 +352,7 @@ const MyProfilePage = () => {
                   >
                     {deleteImageMutation.isPending ? (
                       <span className="flex items-center gap-2">
-                        <Spinner size="sm" />
+                        <Spinner size="sm" inline />
                         Deleting...
                       </span>
                     ) : (
@@ -434,7 +434,7 @@ const MyProfilePage = () => {
                     >
                       {updateProfileMutation.isPending ? (
                         <>
-                          <Spinner size="sm" />
+                          <Spinner size="sm" inline />
                           <span>Removing...</span>
                         </>
                       ) : (
@@ -492,7 +492,7 @@ const MyProfilePage = () => {
                 >
                   {updateProfileMutation.isPending ? (
                     <span className="flex items-center justify-center gap-2">
-                      <Spinner size="sm" />
+                      <Spinner size="sm" inline />
                       Updating...
                     </span>
                   ) : (

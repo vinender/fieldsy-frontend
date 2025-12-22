@@ -27,7 +27,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   useEffect(() => {
     const handleStart = (url: string) => {
-      if (url !== router.asPath) {
+      // Don't show full-screen loader when navigating to/from payment page
+      // Payment page has its own loading states
+      const isPaymentPage = url.includes('/fields/payment') || router.asPath.includes('/fields/payment');
+
+      if (url !== router.asPath && !isPaymentPage) {
         setIsNavigating(true);
         setShowLoader(true);
       }
@@ -58,11 +62,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   return (
     <NavigationContext.Provider value={{ isNavigating, startNavigation }}>
-      {showLoader && (
-        <div className="fixed inset-0 z-[9999] bg-white">
-          <PageLoader />
-        </div>
-      )}
+      {showLoader && <PageLoader />}
       {children}
     </NavigationContext.Provider>
   );

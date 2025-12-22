@@ -456,7 +456,7 @@ export function FileUploader({
       return {
         bg: 'bg-gray-50',
         icon: 'bg-green-100',
-        iconColor: 'text-green-600',
+        iconColor: 'text-green',
       };
     }
     return {
@@ -488,7 +488,7 @@ export function FileUploader({
             )}
           </p>
           {isMaxFilesReached && (
-            <span className="text-sm text-green-600 font-medium">Maximum limit reached</span>
+            <span className="text-sm text-green font-medium">Maximum limit reached</span>
           )}
         </div>
       )}
@@ -566,7 +566,7 @@ export function FileUploader({
                         className="w-full h-full object-cover"
                       />
                     ) : file.progress && file.progress > 0 ? (
-                      <Spinner size="sm" />
+                      <Spinner size="sm" inline />
                     ) : (
                       <span className="text-lg">📄</span>
                     )}
@@ -579,7 +579,7 @@ export function FileUploader({
                         <p className="text-xs text-red-600">{file.error}</p>
                       )}
                       {file.uploaded && !file.error && (
-                        <p className="text-xs text-green-600">Uploaded successfully</p>
+                        <p className="text-xs text-green">Uploaded successfully</p>
                       )}
                     </div>
                   </div>

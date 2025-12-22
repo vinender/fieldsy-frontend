@@ -26,7 +26,9 @@ export const PROTECTED_ROUTES = [
   '/field-owner',
   '/admin',
   '/fields/add-field',
-  '/fields/book-field',
+  // Note: /fields/book-field is intentionally NOT protected
+  // Unauthorized users can browse and select time slots
+  // Login prompt is shown when they click "Continue" button
 ];
 
 // Routes that require specific roles
@@ -44,22 +46,27 @@ export function isPublicRoute(pathname: string): boolean {
   if (PUBLIC_ROUTES.includes(pathname)) {
     return true;
   }
-  
+
   // Special cases
   // Allow claiming fields without auth
   if (pathname.startsWith('/fields/claim-field-form')) {
     return true;
   }
-  
+
+  // Allow book-field page without auth (login prompt shown when clicking Continue)
+  if (pathname.startsWith('/fields/book-field')) {
+    return true;
+  }
+
   // Individual field pages are public (e.g., /fields/123)
   if (pathname.startsWith('/fields/') && pathname.split('/').length === 3) {
     // Check if it's not a protected sub-route
-    const isProtectedFieldRoute = PROTECTED_ROUTES.some(route => 
+    const isProtectedFieldRoute = PROTECTED_ROUTES.some(route =>
       pathname.startsWith(route)
     );
     return !isProtectedFieldRoute;
   }
-  
+
   return false;
 }
 
