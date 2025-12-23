@@ -109,7 +109,7 @@ export default function SavedFieldsPage() {
           {!isLoading && !error && savedFields.length > 0 && (
             <>
               <div className="w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(280px,400px))] gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                   {savedFields.map((field) => (
                     <FieldCard
                     key={field.id}
