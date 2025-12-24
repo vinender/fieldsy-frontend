@@ -1,13 +1,7 @@
-'use client'
-
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSession } from 'next-auth/react';
 
 export default function NotFound() {
-    const { data: session } = useSession();
-    const userRole = session?.user?.role;
-
     return (
         <div className="min-h-screen flex items-center justify-center bg-cream px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl w-full space-y-8 text-center bg-white p-10 rounded-[32px] shadow-sm border border-gray-100">
@@ -37,21 +31,11 @@ export default function NotFound() {
                         </button>
                     </Link>
 
-                    {userRole === 'DOG_OWNER' && (
-                        <Link href="/fields" className="w-full sm:w-auto">
-                            <button className="w-full sm:w-auto py-3.5 px-8 rounded-full border-2 border-green text-green font-bold text-base hover:bg-green/5 transition-all">
-                                Browse Fields
-                            </button>
-                        </Link>
-                    )}
-
-                    {userRole === 'FIELD_OWNER' && (
-                        <Link href="/field-owner/my-fields" className="w-full sm:w-auto">
-                            <button className="w-full sm:w-auto py-3.5 px-8 rounded-full border-2 border-green text-green font-bold text-base hover:bg-green/5 transition-all">
-                                My Fields
-                            </button>
-                        </Link>
-                    )}
+                    <Link href="/fields" className="w-full sm:w-auto">
+                        <button className="w-full sm:w-auto py-3.5 px-8 rounded-full border-2 border-green text-green font-bold text-base hover:bg-green/5 transition-all">
+                            Browse Fields
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>
