@@ -86,22 +86,36 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
   };
 
   // Calculate fees - field owner perspective
-  // Calculation order: Stripe fee first, then platform commission on remaining amount
   const calculateFees = () => {
     const subTotal = booking?.amount || 0; // Booking amount (what customer paid)
-    const platformCommissionRate = booking?.platformCommissionRate || 5; // Default 5% platform commission
+    // Check if we have locked/stored values from backend
+    const storedFieldOwnerEarnings = booking?.fieldOwnerEarnings;
+    const storedPlatformFee = booking?.platformFee;
+
+    const platformCommissionRate = booking?.platformCommissionRate || 20; // Default 20% platform commission
     const isCustomCommission = booking?.isCustomCommission || false;
-    const defaultCommissionRate = booking?.defaultCommissionRate || 5;
+    const defaultCommissionRate = booking?.defaultCommissionRate || 20;
 
-    // Calculate Stripe fee (1.5% + £0.20)
+    // Calculate Stripe fee (1.5% + £0.20) - Informational only
     const stripeFee = subTotal > 0 ? Math.round(((subTotal * 0.015) + 0.20) * 100) / 100 : 0;
+
+    let platformFee = 0;
+    let fieldOwnerEarnings = 0;
+
+    if (storedPlatformFee !== undefined && storedFieldOwnerEarnings !== undefined) {
+      // Use values provided by backend (especially for completed/locked bookings)
+      platformFee = storedPlatformFee;
+      fieldOwnerEarnings = storedFieldOwnerEarnings;
+    } else {
+      // Dynamic calculation for pending/future bookings
+      // Platform fee is calculated on GROSS booking amount
+      platformFee = Math.round((subTotal * platformCommissionRate) / 100 * 100) / 100;
+      // Field owner gets the remainder (Stripe fee is covered by Platform Commission)
+      fieldOwnerEarnings = Math.round((subTotal - platformFee) * 100) / 100;
+    }
+
+    // Calculate Net (Amount after Stripe fee) - For display only
     const amountAfterStripeFee = Math.round((subTotal - stripeFee) * 100) / 100;
-
-    // Platform fee is calculated on amount after Stripe fee
-    const platformFee = Math.round((amountAfterStripeFee * platformCommissionRate) / 100 * 100) / 100;
-
-    // Field owner gets the remainder
-    const fieldOwnerEarnings = Math.round((amountAfterStripeFee - platformFee) * 100) / 100;
 
     return {
       subTotal,
@@ -292,22 +306,24 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                         label="Stripe Processing Fee"
                         value={
                           <span className="flex items-center gap-1">
-                            <span className="text-red-600">-£{fees.stripeFee.toFixed(2)}</span>
-                            <span className="text-xs text-gray-500">(1.5% + £0.20)</span>
+                            <span className="text-gray-500">£{fees.stripeFee.toFixed(2)}</span>
+                            <span className="text-xs text-gray-400">(Included in Fieldsy Fee)</span>
                           </span>
                         }
                       />
+                      {/* Net row restored */}
                       <DetailRow
                         label="Net (After Stripe)"
                         value={`£${fees.amountAfterStripeFee.toFixed(2)}`}
                       />
+
                       <DetailRow
                         label="Fieldsy Fee"
                         value={
                           <span className="flex items-center gap-1">
                             <span className="text-red-600">-£{fees.fieldsyFee.toFixed(2)}</span>
                             <span className="text-xs text-gray-500">
-                              ({fees.platformCommissionRate}% of net{fees.isCustomCommission ? ' - Custom Rate' : ''})
+                              ({fees.platformCommissionRate}% of total{fees.isCustomCommission ? ' - Custom Rate' : ''})
                             </span>
                           </span>
                         }

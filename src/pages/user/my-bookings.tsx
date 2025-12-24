@@ -855,11 +855,10 @@ const BookingHistoryPage = () => {
                 <button
                   onClick={() => handleCancelSubscription(true)}
                   disabled={!isImmediateCancellationAllowed || isCancellingSubscription}
-                  className={`w-full px-4 py-3 font-medium rounded-xl shadow transition-all ${
-                    isImmediateCancellationAllowed && !isCancellingSubscription
-                      ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800"
-                      : "bg-gray-200 text-gray-500 border border-gray-300 cursor-not-allowed"
-                  }`}
+                  className={`w-full px-4 py-3 font-medium rounded-xl shadow transition-all ${isImmediateCancellationAllowed && !isCancellingSubscription
+                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800"
+                    : "bg-gray-200 text-gray-500 border border-gray-300 cursor-not-allowed"
+                    }`}
                   title={
                     !isImmediateCancellationAllowed
                       ? `Cannot cancel immediately — booking is within ${bookingCancellationWindow}h cancellation window`
@@ -875,9 +874,8 @@ const BookingHistoryPage = () => {
                     <>
                       Cancel Immediately
                       <span
-                        className={`block text-xs mt-1 ${
-                          isImmediateCancellationAllowed ? "text-red-100" : "text-gray-500"
-                        }`}
+                        className={`block text-xs mt-1 ${isImmediateCancellationAllowed ? "text-red-100" : "text-gray-500"
+                          }`}
                       >
                         {isImmediateCancellationAllowed
                           ? "Stop all future bookings now"
@@ -904,7 +902,7 @@ const BookingHistoryPage = () => {
   };
 
   return (
-    <UserLayout>
+    <UserLayout requireRole="DOG_OWNER">
       <div className="min-h-screen bg-light xl:mt-24 mt-16">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 py-6 sm:py-10">
           {/* Page Title with Back Button */}
@@ -986,7 +984,7 @@ const BookingHistoryPage = () => {
                 </div>
                 <p className="text-red-500 font-medium mb-2">{error}</p>
                 <button
-                  onClick={fetchBookings}
+                  onClick={() => fetchBookings()}
                   className="text-[#3A6B22] font-medium hover:underline"
                 >
                   Try Again

@@ -506,7 +506,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                               <p className="text-sm font-medium text-dark-green">
                                 {/* {field?.minBookingDuration || '30'} */}
                                 30 min
-                                 </p>
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-3 py-3">
@@ -850,7 +850,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                     {reviews.length > 0 ? (
                       <div className="space-y-6 bg-transparent">
                         {reviews.map((review: any, index: number) => (
-                          <div key={review.id || index} className="bg-transparent rounded-[30px] p-6 border border-gray-200">
+                          <div key={review.id || index} className="bg-transparent rounded-[30px] p-6 border border-yellow">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-center w-full">
                                 <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 overflow-hidden">

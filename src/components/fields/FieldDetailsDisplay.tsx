@@ -212,8 +212,6 @@ export default function FieldDetailsDisplay({
                   <RatingStars
                     rating={numericRating}
                     size={14}
-                    activeColor="#FFDD57"
-                    inactiveColor="rgba(255,255,255,0.35)"
                     className="gap-[2px]"
                   />
                   <span className="text-sm font-semibold">{formatRating(numericRating).toFixed(1)}</span>

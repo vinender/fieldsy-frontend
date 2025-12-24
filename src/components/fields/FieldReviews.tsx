@@ -16,10 +16,12 @@ import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { formatRating } from '@/utils/formatters';
 import { RatingStars } from '@/components/common/RatingStars';
 
+
 interface FieldReviewsProps {
   fieldId: string;
   fieldOwnerId?: string;
 }
+
 
 export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProps) {
   const { data: session } = useSession();
@@ -154,7 +156,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
             <div className="text-center">
               <div className="text-4xl font-bold">{formatRating(stats.averageRating).toFixed(1)}</div>
               <div className="flex justify-center my-2">
-                <RatingStars rating={stats.averageRating} size={24} activeColor="#FACC15" />
+                <RatingStars rating={stats.averageRating} size={24} />
               </div>
               <div className="text-sm text-gray-600">{stats.totalReviews} reviews</div>
             </div>
@@ -246,7 +248,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
               </div>
 
               <div className="flex items-center gap-2">
-                <RatingStars rating={review.rating} size={20} activeColor="#FACC15" />
+                <RatingStars rating={review.rating} size={20} />
                 {session?.user?.id === review.userId && (
                   <div className="flex gap-2 ml-4">
                     <button

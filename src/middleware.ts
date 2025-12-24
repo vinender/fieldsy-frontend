@@ -55,13 +55,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // EXPLICIT EARLY RETURN: Allow book-field page without ANY authentication checks
-  // This must come BEFORE token checks to ensure unauthenticated users can access
-  if (path.startsWith('/fields/book-field')) {
-    return NextResponse.next();
-  }
-
-  // Get the token for auth checks
+  // Get the token for auth checks - Fetch early to handle role-based blocking on public routes
   let token;
   try {
     token = await getToken({
@@ -73,14 +67,47 @@ export async function middleware(request: NextRequest) {
     token = null;
   }
 
+  const tokenData = token as any;
+  const userRole = tokenData?.role || tokenData?.user?.role;
+
+  // BLOCK FIELD OWNERS FROM CONSUMER ROUTES
+  // Field owners should not access public booking/search pages
+  if (userRole === 'FIELD_OWNER') {
+    if (path.startsWith('/fields')) {
+      // Allowed paths for Field Owners within /fields
+      // claim-field-form is for claiming fields
+      // add-field is theoretically for adding fields (if used)
+      const isAllowedPath = path.startsWith('/fields/claim-field-form') ||
+        path === '/fields/add-field';
+
+      if (!isAllowedPath) {
+        // Redirect to dashboard
+        return NextResponse.redirect(new URL('/field-owner/my-fields', request.url));
+      }
+    }
+  }
+
+  // EXPLICIT EARLY RETURN: Allow book-field page without ANY authentication checks for non-field owners
+  // This ensures unauthenticated users (and Dog Owners) can access
+  if (path.startsWith('/fields/book-field')) {
+    return NextResponse.next();
+  }
+
+  // Payment page protection - Strictly for Authenticated Users (Dog Owners/Admin)
+  // Field Owners are already blocked by the rule above
+  if (path.startsWith('/fields/payment')) {
+    if (!token) {
+      const url = new URL('/login', request.url);
+      url.searchParams.set('callbackUrl', path);
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Check if this is an auth-only page (login, signup, etc.)
   const isAuthOnlyPath = AUTH_ONLY_PATHS.has(path);
 
   // If user is logged in and trying to access auth-only pages, redirect them
   if (isAuthOnlyPath && token) {
-    const tokenData = token as any;
-    const userRole = tokenData.role || tokenData.user?.role;
-
     // Get referer to check where the user came from
     const referer = request.headers.get('referer');
     let redirectPath = '/';
@@ -171,7 +198,6 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check if token has exp claim and if it's expired
-    const tokenData = token as any;
     if (tokenData.exp) {
       const now = Math.floor(Date.now() / 1000);
       if (now >= tokenData.exp) {
@@ -189,8 +215,7 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Check role-based access
-    const userRole = tokenData.role || tokenData.user?.role;
+    // Role checks already performed via tokenData variable above, but needed for specific logic below
 
     // Admin routes
     if (path.startsWith('/admin') && userRole !== 'ADMIN') {
@@ -201,6 +226,27 @@ export async function middleware(request: NextRequest) {
     if (path.startsWith('/field-owner')) {
       if (userRole !== 'FIELD_OWNER' && userRole !== 'ADMIN') {
         return NextResponse.redirect(new URL('/unauthorized', request.url));
+      }
+    }
+
+    // User/Dog Owner routes
+    if (path.startsWith('/user')) {
+      // Shared routes that Field Owners can access
+      const isSharedRoute =
+        path.startsWith('/user/profile') ||
+        path.startsWith('/user/messages');
+
+      if (isSharedRoute) {
+        // Shared routes accessible by DOG_OWNER, FIELD_OWNER, and ADMIN
+        if (userRole !== 'DOG_OWNER' && userRole !== 'FIELD_OWNER' && userRole !== 'ADMIN') {
+          return NextResponse.redirect(new URL('/unauthorized', request.url));
+        }
+      } else {
+        // Pure Dog Owner routes (my-bookings, saved-fields, etc)
+        // Strictly for DOG_OWNER and ADMIN
+        if (userRole !== 'DOG_OWNER' && userRole !== 'ADMIN') {
+          return NextResponse.redirect(new URL('/unauthorized', request.url));
+        }
       }
     }
 

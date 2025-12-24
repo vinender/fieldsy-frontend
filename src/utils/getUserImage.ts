@@ -38,14 +38,14 @@ export const getUserImage = (user: UserWithImage | null | undefined): string | n
     return user.profileImage;
   }
 
-  // Priority 4: Generate image from initials if no image exists
+  // Priority 4: Return default placeholder image
   // Check if we're in a browser environment (has document)
   if (typeof document !== 'undefined') {
-    return generateInitialsImage(user);
+    return '/user.svg';
   }
 
-  // Priority 5: Return null for SSR or when canvas is not available
-  return null;
+  // Priority 5: Return null (or user.svg for consistency) for SSR
+  return '/user.svg';
 };
 
 /**
@@ -117,34 +117,5 @@ const getColorFromString = (str: string): string => {
  * Creates a colored circle with white text containing the user's initials
  */
 export const generateInitialsImage = (user: UserWithImage | null | undefined): string => {
-  if (!user) return '';
-
-  const initials = getUserInitials(user);
-  const nameOrEmail = user.name || user.email || 'User';
-  const backgroundColor = getColorFromString(nameOrEmail);
-
-  // Create a canvas element
-  const canvas = document.createElement('canvas');
-  const size = 200; // Image size
-  canvas.width = size;
-  canvas.height = size;
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return '';
-
-  // Draw circle background
-  ctx.fillStyle = backgroundColor;
-  ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Draw initials
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = `bold ${size / 2.5}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(initials, size / 2, size / 2);
-
-  // Convert to data URL
-  return canvas.toDataURL('image/png');
+  return '/user.svg';
 };

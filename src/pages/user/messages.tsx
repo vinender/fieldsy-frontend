@@ -159,6 +159,7 @@ const MessagesPage = () => {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [showConnectionStatus, setShowConnectionStatus] = useState(false);
+  const [hasEverConnected, setHasEverConnected] = useState(false);
   const [floatingDate, setFloatingDate] = useState<string>('');
   const [showFloatingDate, setShowFloatingDate] = useState(false);
 
@@ -262,18 +263,21 @@ const MessagesPage = () => {
 
   // Monitor connection status and show indicator
   useEffect(() => {
-    if (!isMessageSocketConnected) {
-      // Show connection status after 2 seconds of being disconnected
+    if (isMessageSocketConnected) {
+      // Track that we've connected at least once
+      setHasEverConnected(true);
+      // Hide connection status when connected
+      setShowConnectionStatus(false);
+    } else if (hasEverConnected) {
+      // Only show reconnection indicator if we were previously connected
+      // This prevents showing "connecting" on initial page load
       const timer = setTimeout(() => {
         setShowConnectionStatus(true);
       }, 2000);
 
       return () => clearTimeout(timer);
-    } else {
-      // Hide connection status when connected
-      setShowConnectionStatus(false);
     }
-  }, [isMessageSocketConnected]);
+  }, [isMessageSocketConnected, hasEverConnected]);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -1084,8 +1088,8 @@ const MessagesPage = () => {
     return null;
   }
 
-  // Show loading state while session is loading
-  if (status === 'loading') {
+  // Show loading state while session is loading or initial socket connection
+  if (status === 'loading' || (isLoadingConversations && !hasEverConnected)) {
     return (
       <div className="h-screen flex items-center justify-center bg-light">
         <div className="flex flex-col items-center">

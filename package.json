@@ -11,6 +11,7 @@
     "analyze:server": "cross-env BUNDLE_ANALYZE=server next build",
     "analyze:browser": "cross-env BUNDLE_ANALYZE=browser next build"
   },
+  
   "dependencies": {
     "@aws-sdk/client-s3": "^3.864.0",
     "@aws-sdk/s3-presigned-post": "^3.864.0",
@@ -64,6 +65,7 @@
     "uuid": "^11.1.0",
     "zod": "^4.0.14"
   },
+
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@next/bundle-analyzer": "^15.5.4",

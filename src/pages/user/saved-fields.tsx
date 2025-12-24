@@ -53,6 +53,8 @@ export default function SavedFieldsPage() {
     }
   };
 
+  console.log(';; field price', field)
+
   return (
     <UserLayout requireRole="DOG_OWNER">
       <div className="min-h-screen bg-[#FFFCF3] pt-32">
@@ -115,7 +117,7 @@ export default function SavedFieldsPage() {
                     key={field.id}
                     id={field.id}
                     name={field.name || 'Unnamed Field'}
-                    price={field.price || 0}
+                    price={field.price30min || 0}
                     price30min={field.price30min}
                     price1hr={field.price1hr}
                     location={field.city ? `${field.city}, ${field.state || ''}` : 'Location'}

@@ -5,7 +5,9 @@ import { useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import { getUserInitials } from "@/utils/getUserImage"
 
-const DEFAULT_FALLBACK_SRC = "/profile/profile.svg"
+const DEFAULT_FALLBACK_SRC = "/user.svg"
+
+// ... (keep interface definitions)
 
 export type ProfileAvatarUser = {
   name?: string | null
@@ -58,12 +60,7 @@ export function ProfileAvatar({
   }, [user])
 
   const usingPrimary = !!primarySrc && !primaryErrored
-  const usingFallback = !usingPrimary && !fallbackErrored
-  const resolvedSrc = usingPrimary
-    ? primarySrc
-    : usingFallback
-    ? fallbackSrc || DEFAULT_FALLBACK_SRC
-    : null
+  const resolvedSrc = usingPrimary ? primarySrc : fallbackSrc
 
   const altText = alt || user?.name || user?.email || "User avatar"
 
@@ -75,26 +72,18 @@ export function ProfileAvatar({
       )}
       style={size ? { width: size, height: size } : undefined}
     >
-      {resolvedSrc ? (
-        <Image
-          src={resolvedSrc}
-          alt={altText}
-          fill
-          sizes={sizes || (size ? `${size}px` : "56px")}
-          className={cn("object-cover", imageClassName)}
-          onError={() => {
-            if (usingPrimary) {
-              setPrimaryErrored(true)
-            } else if (usingFallback) {
-              setFallbackErrored(true)
-            }
-          }}
-        />
-      ) : (
-        <span className="text-sm font-semibold">
-          {getUserInitials(user)}
-        </span>
-      )}
+      <Image
+        src={resolvedSrc}
+        alt={altText}
+        fill
+        sizes={sizes || (size ? `${size}px` : "56px")}
+        className={cn("object-cover", imageClassName)}
+        onError={() => {
+          if (usingPrimary) {
+            setPrimaryErrored(true)
+          }
+        }}
+      />
     </div>
   )
 }
