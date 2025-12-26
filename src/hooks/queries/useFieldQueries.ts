@@ -146,8 +146,10 @@ export function useFields(
       console.log('Fields API Response:', response.data);
       return response.data as FieldsResponse;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always consider data stale so refetch happens on focus
     gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: 'always', // Always refetch when user returns to the tab
+    refetchOnReconnect: true, // Refetch when network reconnects
     ...options,
   });
 }
@@ -258,7 +260,10 @@ export function useFieldDetails(
       return response.data;
     },
     enabled: !!fieldId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always consider data stale so refetch happens on focus
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnWindowFocus: 'always', // Always refetch when user returns to the tab
+    refetchOnReconnect: true, // Refetch when network reconnects
     ...queryOptions,
   });
 
@@ -270,6 +275,7 @@ export function useFieldDetails(
     isError: query.isError,
     isSuccess: query.isSuccess,
     refetch: query.refetch,
+    isFetching: query.isFetching,
   };
 }
 

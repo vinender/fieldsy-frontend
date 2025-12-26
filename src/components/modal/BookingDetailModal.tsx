@@ -42,7 +42,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const cancellationWindowHours = useCancellationWindow();
 
   // Fetch detailed booking data (in background to get latest info)
-  const { data: bookingDetails, isLoading: isLoadingDetails } = useBookingDetails(
+  const { data: bookingDetails, isLoading: isLoadingDetails, refetch: refetchBookingDetails } = useBookingDetails(
     booking?._id || booking?.id,
     { enabled: isOpen && !!(booking?._id || booking?.id) }
   );
@@ -263,7 +263,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       <div className="flex items-center gap-1">
                       <img src="/bookings/availability.svg" className="w-[16px] sm:w-[18px] h-[16px] sm:h-[18px]" />
 
-                        <span className="text-xs sm:text-[14px] text-[#8d8d8d]">
+                        <span className="text-xs sm:text-[14px] text-gray-800">
                           {fullBooking?.rawDate ? formatDateDDMMYYYY(new Date(fullBooking.rawDate)) : fullBooking?.date ? formatDateDDMMYYYY(new Date(fullBooking.date)) : ''}
                         </span>
                       </div>
@@ -529,7 +529,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                     </div>
 
                     {/* Warning message if within cancellation window */}
-                    {(!isCancellable || !isReschedulable) && (
+                    {(!isCancellable || !isReschedulable) && hoursUntilBooking > 0 && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 sm:p-3">
                         <p className="text-xs sm:text-sm text-yellow-800 text-center">
                           <Clock className="inline w-4 h-4 mr-1" />
@@ -591,6 +591,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
         fieldName={field?.name || 'Field'}
         bookingId={fullBooking?._id || fullBooking?.id}
         onReviewAdded={() => {
+          // Refetch booking details to get updated hasReview status
+          refetchBookingDetails();
           if (onReviewAdded) {
             onReviewAdded();
           }

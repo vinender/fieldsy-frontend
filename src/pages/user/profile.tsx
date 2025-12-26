@@ -452,7 +452,7 @@ const MyProfilePage = () => {
                   </p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
-                  UK phone numbers only (e.g., 07123456789 for mobile or 0123456789 for landline)
+                  UK phone numbers only (10-11 digits)
                 </p>
               </div>
 

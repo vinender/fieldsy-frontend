@@ -68,12 +68,19 @@ export function useBookingDetails(
   const query = useQuery({
     queryKey: bookingQueryKeys.bookingDetails(bookingId),
     queryFn: async () => {
-      const response = await axiosClient.get(`/bookings/${bookingId}`);
+      const response = await axiosClient.get(`/bookings/${bookingId}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
+      });
       console.log(' fullBooking response', response.data);
       return response.data;
     },
     enabled: !!bookingId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always consider data stale
+    gcTime: 5 * 60 * 1000, // 5 minutes cache time
+    refetchOnMount: 'always', // Always refetch when modal opens
     ...options,
   });
 
@@ -87,6 +94,7 @@ export function useBookingDetails(
     refetch: query.refetch,
   };
 }
+
 
 // Hook to fetch cancelled bookings for field owners
 export interface CancelledBookingsParams {

@@ -2,7 +2,7 @@
  * UK Phone Number Validation Utility
  *
  * Handles validation and formatting for UK phone numbers
- * Supports various UK phone number formats
+ * Only validates length - accepts any UK phone number format
  */
 
 // UK phone number length limits (excluding +44 country code)
@@ -12,14 +12,9 @@ export const UK_PHONE_MAX_LENGTH = 11; // Maximum digits excluding country code
 export const UK_PHONE_MIN_LENGTH = 10; // Minimum digits excluding country code
 
 /**
- * Validates UK phone number format
+ * Validates UK phone number - only checks length, not format
  *
- * Valid formats:
- * - Mobile: 07xxx xxxxxx (11 digits starting with 07)
- * - Mobile without leading 0: 7xxx xxxxxx (10 digits starting with 7)
- * - Landline: 01xxx xxx xxx, 02x xxxx xxxx, 03xx xxx xxxx (10-11 digits)
- * - With +44 prefix: +44 7xxx xxxxxx or +447xxxxxxxxx
- * - Any valid UK number format with spaces, dashes, or parentheses
+ * Accepts any phone number that has between 10-11 digits (excluding country code)
  *
  * @param phoneNumber - The phone number to validate
  * @returns Object with isValid flag and error message if invalid
@@ -30,53 +25,29 @@ export const validateUKPhoneNumber = (phoneNumber: string): { isValid: boolean; 
     return { isValid: true };
   }
 
-  // Remove spaces, dashes, parentheses, and + for validation
-  let cleanNumber = phoneNumber.replace(/[\s\-()]/g, '');
+  // Remove all non-digit characters for length validation
+  let cleanNumber = phoneNumber.replace(/\D/g, '');
 
-  // Handle +44 or 44 prefix - convert to 0 prefix
-  if (cleanNumber.startsWith('+44')) {
-    cleanNumber = '0' + cleanNumber.slice(3);
-  } else if (cleanNumber.startsWith('44') && cleanNumber.length > 10) {
-    cleanNumber = '0' + cleanNumber.slice(2);
+  // Handle +44 or 44 prefix - remove it for length calculation
+  if (cleanNumber.startsWith('44') && cleanNumber.length > 11) {
+    cleanNumber = cleanNumber.slice(2);
   }
 
-  // If number starts with 7, 1, 2, or 3 (without leading 0), add the 0
-  if (/^[7123]\d{9}$/.test(cleanNumber)) {
-    cleanNumber = '0' + cleanNumber;
+  // Remove leading 0 if present for consistent length check
+  if (cleanNumber.startsWith('0') && cleanNumber.length === 11) {
+    cleanNumber = cleanNumber.slice(1);
   }
 
-  // Check if it contains only digits after processing
-  if (!/^\d+$/.test(cleanNumber)) {
-    return { isValid: false, error: 'Phone number should only contain digits' };
+  // Check length only - accept 10 or 11 digits
+  if (cleanNumber.length < UK_PHONE_MIN_LENGTH) {
+    return { isValid: false, error: `Phone number must be at least ${UK_PHONE_MIN_LENGTH} digits` };
   }
 
-  // UK mobile numbers: Start with 07 and have 11 digits total
-  const mobileRegex = /^07\d{9}$/;
-
-  // UK landline numbers: Start with 01, 02, or 03 and have 10-11 digits
-  const landlineRegex = /^0[123]\d{8,9}$/;
-
-  if (mobileRegex.test(cleanNumber)) {
-    return { isValid: true };
+  if (cleanNumber.length > UK_PHONE_MAX_LENGTH) {
+    return { isValid: false, error: `Phone number cannot exceed ${UK_PHONE_MAX_LENGTH} digits` };
   }
 
-  if (landlineRegex.test(cleanNumber)) {
-    return { isValid: true };
-  }
-
-  // If it doesn't match any valid UK format
-  if (cleanNumber.length < 10) {
-    return { isValid: false, error: 'UK phone numbers must be at least 10 digits' };
-  }
-
-  if (cleanNumber.length > 11) {
-    return { isValid: false, error: 'UK phone numbers cannot exceed 11 digits' };
-  }
-
-  return {
-    isValid: false,
-    error: 'Please enter a valid UK phone number (e.g., 07123456789, +447123456789, or 7123456789)'
-  };
+  return { isValid: true };
 };
 
 /**

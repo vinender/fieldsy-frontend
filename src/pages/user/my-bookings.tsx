@@ -695,16 +695,6 @@ const BookingHistoryPage = () => {
                     Ends {formatDateDDMMYYYY(new Date(booking.subscription.currentPeriodEnd))}
                   </span>
                 )}
-
-                {/* Cancel Subscription Button */}
-                {!booking.subscription.cancelAtPeriodEnd && booking.status === 'upcoming' && (
-                  <button
-                    onClick={() => setShowCancelSubModal(true)}
-                    className="text-[11px] sm:text-[13px] font-semibold text-red-500 hover:text-red-600 transition-colors"
-                  >
-                    Cancel Subscription
-                  </button>
-                )}
               </>
             )}
 
@@ -723,39 +713,73 @@ const BookingHistoryPage = () => {
         <div className="flex flex-col gap-2 w-full sm:w-[180px] flex-shrink-0">
           {booking.status === 'upcoming' ? (
             <>
-              <div className="flex flex-row gap-2">
-                {(() => {
-                  const rescheduleCount = booking.rescheduleCount || 0;
-                  const rescheduleTitle = !isReschedulable
-                    ? !isCancellable
-                      ? `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`
-                      : 'Maximum reschedule limit (3) reached for this booking'
-                    : `Reschedule booking (${rescheduleCount}/3 used)`;
+              {booking.subscription ? (
+                /* Recurring booking: show buttons stacked vertically */
+                <>
+                  {(() => {
+                    const rescheduleCount = booking.rescheduleCount || 0;
+                    const rescheduleTitle = !isReschedulable
+                      ? !isCancellable
+                        ? `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`
+                        : 'Maximum reschedule limit (3) reached for this booking'
+                      : `Reschedule booking (${rescheduleCount}/3 used)`;
 
-                  return (
-                    <button
-                      onClick={() => isReschedulable ? handleRescheduleClick(booking) : null}
-                      disabled={!isReschedulable}
-                      className={`flex-1 py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${isReschedulable
-                        ? 'bg-[#e8f5ff] border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
-                        : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
-                        }`}
-                      title={rescheduleTitle}>
-                      Reschedule
-                    </button>
-                  );
-                })()}
-                <button
-                  onClick={() => isCancellable ? handleCancelClick(booking) : null}
-                  disabled={!isCancellable}
-                  className={`flex-1 py-2 px-2 border-2 rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${isCancellable
-                    ? 'bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer'
-                    : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
-                    }`}
-                  title={!isCancellable ? `Cannot cancel within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)` : 'Cancel booking'}>
-                  Cancel
-                </button>
-              </div>
+                    return (
+                      <button
+                        onClick={() => isReschedulable ? handleRescheduleClick(booking) : null}
+                        disabled={!isReschedulable}
+                        className={`w-full py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${isReschedulable
+                          ? 'bg-[#e8f5ff] border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
+                          : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
+                          }`}
+                        title={rescheduleTitle}>
+                        Reschedule
+                      </button>
+                    );
+                  })()}
+                  <button
+                    onClick={() => setShowCancelSubModal(true)}
+                    className="w-full py-2 px-2 border-2 rounded-full text-[11px] sm:text-[13px] font-bold transition-colors bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer"
+                    title="Cancel recurring subscription">
+                    Cancel Subscription
+                  </button>
+                </>
+              ) : (
+                /* Regular booking: show reschedule and cancel side by side */
+                <div className="flex flex-row gap-2">
+                  {(() => {
+                    const rescheduleCount = booking.rescheduleCount || 0;
+                    const rescheduleTitle = !isReschedulable
+                      ? !isCancellable
+                        ? `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`
+                        : 'Maximum reschedule limit (3) reached for this booking'
+                      : `Reschedule booking (${rescheduleCount}/3 used)`;
+
+                    return (
+                      <button
+                        onClick={() => isReschedulable ? handleRescheduleClick(booking) : null}
+                        disabled={!isReschedulable}
+                        className={`flex-1 py-2 px-2 border rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${isReschedulable
+                          ? 'bg-[#e8f5ff] border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
+                          : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
+                          }`}
+                        title={rescheduleTitle}>
+                        Reschedule
+                      </button>
+                    );
+                  })()}
+                  <button
+                    onClick={() => isCancellable ? handleCancelClick(booking) : null}
+                    disabled={!isCancellable}
+                    className={`flex-1 py-2 px-2 border-2 rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${isCancellable
+                      ? 'bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer'
+                      : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
+                      }`}
+                    title={!isCancellable ? `Cannot cancel within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)` : 'Cancel booking'}>
+                    Cancel
+                  </button>
+                </div>
+              )}
               <button
                 onClick={() => handleViewDetails(booking)}
                 className="w-full py-2 px-2.5 bg-[#3a6b22] rounded-full text-[12px] sm:text-[14px] font-bold text-white hover:bg-[#2d5319] transition-colors">
@@ -1037,33 +1061,80 @@ const BookingHistoryPage = () => {
                   <ChevronLeft className="w-5 h-5 text-[#192215]" />
                 </button>
 
-                {[...Array(Math.min(5, totalPages))].map((_, index) => {
-                  const pageNum = index + 1;
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors ${pageNum === page
-                        ? 'bg-[#3a6b22] text-white'
-                        : 'hover:bg-white/50 text-[#192215]'
-                        }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+                {(() => {
+                  const maxVisible = 5;
+                  let startPage = 1;
+                  let endPage = Math.min(totalPages, maxVisible);
 
-                {totalPages > 5 && (
-                  <>
-                    <span className="text-[#192215]">...</span>
-                    <button
-                      onClick={() => setPage(totalPages)}
-                      className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/50 text-[#192215] text-sm font-medium transition-colors"
-                    >
-                      {totalPages}
-                    </button>
-                  </>
-                )}
+                  // Adjust window to keep current page visible
+                  if (totalPages > maxVisible) {
+                    if (page <= 3) {
+                      // Near the start
+                      startPage = 1;
+                      endPage = maxVisible;
+                    } else if (page >= totalPages - 2) {
+                      // Near the end
+                      startPage = totalPages - maxVisible + 1;
+                      endPage = totalPages;
+                    } else {
+                      // In the middle - center around current page
+                      startPage = page - 2;
+                      endPage = page + 2;
+                    }
+                  }
+
+                  const pages = [];
+
+                  // Show first page and ellipsis if needed
+                  if (startPage > 1) {
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => setPage(1)}
+                        className="w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors hover:bg-white/50 text-[#192215]"
+                      >
+                        1
+                      </button>
+                    );
+                    if (startPage > 2) {
+                      pages.push(<span key="start-ellipsis" className="text-[#192215]">...</span>);
+                    }
+                  }
+
+                  // Show page numbers in window
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setPage(i)}
+                        className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors ${i === page
+                          ? 'bg-[#3a6b22] text-white'
+                          : 'hover:bg-white/50 text-[#192215]'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+
+                  // Show ellipsis and last page if needed
+                  if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                      pages.push(<span key="end-ellipsis" className="text-[#192215]">...</span>);
+                    }
+                    pages.push(
+                      <button
+                        key={totalPages}
+                        onClick={() => setPage(totalPages)}
+                        className="w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors hover:bg-white/50 text-[#192215]"
+                      >
+                        {totalPages}
+                      </button>
+                    );
+                  }
+
+                  return pages;
+                })()}
 
                 <button
                   onClick={() => setPage(Math.min(totalPages, page + 1))}

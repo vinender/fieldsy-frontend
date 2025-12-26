@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { reviewsAPI, CreateReviewData, UpdateReviewData } from '@/lib/api/reviews';
+import { bookingQueryKeys } from '@/hooks/queries/useBookingQueries';
 
 // Query keys
 export const reviewKeys = {
@@ -43,6 +44,12 @@ export function useCreateReview(fieldId: string, bookingId?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reviewKeys.field(fieldId) });
+      // Invalidate booking queries to update hasReview status
+      if (bookingId) {
+        queryClient.invalidateQueries({ queryKey: bookingQueryKeys.bookingDetails(bookingId) });
+      }
+      // Also invalidate user bookings list to update hasReview across all views
+      queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
       // Toast notification handled by the component (AddReviewModal)
     },
     onError: (error: any) => {

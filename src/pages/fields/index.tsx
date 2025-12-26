@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ChevronDown, SortDesc, Filter } from 'lucide-react';
+import { ChevronDown, SortDesc, Filter, X } from 'lucide-react';
 import { FieldCard } from '@/components/fields/FieldCard';
 import { LazyFieldCard } from '@/components/fields/LazyFieldCard';
 import FieldsSortFilter from '@/components/fields/FieldsSortFilter';
@@ -27,7 +27,7 @@ export default function SearchResults() {
   const [zipCode, setZipCode] = useState('');
   const [lat, setLat] = useState<number | undefined>();
   const [lng, setLng] = useState<number | undefined>();
-  const { currentLocation, requestLocation } = useLocation();
+  const { currentLocation, requestLocation, clearLocation } = useLocation();
 
   const { data: priceRangeData, isLoading: loadingPriceRange } = usePriceRange();
   const locationRequestInitiatedRef = useRef(false);
@@ -412,16 +412,40 @@ export default function SearchResults() {
 
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                 <div className="flex flex-col gap-1 flex-1 w-full">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex  flex-wrap items-center gap-2">
                     <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
                       {shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
                     </h1>
                     {shouldUseNearbyFields && hasNearbyResults && locationDisplay && (
-                      <span className="text-sm text-dark-green/70 truncate max-w-full sm:max-w-[360px]">
+                      <span className="text-sm text-dark-green/70 w-full  flex items-center gap-1">
                         • {locationDisplay}
+                        <button
+                          onClick={() => {
+                            clearLocation();
+                            setCurrentPage(1);
+                          }}
+                          className="hidden sm:block ml-1 p-0.5 hover:bg-dark-green/10 rounded-full transition-colors"
+                          title="Clear location filter"
+                        >
+                          
+                          <X className="w-5 h-5 bg-black rounded-full text-white p-0.5" />
+                        </button>
                       </span>
                     )}
                   </div>
+
+                  <button
+                          onClick={() => {
+                           clearLocation();
+                           setCurrentPage(1);
+                          }}
+                          className="block sm:hidden ml-1 p-0.5 hover:bg-dark-green/10 rounded-full transition-colors"
+                          title="Clear location filter"
+                        >
+                          
+                          <X className="w-5 h-5 bg-black rounded-full text-white p-0.5" />
+                  </button>
+
                 </div>
                 <div className="relative" ref={sortDropdownRef}>
                   <button

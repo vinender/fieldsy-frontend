@@ -87,6 +87,12 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   const { data: fieldPropertiesData } = useFieldProperties();
   const fieldProperties = fieldPropertiesData?.data || {};
 
+  // Fetch reviews at the top level (hooks must not be called conditionally)
+  const { data: reviewsResp } = useFieldReviews(fieldId);
+  const reviewsData = reviewsResp?.data || { reviews: [], stats: { averageRating: 0, totalReviews: 0, ratingDistribution: {} } };
+  const reviews = reviewsData.reviews || [];
+  const reviewStats = reviewsData.stats || { averageRating: 0, totalReviews: 0, ratingDistribution: {} };
+
   // Helper function to get label from slug
   const getFieldPropertyLabel = (category: string, slug: string) => {
     if (!slug || !fieldProperties[category]) return slug;
@@ -798,95 +804,79 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                 <h2 className="text-2xl font-bold text-dark-green">Reviews & Ratings</h2>
               </div>
 
-              {/* Fetch dynamic reviews */}
-              {(() => {
-                const { data: reviewsResp } = useFieldReviews(field?.id);
-                const reviewsData = reviewsResp?.data || { reviews: [], stats: { averageRating: 0, totalReviews: 0, ratingDistribution: {} } };
-                const reviews = reviewsData.reviews || [];
-                const stats = reviewsData.stats || { averageRating: 0, totalReviews: 0, ratingDistribution: {} };
-
-                return (
-                  <>
-                    {/* Summary row: only if there are reviews */}
-                    {stats.totalReviews > 0 && (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        {/* Left: Reviews summary box (legacy style) */}
-                        <div className="bg-white border border-gray-200 rounded-2xl p-6">
-                          <div className="text-dark-green font-semibold text-sm mb-4">Reviews</div>
-                          <div className="flex gap-6">
-                            {/* Average score */}
-                            <div className="w-36 bg-black flex flex-col items-left justify-center rounded-xl p-4">
-                              <div className="text-4xl font-bold text-white">{formatRating(stats.averageRating || 0).toFixed(1)}</div>
-                              <div className="flex items-center mt-2">
-                                <RatingStars rating={stats.averageRating || 0} size={16} />
+              {/* Summary row: only if there are reviews */}
+              {reviewStats.totalReviews > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* Left: Reviews summary box (legacy style) */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-6">
+                    <div className="text-dark-green font-semibold text-sm mb-4">Reviews</div>
+                    <div className="flex gap-6">
+                      {/* Average score */}
+                      <div className="w-36 bg-black flex flex-col items-left justify-center rounded-xl p-4">
+                        <div className="text-4xl font-bold text-white">{formatRating(reviewStats.averageRating || 0).toFixed(1)}</div>
+                        <div className="flex items-center mt-2">
+                          <RatingStars rating={reviewStats.averageRating || 0} size={16} />
+                        </div>
+                        <div className="text-xs text-gray-200 mt-2">{reviewStats.totalReviews} Reviews</div>
+                      </div>
+                      {/* Rating bars */}
+                      <div className="flex-1">
+                        {[5, 4, 3, 2, 1].map(stars => {
+                          const dist = (reviewStats.ratingDistribution as Record<number, number>) || {} as Record<number, number>;
+                          const count = dist[stars] || 0;
+                          const percentage = reviewStats.totalReviews > 0 ? Math.round((count / reviewStats.totalReviews) * 100) : 0;
+                          return (
+                            <div key={stars} className="flex items-center mb-2">
+                              <span className="text-sm text-gray-600 w-10">{stars} Star</span>
+                              <div className="flex-1 bg-gray-200 rounded-full h-2 mx-3 overflow-hidden">
+                                <div className="bg-[#FFDD57] h-full rounded-full" style={{ width: `${percentage}%` }} />
                               </div>
-                              <div className="text-xs text-gray-200 mt-2">{stats.totalReviews} Reviews</div>
                             </div>
-                            {/* Rating bars */}
-                            <div className="flex-1">
-                              {[5, 4, 3, 2, 1].map(stars => {
-                                const dist = (stats.ratingDistribution as Record<number, number>) || {} as Record<number, number>;
-                                const count = dist[stars] || 0;
-                                const percentage = stats.totalReviews > 0 ? Math.round((count / stats.totalReviews) * 100) : 0;
-                                return (
-                                  <div key={stars} className="flex items-center mb-2">
-                                    <span className="text-sm text-gray-600 w-10">{stars} Star</span>
-                                    <div className="flex-1 bg-gray-200 rounded-full h-2 mx-3 overflow-hidden">
-                                      <div className="bg-[#FFDD57] h-full rounded-full" style={{ width: `${percentage}%` }} />
-                                    </div>
-                                    {/* <span className="text-sm text-gray-600 w-8 text-right">{count}</span> */}
-                                  </div>
-                                )
-                              })}
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Review button removed - reviews now only submitted from booking details in My Bookings page */}
+                </div>
+              )}
+
+              {/* Review Cards or only leave-review when none */}
+              {reviews.length > 0 ? (
+                <div className="space-y-6 bg-transparent">
+                  {reviews.map((review: any, index: number) => (
+                    <div key={review.id || index} className="bg-transparent rounded-[30px] p-6 border border-yellow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center w-full">
+                          <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 overflow-hidden">
+                            {review.user?.image ? (
+                              <img src={review.user.image} alt={review.user?.name || 'User'} className="w-full h-full object-cover" />
+                            ) : null}
+                          </div>
+                          <div className='flex justify-between w-full'>
+                            <div className='flex flex-col'>
+                              <h4 className="font-semibold text-[#090F1F]">{review.user?.name || 'User'}</h4>
+                              {review.createdAt && (
+                                <div className="text-xs text-gray-500 mt-">{format(new Date(review.createdAt), 'MMM d, yyyy')}</div>
+                              )}
+                            </div>
+
+                            <div className="flex items-center mt-1">
+                              <RatingStars rating={review.rating || 0} size={16} />
                             </div>
                           </div>
                         </div>
-
-                        {/* Review button removed - reviews now only submitted from booking details in My Bookings page */}
                       </div>
-                    )}
-
-                    {/* Review Cards or only leave-review when none */}
-                    {reviews.length > 0 ? (
-                      <div className="space-y-6 bg-transparent">
-                        {reviews.map((review: any, index: number) => (
-                          <div key={review.id || index} className="bg-transparent rounded-[30px] p-6 border border-yellow">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="flex items-center w-full">
-                                <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 overflow-hidden">
-                                  {review.user?.image ? (
-                                    <img src={review.user.image} alt={review.user?.name || 'User'} className="w-full h-full object-cover" />
-                                  ) : null}
-                                </div>
-                                <div className='flex justify-between w-full'>
-                                  <div className='flex flex-col'>
-                                    <h4 className="font-semibold text-[#090F1F]">{review.user?.name || 'User'}</h4>
-                                    {review.createdAt && (
-                                      <div className="text-xs text-gray-500 mt-">{format(new Date(review.createdAt), 'MMM d, yyyy')}</div>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center mt-1">
-                                    <RatingStars rating={review.rating || 0} size={16} />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-700 leading-relaxed">{review.comment}</p>
-                            {/* {review.createdAt && (
-                                <div className="text-xs text-gray-500 mt-2">{format(new Date(review.createdAt), 'MMM d, yyyy')}</div>
-                              )} */}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
-                        <p className="text-gray-600 text-sm text-center">No reviews yet. Be the first to book and review this field!</p>
-                      </div>
-                    )}
-                  </>
-                )
-              })()}
+                      <p className="text-sm text-gray-700 leading-relaxed">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
+                  <p className="text-gray-600 text-sm text-center">No reviews yet. Be the first to book and review this field!</p>
+                </div>
+              )}
             </div>
           )}
         </main>

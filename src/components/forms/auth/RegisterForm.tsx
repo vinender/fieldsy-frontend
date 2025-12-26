@@ -31,7 +31,7 @@ const registerSchema = z
         const validation = validateUKPhoneNumber(val);
         return validation.isValid;
       }, {
-        message: "Please enter a valid UK phone number (e.g., 07123456789, +447123456789, or 7123456789)"
+        message: "Phone number must be 10-11 digits"
       }),
     password: z
       .string()
@@ -391,7 +391,7 @@ export default function RegisterForm() {
                   {errors.phoneNumber && <p className="text-xs text-red-600 mt-1">{errors.phoneNumber.message}</p>}
                   {!errors.phoneNumber && (
                     <p className="text-xs text-gray-500 mt-1">
-                      UK phone numbers only (e.g., 07123456789)
+                      UK phone numbers only (10-11 digits)
                     </p>
                   )}
                 </div>
