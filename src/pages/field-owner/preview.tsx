@@ -149,7 +149,16 @@ export default function PreviewPage() {
 
   // Show spinner while loading (user not ready, router not ready, or fetching data)
   if (isLoading) {
-    return <Spinner size="sm" />;
+    return (
+      <UserLayout>
+        <div className="flex justify-center items-center min-h-[400px] mt-24">
+          <div className="text-center">
+            <Spinner size="lg" />
+            <p className="text-gray-600 mt-4">Loading preview...</p>
+          </div>
+        </div>
+      </UserLayout>
+    );
   }
 
   // Only show "no field data" after loading is complete and still no data

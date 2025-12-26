@@ -7,7 +7,8 @@ import { TimeInput } from '@/components/ui/time-input';
 import { usePublicSettings } from '@/hooks/usePublicSettings';
 import { useAmenities } from '@/hooks/api/useAmenities';
 import { useFieldOptions } from '@/hooks/api/useFieldOptions';
-import { AmenityIcon } from '@/components/ui/AmenityIcon';
+import { AmenityIcon, ICON_COLORS } from '@/components/ui/AmenityIcon';
+import { getAmenityIcon } from '@/config/amenities.config';
 
 interface FieldDetailsProps {
   formData: any;
@@ -485,17 +486,14 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                     onChange={() => handleAmenityToggle(amenity.id)}
                   />
                   <div className="flex items-center gap-2">
-                    {amenity.icon ? (
-                      <div className="relative w-5 h-5">
-                        <AmenityIcon
-                          src={amenity.icon}
-                          alt={amenity.name}
-                          active={isSelected}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-5 h-5 bg-gray-200 rounded" />
-                    )}
+                    <div className="relative w-5 h-5">
+                      <AmenityIcon
+                        src={getAmenityIcon(amenity.slug || amenity.name)}
+                        alt={amenity.name}
+                        color={isSelected ? ICON_COLORS.green : ICON_COLORS.black}
+                        size={20}
+                      />
+                    </div>
                     <span className="font-sans text-sm text-dark-green">
                       {amenity.label || amenity.name}
                     </span>

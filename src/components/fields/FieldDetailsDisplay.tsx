@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { getAmenityLabel, formatOpeningHours, formatRating } from '@/utils/formatters';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 import { RatingStars } from '@/components/common/RatingStars';
-import { AmenityIcon } from '@/components/ui/AmenityIcon';
+import { AmenityIcon, ICON_COLORS } from '@/components/ui/AmenityIcon';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface FieldDetailsDisplayProps {
@@ -255,12 +255,12 @@ export default function FieldDetailsDisplay({
                         <AmenityIcon
                           src={iconPath}
                           alt={label}
-                          active={true}
+                          color={ICON_COLORS.black}
                           size={16}
                         />
                       </div>
                     ) : (
-                      <Shield className="w-4 h-4 text-[#3A6B22] mr-2" />
+                      <Shield className="w-4 h-4 text-black mr-2" />
                     )}
                     <span className="text-sm text-dark-green">{label}</span>
                   </div>

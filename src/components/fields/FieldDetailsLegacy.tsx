@@ -14,7 +14,7 @@ import BackButton from '@/components/common/BackButton';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 import OwnerInformation from '@/components/fields/OwnerInformation';
 import FieldLocation from '@/components/fields/FieldLocation';
-import { AmenityIcon } from '@/components/ui/AmenityIcon';
+import { AmenityIcon, ICON_COLORS } from '@/components/ui/AmenityIcon';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
 import { RatingStars } from '@/components/common/RatingStars';
 import { formatRating, formatOpeningHours } from '@/utils/formatters';
@@ -349,7 +349,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         <AmenityIcon
                           src={iconPath}
                           alt={label}
-                          active={true}
+                          color={ICON_COLORS.black}
                           size={16}
                         />
                       </div>

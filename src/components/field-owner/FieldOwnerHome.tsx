@@ -34,14 +34,13 @@ export default function FieldOwnerHome() {
   // Check if at least one submitted field exists
   const hasSubmittedField = allFields?.some((f: any) => f.isSubmitted) || false;
 
-  if (isLoading || isLoadingAllFields) {
-    // Show appropriate skeleton based on what we expect to load
-    if (!field || showAddForm || isEditMode || isAddNewMode) {
-      return <FieldOwnerDashboardPageSkeleton />;
-    }
-    return <BookingHistoryPageSkeleton />;
+  // Wait for router to be ready before making routing decisions
+  if (!router.isReady) {
+    return <FieldOwnerDashboardPageSkeleton />;
   }
 
+  // IMPORTANT: Check edit/addNew mode FIRST before loading state
+  // This ensures that when user clicks edit from my-fields, they see the form immediately
   // If addNew mode is explicitly set, show fresh form for adding new field
   if (isAddNewMode) {
     return (
@@ -58,6 +57,14 @@ export default function FieldOwnerHome() {
         <FieldOwnerDashboard />
       </Suspense>
     );
+  }
+
+  if (isLoading || isLoadingAllFields) {
+    // Show appropriate skeleton based on what we expect to load
+    if (!field || showAddForm) {
+      return <FieldOwnerDashboardPageSkeleton />;
+    }
+    return <BookingHistoryPageSkeleton />;
   }
 
   // If at least one submitted field exists, show the dashboard (BookingHistory)
