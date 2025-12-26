@@ -70,7 +70,7 @@ export function CustomSelect({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-border rounded-2xl shadow-lg overflow-hidden">
+        <div className="absolute z-30 w-full mt-2 bg-white border border-gray-border rounded-2xl shadow-lg overflow-hidden">
           <div className="max-h-60 overflow-y-auto">
             {options.map((option) => (
               <button

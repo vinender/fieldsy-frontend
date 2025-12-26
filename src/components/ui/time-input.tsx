@@ -201,7 +201,7 @@ export function TimeInput({
       </button>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div className="absolute z-30 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <div className="p-4">
             <div className="grid grid-cols-3 gap-2">
               {/* Hours Column */}

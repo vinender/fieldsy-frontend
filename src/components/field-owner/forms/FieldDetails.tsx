@@ -175,12 +175,11 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <CustomSelect
                 name="fieldSize"
-                value={formData.customFieldSizeAcres ? '' : formData.fieldSize}
+                value={formData.fieldSize}
                 onChange={(value) => {
                   setFormData((prev: any) => ({
                     ...prev,
                     fieldSize: value,
-                    customFieldSizeAcres: '' // Clear custom input when selecting from dropdown
                   }));
                 }}
                 placeholder="Select size"
@@ -189,16 +188,15 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               <div className="relative">
                 <Input
                   type="number"
-                  name="customFieldSizeAcres"
-                  value={formData.customFieldSizeAcres || ''}
+                  name="customFieldSize"
+                  value={formData.customFieldSize || ''}
                   onChange={(e) => {
                     const value = e.target.value;
                     // Only allow whole numbers (no decimals), max 5 digits
                     if (value === '' || (/^\d{1,5}$/.test(value))) {
                       setFormData((prev: any) => ({
                         ...prev,
-                        customFieldSizeAcres: value,
-                        fieldSize: value ? `${value} acres` : '' // Update fieldSize or clear it
+                        customFieldSize: value,
                       }));
                     }
                   }}
@@ -214,7 +212,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                     input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
                   }}
                   maxLength={5}
-                  placeholder="Or enter custom size"
+                  placeholder="Custom Field Size"
                   className="py-3 pr-16"
                   min="1"
                   step="1"

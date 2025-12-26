@@ -14,8 +14,8 @@ import PricingAvailability from './forms/PricingAvailability';
 import BookingRules from './forms/BookingRules';
 
 // Sidebar Navigation Component - Use API data for completion status
-function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: { 
-  activeSection: string; 
+function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
+  activeSection: string;
   onSectionChange: (sectionId: string) => void;
   fieldData?: any;
   canNavigateTo: (sectionId: string) => boolean;
@@ -32,9 +32,9 @@ function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
     if (!canNavigateTo(sectionId)) {
       return;
     }
-    
+
     onSectionChange(sectionId);
-    
+
     // On small screens, scroll to form section
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setTimeout(() => {
@@ -51,37 +51,35 @@ function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
       <h2 className="text-base sm:text-lg lg:text-xl font-semibold mb-2 text-dark-green font-sans">
         Add your field by following these quick steps.
       </h2>
-      
+
       <div className="mt-8 space-y-4">
         {sections.map((section, index) => (
           <div key={section.id}>
             <button
               onClick={() => handleSectionClick(section.id)}
               disabled={!canNavigateTo(section.id)}
-              className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                activeSection === section.id ? 'bg-gray-50' : canNavigateTo(section.id) ? 'hover:bg-gray-50 cursor-pointer' : 'opacity-50 cursor-not-allowed'
-              }`}
+              className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${activeSection === section.id ? 'bg-gray-50' : canNavigateTo(section.id) ? 'hover:bg-gray-50 cursor-pointer' : 'opacity-50 cursor-not-allowed'
+                }`}
             >
               <span
-                className={`text-sm sm:text-base font-medium font-sans ${
-                  activeSection === section.id
-                    ? 'text-dark-green'
-                    : canNavigateTo(section.id)
-                      ? 'text-gray-text'
-                      : 'text-gray-400'
-                }`}
+                className={`text-sm sm:text-base font-medium font-sans ${activeSection === section.id
+                  ? 'text-dark-green'
+                  : canNavigateTo(section.id)
+                    ? 'text-gray-text'
+                    : 'text-gray-400'
+                  }`}
               >
                 {section.label}
               </span>
               {section.completed ? (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" fill="currentColor" className="fill-green"/>
-                  <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="12" r="10" fill="currentColor" className="fill-green" />
+                  <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               ) : !canNavigateTo(section.id) && section.id !== 'field-details' ? (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-gray-400">
-                  <path d="M19 11H5V21H19V11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M19 11H5V21H19V11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               ) : (
                 <img src='/add-field/arrow.svg' className='w-8 h-8 text-white' />
@@ -98,13 +96,34 @@ function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
 
 
 // Main Component
-export default function AddYourField() {
+interface FieldOwnerDashboardProps {
+  initialEditMode?: boolean;
+  initialAddNewMode?: boolean;
+  initialFieldId?: string | null;
+}
+
+export default function FieldOwnerDashboard({
+  initialEditMode = false,
+  initialAddNewMode = false,
+  initialFieldId = null
+}: FieldOwnerDashboardProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [activeSection, setActiveSection] = useState('field-details');
-  const [fieldId, setFieldId] = useState<string | null>(null);
+  const [fieldId, setFieldId] = useState<string | null>(initialFieldId);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[FieldOwnerDashboard] Mounted', {
+      userRole: user?.role,
+      isAuthenticated: !!user,
+      routerQuery: router.query,
+      routerIsReady: router.isReady,
+      props: { initialEditMode, initialAddNewMode, initialFieldId }
+    });
+  }, [user, router.query, router.isReady, initialEditMode, initialAddNewMode, initialFieldId]);
 
   // Track saved images and unsaved changes
   const savedImagesRef = useRef<string[]>([]);
@@ -113,7 +132,7 @@ export default function AddYourField() {
   const [formData, setFormData] = useState<{
     fieldName: string;
     fieldSize: string;
-    customFieldSizeAcres: string;
+    customFieldSize: string;
     terrainType: string;
     fenceType: string;
     fenceSize: string;
@@ -143,7 +162,7 @@ export default function AddYourField() {
   }>({
     fieldName: '',
     fieldSize: '',
-    customFieldSizeAcres: '',
+    customFieldSize: '',
     terrainType: '',
     fenceType: '',
     fenceSize: '',
@@ -175,9 +194,25 @@ export default function AddYourField() {
   });
 
 
-  const isAddNewMode = router.query.addNew === 'true';
-  const isEditMode = router.query.edit === 'true';
-  const editFieldId = router.query.fieldId as string | undefined;
+  // Helper to get query params from window location (more reliable during transitions)
+  const getQueryFromPath = () => {
+    if (typeof window === 'undefined') return { edit: false, addNew: false, fieldId: null };
+    const url = new URL(window.location.href);
+    return {
+      edit: url.searchParams.get('edit') === 'true',
+      addNew: url.searchParams.get('addNew') === 'true',
+      fieldId: url.searchParams.get('fieldId')
+    };
+  };
+
+  const urlParams = typeof window !== 'undefined' ? getQueryFromPath() : { edit: false, addNew: false, fieldId: null };
+
+  // Wait for router to be ready before reading query params
+  // Combine props, router.query, and window location params for robustness
+  const isAddNewMode = initialAddNewMode || (router.isReady && router.query.addNew === 'true') || urlParams.addNew;
+  const isEditMode = initialEditMode || (router.isReady && router.query.edit === 'true') || urlParams.edit;
+  // Ensure we use the prop fieldId if provided, effectively prioritizing parent state
+  const editFieldId = initialFieldId || (router.query.fieldId as string) || urlParams.fieldId || undefined;
   const stepFromQuery = router.query.step as string | undefined;
 
   // Fetch all fields when in edit mode to get specific field by ID
@@ -186,7 +221,7 @@ export default function AddYourField() {
     isLoading: fetchingAllFields,
     refetch: refetchAllFields
   } = useOwnerFields({
-    enabled: !!user && user.role === 'FIELD_OWNER' && isEditMode && !!editFieldId,
+    enabled: !!user && user.role === 'FIELD_OWNER' && isEditMode && !!editFieldId && router.isReady,
   });
 
   // Fetch single field when not in edit mode (legacy behavior)
@@ -195,7 +230,7 @@ export default function AddYourField() {
     isLoading: fetchingSingleField,
     refetch: refetchSingleField
   } = useOwnerField({
-    enabled: !!user && user.role === 'FIELD_OWNER' && !isAddNewMode && !isEditMode,
+    enabled: !!user && user.role === 'FIELD_OWNER' && !isAddNewMode && !isEditMode && router.isReady,
   });
 
   // Fetch amenities for mapping names to IDs
@@ -216,18 +251,18 @@ export default function AddYourField() {
   // Check if current section has been completed
   const isCurrentSectionCompleted = () => {
     if (!fieldData) return false;
-    
+
     const sectionMap: Record<string, boolean> = {
       'field-details': fieldData.fieldDetailsCompleted || false,
       'upload-images': fieldData.uploadImagesCompleted || false,
       'pricing-availability': fieldData.pricingAvailabilityCompleted || false,
       'booking-rules': fieldData.bookingRulesCompleted || false
     };
-    
+
     return sectionMap[activeSection] || false;
   };
 
-  
+
   // Set initial active section from query parameter
   useEffect(() => {
     if (stepFromQuery) {
@@ -245,7 +280,7 @@ export default function AddYourField() {
       setFormData({
         fieldName: '',
         fieldSize: '',
-        customFieldSizeAcres: '',
+        customFieldSize: '',
         terrainType: '',
         fenceType: '',
         fenceSize: '',
@@ -299,7 +334,7 @@ export default function AddYourField() {
         ...prev,
         fieldName: fieldData.name || '',
         fieldSize: fieldData.size || '',
-        customFieldSizeAcres: customAcres,
+        customFieldSize: fieldData.customFieldSize || customAcres,
         terrainType: fieldData.terrainType || '',
         fenceType: fieldData.fenceType || '',
         fenceSize: fieldData.fenceSize || '',
@@ -360,11 +395,11 @@ export default function AddYourField() {
   // Validation function for each section
   const validateSection = (section: string): boolean => {
     const errors: Record<string, string> = {};
-    
+
     switch (section) {
       case 'field-details':
         if (!formData.fieldName?.trim()) errors.fieldName = 'Please enter a field name';
-        if (!formData.fieldSize) errors.fieldSize = 'Please select a field size';
+        if (!formData.fieldSize && !formData.customFieldSize) errors.fieldSize = 'Please select or enter a field size';
         if (!formData.terrainType) errors.terrainType = 'Please select a terrain type';
         if (!formData.fenceType) errors.fenceType = 'Please select a fence type';
         if (!formData.fenceSize) errors.fenceSize = 'Please select a fence size';
@@ -383,7 +418,7 @@ export default function AddYourField() {
         if (!formData.county?.trim()) errors.county = 'Please enter a county or state';
         if (!formData.postalCode?.trim()) errors.postalCode = 'Please enter a postal code';
         break;
-        
+
       case 'upload-images':
         if (!formData.images || formData.images.length === 0) {
           errors.images = 'Please upload at least 4 images of your field';
@@ -391,7 +426,7 @@ export default function AddYourField() {
           errors.images = `Please upload ${4 - formData.images.length} more image${4 - formData.images.length > 1 ? 's' : ''} (minimum 4 required)`;
         }
         break;
-        
+
       case 'pricing-availability':
         if (!formData.price30min || parseFloat(formData.price30min) <= 0) {
           errors.price30min = 'Please enter a valid price for 30 minute bookings (must be greater than 0)';
@@ -400,13 +435,13 @@ export default function AddYourField() {
           errors.price1hr = 'Please enter a valid price for 1 hour bookings (must be greater than 0)';
         }
         break;
-        
+
       case 'booking-rules':
         if (!formData.rules?.trim()) errors.rules = 'Please specify your booking rules';
         if (!formData.policies?.trim()) errors.policies = 'Please specify your cancellation policy';
         break;
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -430,10 +465,10 @@ export default function AddYourField() {
 
     // If all sections are completed (field is submitted), allow free navigation
     if (fieldData &&
-        fieldData.fieldDetailsCompleted &&
-        fieldData.uploadImagesCompleted &&
-        fieldData.pricingAvailabilityCompleted &&
-        fieldData.bookingRulesCompleted) {
+      fieldData.fieldDetailsCompleted &&
+      fieldData.uploadImagesCompleted &&
+      fieldData.pricingAvailabilityCompleted &&
+      fieldData.bookingRulesCompleted) {
       return true; // Allow editing any tab when field is fully submitted
     }
 
@@ -445,7 +480,7 @@ export default function AddYourField() {
     if (sectionId === 'field-details') {
       return true;
     }
-    
+
     // Can go back to a previously completed section
     if (targetIndex < currentIndex) {
       // Check if the target section was completed
@@ -459,7 +494,7 @@ export default function AddYourField() {
       const targetCompletedKey = completedKeyMap[sectionId];
       return fieldData && fieldData[targetCompletedKey] === true;
     }
-    
+
 
 
     // Can only go forward if ALL previous sections are completed
@@ -537,7 +572,7 @@ export default function AddYourField() {
       }, 100);
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const { addressVerified, ...payload } = formData;
@@ -739,16 +774,40 @@ export default function AddYourField() {
     }
   };
 
-  // Check if user is authenticated and is a field owner
-  if (!user || user.role !== 'FIELD_OWNER') {
-    // Redirect to login if not authenticated or not a field owner
-    if (typeof window !== 'undefined') {
-      router.push('/login');
-    }
-    return null;
+  // Wait for router to be ready before making any decisions
+  if (!router.isReady) {
+    return <FieldOwnerDashboardSkeleton />;
   }
 
-  if (fetchingField) {
+  // Show loading skeleton while auth state is being determined
+  // This prevents incorrect redirects during navigation/hydration
+  if (isAuthLoading) {
+    return <FieldOwnerDashboardSkeleton />;
+  }
+
+  if (user === null && typeof window !== 'undefined') {
+    // Check if we have auth token in localStorage - if yes, user is likely authenticated
+    const hasAuthToken = localStorage.getItem('authToken');
+    if (hasAuthToken) {
+      // User is likely authenticated, just loading - show skeleton
+      return <FieldOwnerDashboardSkeleton />;
+    }
+  }
+
+  // Check if user is authenticated and is a field owner
+  // NOTE: This check is redundant as parent component (FieldOwnerHome) handles auth
+  // Removing strict redirect to avoid race conditions during loading
+  if (!user || user.role !== 'FIELD_OWNER') {
+    console.log('[FieldOwnerDashboard] Missing auth/role but creating/editing allowed per parent', { user, role: user?.role });
+    // Don't redirect here, just render (or return null if critical data missing, but let parent decide)
+    // if (typeof window !== 'undefined') {
+    //   router.push('/login');
+    // }
+    // return null;
+  }
+
+  // Only show loading skeleton when actually fetching data (not in addNew mode)
+  if (fetchingField && !isAddNewMode) {
     return <FieldOwnerDashboardSkeleton />;
   }
 
@@ -764,9 +823,21 @@ export default function AddYourField() {
               onClick={() => router.push('/field-owner/my-fields')}
             />
           )}
-          {/* Show back button for non-first step in add mode */}
-          {!isEditMode && activeSection !== 'field-details' && !isFirstTimeFieldOwner && (
-            <BackButton size='lg' />
+          {/* Show back button in add mode too */}
+          {!isEditMode && (
+            <BackButton
+              size='lg'
+              onClick={() => {
+                if (activeSection === 'field-details') {
+                  // If on first step of adding, go back to dashboard
+                  router.push('/field-owner/my-fields');
+                } else {
+                  // Otherwise go entirely back (or could use handleBack for internal nav?)
+                  // The bottom "Back" button handles internal nav. This top button usually means "Exit"
+                  router.push('/field-owner/my-fields');
+                }
+              }}
+            />
           )}
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
             {isEditMode ? 'Edit Your Field' : 'Add Your Field'}
