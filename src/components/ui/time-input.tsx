@@ -114,13 +114,18 @@ export function TimeInput({
         // AM: 7, 8, 9, 10, 11
         return [7, 8, 9, 10, 11];
       } else {
-        // PM: 1, 2, 3, 4, 5, 6, 7, 8
-        return [1, 2, 3, 4, 5, 6, 7, 8];
+        // PM: 12, 1, 2, 3, 4, 5, 6, 7, 8 (max 8 PM for start to allow valid end time)
+        return [12, 1, 2, 3, 4, 5, 6, 7, 8];
       }
     }
-    if (isEndTime && selectedPeriod === 'PM') {
-      // End time PM: 12, 1, 2, 3, 4, 5, 6, 7, 8 (max 8 PM)
-      return [12, 1, 2, 3, 4, 5, 6, 7, 8];
+    if (isEndTime) {
+      if (selectedPeriod === 'PM') {
+        // End time PM: 12, 1, 2, 3, 4, 5, 6, 7, 8 (max 8 PM - last selectable hour)
+        return [12, 1, 2, 3, 4, 5, 6, 7, 8];
+      } else {
+        // End time AM: 12, 7, 8, 9, 10, 11 (reasonable morning hours)
+        return [7, 8, 9, 10, 11, 12];
+      }
     }
     // Default: all hours (12, 1, 2, 3, ... 11)
     return Array.from({ length: 12 }, (_, i) => i === 0 ? 12 : i);

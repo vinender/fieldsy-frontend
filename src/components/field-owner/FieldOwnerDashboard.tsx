@@ -757,9 +757,19 @@ export default function AddYourField() {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
         {/* Page Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 lg:mb-8">
-          {activeSection !== 'field-details' && !isFirstTimeFieldOwner && <BackButton size='lg' />}
+          {/* Show back button in edit mode to go back to my-fields */}
+          {isEditMode && (
+            <BackButton
+              size='lg'
+              onClick={() => router.push('/field-owner/my-fields')}
+            />
+          )}
+          {/* Show back button for non-first step in add mode */}
+          {!isEditMode && activeSection !== 'field-details' && !isFirstTimeFieldOwner && (
+            <BackButton size='lg' />
+          )}
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-dark-green font-sans">
-            Add Your Field
+            {isEditMode ? 'Edit Your Field' : 'Add Your Field'}
           </h1>
         </div>
 

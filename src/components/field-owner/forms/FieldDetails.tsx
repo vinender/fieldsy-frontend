@@ -167,86 +167,84 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Field Size <span className="text-red-500">*</span>
-              </label>
-              <div className="space-y-2">
-                <CustomSelect
-                  name="fieldSize"
-                  value={formData.customFieldSizeAcres ? '' : formData.fieldSize}
-                  onChange={(value) => {
-                    setFormData((prev: any) => ({
-                      ...prev,
-                      fieldSize: value,
-                      customFieldSizeAcres: '' // Clear custom input when selecting from dropdown
-                    }));
-                  }}
-                  placeholder="Select size"
-                  options={fieldSizeOptions}
-                />
-                <div className="flex items-center gap-3 mt-3">
-                  <span className="text-sm text-gray-500 whitespace-nowrap">Or enter custom:</span>
-                  <div className="flex-1 relative">
-                    <Input
-                      type="number"
-                      name="customFieldSizeAcres"
-                      value={formData.customFieldSizeAcres || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Only allow whole numbers (no decimals), max 5 digits
-                        if (value === '' || (/^\d{1,5}$/.test(value))) {
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            customFieldSizeAcres: value,
-                            fieldSize: value ? `${value} acres` : '' // Update fieldSize or clear it
-                          }));
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        // Prevent 'e', 'E', '-', '+', '.' keys (only allow whole numbers)
-                        if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
-                          e.preventDefault();
-                        }
-                      }}
-                      onInput={(e) => {
-                        // Extra protection: remove any non-digit characters and limit to 5 digits
-                        const input = e.target as HTMLInputElement;
-                        input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
-                      }}
-                      maxLength={5}
-                      placeholder="Enter size in acres"
-                      className="py-3 pr-16"
-                      min="1"
-                      step="1"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">acres</span>
-                  </div>
-                </div>
-              </div>
-              {validationErrors.fieldSize && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.fieldSize}</p>
-              )}
-            </div>
-
-            <div className=''>
-              <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Terrain Type <span className="text-red-500">*</span>
-              </label>
-
+          {/* Field Size - Dropdown and Custom Input side by side */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+              Field Size <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <CustomSelect
-                name="terrainType"
-                value={formData.terrainType}
-                onChange={(value) => handleInputChange({ target: { name: 'terrainType', value } } as any)}
-                placeholder="Select terrain type"
-                options={terrainTypeOptions}
+                name="fieldSize"
+                value={formData.customFieldSizeAcres ? '' : formData.fieldSize}
+                onChange={(value) => {
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    fieldSize: value,
+                    customFieldSizeAcres: '' // Clear custom input when selecting from dropdown
+                  }));
+                }}
+                placeholder="Select size"
+                options={fieldSizeOptions}
               />
-              {validationErrors.terrainType && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.terrainType}</p>
-              )}
+              <div className="relative">
+                <Input
+                  type="number"
+                  name="customFieldSizeAcres"
+                  value={formData.customFieldSizeAcres || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Only allow whole numbers (no decimals), max 5 digits
+                    if (value === '' || (/^\d{1,5}$/.test(value))) {
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        customFieldSizeAcres: value,
+                        fieldSize: value ? `${value} acres` : '' // Update fieldSize or clear it
+                      }));
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    // Prevent 'e', 'E', '-', '+', '.' keys (only allow whole numbers)
+                    if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
+                      e.preventDefault();
+                    }
+                  }}
+                  onInput={(e) => {
+                    // Extra protection: remove any non-digit characters and limit to 5 digits
+                    const input = e.target as HTMLInputElement;
+                    input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
+                  }}
+                  maxLength={5}
+                  placeholder="Or enter custom size"
+                  className="py-3 pr-16"
+                  min="1"
+                  step="1"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">acres</span>
+              </div>
             </div>
+            {validationErrors.fieldSize && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.fieldSize}</p>
+            )}
+          </div>
 
+          {/* Terrain Type - Full width on its own row */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+              Terrain Type <span className="text-red-500">*</span>
+            </label>
+            <CustomSelect
+              name="terrainType"
+              value={formData.terrainType}
+              onChange={(value) => handleInputChange({ target: { name: 'terrainType', value } } as any)}
+              placeholder="Select terrain type"
+              options={terrainTypeOptions}
+            />
+            {validationErrors.terrainType && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.terrainType}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className='w-full'>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Fence Type <span className="text-red-500">*</span>
@@ -382,7 +380,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 name="startTime"
                 value={formData.startTime}
                 onChange={(value) => {
-                  // Calculate auto end time based on minimum hours
+                  // Calculate auto end time based on minimum hours, capped at 8 PM (20:00)
                   const calculateAutoEndTime = (startTime: string): string => {
                     if (!startTime) return '';
 
@@ -393,9 +391,11 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                     let endHours = hours + minimumOperatingHours;
                     let endMinutes = minutes || 0;
 
-                    // Handle overflow past midnight
-                    if (endHours >= 24) {
-                      endHours = endHours - 24;
+                    // Cap end time at 8 PM (20:00) - don't allow beyond this
+                    const maxEndHour = 20; // 8 PM in 24-hour format
+                    if (endHours > maxEndHour) {
+                      endHours = maxEndHour;
+                      endMinutes = 0;
                     }
 
                     // Return in 24-hour format (HH:MM) for TimeInput component

@@ -29,6 +29,7 @@ const MyProfilePage = () => {
   const [nameError, setNameError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [showFullBio, setShowFullBio] = useState(false);
+  const [isRemovingPhone, setIsRemovingPhone] = useState(false);
   
   // Fetch profile data
   const { data: profile, isLoading, error } = useProfile();
@@ -194,6 +195,7 @@ const MyProfilePage = () => {
 
   const handleRemovePhoneNumber = async () => {
     try {
+      setIsRemovingPhone(true);
       await updateProfileMutation.mutateAsync({ phone: null });
       // Clear the phone number in form state
       setFormData(prev => ({
@@ -202,6 +204,8 @@ const MyProfilePage = () => {
       }));
     } catch (error) {
       // Error handled by mutation
+    } finally {
+      setIsRemovingPhone(false);
     }
   };
 
@@ -429,10 +433,10 @@ const MyProfilePage = () => {
                     <button
                       type="button"
                       onClick={handleRemovePhoneNumber}
-                      disabled={updateProfileMutation.isPending}
+                      disabled={isRemovingPhone}
                       className="flex-shrink-0 h-12 sm:h-14 px-4 sm:px-5 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium text-red-600 bg-white border border-red-200 rounded-full hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50"
                     >
-                      {updateProfileMutation.isPending ? (
+                      {isRemovingPhone ? (
                         <>
                           <Spinner size="sm" inline />
                           <span>Removing...</span>

@@ -138,8 +138,9 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
         </div>
         <Toaster
           position="top-right"
-          expand={false}
+          expand={true}
           visibleToasts={3}
+          gap={12}
           toastOptions={{
             duration: 4000,
             style: {
