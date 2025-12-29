@@ -360,6 +360,7 @@ export function getAmenityBySlug(slug: string): AmenityConfig | undefined {
  */
 export function getAmenityIcon(slug: string, defaultIcon = '/field-details/shield.svg'): string {
   const amenity = getAmenityBySlug(slug);
+  console.log('amenity', amenity)
   return amenity?.iconPath || defaultIcon;
 }
 

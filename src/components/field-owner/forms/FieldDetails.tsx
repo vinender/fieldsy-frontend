@@ -486,7 +486,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   <div className="flex items-center gap-2">
                     <div className="relative w-5 h-5">
                       <AmenityIcon
-                        src={getAmenityIcon(amenity.slug || amenity.name)}
+                        src={amenity.icon}
                         alt={amenity.name}
                         color={isSelected ? ICON_COLORS.green : ICON_COLORS.black}
                         size={20}
