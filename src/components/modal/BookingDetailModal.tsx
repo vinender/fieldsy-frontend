@@ -15,6 +15,7 @@ import { deslugify, formatDateDDMMYYYY, formatRating } from '@/utils/formatters'
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import Spinner from '@/components/ui/Spinner';
 import { AMENITIES_CONFIG, getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
+import { AmenityIcon, ICON_COLORS } from '@/components/ui/AmenityIcon';
 
 interface BookingDetailsModalProps {
   isOpen: boolean;
@@ -63,6 +64,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const isCancellable = fullBooking?.isCancellable ?? false;
   const isReschedulable = fullBooking?.isReschedulable ?? false;
   const hoursUntilBooking = fullBooking?.hoursUntilBooking ?? 0;
+  const hasCompletedBookingInSubscription = fullBooking?.hasCompletedBookingInSubscription ?? false;
+  const rescheduleCount = fullBooking?.rescheduleCount ?? 0;
 
   // Format date helper (removed - using utility function)
 
@@ -295,14 +298,14 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                         key={`${amenity.label}-${index}`}
                         className="bg-white border border-black/6 rounded-lg sm:rounded-[14px] px-2 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1 sm:gap-2"
                       >
-                        <img
-                          src={amenity.iconPath}
-                          alt={amenity.label}
-                          className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
-                          onError={(e) => {
-                            e.currentTarget.src = '/field-details/shield.svg';
-                          }}
-                        />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0">
+                          <AmenityIcon
+                            src={amenity.iconPath}
+                            alt={amenity.label}
+                            color={ICON_COLORS.green}
+                            size={20}
+                          />
+                        </div>
                         <span className="text-[11px] sm:text-[14px] font-medium text-[#192215] truncate">
                           {amenity.label}
                         </span>
@@ -507,7 +510,15 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             ? 'bg-[#e8f5ff] border-2 border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
                             : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                         }`}
-                        title={!isReschedulable ? `Cannot reschedule within ${cancellationWindowHours} hours of booking (${hoursUntilBooking} hours remaining)` : 'Reschedule booking'}
+                        title={!isReschedulable ? (
+                          hasCompletedBookingInSubscription
+                            ? 'Cannot reschedule - a booking in this subscription has already been completed'
+                            : hoursUntilBooking < cancellationWindowHours
+                              ? `Cannot reschedule within ${cancellationWindowHours} hours of booking (${hoursUntilBooking.toFixed(1)} hours remaining)`
+                              : rescheduleCount >= 3
+                                ? 'Maximum reschedule limit (3) reached for this booking'
+                                : `Cannot reschedule within ${cancellationWindowHours} hours of booking`
+                        ) : 'Reschedule booking'}
                        >
                         Reschedule Booking
                       </button>

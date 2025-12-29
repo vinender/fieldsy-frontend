@@ -3,15 +3,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/router';
 import FieldPreview from '@/components/field-owner/FieldPreview';
 import { UserLayout } from '@/components/layout/UserLayout';
-import { useOwnerField, useOwnerFields, useSubmitFieldForReview } from '@/hooks';
+import { useOwnerField, useFieldDetails, useSubmitFieldForReview } from '@/hooks';
 import { toast } from 'sonner';
 import ThankYouModal from '@/components/modal/ThankYouModal';
 import axiosClient from '@/lib/api/axios-client';
 import { FieldData } from '@/hooks/queries/useFieldQueries';
 import Spinner from '@/components/ui/Spinner';
-import { Skeleton } from '@/components/ui/skeleton';
-import { GridSkeleton } from '@/components/skeletons/SkeletonComponents';
-import { Loader } from 'lucide-react';
 
 
 
@@ -20,31 +17,41 @@ export default function PreviewPage() {
   const router = useRouter();
   const [showThankYou, setShowThankYou] = useState(false);
   const { fieldId } = router.query;
+  const fieldIdString = typeof fieldId === 'string' ? fieldId : '';
 
-  // If fieldId is provided in query, fetch that specific field from the list
-  const { data: fields, isLoading: fetchingFields, refetch, isFetching: isFetchingFields, isSuccess: fieldsSuccess } = useOwnerFields({
-    enabled: !!user && user.role === 'FIELD_OWNER' && !!fieldId,
+  // If fieldId is provided, fetch that specific field directly (more efficient than fetching all)
+  const {
+    data: specificFieldResponse,
+    isLoading: fetchingSpecificField,
+    refetch: refetchSpecific,
+    isFetching: isFetchingSpecific,
+    isSuccess: specificFieldSuccess
+  } = useFieldDetails(fieldIdString, {
+    enabled: !!user && user.role === 'FIELD_OWNER' && !!fieldIdString,
   });
 
-  // Also support legacy behavior - fetch single field if no fieldId in query
+  // Legacy behavior - fetch single field if no fieldId in query
   const { data: legacyField, isLoading: fetchingLegacyField, refetch: refetchLegacy, isFetching: isFetchingLegacy, isSuccess: legacySuccess } = useOwnerField({
     enabled: !!user && user.role === 'FIELD_OWNER' && !fieldId,
   });
 
-  // Determine which field to show
-  const fieldData = fieldId
-    ? fields?.find((f: FieldData) => f.id === fieldId)
+  // Determine which field to show - useFieldDetails returns { success, data } structure
+  const fieldData = fieldIdString
+    ? (specificFieldResponse?.data || specificFieldResponse?.field || specificFieldResponse)
     : legacyField;
 
   // Check if we're still waiting for data
   const isQueryEnabled = !!user && user.role === 'FIELD_OWNER';
   const isWaitingForData = isQueryEnabled && (
-    (fieldId && !fieldsSuccess) || // Waiting for fields query
-    (!fieldId && !legacySuccess)   // Waiting for legacy query
+    (fieldIdString && !specificFieldSuccess) || // Waiting for specific field query
+    (!fieldIdString && !legacySuccess)   // Waiting for legacy query
   );
 
   // Include all loading states: initial load, fetching, and waiting for user/router/data
-  const isLoading = fetchingFields || fetchingLegacyField || isFetchingFields || isFetchingLegacy || !router.isReady || !user || isWaitingForData;
+  const isLoading = fetchingSpecificField || fetchingLegacyField || isFetchingSpecific || isFetchingLegacy || !router.isReady || !user || isWaitingForData;
+
+  // Refetch function - use appropriate one based on whether fieldId is present
+  const refetch = fieldIdString ? refetchSpecific : refetchLegacy;
 
   // Debug: Log field data to verify isSubmitted is being fetched
   useEffect(() => {
@@ -94,7 +101,7 @@ export default function PreviewPage() {
     if (!fieldData?.id) return;
     try {
       await axiosClient.patch(`/fields/${fieldData.id}/toggle-status`);
-      fieldId ? refetch() : refetchLegacy();
+      refetch();
     } catch (e) {
       console.error(e);
     }

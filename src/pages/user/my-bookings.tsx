@@ -84,6 +84,7 @@ interface Booking {
   // Calculated fields from backend for mobile app compatibility
   isCancellable?: boolean;
   isReschedulable?: boolean;
+  hasCompletedBookingInSubscription?: boolean; // True if any booking in subscription is completed
   hoursUntilBooking?: number;
   cancellationWindow?: number;
   canCancelSubscriptionImmediately?: boolean;
@@ -382,6 +383,7 @@ const BookingHistoryPage = () => {
             // Calculated fields from backend for mobile app compatibility
             isCancellable: booking.isCancellable ?? false,
             isReschedulable: booking.isReschedulable ?? false,
+            hasCompletedBookingInSubscription: booking.hasCompletedBookingInSubscription ?? false,
             hoursUntilBooking: booking.hoursUntilBooking ?? 0,
             cancellationWindow: booking.cancellationWindow ?? 24,
             canCancelSubscriptionImmediately: booking.canCancelSubscriptionImmediately ?? false
@@ -574,6 +576,7 @@ const BookingHistoryPage = () => {
     // Use backend-provided calculated values (for mobile app compatibility)
     const isCancellable = booking.isCancellable ?? false;
     const isReschedulable = booking.isReschedulable ?? false;
+    const hasCompletedBookingInSubscription = booking.hasCompletedBookingInSubscription ?? false;
     const hoursUntilBooking = booking.hoursUntilBooking ?? 0;
     const bookingCancellationWindow = booking.cancellationWindow ?? cancellationWindow;
     const isImmediateCancellationAllowed = booking.canCancelSubscriptionImmediately ?? false;
@@ -775,11 +778,21 @@ const BookingHistoryPage = () => {
                 <>
                   {(() => {
                     const rescheduleCount = booking.rescheduleCount || 0;
-                    const rescheduleTitle = !isReschedulable
-                      ? !isCancellable
-                        ? `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`
-                        : 'Maximum reschedule limit (3) reached for this booking'
-                      : `Reschedule booking (${rescheduleCount}/3 used)`;
+                    // Determine the appropriate reschedule message for recurring bookings
+                    let rescheduleTitle: string;
+                    if (!isReschedulable) {
+                      if (hasCompletedBookingInSubscription) {
+                        rescheduleTitle = 'Cannot reschedule - a booking in this subscription has already been completed';
+                      } else if (hoursUntilBooking < bookingCancellationWindow) {
+                        rescheduleTitle = `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`;
+                      } else if (rescheduleCount >= 3) {
+                        rescheduleTitle = 'Maximum reschedule limit (3) reached for this booking';
+                      } else {
+                        rescheduleTitle = 'Cannot reschedule this booking';
+                      }
+                    } else {
+                      rescheduleTitle = `Reschedule booking (${rescheduleCount}/3 used)`;
+                    }
 
                     return (
                       <button
