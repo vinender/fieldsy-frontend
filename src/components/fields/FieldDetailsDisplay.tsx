@@ -50,8 +50,23 @@ export default function FieldDetailsDisplay({
     formatted: formattedOpeningHours
   });
 
+  // Build field size display value - show both dropdown and custom value if available
+  const getFieldSizeDisplay = () => {
+    const dropdownSize = field?.size;
+    const customSize = (field as any)?.customFieldSize;
+
+    if (dropdownSize && customSize) {
+      return `${dropdownSize} (${customSize} acres)`;
+    } else if (customSize) {
+      return `${customSize} acres`;
+    } else if (dropdownSize) {
+      return dropdownSize;
+    }
+    return 'Not specified';
+  };
+
   const specifications: { label: string; value: string }[] = [
-    { label: 'Field Size', value: field?.size || 'Not specified' },
+    { label: 'Field Size', value: getFieldSizeDisplay() },
     { label: 'Fence type & size', value: field?.fenceType || '6 ft steel mesh, fully enclosed' },
     { label: 'Terrain Type', value: field?.type || 'Soft grass + walking path' },
     { label: 'Surface type', value: field?.surfaceType || 'Flat with gentle slopes' },

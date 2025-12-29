@@ -187,6 +187,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     openingDays: formData?.openingDays,
     operatingDays: formData?.openingDays ? [formData.openingDays] : [],
     size: formatLabel(formData?.fieldSize),
+    customFieldSize: formData?.customFieldSize || '',
     fenceType: formatLabel(formData?.fenceType),
     fenceSize: formatLabel(formData?.fenceSize),
     type: formatLabel(formData?.terrainType),

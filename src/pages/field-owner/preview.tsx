@@ -110,6 +110,7 @@ export default function PreviewPage() {
     return {
       fieldName: fieldData.name || '',
       fieldSize: fieldData.size || '',
+      customFieldSize: fieldData.customFieldSize || '',
       terrainType: fieldData.terrainType || '',
       fenceType: fieldData.fenceType || '',
       fenceSize: fieldData.fenceSize || '',

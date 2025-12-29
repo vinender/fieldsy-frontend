@@ -33,6 +33,7 @@ export interface FieldData {
   zipCode: string;
   country: string;
   size: string;
+  customFieldSize?: string;
   terrainType: string;
   fenceType: string;
   fenceSize: string;

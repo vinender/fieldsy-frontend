@@ -121,10 +121,25 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
     return typeMap[type] || type;
   };
 
+  // Build field size display value - show both dropdown and custom value if available
+  const getFieldSizeDisplay = () => {
+    const dropdownSize = field?.size ? getFieldPropertyLabel('fieldSize', field.size) : '';
+    const customSize = (field as any)?.customFieldSize;
+
+    if (dropdownSize && customSize) {
+      return `${dropdownSize} (${customSize} acres)`;
+    } else if (customSize) {
+      return `${customSize} acres`;
+    } else if (dropdownSize) {
+      return dropdownSize;
+    }
+    return 'Not specified';
+  };
+
   const specifications: { label: string; value: string }[] = [
     {
       label: 'Field Size',
-      value: field?.size ? getFieldPropertyLabel('fieldSize', field.size) : 'Not specified'
+      value: getFieldSizeDisplay()
     },
     {
       label: 'Fence type & size',
