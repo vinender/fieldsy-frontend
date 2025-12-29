@@ -119,216 +119,161 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
 
     // Navigate based on notification type and data
     const { type, data, title } = notification
+    const typeLower = type?.toLowerCase() || ''
 
     // Debug log to see actual notification type
-    console.log('Notification clicked:', { type, title, data, isFieldOwner })
+    console.log('Notification clicked:', { type, typeLower, title, data, isFieldOwner })
 
-    // Check if it's a review success notification by title as well
-    const isReviewSuccess = type?.toLowerCase().includes('review') &&
-      (title?.toLowerCase().includes('posted') ||
-        title?.toLowerCase().includes('success') ||
-        title?.toLowerCase().includes('submitted'))
+    // Helper to get IDs from various data structures
+    const getFieldId = () => data?.fieldId || data?.field?.id || data?.booking?.fieldId || data?.booking?.field?.id
+    const getBookingId = () => data?.bookingId || data?.booking?.id
+    const getReviewId = () => data?.reviewId || data?.review?.id
 
-    if (isReviewSuccess && !isFieldOwner) {
-      // Handle review posted successfully for dog owners
-      const fieldId = data?.fieldId || data?.field?.id || data?.booking?.fieldId || data?.booking?.field?.id
-      const reviewId = data?.reviewId || data?.review?.id
+    // Check notification category by type string
+    const isReviewNotification = typeLower.includes('review')
+    const isBookingNotification = typeLower.includes('booking')
+    const isPaymentNotification = typeLower.includes('payment') || typeLower.includes('payout') || typeLower.includes('earning')
+    const isMessageNotification = typeLower.includes('message')
 
-      if (fieldId) {
-        console.log('Review success - Redirecting to field:', fieldId, 'reviewId:', reviewId)
-        const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
-        router.push(`/fields/${fieldId}${reviewParam}#reviews`)
+    // Handle review notifications
+    if (isReviewNotification) {
+      const fieldId = getFieldId()
+      const reviewId = getReviewId()
+
+      // "New review received" for field owner
+      if (typeLower.includes('received') || typeLower.includes('new_review') || typeLower.includes('new-review')) {
+        if (isFieldOwner && fieldId) {
+          const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
+          router.push(`/fields/${fieldId}${reviewParam}#reviews`)
+          return
+        }
+      }
+
+      // "Review posted success" for dog owner
+      if (typeLower.includes('posted') || typeLower.includes('success') || typeLower.includes('submitted') || typeLower.includes('created')) {
+        if (!isFieldOwner && fieldId) {
+          const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
+          router.push(`/fields/${fieldId}${reviewParam}#reviews`)
+          return
+        }
+      }
+
+      // "Leave review" reminder
+      if (typeLower.includes('leave') || typeLower.includes('reminder')) {
+        const bookingId = getBookingId()
+        if (bookingId) {
+          router.push(`/user/my-bookings?tab=previous&review=${bookingId}`)
+        } else {
+          router.push('/user/my-bookings?tab=previous')
+        }
         return
       }
+
+      // Fallback for review notifications
+      if (fieldId) {
+        const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
+        router.push(`/fields/${fieldId}${reviewParam}#reviews`)
+      } else {
+        router.push(isFieldOwner ? '/' : '/user/my-bookings?tab=previous')
+      }
+      return
     }
 
-    switch (type) {
-      case 'booking_confirmation':
-      case 'booking_confirmed':
-      case 'BOOKING_CONFIRMATION':
-        // Dog owner: go to their bookings
-        // Field owner: go to preview page where bookings are shown
-        if (isFieldOwner) {
-          router.push('/field-owner/preview')
-        } else {
-          if (data?.bookingId) {
-            router.push(`/user/my-bookings?bookingId=${data.bookingId}`)
-          } else {
-            router.push('/user/my-bookings')
-          }
-        }
-        break
+    // Handle booking notifications
+    if (isBookingNotification) {
+      const bookingId = getBookingId()
+      const fieldId = getFieldId()
 
-      case 'new_review':
-      case 'review_received':
-      case 'REVIEW_RECEIVED':
-        // Field owner receives a new review
-        if (isFieldOwner) {
-          const reviewId = data?.reviewId || data?.review?.id
-          if (data?.fieldId) {
-            // Redirect to the public field page and scroll to reviews section
-            const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
-            router.push(`/fields/${data.fieldId}${reviewParam}#reviews`)
-          } else {
-            router.push('/field-owner/reviews')
-          }
-        } else {
-          // Shouldn't happen for dog owners, but fallback
-          router.push('/user/my-bookings?tab=previous')
-        }
-        break
-
-      case 'review_posted':
-      case 'REVIEW_POSTED':
-      case 'review_posted_successfully':
-      case 'REVIEW_POSTED_SUCCESSFULLY':
-      case 'review_success':
-      case 'REVIEW_SUCCESS':
-      case 'review_submitted':
-      case 'REVIEW_SUBMITTED':
-      case 'review_created':
-      case 'REVIEW_CREATED':
-        // Dog owner posted a review successfully - show them their review on the field page
-        console.log('Review notification data:', data);
-
-        if (!isFieldOwner) {
-          // Try multiple ways to get the fieldId and reviewId
-          const fieldId = data?.fieldId || data?.field?.id || data?.booking?.fieldId || data?.booking?.field?.id
-          const reviewId = data?.reviewId || data?.review?.id
-
-          if (fieldId) {
-            console.log('Redirecting to field:', fieldId, 'reviewId:', reviewId)
-            const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
-            router.push(`/fields/${fieldId}${reviewParam}#reviews`)
-          } else if (data?.bookingId) {
-            // If we only have bookingId, still try to navigate to field if possible
-            console.log('Only bookingId available:', data.bookingId)
-            router.push('/user/my-bookings?tab=previous')
-          } else {
-            console.log('No field or booking data available')
-            router.push('/user/my-bookings?tab=previous')
-          }
-        } else {
-          // Field owners shouldn't get this, but fallback
-          router.push('/field-owner/reviews')
-        }
-        break
-
-      case 'leave_review':
-      case 'LEAVE_REVIEW':
-      case 'review_reminder':
-        // Only for dog owners - redirect to leave a review
-        if (data?.bookingId) {
-          router.push(`/user/my-bookings?tab=previous&review=${data.bookingId}`)
-        } else {
-          router.push('/user/my-bookings?tab=previous')
-        }
-        break
-
-      case 'new_booking':
-      case 'NEW_BOOKING':
-      case 'new_booking_received':
-        // For field owners - redirect to their preview page where bookings are shown
-        if (isFieldOwner) {
-          router.push('/field-owner/preview')
-        } else {
-          // Dog owners might get this if they have a booking update
-          if (data?.bookingId) {
-            router.push(`/user/my-bookings?bookingId=${data.bookingId}`)
-          } else {
-            router.push('/user/my-bookings')
-          }
-        }
-        break
-
-      case 'booking_cancelled':
-      case 'BOOKING_CANCELLED':
-        // Both roles go to their respective bookings with cancelled filter
-        if (isFieldOwner) {
-          router.push('/field-owner/preview')
-        } else {
-          if (data?.bookingId) {
-            router.push(`/user/my-bookings?status=cancelled&bookingId=${data.bookingId}`)
-          } else {
-            router.push('/user/my-bookings?status=cancelled')
-          }
-        }
-        break
-
-      case 'payment_received':
-      case 'PAYMENT_RECEIVED':
-        // Field owners go to payouts, dog owners to payment history
-        if (isFieldOwner) {
-          router.push('/field-owner/payouts')
-        } else {
-          router.push('/user/payment-history')
-        }
-        break
-
-      case 'field_approved':
-
-      case 'FIELD_APPROVED':
-        // Field owner specific - go to their field or dashboard
-        if (data?.fieldId) {
-          if (isFieldOwner) {
-            router.push('/')
-          } else {
-            router.push(`/fields/${data.fieldId}`)
-          }
-        } else {
-          if (isFieldOwner) {
-            router.push('/')
-          } else {
-            router.push('/fields')
-          }
-        }
-        break
-
-      case 'new_message':
-      case 'NEW_MESSAGE':
-      case 'message_received':
-        // Both roles can receive messages - messages is a shared page
-        if (data?.chatId) {
-          router.push(`/user/messages?chat=${data.chatId}`)
-        } else {
-          router.push('/user/messages')
-        }
-        break
-
-      case 'payout_processed':
-      case 'PAYOUT_PROCESSED':
-      case 'earnings_update':
-      case 'EARNINGS_UPDATE':
-      case 'payout_completed':
-      case 'PAYOUT_COMPLETED':
-      case 'payment_completed':
-      case 'PAYMENT_COMPLETED':
-        // Field owner specific - earnings and payouts
-        if (isFieldOwner) {
-          router.push('/field-owner/payouts')
-        } else {
-          router.push('/user/my-bookings')
-        }
-        break
-
-      case 'field_update':
-      case 'FIELD_UPDATE':
-        // Field owner specific
-        if (data?.fieldId) {
-          router.push(`/field-owner/edit-field/${data.fieldId}`)
+      if (isFieldOwner) {
+        // Field owner: go to home page (BookingHistory) with booking highlighted
+        if (bookingId) {
+          router.push(`/?bookingId=${bookingId}`)
+        } else if (fieldId) {
+          router.push(`/?fieldId=${fieldId}`)
         } else {
           router.push('/')
         }
-        break
-
-      default:
-        // Default to appropriate dashboard based on role
-        if (isFieldOwner) {
-          router.push('/')
+      } else {
+        // Dog owner: go to my-bookings with booking highlighted
+        if (bookingId) {
+          if (typeLower.includes('cancel')) {
+            router.push(`/user/my-bookings?status=cancelled&bookingId=${bookingId}`)
+          } else {
+            router.push(`/user/my-bookings?bookingId=${bookingId}`)
+          }
         } else {
           router.push('/user/my-bookings')
         }
-        break
+      }
+      return
+    }
+
+    // Handle payment/payout notifications
+    if (isPaymentNotification) {
+      if (isFieldOwner) {
+        router.push('/field-owner/payouts')
+      } else {
+        const bookingId = getBookingId()
+        if (bookingId) {
+          router.push(`/user/my-bookings?bookingId=${bookingId}`)
+        } else {
+          router.push('/user/my-bookings')
+        }
+      }
+      return
+    }
+
+    // Handle message notifications
+    if (isMessageNotification) {
+      if (data?.chatId) {
+        router.push(`/user/messages?chat=${data.chatId}`)
+      } else if (data?.conversationId) {
+        router.push(`/user/messages?chat=${data.conversationId}`)
+      } else {
+        router.push('/user/messages')
+      }
+      return
+    }
+
+    // Handle specific notification types
+    if (typeLower === 'field_approved' || typeLower === 'field-approved') {
+      if (isFieldOwner) {
+        router.push('/')
+      } else {
+        const fieldId = getFieldId()
+        router.push(fieldId ? `/fields/${fieldId}` : '/fields')
+      }
+      return
+    }
+
+    if (typeLower === 'field_update' || typeLower === 'field-update') {
+      const fieldId = getFieldId()
+      if (fieldId && isFieldOwner) {
+        router.push(`/?edit=true&fieldId=${fieldId}`)
+      } else {
+        router.push('/')
+      }
+      return
+    }
+
+    // Default navigation based on role and available data
+    const defaultBookingId = getBookingId()
+    const defaultFieldId = getFieldId()
+
+    if (isFieldOwner) {
+      if (defaultBookingId) {
+        router.push(`/?bookingId=${defaultBookingId}`)
+      } else if (defaultFieldId) {
+        router.push(`/?fieldId=${defaultFieldId}`)
+      } else {
+        router.push('/')
+      }
+    } else {
+      if (defaultBookingId) {
+        router.push(`/user/my-bookings?bookingId=${defaultBookingId}`)
+      } else {
+        router.push('/user/my-bookings')
+      }
     }
   }
 

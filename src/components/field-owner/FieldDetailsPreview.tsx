@@ -110,7 +110,7 @@ export default function FieldDetailsPreview({ formData, readOnly = true }: Field
 
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Max Number of Dogs Allowed
+                Max Number of Dogs Allowed Per Booking
               </label>
               <div className="px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
                 <span className="text-gray-input font-sans">{formatValue(formData?.maxDogs)}</span>

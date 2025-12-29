@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { useFieldOwnerBookings, useRecentBookings, type Booking } from '@/hooks/queries/useFieldOwnerBookings';
 import { BookingHistorySkeleton } from '@/components/skeletons/BookingHistorySkeleton';
 import FieldOwnerBookingDetailsModal from '@/components/modal/FieldOwnerBookingDetailsModal';
-import EarningsDashboard from './EarningsDashboard';
 import { Check } from 'lucide-react';
 import { useCancelledBookings } from '@/hooks/queries/useBookingQueries';
 
@@ -11,12 +10,22 @@ import { useCancelledBookings } from '@/hooks/queries/useBookingQueries';
 
 export default function BookingHistory() {
   const router = useRouter();
-  const [activeView, setActiveView] = useState<'bookings' | 'earnings'>('bookings');
   const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'completed' | 'cancelled'>('today');
   const [currentPage, setCurrentPage] = useState(1);
   const [cancelledPage, setCancelledPage] = useState(1);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [highlightedBookingId, setHighlightedBookingId] = useState<string | null>(null);
+
+  // Handle bookingId from URL query params (from notification clicks)
+  useEffect(() => {
+    if (router.isReady && router.query.bookingId) {
+      const bookingId = router.query.bookingId as string;
+      setHighlightedBookingId(bookingId);
+      // Clear the query param from URL after processing (keeps URL clean)
+      router.replace('/', undefined, { shallow: true });
+    }
+  }, [router.isReady, router.query.bookingId]);
 
   // Use React Query hook for regular bookings
   const {
@@ -63,6 +72,27 @@ export default function BookingHistory() {
     }
   }, [activeTab, refetch]);
 
+  // Auto-open booking details modal when a booking is highlighted from notification
+  useEffect(() => {
+    if (highlightedBookingId && !isLoading) {
+      // Search for the booking in all available data
+      const allBookings = [
+        ...(data?.bookings || []),
+        ...(recentData?.bookings || []),
+        ...(cancelledBookingsData || [])
+      ];
+
+      const targetBooking = allBookings.find(b => b.id === highlightedBookingId);
+
+      if (targetBooking) {
+        setSelectedBooking(targetBooking);
+        setIsModalOpen(true);
+        // Clear the highlighted booking after opening
+        setHighlightedBookingId(null);
+      }
+    }
+  }, [highlightedBookingId, isLoading, data?.bookings, recentData?.bookings, cancelledBookingsData]);
+
   // Extract data from React Query response
   const bookings = data?.bookings || [];
   const stats = data?.stats || {
@@ -100,37 +130,13 @@ export default function BookingHistory() {
     <div className="min-h-screen max-w-[1920px] mt-20 mx-auto bg-light pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-10 sm:pb-16 md:pb-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
 
-        {/* View Toggle */}
+        {/* Dashboard Header */}
         <div className="mb-6 flex justify-between items-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-dark-green">Field Owner Dashboard</h1>
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setActiveView('bookings')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeView === 'bookings'
-                  ? 'bg-white text-green shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Bookings
-            </button>
-            <button
-              onClick={() => setActiveView('earnings')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeView === 'earnings'
-                  ? 'bg-white text-green shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Earnings & Payouts
-            </button>
-          </div>
         </div>
 
-        {activeView === 'earnings' ? (
-          <EarningsDashboard />
-        ) : (
-          <>
+        {/* Bookings View */}
+        <>
         {/* Quick Stats Section */}
         <div className="mb-6 sm:mb-8">
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-dark-green mb-4 sm:mb-6 font-sans">Quick Stats</h2>
@@ -542,8 +548,7 @@ export default function BookingHistory() {
           }}
           booking={selectedBooking}
         />
-          </>
-        )}
+        </>
       </div>
     </div>
   );

@@ -46,6 +46,7 @@ export default function SignUpPage() {
     }
   }, [status, session, router])
 
+  
   useEffect(() => {
     // Check if there's an error from NextAuth (like duplicate account)
     if (router.query.error) {

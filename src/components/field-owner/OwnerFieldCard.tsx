@@ -64,7 +64,7 @@ export default function OwnerFieldCard({
         </p>
 
         <div className="flex justify-between items-center mt-4">
-          {/* Pricing */}
+          {/* Pricing */} 
           <div className="flex flex-col">
             <div>
               <span className="text-green font-bold text-lg">

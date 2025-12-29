@@ -349,7 +349,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         <AmenityIcon
                           src={iconPath}
                           alt={label}
-                          color={ICON_COLORS.black}
+                          color={ICON_COLORS.green}
                           size={16}
                         />
                       </div>
@@ -849,10 +849,16 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                     <div key={review.id || index} className="bg-transparent rounded-[30px] p-6 border border-yellow">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center w-full">
-                          <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 overflow-hidden">
-                            {review.user?.image ? (
-                              <img src={review.user.image} alt={review.user?.name || 'User'} className="w-full h-full object-cover" />
-                            ) : null}
+                          <div className="w-10 h-10 bg-gray-100 rounded-full mr-3 overflow-hidden flex items-center justify-center">
+                            <img
+                              src={review.user?.image || review.user?.googleImage || review.user?.profileImage || '/user.svg'}
+                              alt={review.user?.name || 'User'}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback to user.svg if image fails to load
+                                e.currentTarget.src = '/user.svg';
+                              }}
+                            />
                           </div>
                           <div className='flex justify-between w-full'>
                             <div className='flex flex-col'>

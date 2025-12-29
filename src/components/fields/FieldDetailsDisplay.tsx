@@ -255,12 +255,12 @@ export default function FieldDetailsDisplay({
                         <AmenityIcon
                           src={iconPath}
                           alt={label}
-                          color={ICON_COLORS.black}
+                          color={ICON_COLORS.green}
                           size={16}
                         />
                       </div>
                     ) : (
-                      <Shield className="w-4 h-4 text-black mr-2" />
+                      <Shield className="w-4 h-4 text-green mr-2" />
                     )}
                     <span className="text-sm text-dark-green">{label}</span>
                   </div>

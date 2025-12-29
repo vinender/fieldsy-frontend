@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
 
 interface AddReviewModalProps {
   isOpen: boolean;
@@ -26,7 +25,6 @@ export const AddReviewModal = ({
   bookingId,
   onReviewAdded
 }: AddReviewModalProps) => {
-  const router = useRouter();
   const { data: session } = useSession();
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
@@ -77,9 +75,8 @@ export const AddReviewModal = ({
 
       onClose();
 
-      // Redirect to fields page after successful review submission
-      // Note: Toast notification is handled by NotificationContext via socket
-      router.push('/fields');
+      // Stay on the current page - don't redirect
+      // The notification will be handled by NotificationContext via socket
 
     } catch (error: any) {
       // Error is handled by the mutation's onError callback

@@ -293,7 +293,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
 
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Max Number of Dogs Allowed <span className="text-red-500">*</span>
+                Max Number of Dogs Allowed Per Booking <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"

@@ -67,7 +67,15 @@ export const AmenityIcon: React.FC<AmenityIconProps> = ({
         );
     }
 
-    // For remote images (webp, jpg, png from S3, etc.), display as-is
+    // For remote images (webp, jpg, png from S3, etc.), apply CSS filter for green tint
+    // CSS filter to convert black/dark icons to green (#3A6B22)
+    // This filter approximates the green color: brightness(0) makes it black, then sepia + hue-rotate + saturate adjust to green
+    const greenFilter = iconColor === ICON_COLORS.green
+        ? 'brightness(0) saturate(100%) invert(32%) sepia(45%) saturate(749%) hue-rotate(67deg) brightness(95%) contrast(92%)'
+        : iconColor === ICON_COLORS.black
+        ? 'brightness(0)'
+        : undefined;
+
     return (
         <div className={cn("flex items-center justify-center", className)}>
             <img
@@ -77,6 +85,7 @@ export const AmenityIcon: React.FC<AmenityIconProps> = ({
                 style={{
                     width: size ? `${size}px` : '100%',
                     height: size ? `${size}px` : '100%',
+                    filter: greenFilter,
                 }}
                 onError={(e) => {
                     // Hide broken images

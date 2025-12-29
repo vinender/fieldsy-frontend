@@ -138,9 +138,12 @@ const BookingHistoryPage = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isCancelSubModalOpen, setIsCancelSubModalOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [bookingToReschedule, setBookingToReschedule] = useState<Booking | null>(null);
   const [bookingToReview, setBookingToReview] = useState<Booking | null>(null);
+  const [bookingToCancelSub, setBookingToCancelSub] = useState<Booking | null>(null);
+  const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -423,6 +426,60 @@ const BookingHistoryPage = () => {
   const handleRescheduleClick = (booking: Booking) => {
     setBookingToReschedule(booking);
     setIsRescheduleModalOpen(true);
+  };
+
+  const handleCancelSubscriptionClick = (booking: Booking) => {
+    setBookingToCancelSub(booking);
+    setIsCancelSubModalOpen(true);
+  };
+
+  // Page-level cancel subscription handler
+  const handleCancelSubscriptionFromModal = async (immediately: boolean = false) => {
+    if (!bookingToCancelSub?.subscription) return;
+
+    setIsCancellingSubscription(true);
+
+    try {
+      let token = (session as any)?.accessToken;
+
+      if (!token) {
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.token;
+        }
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/${bookingToCancelSub._id}/cancel-recurring`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ cancelImmediately: immediately })
+        }
+      );
+
+      if (response.ok) {
+        setIsCancelSubModalOpen(false);
+        setBookingToCancelSub(null);
+        // Refresh bookings in background
+        fetchBookings(false);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to cancel recurring booking', {
+          position: 'top-center',
+        });
+      }
+    } catch (err) {
+      toast.error('Failed to cancel recurring booking', {
+        position: 'top-center',
+      });
+    } finally {
+      setIsCancellingSubscription(false);
+    }
   };
 
   const handleApplyFilter = (filters: any) => {
@@ -1159,6 +1216,7 @@ const BookingHistoryPage = () => {
           booking={selectedBooking}
           onCancel={handleCancelClick}
           onReschedule={handleRescheduleClick}
+          onCancelSubscription={handleCancelSubscriptionClick}
         />
 
         {/* Cancel Booking Modal */}
@@ -1230,6 +1288,102 @@ const BookingHistoryPage = () => {
               await fetchBookings(false);
             }}
           />
+        )}
+
+        {/* Cancel Subscription Modal (Page Level) */}
+        {isCancelSubModalOpen && bookingToCancelSub?.subscription && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              setIsCancelSubModalOpen(false);
+              setBookingToCancelSub(null);
+            }}
+          >
+            <div
+              className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md mx-4 shadow-2xl animate-fadeIn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 border-b pb-3">
+                Cancel Recurring Booking
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                Choose how you want to cancel your recurring booking for{" "}
+                <span className="font-medium text-gray-800">{bookingToCancelSub.name}</span>.
+              </p>
+
+              <div className="space-y-3">
+                {/* Cancel at End of Period */}
+                <button
+                  onClick={() => handleCancelSubscriptionFromModal(false)}
+                  disabled={isCancellingSubscription}
+                  className="w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow transition-all disabled:opacity-50"
+                >
+                  {isCancellingSubscription ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    <>
+                      Cancel at Next Billing Date
+                      <span className="block text-xs mt-1 text-red-100">
+                        Keep access until{" "}
+                        {bookingToCancelSub.subscription.nextBillingDate
+                          ? formatDateDDMMYYYY(new Date(bookingToCancelSub.subscription.nextBillingDate))
+                          : formatDateDDMMYYYY(new Date(bookingToCancelSub.subscription.currentPeriodEnd))}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                {/* Cancel Immediately */}
+                <button
+                  onClick={() => handleCancelSubscriptionFromModal(true)}
+                  disabled={!(bookingToCancelSub.canCancelSubscriptionImmediately ?? false) || isCancellingSubscription}
+                  className={`w-full px-4 py-3 font-medium rounded-xl shadow transition-all ${(bookingToCancelSub.canCancelSubscriptionImmediately ?? false) && !isCancellingSubscription
+                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800"
+                    : "bg-gray-200 text-gray-500 border border-gray-300 cursor-not-allowed"
+                    }`}
+                  title={
+                    !(bookingToCancelSub.canCancelSubscriptionImmediately ?? false)
+                      ? `Cannot cancel immediately — booking is within ${cancellationWindow}h cancellation window`
+                      : ""
+                  }
+                >
+                  {isCancellingSubscription ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-500 rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    <>
+                      Cancel Immediately
+                      <span
+                        className={`block text-xs mt-1 ${(bookingToCancelSub.canCancelSubscriptionImmediately ?? false) ? "text-red-100" : "text-gray-500"
+                          }`}
+                      >
+                        {(bookingToCancelSub.canCancelSubscriptionImmediately ?? false)
+                          ? "Stop all future bookings now"
+                          : `Booking is within ${cancellationWindow}h cancellation window`}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => {
+                    setIsCancelSubModalOpen(false);
+                    setBookingToCancelSub(null);
+                  }}
+                  disabled={isCancellingSubscription}
+                  className="w-full px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50"
+                >
+                  Keep Subscription
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* All Amenities Modal */}

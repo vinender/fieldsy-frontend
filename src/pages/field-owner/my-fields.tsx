@@ -122,9 +122,13 @@ export default function MyFieldsPage() {
   return (
     <UserLayout>
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 mt-24 py-8 min-h-screen">
-        {/* Header */}
+        {/* Header - only show back button when there are fields */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 mt-4">
-          <BackButton showLabel={true} size='lg' label='My Fields' />
+          {hasFields ? (
+            <BackButton showLabel={true} size='lg' label='My Fields' />
+          ) : (
+            <h1 className="text-2xl sm:text-3xl font-semibold text-dark-green">My Fields</h1>
+          )}
           {hasFields && (
             <button
               onClick={handleAddNewField}

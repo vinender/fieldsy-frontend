@@ -24,6 +24,7 @@ interface BookingDetailsModalProps {
   onReviewAdded?: () => void;
   onCancel?: (booking: any) => void;
   onReschedule?: (booking: any) => void;
+  onCancelSubscription?: (booking: any) => void;
 }
 
 export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
@@ -33,7 +34,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   onReview,
   onReviewAdded,
   onCancel,
-  onReschedule
+  onReschedule,
+  onCancelSubscription
 }) => {
   const router = useRouter();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -509,27 +511,43 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                        >
                         Reschedule Booking
                       </button>
-                      <button
-                        onClick={() => {
-                          if (isCancellable && onCancel) {
-                            onClose();
-                            onCancel(fullBooking);
-                          }
-                        }}
-                        disabled={!isCancellable}
-                        className={`w-full sm:flex-1 h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${
-                          isCancellable
-                            ? 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
-                            : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
-                        }`}
-                        title={!isCancellable ? `Cannot cancel within ${cancellationWindowHours} hours of booking (${hoursUntilBooking} hours remaining)` : 'Cancel booking'}
-                      >
-                        Cancel Booking
-                      </button>
+                      {/* Show Cancel Subscription for recurring bookings, Cancel Booking for regular */}
+                      {fullBooking?.subscription || fullBooking?.repeatBooking ? (
+                        <button
+                          onClick={() => {
+                            if (onCancelSubscription) {
+                              onClose();
+                              onCancelSubscription(fullBooking);
+                            }
+                          }}
+                          className="w-full sm:flex-1 h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer"
+                          title="Cancel recurring subscription"
+                        >
+                          Cancel Subscription
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            if (isCancellable && onCancel) {
+                              onClose();
+                              onCancel(fullBooking);
+                            }
+                          }}
+                          disabled={!isCancellable}
+                          className={`w-full sm:flex-1 h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${
+                            isCancellable
+                              ? 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
+                              : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                          }`}
+                          title={!isCancellable ? `Cannot cancel within ${cancellationWindowHours} hours of booking (${hoursUntilBooking} hours remaining)` : 'Cancel booking'}
+                        >
+                          Cancel Booking
+                        </button>
+                      )}
                     </div>
 
-                    {/* Warning message if within cancellation window */}
-                    {(!isCancellable || !isReschedulable) && hoursUntilBooking > 0 && (
+                    {/* Warning message if within cancellation window (only for non-subscription bookings) */}
+                    {!fullBooking?.subscription && !fullBooking?.repeatBooking && (!isCancellable || !isReschedulable) && hoursUntilBooking > 0 && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 sm:p-3">
                         <p className="text-xs sm:text-sm text-yellow-800 text-center">
                           <Clock className="inline w-4 h-4 mr-1" />
