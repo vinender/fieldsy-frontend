@@ -511,9 +511,11 @@ const BookFieldPage = () => {
   ]);
 
   // Conditional returns MUST come after all hooks
+  // Note: UserLayout without requireRole allows unauthenticated users to view this page
+  // Login prompt is shown when they click "Continue" button
   if (isLoading || !field) {
     return (
-      <UserLayout requireRole="DOG_OWNER">
+      <UserLayout>
         <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <Spinner size="lg" />
@@ -526,7 +528,7 @@ const BookFieldPage = () => {
 
   if (error) {
     return (
-      <UserLayout requireRole="DOG_OWNER">
+      <UserLayout>
         <div className="min-h-screen  mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
           <div className="bg-white rounded-2xl p-8 max-w-md">
             <div className="text-center">
