@@ -160,11 +160,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (userData) {
+      // Don't use fallback for image - keep image and googleImage separate
+      // ProfileAvatar component will handle the fallback priority correctly
+      // This prevents overwriting an uploaded image with googleImage when image is null
       const newUser = {
         id: userData?.id,
         email: userData?.email,
         name: userData?.name,
-        image: userData?.image || userData?.googleImage || userData?.avatar,
+        image: userData?.image || null, // User's uploaded image only, no fallback
         googleImage: userData?.googleImage || null,
         profileImage: userData?.profileImage || null,
         avatar: userData?.avatar || null,

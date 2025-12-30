@@ -32,7 +32,7 @@ const MyProfilePage = () => {
   const [isRemovingPhone, setIsRemovingPhone] = useState(false);
   
   // Fetch profile data
-  const { data: profile, isLoading, error } = useProfile();
+  const { data: profile, isLoading, error, isFetching, isSessionLoading, isEnabled } = useProfile();
   const updateProfileMutation = useUpdateProfile();
   const uploadImageMutation = useUploadProfileImage();
   const deleteImageMutation = useDeleteProfileImage();
@@ -219,17 +219,46 @@ const MyProfilePage = () => {
     );
   }
 
-  if (error || !profile) {
+  // Show loading state if we're fetching and don't have profile data yet
+  if (isFetching && !profile) {
+    return (
+      <div className="min-h-screen bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ProfileSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  // Only show error state if:
+  // - We're not actively fetching
+  // - Session is loaded (not still loading)
+  // - Query is enabled (session has user id)
+  // - And there's still no profile data or there's an error
+  // This prevents the brief "Failed to load" flash during session loading or query invalidation/refetch
+  if ((error || !profile) && !isFetching && !isSessionLoading && isEnabled) {
     return (
       <div className="min-h-screen bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 text-center">
           <p className="text-red-500 text-sm sm:text-base">Failed to load profile. Please try again.</p>
-          <button 
+          <button
             onClick={() => router.back()}
             className="mt-4 px-6 py-2 bg-[#3A6B22] text-white text-sm sm:text-base rounded-full hover:bg-[#2e5519]"
           >
             Go Back
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // At this point, we either have profile data, or we're fetching with cached data
+  // If somehow profile is still undefined here, show loading (shouldn't happen)
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-[#fffcf3] py-6 sm:py-10 mt-16 xl:mt-24">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ProfileSkeleton />
         </div>
       </div>
     );

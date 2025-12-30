@@ -34,9 +34,11 @@ interface ChangePasswordData {
 
 // Fetch user profile
 export function useProfile() {
-  const { data: session } = useSession();
-  
-  return useQuery({
+  const { data: session, status: sessionStatus } = useSession();
+  const isSessionLoading = sessionStatus === 'loading';
+  const isEnabled = !!session?.user?.id;
+
+  const query = useQuery({
     queryKey: ['profile', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) {
@@ -46,8 +48,17 @@ export function useProfile() {
       const response = await axiosClient.get(`/users/${session.user.id}`);
       return response.data.data as UserProfile;
     },
-    enabled: !!session?.user?.id,
+    enabled: isEnabled,
   });
+
+  return {
+    ...query,
+    // isLoading should be true while session is loading OR while query is loading
+    isLoading: isSessionLoading || query.isLoading,
+    // Include session loading state for more granular control
+    isSessionLoading,
+    isEnabled,
+  };
 }
 
 // Update user profile
@@ -65,13 +76,33 @@ export function useUpdateProfile() {
       return response.data.data;
     },
     onSuccess: (data) => {
+      // Invalidate both profile and auth queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+
       // Also update auth context if needed
       const currentUser = localStorage.getItem('currentUser');
       if (currentUser) {
         try {
           const user = JSON.parse(currentUser);
-          localStorage.setItem('currentUser', JSON.stringify({ ...user, ...data }));
+          // Merge data carefully - preserve existing image/googleImage if not explicitly set in response
+          // This prevents accidentally clearing the uploaded image when updating other fields
+          const updatedUser = { ...user };
+
+          Object.keys(data).forEach(key => {
+            // For image fields, only update if the new value is truthy
+            // This prevents overwriting uploaded image with null when only updating name/bio/phone
+            if (key === 'image' || key === 'googleImage') {
+              if (data[key]) {
+                updatedUser[key] = data[key];
+              }
+              // If data[key] is null/undefined, keep the existing value
+            } else if (data[key] !== undefined) {
+              updatedUser[key] = data[key];
+            }
+          });
+
+          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
           // Dispatch custom event to notify AuthContext in the same tab
           window.dispatchEvent(new Event('authTokenChanged'));
         } catch (e) {
