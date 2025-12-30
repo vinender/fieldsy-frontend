@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, AlertCircle, Calendar } from 'lucide-react';
+import { X, AlertCircle, Calendar, Clock } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 
@@ -22,6 +22,10 @@ interface RescheduleBookingModalProps {
     field?: any;
     rescheduleCount?: number;
     recurring?: string | null;
+    isReschedulable?: boolean;
+    hoursUntilBooking?: number;
+    hasCompletedBookingInSubscription?: boolean;
+    cancellationWindow?: number; // From backend - the actual cancellation window hours
   };
   onConfirm: (bookingId: string, newDate: string, newStartTime: string, newEndTime: string) => void;
 }
@@ -32,12 +36,56 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
   booking,
 }) => {
   const router = useRouter();
-  const cancellationWindow = useCancellationWindow();
+  const settingsCancellationWindow = useCancellationWindow();
+  // Use booking's cancellation window if available (from same API call), otherwise use settings
+  const cancellationWindowHours = booking.cancellationWindow ?? settingsCancellationWindow;
   const rescheduleCount = booking.rescheduleCount || 0;
   const remainingReschedules = 3 - rescheduleCount;
-  const canReschedule = rescheduleCount < 3;
+  const hasCompletedBookingInSubscription = booking.hasCompletedBookingInSubscription ?? false;
 
-  console.log('booking',booking)
+  // Calculate hours until booking in real-time (more accurate than backend-provided value)
+  const calculateHoursUntilBooking = (): number => {
+    const now = new Date();
+
+    // Get the booking date
+    const rawDate = booking.rawDate || booking.date;
+    if (!rawDate) return 0;
+
+    const bookingDate = new Date(rawDate);
+
+    // Parse start time if available
+    const startTime = booking.startTime || booking.time;
+    if (startTime) {
+      // Handle formats like "7:00AM", "7:00 AM", "07:00", "7:00AM - 7:55AM"
+      const timeStr = startTime.split(' - ')[0].trim(); // Take first part if it's a range
+      const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+      if (timeMatch) {
+        let hour = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2] || '0');
+        const period = timeMatch[3]?.toUpperCase();
+
+        if (period === 'PM' && hour !== 12) hour += 12;
+        if (period === 'AM' && hour === 12) hour = 0;
+
+        bookingDate.setHours(hour, minutes, 0, 0);
+      }
+    }
+
+    return Math.max(0, (bookingDate.getTime() - now.getTime()) / (1000 * 60 * 60));
+  };
+
+  const hoursUntilBooking = calculateHoursUntilBooking();
+
+  // Check all conditions for rescheduling
+  const isWithinCancellationWindow = hoursUntilBooking < cancellationWindowHours;
+  const hasReachedRescheduleLimit = rescheduleCount >= 3;
+
+  // Calculate canReschedule locally for real-time accuracy
+  // Don't trust backend value as it may be stale
+  const canReschedule = !hasReachedRescheduleLimit &&
+    !isWithinCancellationWindow &&
+    !hasCompletedBookingInSubscription;
+
   const handleProceed = () => {
     // Check if reschedule limit reached
     if (!canReschedule) {
@@ -106,22 +154,63 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
           </div>
         </div>
 
-        {/* Reschedule Limit Warning */}
+        {/* Warning Messages based on why reschedule is not allowed */}
         {!canReschedule ? (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-red-700 font-semibold mb-2">
-                  Maximum Reschedule Limit Reached
-                </p>
-                <p className="text-sm text-red-600">
-                  You have already rescheduled this booking 3 times, which is the maximum allowed.
-                  If you need to change the booking time, please cancel this booking and create a new one.
-                </p>
+          <>
+            {/* Within Cancellation Window Warning */}
+            {isWithinCancellationWindow && !hasReachedRescheduleLimit && !hasCompletedBookingInSubscription && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                <div className="flex items-start gap-2">
+                  <Clock className="w-5 h-5 text-red-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-700 font-semibold mb-2">
+                      Rescheduling Not Available
+                    </p>
+                    <p className="text-sm text-red-600">
+                      Rescheduling is only allowed at least <strong>{cancellationWindowHours} hours</strong> before the booking time.
+                      Your booking is in <strong>{hoursUntilBooking.toFixed(1)} hours</strong>.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+
+            {/* Reschedule Limit Reached Warning */}
+            {hasReachedRescheduleLimit && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-700 font-semibold mb-2">
+                      Maximum Reschedule Limit Reached
+                    </p>
+                    <p className="text-sm text-red-600">
+                      You have already rescheduled this booking 3 times, which is the maximum allowed.
+                      If you need to change the booking time, please cancel this booking and create a new one.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Recurring Booking Completed Warning */}
+            {hasCompletedBookingInSubscription && !hasReachedRescheduleLimit && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-700 font-semibold mb-2">
+                      Rescheduling Not Available
+                    </p>
+                    <p className="text-sm text-red-600">
+                      A booking in this recurring subscription has already been completed.
+                      Rescheduling is no longer available for this subscription.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <>
             {/* Reschedule Count Info */}
@@ -151,7 +240,7 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
                   <p className="text-sm text-blue-700">
                     <strong>Note:</strong> You'll be redirected to select a new date and time slot.
                     Rescheduling is free and maintains your original payment.
-                    The same cancellation policy ({cancellationWindow} hours notice) will apply to the new booking time.
+                    The same cancellation policy ({cancellationWindowHours} hours notice) will apply to the new booking time.
                   </p>
                 </div>
               </div>

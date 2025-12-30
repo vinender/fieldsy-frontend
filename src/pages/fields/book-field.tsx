@@ -1201,44 +1201,54 @@ const BookFieldPage = () => {
                   )}
                 </div>
 
-                {/* Repeat Booking - Now shown in reschedule mode too */}
-                <div>
-                  <h3 className="text-base sm:text-[18px] font-bold text-dark-green mb-2.5">
-                    {isRescheduleMode ? 'Update Recurring Booking?' : 'Repeat This Booking?'}
-                  </h3>
-                  <p className="text-sm sm:text-[16px] text-[#8D8D8D] mb-3 sm:mb-4">
-                    {isRescheduleMode
-                      ? 'You can change the recurring schedule for this booking.'
-                      : 'Need regular access? Set up a weekly or monthly recurring booking.'}
-                  </p>
-                  {/* Debug info */}
-                  {isRescheduleMode && (
-                    <div className="mb-2 text-xs text-gray-500">
-                      Current selection: {repeatBooking} | From URL: {recurringFromUrl as string || 'none'}
+                {/* Repeat Booking - Hidden in reschedule mode (cannot change recurring interval) */}
+                {!isRescheduleMode && (
+                  <div>
+                    <h3 className="text-base sm:text-[18px] font-bold text-dark-green mb-2.5">
+                      Repeat This Booking?
+                    </h3>
+                    <p className="text-sm sm:text-[16px] text-[#8D8D8D] mb-3 sm:mb-4">
+                      Need regular access? Set up a weekly or monthly recurring booking.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                      {getAvailableRecurringOptions().map((option) => {
+                        const isSelected = repeatBooking === option;
+                        return (
+                          <button
+                            key={option}
+                            onClick={() => {
+                              setRepeatBooking(option);
+                            }}
+                            className={`w-full py-2 px-3 sm:px-3.5 rounded-[10px] sm:rounded-[14px] text-xs sm:text-[14px] font-medium transition-colors ${isSelected
+                              ? 'bg-[#8FB366] text-white'
+                              : 'bg-white text-[#8D8D8D] border border-black/6 hover:bg-gray-50'
+                              }`}
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
                     </div>
-                  )}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                    {getAvailableRecurringOptions().map((option) => {
-                      const isSelected = repeatBooking === option;
-                      console.log(`[Recurring Button] Option: "${option}", RepeatBooking: "${repeatBooking}", Selected: ${isSelected}`);
-                      return (
-                        <button
-                          key={option}
-                          onClick={() => {
-                            console.log('[Recurring] Button clicked, setting to:', option);
-                            setRepeatBooking(option);
-                          }}
-                          className={`w-full py-2 px-3 sm:px-3.5 rounded-[10px] sm:rounded-[14px] text-xs sm:text-[14px] font-medium transition-colors ${isSelected
-                            ? 'bg-[#8FB366] text-white'
-                            : 'bg-white text-[#8D8D8D] border border-black/6 hover:bg-gray-50'
-                            }`}
-                        >
-                          {option}
-                        </button>
-                      );
-                    })}
                   </div>
-                </div>
+                )}
+
+                {/* Show recurring info banner in reschedule mode */}
+                {isRescheduleMode && rescheduleData?.recurring && rescheduleData.recurring.toLowerCase() !== 'none' && (
+                  <div className="bg-[#f4ffef] border border-[#3a6b221a] rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-[#3a6b22] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-[#3a6b22] mb-1">Recurring Booking</h4>
+                        <p className="text-sm text-[#3a6b22]">
+                          This is a <span className="font-bold">{rescheduleData.recurring}</span> recurring booking.
+                          The recurring interval cannot be changed during rescheduling.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Warning Messages */}
                 {selectedDate && !hasAvailableSlots() && (
@@ -1531,13 +1541,13 @@ const BookFieldPage = () => {
 
                       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
+                      // Note: We don't pass recurring here - recurring interval cannot be changed during reschedule
                       rescheduleBookingMutation.mutate(
                         {
                           bookingId: rescheduleData.bookingId,
                           date: formattedDate,
                           startTime,
-                          endTime,
-                          recurring: repeatBooking
+                          endTime
                         },
                         {
                           onSuccess: () => {

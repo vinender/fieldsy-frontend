@@ -496,7 +496,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                       {amenity.label || amenity.name}
                     </span>
                   </div>
-                </div>
+                </div >
               );
             })
           ) : (
