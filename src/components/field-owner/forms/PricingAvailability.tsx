@@ -159,23 +159,34 @@ export default function PricingAvailability({ formData, setFormData, validationE
         <div className="mt-10 pt-10 border-t border-gray-200">
           <div className="space-y-6">
             <div className="bg- rounded-2xl p-6">
-              <h3 className="text-lg text-red-400 font-semibold text-red-500mb-3 font-sans">
+              <h3 className="text-lg text-red-400 font-semibold text-red-500 mb-3 font-sans">
                 Cancellation & Refund Policy:
               </h3>
               <p className="text-base leading-relaxed text-dark-green font-sans">
-                Users can cancel or reschedule their booking up to{' '}
-                <span className="font-bold">24 hours</span>
-                {' '}in advance for a{' '}
-                <span className="font-bold">full refund</span>
-                {' '}by default.
+                Users can cancel their booking up to the{' '}
+                <span className="font-bold">cancellation window</span>
+                {' '}(default 24 hours) in advance for a{' '}
+                <span className="font-bold">full refund</span>.
+                Cancellations made within the cancellation window are{' '}
+                <span className="font-bold">non-refundable</span>.
               </p>
-              
+            </div>
+
+            <div className="bg- rounded-2xl p-6">
+              <h3 className="text-lg text-blue-500 font-semibold mb-3 font-sans">
+                Reschedule Policy:
+              </h3>
+              <p className="text-base leading-relaxed text-dark-green font-sans">
+                Users can reschedule their booking up to the{' '}
+                <span className="font-bold">cancellation window</span>
+                {' '}before the booking time, with a maximum of{' '}
+                <span className="font-bold">3 reschedules per booking</span>.
+              </p>
               <p className="text-base leading-relaxed mt-3 text-dark-green font-sans">
-                You may set your own cancellation terms when listing your field. Cancellations made{' '}
-                <span className="font-bold">within 24 hours of the booking time</span>
-                {' '}are{' '}
-                <span className="font-bold">non-refundable</span>
-                {' '}unless you choose to offer flexibility.
+                For recurring bookings, rescheduling is{' '}
+                <span className="font-bold">not available</span>
+                {' '}once any booking in the subscription has been completed.
+                The recurring interval cannot be changed during rescheduling.
               </p>
             </div>
 
