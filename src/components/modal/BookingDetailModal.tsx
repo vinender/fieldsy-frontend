@@ -67,6 +67,12 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const hasCompletedBookingInSubscription = fullBooking?.hasCompletedBookingInSubscription ?? false;
   const rescheduleCount = fullBooking?.rescheduleCount ?? 0;
 
+  // Check if booking is a recurring booking (has subscription OR repeatBooking is not "None"/null/undefined)
+  const isRecurringBooking = !!(
+    fullBooking?.subscription ||
+    (fullBooking?.repeatBooking && fullBooking.repeatBooking.toLowerCase() !== 'none')
+  );
+
   // Format date helper (removed - using utility function)
 
   // Format time slot
@@ -523,7 +529,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                         Reschedule Booking
                       </button>
                       {/* Show Cancel Subscription for recurring bookings, Cancel Booking for regular */}
-                      {fullBooking?.subscription || fullBooking?.repeatBooking ? (
+                      {isRecurringBooking ? (
                         <button
                           onClick={() => {
                             if (onCancelSubscription) {
@@ -557,8 +563,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       )}
                     </div>
 
-                    {/* Warning message if within cancellation window (only for non-subscription bookings) */}
-                    {!fullBooking?.subscription && !fullBooking?.repeatBooking && (!isCancellable || !isReschedulable) && hoursUntilBooking > 0 && (
+                    {/* Warning message if within cancellation window (only for non-recurring bookings) */}
+                    {!isRecurringBooking && (!isCancellable || !isReschedulable) && hoursUntilBooking > 0 && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 sm:p-3">
                         <p className="text-xs sm:text-sm text-yellow-800 text-center">
                           <Clock className="inline w-4 h-4 mr-1" />
