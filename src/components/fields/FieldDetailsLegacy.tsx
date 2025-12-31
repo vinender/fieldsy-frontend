@@ -121,18 +121,34 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
     return typeMap[type] || type;
   };
 
-  // Build field size display value - show both dropdown and custom value if available
+  // Build field size display value - prioritize dropdown value, fallback to custom
   const getFieldSizeDisplay = () => {
-    const dropdownSize = field?.size ? getFieldPropertyLabel('fieldSize', field.size) : '';
+    const sizeValue = field?.size;
     const customSize = (field as any)?.customFieldSize;
 
-    if (dropdownSize && customSize) {
-      return `${dropdownSize} (${customSize} acres)`;
+    // Check if size is a predefined dropdown option (e.g., "Small (Under 1 Acre)", "Medium (1–3 Acres)")
+    const isPresetOption = sizeValue && (
+      sizeValue.includes('Under') ||
+      sizeValue.includes('Acres)') ||
+      sizeValue.toLowerCase().includes('small') ||
+      sizeValue.toLowerCase().includes('medium') ||
+      sizeValue.toLowerCase().includes('large')
+    );
+
+    if (isPresetOption) {
+      // Use the dropdown preset value with label formatting
+      return getFieldPropertyLabel('fieldSize', sizeValue);
+    } else if (sizeValue && sizeValue.toLowerCase().includes('acres')) {
+      // Size already contains "acres" (custom size stored directly) - use as-is
+      return sizeValue;
     } else if (customSize) {
+      // Use custom field size with "acres" suffix
       return `${customSize} acres`;
-    } else if (dropdownSize) {
-      return dropdownSize;
+    } else if (sizeValue) {
+      // Fallback to whatever size value exists
+      return getFieldPropertyLabel('fieldSize', sizeValue);
     }
+
     return 'Not specified';
   };
 

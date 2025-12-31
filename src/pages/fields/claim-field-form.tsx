@@ -45,43 +45,41 @@ const ClaimFieldPage = () => {
   const [showValidationError, setShowValidationError] = useState(false);
   const submitClaimMutation = useSubmitFieldClaim();
 
-  // Field data state
-  const [field, setField] = useState<any>(null);
-  const [isLoadingField, setIsLoadingField] = useState(true);
+  // Eligibility state
+  const [fieldName, setFieldName] = useState<string>('');
+  const [isLoadingEligibility, setIsLoadingEligibility] = useState(true);
   const [fieldError, setFieldError] = useState<string | null>(null);
 
-  // Fetch field data and check claim eligibility
+  // Check claim eligibility (includes field name)
   useEffect(() => {
-    const fetchFieldAndCheckEligibility = async () => {
+    const checkEligibility = async () => {
       if (!field_id) return;
 
-      setIsLoadingField(true);
+      setIsLoadingEligibility(true);
       setFieldError(null);
 
       try {
-        // Fetch field data
-        const fieldResponse = await axiosClient.get(`/fields/${field_id}`);
-        const fieldData = fieldResponse.data?.data || fieldResponse.data;
-        setField(fieldData);
-
-        // Check claim eligibility using the backend endpoint
+        // Check claim eligibility - this endpoint now returns fieldName
         const eligibilityResponse = await axiosClient.get(`/claims/check-eligibility/${field_id}`);
         const eligibility = eligibilityResponse.data;
+
+        // Store field name from eligibility response
+        setFieldName(eligibility.fieldName || '');
 
         if (!eligibility.canClaim) {
           setFieldError(eligibility.reason || 'This field cannot be claimed.');
           toast.error(eligibility.reason || 'This field cannot be claimed.');
         }
       } catch (error: any) {
-        console.error('Error fetching field or checking eligibility:', error);
+        console.error('Error checking eligibility:', error);
         setFieldError('Failed to load field information.');
         toast.error('Failed to load field information.');
       } finally {
-        setIsLoadingField(false);
+        setIsLoadingEligibility(false);
       }
     };
 
-    fetchFieldAndCheckEligibility();
+    checkEligibility();
   }, [field_id]);
   
 
@@ -318,7 +316,7 @@ const ClaimFieldPage = () => {
   };
 
   // Show loading state
-  if (isLoadingField) {
+  if (isLoadingEligibility) {
     return (
       <UserLayout>
         <div className="min-h-screen bg-light flex items-center justify-center">
@@ -610,7 +608,7 @@ const ClaimFieldPage = () => {
         setShowSuccessModal(false);
         router.push(`/fields/${field_id}`);
       }}
-      fieldName={field?.name}
+      fieldName={fieldName}
       fieldId={field_id as string}
     />
     </UserLayout>
