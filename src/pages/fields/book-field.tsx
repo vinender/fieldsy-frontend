@@ -546,6 +546,44 @@ const BookFieldPage = () => {
     );
   }
 
+  // Check if field is unclaimed - unclaimed fields cannot be booked
+  if (field && field.isClaimed === false) {
+    return (
+      <UserLayout>
+        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-lg">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Available for Booking</h3>
+              <p className="text-gray-600 mb-6">
+                This field has not been claimed by an owner yet and is not available for booking.
+                If you are the owner of this field, you can claim it to start accepting bookings.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => router.push(`/fields/${fieldIdToUse}`)}
+                  className="px-6 py-2.5 border border-dark-green text-dark-green rounded-full font-medium hover:bg-dark-green/5 transition-colors"
+                >
+                  View Field Details
+                </button>
+                <button
+                  onClick={() => router.push(`/fields/claim-field-form?field_id=${fieldIdToUse}`)}
+                  className="px-6 py-2.5 bg-dark-green text-white rounded-full font-medium hover:bg-dark-green/90 transition-colors"
+                >
+                  Claim This Field
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   }

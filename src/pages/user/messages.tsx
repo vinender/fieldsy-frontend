@@ -593,7 +593,19 @@ const MessagesPage = () => {
         // Clean up processing set immediately (no need to delay)
         processingMessagesRef.current.delete(message.id);
       } else {
-        // Message is for a different conversation, update the conversation list
+        // Message is for a different conversation
+        // Update the conversation list optimistically (increment unread count)
+        setConversations(prev => prev.map(conv =>
+          conv.id === message.conversationId
+            ? {
+                ...conv,
+                unreadCount: conv.unreadCount + 1,
+                lastMessage: message.content,
+                lastMessageAt: message.createdAt
+              }
+            : conv
+        ));
+        // Also refresh from API to ensure consistency
         loadConversations();
         // Clean up processing set
         processingMessagesRef.current.delete(message.id);
@@ -716,6 +728,17 @@ const MessagesPage = () => {
 
     setSelectedConversation(conversation);
     setIsLoadingMessages(true);
+
+    // Update local conversation unreadCount to 0 since we're viewing it
+    if (conversation.unreadCount > 0) {
+      setConversations(prev => prev.map(conv =>
+        conv.id === conversation.id
+          ? { ...conv, unreadCount: 0 }
+          : conv
+      ));
+      // Also update the chat context
+      markConversationAsRead(conversation.id);
+    }
 
     // Only clear messages if switching to a DIFFERENT conversation
     if (!isSameConversation) {
@@ -1192,19 +1215,23 @@ const MessagesPage = () => {
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-[16px] font-semibold text-dark-green truncate">
+                            <h3 className={`text-[16px] font-semibold truncate ${conversation.unreadCount > 0 ? 'text-dark-green' : 'text-dark-green'}`}>
                               {otherUser.name}
                             </h3>
-                            <span className="text-[13px] text-gray-text">
+                            <span className={`text-[13px] ${conversation.unreadCount > 0 ? 'text-dark-green font-medium' : 'text-gray-text'}`}>
                               {conversation.lastMessageAt ? formatTime(conversation.lastMessageAt) : ''}
                             </span>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <p className="text-[14px] text-gray-text truncate">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className={`text-[14px] truncate flex-1 ${conversation.unreadCount > 0 ? 'text-dark-green font-semibold' : 'text-gray-text'}`}>
                               {conversation.lastMessage || 'No messages yet'}
                             </p>
                             {conversation.unreadCount > 0 && (
-                              <Circle className="w-2 h-2 fill-green text-green" />
+                              <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 bg-light-green rounded-full flex items-center justify-center">
+                                <span className="text-[11px] text-white font-bold">
+                                  {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                                </span>
+                              </span>
                             )}
                           </div>
                         </div>
