@@ -13,7 +13,7 @@ import Spinner from '@/components/ui/Spinner';
 
 
 export default function PreviewPage() {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const [showThankYou, setShowThankYou] = useState(false);
   const { fieldId } = router.query;
@@ -40,15 +40,15 @@ export default function PreviewPage() {
     ? (specificFieldResponse?.data || specificFieldResponse?.field || specificFieldResponse)
     : legacyField;
 
-  // Check if we're still waiting for data
-  const isQueryEnabled = !!user && user.role === 'FIELD_OWNER';
-  const isWaitingForData = isQueryEnabled && (
-    (fieldIdString && !specificFieldSuccess) || // Waiting for specific field query
-    (!fieldIdString && !legacySuccess)   // Waiting for legacy query
-  );
+  // Simplified loading state:
+  // 1. Wait for router to be ready
+  // 2. Wait for auth to finish loading
+  // 3. Wait for active queries to finish (if enabled)
+  const isLoadingQueries = fieldIdString
+    ? (fetchingSpecificField || isFetchingSpecific)
+    : (fetchingLegacyField || isFetchingLegacy);
 
-  // Include all loading states: initial load, fetching, and waiting for user/router/data
-  const isLoading = fetchingSpecificField || fetchingLegacyField || isFetchingSpecific || isFetchingLegacy || !router.isReady || !user || isWaitingForData;
+  const isLoading = !router.isReady || isAuthLoading || isLoadingQueries;
 
   // Refetch function - use appropriate one based on whether fieldId is present
   const refetch = fieldIdString ? refetchSpecific : refetchLegacy;
