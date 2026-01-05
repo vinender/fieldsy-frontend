@@ -132,7 +132,6 @@ export default function SearchResults() {
   // Default filter values - all empty to show all fields
   const defaultFilters: FilterState = {
     size: '',
-    customSize: '',
     amenities: [],
     rating: '',
     priceRange: [minPrice, maxPrice],
@@ -188,9 +187,8 @@ export default function SearchResults() {
     ...(zipCode && { zipCode }),
     // Use explicit lat/lng from search, or fallback to current location
     ...((lat && lng) ? { lat, lng } : (currentLocation && { lat: currentLocation.lat, lng: currentLocation.lng })),
-    // Handle size filter - use customSize when Custom is selected, otherwise use the preset size
-    ...(appliedFilters.size && appliedFilters.size !== 'All' && appliedFilters.size !== '' && appliedFilters.size !== 'Custom' && { size: appliedFilters.size }),
-    ...(appliedFilters.size === 'Custom' && appliedFilters.customSize && { customSize: appliedFilters.customSize }),
+    // Handle size filter
+    ...(appliedFilters.size && appliedFilters.size !== 'All' && appliedFilters.size !== '' && { size: appliedFilters.size }),
     ...(appliedFilters.amenities.length > 0 && { amenities: appliedFilters.amenities }),
     ...(appliedFilters.rating && appliedFilters.rating !== '' && { minRating: parseFloat(appliedFilters.rating.replace('+', '')) }),
     // Only apply price filter if it's not the full range

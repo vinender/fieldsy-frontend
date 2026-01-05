@@ -106,7 +106,6 @@ export interface FieldsParams {
   endTime?: string;
   numberOfDogs?: number;
   size?: string;
-  customSize?: string;
   terrainType?: string;
   fenceType?: string;
   instantBooking?: boolean;

@@ -496,11 +496,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
 
                     <button
                       onClick={(isSubmitted || isPreview) ? undefined : () => {
-                        if (!session) {
-                          router.push('/login');
-                        } else {
-                          router.push(`/fields/book-field?id=${field?._id || field?.id}`);
-                        }
+                        router.push(`/fields/book-field?id=${field?._id || field?.id}`);
                       }}
                       className={`font-semibold ${(isSubmitted || isPreview) ? 'text-green/60 cursor-default' : 'text-green hover:underline cursor-pointer'}`}
                       disabled={isSubmitted || isPreview}
@@ -809,12 +805,8 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
               {isClaimed && !isSubmitted && !isPreview && (
                 <div className="space-y-3">
                   <button
-                    onClick={isSubmitted ? undefined : () => {
-                      if (!session) {
-                        router.push('/login');
-                      } else {
-                        router.push(`/fields/book-field?id=${field?._id || field?.id}`);
-                      }
+                    onClick={() => {
+                      router.push(`/fields/book-field?id=${field?._id || field?.id}`);
                     }}
                     className="w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-[70px] hover:bg-[#2e5519] transition"
                   >

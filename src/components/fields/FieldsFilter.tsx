@@ -10,7 +10,6 @@ import { usePriceRange } from '@/hooks/queries/useFieldQueries';
 
 export interface FilterState {
   size: string;
-  customSize: string;
   amenities: string[];
   rating: string;
   priceRange: number[];
@@ -46,7 +45,6 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
   // Default filter values - use dynamic price range
   const defaultFilters: FilterState = {
     size: '',
-    customSize: '',
     amenities: [],
     rating: '',
     priceRange: [minPrice, maxPrice],
@@ -131,7 +129,6 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
   const hasActiveFilters = () => {
     return (
       tempFilters.size !== '' ||
-      tempFilters.customSize !== '' ||
       tempFilters.amenities.length > 0 ||
       tempFilters.rating !== '' ||
       tempFilters.priceRange[0] !== minPrice ||
@@ -202,71 +199,23 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
             </button>
           </div>
           {expandedSections.fieldSize && (
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2.5">
-                {mockData.filterOptions.fieldSizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setTempFilters(prev => ({
-                      ...prev,
-                      size: prev.size === size ? '' : size,
-                      customSize: '' // Clear custom size when selecting preset
-                    }))}
-                    className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
-                      tempFilters.size === size
-                        ? 'bg-[#8FB366] text-white'
-                        : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-                {/* Custom option button */}
+            <div className="flex flex-wrap gap-2.5">
+              {mockData.filterOptions.fieldSizes.map((size) => (
                 <button
+                  key={size}
                   onClick={() => setTempFilters(prev => ({
                     ...prev,
-                    size: prev.size === 'Custom' ? '' : 'Custom'
+                    size: prev.size === size ? '' : size
                   }))}
                   className={`px-3.5 py-2 rounded-[14px] text-[14px] font-medium ${
-                    tempFilters.size === 'Custom'
+                    tempFilters.size === size
                       ? 'bg-[#8FB366] text-white'
                       : 'bg-white border border-black/[0.06] text-[#8d8d8d]'
                   }`}
                 >
-                  Custom
+                  {size}
                 </button>
-              </div>
-              {/* Custom size input - shown when Custom is selected */}
-              {tempFilters.size === 'Custom' && (
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={tempFilters.customSize}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Only allow whole numbers, max 20
-                      if (value === '' || (/^\d{1,2}$/.test(value) && parseInt(value) <= 20)) {
-                        setTempFilters(prev => ({
-                          ...prev,
-                          customSize: value
-                        }));
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      // Prevent non-numeric keys
-                      if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
-                        e.preventDefault();
-                      }
-                    }}
-                    placeholder="Enter size in acres (max 20)"
-                    className="w-full px-3.5 py-2.5 pr-16 rounded-[14px] text-[14px] bg-white border border-black/[0.06] text-dark-green placeholder:text-[#8d8d8d] focus:outline-none focus:border-[#3A6B22]"
-                    min="1"
-                    max="20"
-                    maxLength={2}
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-[#8d8d8d] font-medium">acres</span>
-                </div>
-              )}
+              ))}
             </div>
           )}
         </div>
