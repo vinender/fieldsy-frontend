@@ -61,6 +61,7 @@ const BookFieldPage = () => {
   const [isCheckingConflicts, setIsCheckingConflicts] = useState(false); // Loading state for conflict check
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>('60min'); // Default to 60 minutes
   const [showLoginPrompt, setShowLoginPrompt] = useState(false); // Show login prompt for unauthorized users
+  const [skippedDates, setSkippedDates] = useState<Array<{ date: string; formattedDate: string; bookedBy: string }>>([]); // Skipped dates for recurring bookings
 
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
@@ -1527,9 +1528,20 @@ const BookFieldPage = () => {
                           });
 
                           if (response.data?.hasConflict) {
-                            toast.error(`Conflict for slot ${slot}: ${response.data.message}`, { duration: 8000 });
-                            setIsCheckingConflicts(false);
-                            return;
+                            // Show warning but allow proceeding - dates will be skipped automatically
+                            toast.warning(
+                              `${response.data.message}`,
+                              {
+                                duration: 10000,
+                                icon: '⚠️'
+                              }
+                            );
+                            // Store skipped dates to pass to payment page
+                            if (response.data.skippedDates) {
+                              setSkippedDates(response.data.skippedDates);
+                            }
+                            // Don't return - allow user to proceed with booking
+                            // Conflicting dates will be automatically skipped
                           }
                         }
                       } catch (error: any) {
@@ -1619,7 +1631,8 @@ const BookFieldPage = () => {
                           timeSlots: JSON.stringify(selectedTimeSlots),
                           repeatBooking: repeatBooking,
                           price: priceForDuration,
-                          duration: selectedDuration // Pass the selected duration (30min or 60min)
+                          duration: selectedDuration, // Pass the selected duration (30min or 60min)
+                          ...(skippedDates.length > 0 && { skippedDates: JSON.stringify(skippedDates) }) // Pass skipped dates for recurring bookings
                         }
                       });
                     }

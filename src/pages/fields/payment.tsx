@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import BackButton from '@/components/common/BackButton';
-import { Plus, Star } from 'lucide-react';
+import { Plus, Star, AlertTriangle } from 'lucide-react';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
 import { FieldDetailsSkeleton } from '@/components/skeletons/FieldDetailsSkeleton';
@@ -26,7 +26,7 @@ const StripeCheckout = dynamic(
 
 const PaymentPage = () => {
   const router = useRouter();
-  const { field_id, numberOfDogs: dogsFromQuery, date, timeSlots: timeSlotsQuery, repeatBooking, price: priceFromQuery, duration: durationFromQuery } = router.query;
+  const { field_id, numberOfDogs: dogsFromQuery, date, timeSlots: timeSlotsQuery, repeatBooking, price: priceFromQuery, duration: durationFromQuery, skippedDates: skippedDatesQuery } = router.query;
 
   // Parse duration from query (default to 60min if not provided)
   const bookingDuration = (durationFromQuery as string) || '60min';
@@ -51,6 +51,16 @@ const PaymentPage = () => {
       return [timeSlotsQuery as string];
     }
   }, [timeSlotsQuery]);
+
+  // Parse skipped dates from query (for recurring bookings with conflicts)
+  const skippedDates: Array<{ date: string; formattedDate: string; bookedBy: string }> = React.useMemo(() => {
+    if (!skippedDatesQuery) return [];
+    try {
+      return JSON.parse(skippedDatesQuery as string);
+    } catch {
+      return [];
+    }
+  }, [skippedDatesQuery]);
 
   // Get cancellation window from settings
   const cancellationWindowHours = useCancellationWindow();
@@ -474,6 +484,30 @@ const PaymentPage = () => {
                             </span>
                           ))}
                         </div>
+
+                        {/* Skipped Dates Warning - Inside booking details for recurring bookings with conflicts */}
+                        {skippedDates.length > 0 && repeatBooking && repeatBooking !== 'none' && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3">
+                            <div className="flex items-start gap-2">
+                              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="text-xs sm:text-sm text-amber-700 font-medium mb-2">
+                                  {skippedDates.length} date{skippedDates.length > 1 ? 's' : ''} will be skipped due to existing bookings:
+                                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {skippedDates.map((skipped, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium"
+                                    >
+                                      {skipped.formattedDate}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
