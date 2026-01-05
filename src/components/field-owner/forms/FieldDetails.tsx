@@ -167,12 +167,12 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
             </div>
           </div>
 
-          {/* Field Size - Dropdown and Custom Input side by side */}
+          {/* Field Size - Dropdown with Custom option */}
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
               Field Size <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <CustomSelect
                 name="fieldSize"
                 value={formData.fieldSize}
@@ -180,45 +180,53 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   setFormData((prev: any) => ({
                     ...prev,
                     fieldSize: value,
+                    // Clear custom field size if not selecting Custom
+                    customFieldSize: value === 'Custom' ? prev.customFieldSize : '',
                   }));
                 }}
                 placeholder="Select size"
-                options={fieldSizeOptions}
+                options={[...fieldSizeOptions, { value: 'Custom', label: 'Custom' }]}
               />
-              <div className="relative">
-                <Input
-                  type="number"
-                  name="customFieldSize"
-                  value={formData.customFieldSize || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Only allow whole numbers (no decimals), max 5 digits
-                    if (value === '' || (/^\d{1,5}$/.test(value))) {
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        customFieldSize: value,
-                      }));
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    // Prevent 'e', 'E', '-', '+', '.' keys (only allow whole numbers)
-                    if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
-                      e.preventDefault();
-                    }
-                  }}
-                  onInput={(e) => {
-                    // Extra protection: remove any non-digit characters and limit to 5 digits
-                    const input = e.target as HTMLInputElement;
-                    input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
-                  }}
-                  maxLength={5}
-                  placeholder="Custom Field Size"
-                  className="py-3 pr-16"
-                  min="1"
-                  step="1"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">acres</span>
-              </div>
+              {/* Show custom input only when Custom is selected */}
+              {formData.fieldSize === 'Custom' && (
+                <div className="relative">
+                  <Input
+                    type="number"
+                    name="customFieldSize"
+                    value={formData.customFieldSize || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow whole numbers (no decimals), max 20
+                      if (value === '' || (/^\d{1,2}$/.test(value) && parseInt(value) <= 20)) {
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          customFieldSize: value,
+                        }));
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Prevent 'e', 'E', '-', '+', '.' keys (only allow whole numbers)
+                      if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+' || e.key === '.') {
+                        e.preventDefault();
+                      }
+                    }}
+                    onInput={(e) => {
+                      // Extra protection: remove any non-digit characters and limit to max 20
+                      const input = e.target as HTMLInputElement;
+                      let value = input.value.replace(/[^0-9]/g, '');
+                      if (parseInt(value) > 20) value = '20';
+                      input.value = value;
+                    }}
+                    maxLength={2}
+                    placeholder="Enter custom field size (max 20)"
+                    className="py-3 pr-16"
+                    min="1"
+                    max="20"
+                    step="1"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">acres</span>
+                </div>
+              )}
             </div>
             {validationErrors.fieldSize && (
               <p className="text-red-500 text-sm mt-1">{validationErrors.fieldSize}</p>
