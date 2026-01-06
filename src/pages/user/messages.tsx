@@ -257,6 +257,11 @@ const MessagesPage = () => {
 
     return () => {
       disconnectMessageSocket();
+      // Clear state when leaving the page to avoid stale data on return
+      setSelectedConversation(null);
+      setMessages([]);
+      messageIdsSetRef.current.clear();
+      processingMessagesRef.current.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status]);
@@ -740,15 +745,12 @@ const MessagesPage = () => {
       markConversationAsRead(conversation.id);
     }
 
-    // Only clear messages if switching to a DIFFERENT conversation
-    if (!isSameConversation) {
-      console.log('[Messages] Switching to new conversation, clearing messages');
-      messageIdsSetRef.current.clear();
-      processingMessagesRef.current.clear();
-      setMessages([]); // Clear messages for new conversation
-    } else {
-      console.log('[Messages] Re-selecting same conversation, keeping messages');
-    }
+    // Always clear messages and fetch fresh when selecting a conversation
+    // This fixes the issue where stale messages remain after navigating away and back
+    console.log('[Messages] Clearing messages and fetching fresh');
+    messageIdsSetRef.current.clear();
+    processingMessagesRef.current.clear();
+    setMessages([]); // Always clear messages to ensure fresh fetch
 
     // Show mobile chat view
     setShowMobileChat(true);
@@ -757,33 +759,22 @@ const MessagesPage = () => {
     setIsBlocked(false);
     setBlockMessage('');
 
-    // Join conversation and load messages if:
-    // 1. Switching to a different conversation, OR
-    // 2. Same conversation but messages aren't loaded yet
-    const needsToLoadMessages = !isSameConversation || currentMessageCount === 0;
-    console.log('[Messages] needsToLoadMessages:', needsToLoadMessages, '(isSameConversation:', isSameConversation, ', messageCount:', currentMessageCount, ')');
-
-    if (needsToLoadMessages) {
-      if (isMessageSocketConnected && joinConversation) {
-        console.log('[Messages] Joining conversation via socket');
-        joinConversation(conversation.id);
-      } else {
-        console.log('[Messages] Socket not connected, will retry');
-        // Retry joining after a short delay
-        setTimeout(() => {
-          if (isMessageSocketConnected && joinConversation) {
-            joinConversation(conversation.id);
-          } else {
-            // Fallback to REST API if socket not connected
-            loadMessages(conversation.id);
-          }
-        }, 500);
-      }
+    // Always fetch messages fresh to avoid stale data issues
+    console.log('[Messages] Joining conversation and fetching messages');
+    if (isMessageSocketConnected && joinConversation) {
+      console.log('[Messages] Joining conversation via socket');
+      joinConversation(conversation.id);
     } else {
-      console.log('[Messages] Same conversation with messages already loaded, skipping join');
-      setIsLoadingMessages(false); // Not loading since we kept messages
-      // Scroll immediately for same conversation
-      requestAnimationFrame(scrollToBottom);
+      console.log('[Messages] Socket not connected, will retry');
+      // Retry joining after a short delay
+      setTimeout(() => {
+        if (isMessageSocketConnected && joinConversation) {
+          joinConversation(conversation.id);
+        } else {
+          // Fallback to REST API if socket not connected
+          loadMessages(conversation.id);
+        }
+      }, 500);
     }
   };
 
