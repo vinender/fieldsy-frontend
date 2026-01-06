@@ -572,7 +572,7 @@ const BookingHistoryPage = () => {
   const BookingCard = ({ booking }: { booking: Booking }) => {
     const [showCancelSubModal, setShowCancelSubModal] = useState(false);
     const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
-
+    console.log(';; fullBooking', booking);
     // Use backend-provided calculated values (for mobile app compatibility)
     const isCancellable = booking.isCancellable ?? false;
     const isReschedulable = booking.isReschedulable ?? false;

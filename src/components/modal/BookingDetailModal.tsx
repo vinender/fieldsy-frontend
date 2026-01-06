@@ -54,7 +54,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   // API returns { success: true, data: {...booking...} }
   // Show modal content immediately with passed booking data, update when API data arrives
   const fullBooking = bookingDetails?.data || booking;
-
+  console.log(';; fullBooking', fullBooking);
   // Only show loading spinner if we don't have any booking data at all
   const isLoading = isLoadingDetails && !booking;
 
@@ -416,6 +416,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                   </h3>
                   <div className="bg-white border border-black/6 rounded-lg sm:rounded-[14px] p-3 sm:p-4">
                     <div className="space-y-2 sm:space-y-3">
+
                       {/* Field Size */}
                       {field?.size && (
                         <div className="flex items-center justify-between py-2 sm:py-3 ">
