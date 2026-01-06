@@ -121,6 +121,12 @@ const MessagesPage = () => {
     disconnect: disconnectMessageSocket
   } = useMessageSocket();
 
+  // Ref to track current connection status for use in closures
+  const isMessageSocketConnectedRef = useRef(isMessageSocketConnected);
+  useEffect(() => {
+    isMessageSocketConnectedRef.current = isMessageSocketConnected;
+  }, [isMessageSocketConnected]);
+
 
   const { decrementUnreadCount, markConversationAsRead } = useChat();
 
@@ -760,22 +766,28 @@ const MessagesPage = () => {
     setBlockMessage('');
 
     // Always fetch messages fresh to avoid stale data issues
+    // Wait for socket connection with retries
     console.log('[Messages] Joining conversation and fetching messages');
-    if (isMessageSocketConnected && joinConversation) {
-      console.log('[Messages] Joining conversation via socket');
-      joinConversation(conversation.id);
-    } else {
-      console.log('[Messages] Socket not connected, will retry');
-      // Retry joining after a short delay
-      setTimeout(() => {
-        if (isMessageSocketConnected && joinConversation) {
-          joinConversation(conversation.id);
-        } else {
-          // Fallback to REST API if socket not connected
-          loadMessages(conversation.id);
-        }
-      }, 500);
-    }
+
+    const attemptJoin = (attempt: number = 1, maxAttempts: number = 8) => {
+      // Use ref to get current connection status (not stale closure value)
+      if (isMessageSocketConnectedRef.current && joinConversation) {
+        console.log('[Messages] Socket connected, joining conversation via socket');
+        joinConversation(conversation.id);
+      } else if (attempt < maxAttempts) {
+        console.log(`[Messages] Socket not connected, retrying... (attempt ${attempt}/${maxAttempts})`);
+        // Retry with increasing delay
+        setTimeout(() => {
+          attemptJoin(attempt + 1, maxAttempts);
+        }, 300 * attempt); // 300ms, 600ms, 900ms, etc.
+      } else {
+        console.log('[Messages] Socket connection failed after retries, falling back to REST');
+        // Fallback to REST API if socket not connected after retries
+        loadMessages(conversation.id);
+      }
+    };
+
+    attemptJoin();
   };
 
   const handleBackToList = () => {
@@ -906,8 +918,8 @@ const MessagesPage = () => {
     // Scroll to bottom immediately with requestAnimationFrame
     requestAnimationFrame(scrollToBottom);
 
-    // Always send via socket only - no REST API fallback
-    if (isMessageSocketConnected && sendMessageViaSocket) {
+    // Helper function to actually send the message
+    const doSendMessage = () => {
       console.log('[Messages] Sending message via socket with correlation ID:', correlationId);
 
       // Send message with ACK callback
@@ -976,18 +988,39 @@ const MessagesPage = () => {
           ? { ...conv, lastMessage: content, lastMessageAt: new Date().toISOString() }
           : conv
       ));
-    } else {
-      // Socket not connected - remove optimistic message and show error
-      safelyUpdateMessages(prev => prev.filter(m => m.id !== correlationId));
-      setNewMessageIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(correlationId);
-        return newSet;
-      });
-      toast.error('Connection lost. Please wait a moment and try again.');
+    };
 
-      // Restore the message input so user doesn't lose their message
-      setMessageInput(content);
+    // Send via socket - if not connected, wait briefly for connection
+    // Use ref to get current connection status
+    if (isMessageSocketConnectedRef.current && sendMessageViaSocket) {
+      doSendMessage();
+    } else {
+      // Socket not connected yet - wait briefly for it to connect
+      console.log('[Messages] Socket not connected, waiting for connection...');
+      let attempts = 0;
+      const maxAttempts = 10; // Try for up to 2.5 seconds (10 * 250ms)
+
+      const tryConnect = setInterval(() => {
+        attempts++;
+        // Use ref to get current connection status (not stale closure value)
+        if (isMessageSocketConnectedRef.current && sendMessageViaSocket) {
+          clearInterval(tryConnect);
+          doSendMessage();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(tryConnect);
+          // Failed to connect - remove optimistic message and show error
+          console.error('[Messages] Failed to connect after waiting');
+          safelyUpdateMessages(prev => prev.filter(m => m.id !== correlationId));
+          setNewMessageIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(correlationId);
+            return newSet;
+          });
+          toast.error('Connection lost. Please wait a moment and try again.');
+          // Restore the message input so user doesn't lose their message
+          setMessageInput(content);
+        }
+      }, 250);
     }
   }, [messageInput, selectedConversation, isBlocked, currentUserId, session, isMessageSocketConnected, sendMessageViaSocket, emitTyping, safelyUpdateMessages]);
 
