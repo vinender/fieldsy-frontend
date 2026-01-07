@@ -90,13 +90,40 @@ export default function FieldDetailsDisplay({
     { label: 'Opening Hours', value: formattedOpeningHours },
   ];
 
-  const fieldImages = field?.images && field.images.length > 0 ? getImageUrls(field.images) : [
-    'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop'
+  // Filter out placeholder images from field images
+  // WordPress URLs are now considered valid images
+  const getValidImages = (images: string[]): string[] => {
+    return images.filter((img: string) => {
+      if (!img) return false;
+      const lowerImg = img.toLowerCase();
+
+      // Skip placeholder images
+      if (lowerImg.includes('placeholder') || lowerImg.includes('/fields/field')) {
+        return false;
+      }
+
+      // Must be a proper URL (starts with http)
+      if (!lowerImg.startsWith('http')) {
+        return false;
+      }
+
+      return true;
+    });
+  };
+
+  const validImages = field?.images && field.images.length > 0
+    ? getValidImages(getImageUrls(field.images))
+    : [];
+
+  // Track if we're using placeholder images
+  const hasRealImages = validImages.length > 0;
+
+  // Use 4 placeholder images if no valid images
+  const fieldImages = hasRealImages ? validImages : [
+    '/placeholder-field.jpg',
+    '/placeholder-field.jpg',
+    '/placeholder-field.jpg',
+    '/placeholder-field.jpg'
   ];
 
   const mapImage = '/field-details/map.svg';
@@ -162,9 +189,15 @@ export default function FieldDetailsDisplay({
                     <button
                       key={index}
                       type="button"
-                      className="aspect-square rounded-lg overflow-hidden group relative"
-                      onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
-                      aria-label={`Open image ${index + 1}`}
+                      className={`aspect-square rounded-lg overflow-hidden group relative ${hasRealImages ? 'cursor-pointer' : 'cursor-default'}`}
+                      onClick={() => {
+                        // Only open lightbox if we have real images
+                        if (hasRealImages) {
+                          setCurrentImageIndex(index);
+                          setLightboxOpen(true);
+                        }
+                      }}
+                      aria-label={hasRealImages ? `Open image ${index + 1}` : `Placeholder image ${index + 1}`}
                     >
                       {/* Skeleton loader */}
                       {!isImageLoaded && (
@@ -172,9 +205,9 @@ export default function FieldDetailsDisplay({
                       )}
                       <img
                         src={img}
-                        alt={`Field view ${index + 1}`}
+                        alt={hasRealImages ? `Field view ${index + 1}` : `Placeholder ${index + 1}`}
                         onLoad={() => setImagesLoaded(prev => ({ ...prev, [index]: true }))}
-                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${!isImageLoaded ? 'opacity-0' : 'opacity-100'}`}
+                        className={`w-full h-full object-cover ${hasRealImages ? 'group-hover:scale-105' : ''} transition-transform duration-300 ${!isImageLoaded ? 'opacity-0' : 'opacity-100'}`}
                       />
                     </button>
                   );

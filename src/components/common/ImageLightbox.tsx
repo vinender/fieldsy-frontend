@@ -114,13 +114,12 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="max-w-[95vw] sm:max-w-5xl p-0 overflow-visible border-none rounded-2xl">
-        {/* Custom close button - Half inside, half outside at top right */}
-        <DialogClose className="absolute -right-4 -top-4 sm:-right-2 sm:-top-2 z-50 w-10 h-10 rounded-full outline-none bg-white flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors focus:outline-none ">
-          <X className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
-
-        <div className="flex flex-col relative w-full border-[10px] rounded-[20px] border-white aspect-video bg-black flex items-center justify-center">
+        <div className="flex flex-col relative w-full border-[10px] rounded-[20px] border-white aspect-video bg-black items-center justify-center">
+          {/* Custom close button - Positioned inside container then translated out to avoid Chrome clipping */}
+          <DialogClose className="absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 z-[60] w-10 h-10 rounded-full outline-none bg-white flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors focus:outline-none">
+            <X className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
           {/* Main image */}
           <div className="relative w-full h-[80vh] flex items-center justify-center">
             {/* Loading spinner */}

@@ -64,6 +64,27 @@ export function FieldCard({
   // Use new price fields if available, fallback to legacy price
   const displayPrice = price30min || price || 0
 
+  // Check if image is valid (not null, not empty, not placeholder)
+  // WordPress URLs are now considered valid images
+  const isValidImage = (img: string | null | undefined): boolean => {
+    if (!img || img === 'null') return false;
+    const lowerImg = img.toLowerCase();
+
+    // Placeholder images should be treated as no image
+    if (lowerImg.includes('placeholder') || lowerImg.includes('/fields/field')) {
+      return false;
+    }
+
+    // Must be a proper URL (starts with http)
+    if (!lowerImg.startsWith('http')) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const hasValidImage = isValidImage(image);
+
   const isExpanded = variant === 'expanded'
   const router = useRouter()
   const { data: session } = useSession()
@@ -174,12 +195,23 @@ export function FieldCard({
 
             <div className="relative mb-4 ">
             <div className={`relative w-full ${imageAspect} overflow-hidden ${imageRoundness}`}>
-              <LazyImage
-                src={getImageUrl(image)}
-                alt={name}
-                className="absolute inset-0 w-full h-full object-cover"
-                placeholder="/placeholder-field.jpg"
-              />
+              {hasValidImage ? (
+                <LazyImage
+                  src={getImageUrl(image)}
+                  alt={name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  placeholder="/placeholder-field.jpg"
+                />
+              ) : (
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                  <div className="text-center text-green-700/60">
+                    <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs font-medium">No image</span>
+                  </div>
+                </div>
+              )}
             </div>
 
               <button
@@ -268,12 +300,23 @@ export function FieldCard({
         </div>
 
         <div className={`relative ${imageHeight} mx-3 mb-3 ${imageRoundness} overflow-hidden`}>
-          <LazyImage
-            src={getImageUrl(image)}
-            alt={name}
-            className="w-full h-full object-cover"
-            placeholder="/placeholder-field.jpg"
-          />
+          {hasValidImage ? (
+            <LazyImage
+              src={getImageUrl(image)}
+              alt={name}
+              className="w-full h-full object-cover"
+              placeholder="/placeholder-field.jpg"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+              <div className="text-center text-green-700/60">
+                <svg className="w-10 h-10 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-[10px] font-medium">No image</span>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={handleToggleFavorite}

@@ -123,7 +123,7 @@ export default function SavedFieldsPage() {
                     location={field.city ? `${field.city}, ${field.state || ''}` : 'Location'}
                     rating={field.averageRating || 4.5}
                     amenities={field.amenities || []}
-                    image={field.images?.[0] || 'https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=400&h=300&fit=crop'}
+                    image={field.images?.[0] || ''}
                     owner={field.owner?.name || 'Field Owner'}
                     variant="expanded"
                     isLiked={likedFields.includes(field.id)}

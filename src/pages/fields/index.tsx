@@ -545,7 +545,7 @@ export default function SearchResults() {
                           distance: field.distanceDisplay, // Pre-calculated distance from API
                           rating: field.rating || 0,
                           amenities: field.amenities || [],
-                          image: field.image || '/fields/field1.jpg', // Single image from API
+                          image: field.image || '', // Single image from API, empty string if no image
                           owner: field.owner || 'Field Owner',
                           ownerJoined: 'March 2025',
                           isClaimed: field.isClaimed !== undefined ? field.isClaimed : true,
