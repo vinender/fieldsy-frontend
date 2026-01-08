@@ -241,7 +241,7 @@ const FieldsFilter: React.FC<FieldsFilterProps> = ({
                   <div key={i} className="px-3.5 py-2 rounded-[14px] bg-gray-200 animate-pulse w-24 h-9"></div>
                 ))
               ) : (
-                amenitiesList.slice(0, 6).map((amenity) => {
+                amenitiesList.map((amenity) => {
                   const isSelected = tempFilters.amenities.includes(amenity.name);
                   return (
                     <button

@@ -543,7 +543,7 @@ export default function SearchResults() {
                           price: field.price,
                           price30min: field.price30min,
                           price1hr: field.price1hr,
-                          location: field.locationDisplay || `${field.location?.city}, ${field.location?.state}`,
+                          location: field.locationDisplay || field.location?.formatted_address || field.address || [field.location?.city, field.location?.state].filter(Boolean).join(', ') || 'Location not available',
                           distance: field.distanceDisplay, // Pre-calculated distance from API
                           rating: field.rating || 0,
                           amenities: field.amenities || [],

@@ -332,6 +332,36 @@ const PaymentPage = () => {
             <BackButton size="lg" showLabel={true} label='Payment' variant="cream" />
           </div>
 
+          {/* Prominent Skipped Dates Warning Banner - Top of Page */}
+          {skippedDates.length > 0 && repeatBooking && repeatBooking !== 'none' && (
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 sm:p-5 mb-6 sm:mb-8 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="bg-amber-100 rounded-full p-2 flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-amber-800 font-bold text-sm sm:text-base mb-1">
+                    Important: Some Dates Will Be Skipped
+                  </h3>
+                  <p className="text-amber-700 text-xs sm:text-sm mb-3">
+                    Your recurring booking has {skippedDates.length} date{skippedDates.length > 1 ? 's' : ''} that conflict with existing reservations.
+                    These dates will be automatically skipped, and you will only be charged for available dates.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {skippedDates.map((skipped, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs sm:text-sm font-medium border border-amber-200"
+                      >
+                        {skipped.formattedDate}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-[408px,1fr] gap-6 sm:gap-8 lg:gap-10">
 
