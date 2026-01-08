@@ -64,7 +64,7 @@ export function FieldCard({
   // Use new price fields if available, fallback to legacy price
   const displayPrice = price30min || price || 0
 
-  // Check if image is valid (not null, not empty, not placeholder)
+  // Check if image is valid (not null, not empty, not placeholder, not map image)
   // WordPress URLs are now considered valid images
   const isValidImage = (img: string | null | undefined): boolean => {
     if (!img || img === 'null') return false;
@@ -77,6 +77,24 @@ export function FieldCard({
 
     // Must be a proper URL (starts with http)
     if (!lowerImg.startsWith('http')) {
+      return false;
+    }
+
+    // Filter out Google Maps images
+    if (lowerImg.includes('maps.google') ||
+        lowerImg.includes('google.com/maps') ||
+        lowerImg.includes('maps.googleapis.com') ||
+        lowerImg.includes('staticmap') ||
+        lowerImg.includes('street_view') ||
+        lowerImg.includes('streetview')) {
+      return false;
+    }
+
+    // Filter out other map service images
+    if (lowerImg.includes('openstreetmap') ||
+        lowerImg.includes('mapbox') ||
+        lowerImg.includes('tile.openstreetmap') ||
+        lowerImg.includes('api.mapbox')) {
       return false;
     }
 
