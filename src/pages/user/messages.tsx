@@ -169,6 +169,11 @@ const MessagesPage = () => {
   const [floatingDate, setFloatingDate] = useState<string>('');
   const [showFloatingDate, setShowFloatingDate] = useState(false);
 
+  // Pagination state for infinite scroll
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [oldestMessageId, setOldestMessageId] = useState<string | null>(null);
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -418,7 +423,13 @@ const MessagesPage = () => {
     const handleMessageHistory = (data: {
       conversationId: string;
       messages: Message[];
-      total: number;
+      pagination?: {
+        total: number;
+        limit: number;
+        hasMore: boolean;
+        oldestMessageId: string | null;
+      };
+      total?: number; // Legacy support
     }) => {
       if (selectedConversationRef.current && data.conversationId === selectedConversationRef.current.id) {
         // Don't replace if we have optimistic messages (correlation IDs) - merge instead
@@ -439,6 +450,16 @@ const MessagesPage = () => {
           safelyUpdateMessages(() => data.messages || []);
         }
         setIsLoadingMessages(false);
+
+        // Update pagination state
+        if (data.pagination) {
+          setHasMoreMessages(data.pagination.hasMore);
+          setOldestMessageId(data.pagination.oldestMessageId);
+        } else {
+          // Legacy support - no pagination info means no more messages
+          setHasMoreMessages(false);
+          setOldestMessageId(null);
+        }
 
         // Mark unread messages as read
         const unreadMessageIds = data.messages
@@ -457,27 +478,30 @@ const MessagesPage = () => {
     const handleMessagesFetched = (data: {
       conversationId: string;
       messages: Message[];
-      pagination: any;
+      pagination?: {
+        limit: number;
+        hasMore: boolean;
+        oldestMessageId: string | null;
+      };
     }) => {
       if (selectedConversationRef.current && data.conversationId === selectedConversationRef.current.id) {
-        // Don't replace if we have optimistic messages (correlation IDs) - merge instead
-        const hasOptimisticMessages = messagesRef.current.some(m => m.id.startsWith('msg-'));
+        // This is for loading MORE (older) messages - prepend to existing
+        setIsLoadingMoreMessages(false);
 
-        if (hasOptimisticMessages) {
-          // Keep optimistic messages and merge with new ones
-          safelyUpdateMessages(prev => {
-            const optimistic = prev.filter(m => m.id.startsWith('msg-'));
-            const newMessages = data.messages || [];
-            // Combine optimistic with new messages (avoiding duplicates)
-            return [...newMessages, ...optimistic];
-          });
-        } else {
-          // No optimistic messages, safe to replace
-          messageIdsSetRef.current.clear();
-          processingMessagesRef.current.clear();
-          safelyUpdateMessages(() => data.messages || []);
+        // Update pagination state
+        if (data.pagination) {
+          setHasMoreMessages(data.pagination.hasMore);
+          setOldestMessageId(data.pagination.oldestMessageId);
         }
-        setIsLoadingMessages(false);
+
+        // Prepend older messages to the beginning
+        safelyUpdateMessages(prev => {
+          const newMessages = data.messages || [];
+          // Filter out any duplicates
+          const existingIds = new Set(prev.map(m => m.id));
+          const uniqueNewMessages = newMessages.filter(m => !existingIds.has(m.id));
+          return [...uniqueNewMessages, ...prev];
+        });
 
         // Mark unread messages as read
         const unreadMessageIds = data.messages
@@ -487,7 +511,6 @@ const MessagesPage = () => {
         if (unreadMessageIds.length > 0) {
           markAsRead(unreadMessageIds);
           decrementUnreadCount(unreadMessageIds.length);
-          // Mark the conversation as read (no more unread messages in this chat)
           markConversationAsRead(data.conversationId);
         }
       }
@@ -757,6 +780,12 @@ const MessagesPage = () => {
     messageIdsSetRef.current.clear();
     processingMessagesRef.current.clear();
     setMessages([]); // Always clear messages to ensure fresh fetch
+
+    // Reset pagination state
+    setHasMoreMessages(false);
+    setOldestMessageId(null);
+    setIsLoadingMoreMessages(false);
+    lastScrollTopRef.current = 0; // Reset scroll tracking
 
     // Show mobile chat view
     setShowMobileChat(true);
@@ -1083,13 +1112,73 @@ const MessagesPage = () => {
     return groups;
   }, []);
 
-  // Handle scroll to update sticky date header
+  // Track last scroll position to detect scroll direction
+  const lastScrollTopRef = useRef<number>(0);
+  const loadMoreDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load more (older) messages - called when user scrolls to top
+  const loadMoreMessages = useCallback(() => {
+    if (!selectedConversation || !hasMoreMessages || isLoadingMoreMessages || !oldestMessageId) {
+      return;
+    }
+
+    console.log('[Messages] Loading more messages before:', oldestMessageId);
+    setIsLoadingMoreMessages(true);
+
+    // Save current scroll position to restore after loading
+    const container = messagesContainerRef.current;
+    const scrollHeightBefore = container?.scrollHeight || 0;
+
+    // Emit fetch-messages with cursor
+    if (messageSocket && isMessageSocketConnected) {
+      messageSocket.emit('fetch-messages', {
+        conversationId: selectedConversation.id,
+        beforeMessageId: oldestMessageId,
+        limit: 30
+      });
+
+      // Restore scroll position after messages are prepended
+      setTimeout(() => {
+        if (container) {
+          const scrollHeightAfter = container.scrollHeight;
+          const heightDiff = scrollHeightAfter - scrollHeightBefore;
+          container.scrollTop = heightDiff;
+        }
+      }, 100);
+    } else {
+      setIsLoadingMoreMessages(false);
+    }
+  }, [selectedConversation, hasMoreMessages, isLoadingMoreMessages, oldestMessageId, messageSocket, isMessageSocketConnected]);
+
+  // Handle scroll to update sticky date header AND trigger infinite scroll
   const handleScroll = useCallback(() => {
     if (!messagesContainerRef.current) return;
 
     const container = messagesContainerRef.current;
     const scrollTop = container.scrollTop;
     const containerTop = container.getBoundingClientRect().top;
+
+    // Detect if user is scrolling UP (towards older messages)
+    const isScrollingUp = scrollTop < lastScrollTopRef.current;
+    lastScrollTopRef.current = scrollTop;
+
+    // Only trigger load more when:
+    // 1. User is scrolling UP
+    // 2. Scroll position is near top (< 50px)
+    // 3. Has more messages to load
+    // 4. Not already loading
+    // 5. Debounced to prevent rapid calls
+    if (isScrollingUp && scrollTop < 50 && hasMoreMessages && !isLoadingMoreMessages) {
+      // Clear any existing debounce
+      if (loadMoreDebounceRef.current) {
+        clearTimeout(loadMoreDebounceRef.current);
+      }
+
+      // Debounce the load more call
+      loadMoreDebounceRef.current = setTimeout(() => {
+        loadMoreMessages();
+      }, 200);
+    }
 
     // Find all date sections
     const dateSections = container.querySelectorAll('[data-date-section]');
@@ -1114,19 +1203,32 @@ const MessagesPage = () => {
       setFloatingDate(currentDate);
       setShowFloatingDate(true);
     }
-  }, []);
+  }, [hasMoreMessages, isLoadingMoreMessages, loadMoreMessages]);
 
   // Add scroll event listener
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
 
-    // Initial call to set the date
-    handleScroll();
+    // Don't call handleScroll on initial mount - it would trigger load more
+    // Only set the date header without triggering load
+    const dateSections = container.querySelectorAll('[data-date-section]');
+    if (dateSections.length > 0) {
+      const firstSection = dateSections[0] as HTMLElement;
+      const sectionDate = firstSection.dataset.dateSection || '';
+      if (sectionDate) {
+        setFloatingDate(sectionDate);
+        setShowFloatingDate(true);
+      }
+    }
 
     container.addEventListener('scroll', handleScroll);
     return () => {
       container.removeEventListener('scroll', handleScroll);
+      // Clean up debounce timer
+      if (loadMoreDebounceRef.current) {
+        clearTimeout(loadMoreDebounceRef.current);
+      }
     };
   }, [handleScroll, messages]); // Re-run when messages change
 
@@ -1396,6 +1498,25 @@ const MessagesPage = () => {
                       </div>
                     ) : (
                       <>
+                        {/* Loading indicator for older messages */}
+                        {isLoadingMoreMessages && (
+                          <div className="flex justify-center py-4">
+                            <Spinner size="sm" />
+                          </div>
+                        )}
+
+                        {/* Load more button (optional - scroll also triggers this) */}
+                        {hasMoreMessages && !isLoadingMoreMessages && (
+                          <div className="flex justify-center py-2 mb-4">
+                            <button
+                              onClick={loadMoreMessages}
+                              className="text-sm text-gray-500 hover:text-gray-700 underline"
+                            >
+                              Load older messages
+                            </button>
+                          </div>
+                        )}
+
                         {Object.entries(groupMessagesByDate(messages)).map(([dateKey, dateMessages], index) => {
                           const sectionDate = formatChatDateHeader(dateMessages[0].createdAt);
                           // Hide inline date divider if sticky header is showing the same date
