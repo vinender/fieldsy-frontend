@@ -187,14 +187,70 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile, credentials }) {
       // Handle social login with role
       if (account?.provider === 'google' || account?.provider === 'apple') {
-        console.log('==================== APPLE/GOOGLE SIGN-IN START ====================');
-        console.log('[NextAuth] Provider:', account.provider);
-        console.log('[NextAuth] User Email:', user.email);
-        console.log('[NextAuth] User Name:', user.name);
-        console.log('[NextAuth] User Image:', user.image);
-        console.log('[NextAuth] Provider Account ID:', account.providerAccountId);
-        console.log('[NextAuth] Account Object:', JSON.stringify(account, null, 2));
-        console.log('================================================================');
+        const timestamp = new Date().toISOString();
+        console.log('\n');
+        console.log('╔══════════════════════════════════════════════════════════════════╗');
+        console.log(`║   NEXTAUTH ${account.provider.toUpperCase()} SIGN-IN - WEB FLOW                      ║`);
+        console.log('╚══════════════════════════════════════════════════════════════════╝');
+        console.log(`[${timestamp}] Sign-in callback triggered`);
+
+        console.log('\n📋 USER OBJECT:');
+        console.log('─────────────────────────────────────');
+        console.log('   Email:', user.email);
+        console.log('   Name:', user.name);
+        console.log('   Image:', user.image);
+        console.log('   ID:', user.id);
+
+        console.log('\n📋 ACCOUNT OBJECT:');
+        console.log('─────────────────────────────────────');
+        console.log('   Provider:', account.provider);
+        console.log('   Provider Account ID:', account.providerAccountId);
+        console.log('   Type:', account.type);
+        console.log('   Access Token present:', !!account.access_token);
+        console.log('   ID Token present:', !!account.id_token);
+        console.log('   Refresh Token present:', !!account.refresh_token);
+        console.log('   Expires At:', account.expires_at);
+        console.log('   Token Type:', account.token_type);
+        console.log('   Scope:', account.scope);
+
+        if (account.provider === 'apple') {
+          console.log('\n🍎 APPLE-SPECIFIC DEBUG:');
+          console.log('─────────────────────────────────────');
+          console.log('   ID Token (first 100 chars):', account.id_token?.substring(0, 100));
+          console.log('   ID Token (last 50 chars):', account.id_token?.substring(account.id_token.length - 50));
+          console.log('   ID Token length:', account.id_token?.length || 0);
+
+          // Decode the Apple ID token to inspect (without verification)
+          if (account.id_token) {
+            try {
+              const base64Payload = account.id_token.split('.')[1];
+              const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf-8'));
+              console.log('   Decoded Token Payload:');
+              console.log('      - Issuer (iss):', payload.iss);
+              console.log('      - Subject (sub):', payload.sub);
+              console.log('      - Audience (aud):', payload.aud);
+              console.log('      - Email:', payload.email);
+              console.log('      - Email Verified:', payload.email_verified);
+              console.log('      - Is Private Email:', payload.is_private_email);
+              console.log('      - Issued At:', payload.iat, `(${new Date(payload.iat * 1000).toISOString()})`);
+              console.log('      - Expires At:', payload.exp, `(${new Date(payload.exp * 1000).toISOString()})`);
+              const now = Math.floor(Date.now() / 1000);
+              const isExpired = now > payload.exp;
+              console.log('      - Current Time:', now);
+              console.log('      - Token Expired:', isExpired ? '⚠️ YES' : '✅ NO');
+            } catch (e) {
+              console.log('   ⚠️ Could not decode ID token:', e);
+            }
+          } else {
+            console.log('   ⚠️ NO ID TOKEN RECEIVED FROM APPLE!');
+            console.log('   This is required for server-side verification.');
+          }
+        }
+
+        console.log('\n📋 PROFILE OBJECT:');
+        console.log('─────────────────────────────────────');
+        console.log(JSON.stringify(profile, null, 2));
+        console.log('═══════════════════════════════════════════════════════════════');
 
         try {
           // Try to get the pending role for this social login
