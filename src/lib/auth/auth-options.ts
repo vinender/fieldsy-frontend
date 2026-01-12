@@ -57,6 +57,14 @@ export const authOptions: NextAuthOptions = {
         AppleProvider({
           clientId: process.env.APPLE_CLIENT_ID,
           clientSecret: process.env.APPLE_CLIENT_SECRET,
+          authorization: {
+            params: {
+              scope: 'name email',
+              response_mode: 'form_post',
+            },
+          },
+          // Apple requires specific checks configuration
+          checks: ['state'], // Use state instead of PKCE for Apple
         }),
       ]
       : []),
@@ -398,23 +406,30 @@ export const authOptions: NextAuthOptions = {
 
 
   // Cookie configuration for production
+  // IMPORTANT: Apple OAuth requires specific cookie settings for cross-site redirects
   cookies: {
     pkceCodeVerifier: {
-      name: 'next-auth.pkce.code_verifier',
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.pkce.code_verifier'
+        : 'next-auth.pkce.code_verifier',
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 15, // 15 minutes
       },
     },
     state: {
-      name: 'next-auth.state',
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.state'
+        : 'next-auth.state',
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 15, // 15 minutes
       },
     },
     sessionToken: {
