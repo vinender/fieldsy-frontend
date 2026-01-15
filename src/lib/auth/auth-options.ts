@@ -52,6 +52,7 @@ export const authOptions: NextAuthOptions = {
       ]
       : []),
     // Only add Apple provider if credentials are available
+    // Note: APPLE_CLIENT_SECRET should be a pre-generated JWT (use backend/generate-apple-client-secret.js)
     ...(process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
       ? [
         AppleProvider({
@@ -63,8 +64,8 @@ export const authOptions: NextAuthOptions = {
               response_mode: 'form_post',
             },
           },
-          // Apple requires specific checks configuration
-          checks: ['state'], // Use state instead of PKCE for Apple
+          // Use 'state' instead of PKCE - Apple's form_post doesn't work well with PKCE cookies
+          checks: ['state'],
         }),
       ]
       : []),

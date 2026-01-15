@@ -14,6 +14,7 @@ import { LocationProvider } from "@/contexts/LocationContext"
 import { ChatProvider } from "@/contexts/ChatContext"
 import { MessageSocketProvider } from "@/contexts/MessageSocketContext"
 import { NavigationLoaderProvider } from "@/contexts/NavigationLoaderContext"
+import { PushNotificationProvider } from "@/components/providers/PushNotificationProvider"
 import { SessionMonitor } from "@/components/auth/SessionMonitor"
 import NavigationLoader from "@/components/common/NavigationLoader"
 import ErrorBoundary from "@/components/common/ErrorBoundary"
@@ -174,20 +175,22 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
     <LocationProvider>
       <NotificationProvider>
         <SocketProvider>
-          <ChatProvider>
-            {isAuthenticated ? (
-              <NavigationLoaderProvider>
-                <SessionMonitor />
-                <NavigationLoader />
-                {pageContent}
-              </NavigationLoaderProvider>
-            ) : (
-              <NavigationLoaderProvider>
-                <NavigationLoader />
-                {pageContent}
-              </NavigationLoaderProvider>
-            )}
-          </ChatProvider>
+          <PushNotificationProvider>
+            <ChatProvider>
+              {isAuthenticated ? (
+                <NavigationLoaderProvider>
+                  <SessionMonitor />
+                  <NavigationLoader />
+                  {pageContent}
+                </NavigationLoaderProvider>
+              ) : (
+                <NavigationLoaderProvider>
+                  <NavigationLoader />
+                  {pageContent}
+                </NavigationLoaderProvider>
+              )}
+            </ChatProvider>
+          </PushNotificationProvider>
         </SocketProvider>
       </NotificationProvider>
     </LocationProvider>
