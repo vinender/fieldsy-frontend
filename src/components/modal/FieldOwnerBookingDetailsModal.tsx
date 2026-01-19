@@ -108,6 +108,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
     let platformFee = 0;
     let fieldOwnerEarnings = 0;
 
+    // Calculate Net (Amount after Stripe fee) - Basis for commission
+    const amountAfterStripeFee = toCurrency(subTotal - stripeFee);
+
     if (storedPlatformFee !== undefined && storedFieldOwnerEarnings !== undefined) {
       // Use values provided by backend (especially for completed/locked bookings)
       platformFee = storedPlatformFee;
@@ -119,13 +122,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
 
       // Field owner gets the remainder minus Stripe fee (Owner pays transaction costs)
       // Owner Amount = Gross - PlatformCommission - StripeFee
-      // We use the rounded values for subtraction to ensure accurate "ledger" math
       const rawEarnings = subTotal - platformFee - stripeFee;
       fieldOwnerEarnings = Math.max(0, toCurrency(rawEarnings));
     }
-
-    // Calculate Net (Amount after Stripe fee) - For display only
-    const amountAfterStripeFee = toCurrency(subTotal - stripeFee);
 
     return {
       subTotal,
