@@ -11,7 +11,7 @@ interface Booking {
   userAvatar?: string;
   time: string;
   orderId: string;
-  status: 'confirmed' | 'completed' | 'cancelled' | 'refunded';
+  status: 'confirmed' | 'completed' | 'cancelled' | 'refunded' | 'pending';
   frequency?: string;
   dogs: number;
   amount: number;
@@ -96,8 +96,14 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
     const isCustomCommission = booking?.isCustomCommission || false;
     const defaultCommissionRate = booking?.defaultCommissionRate || 20;
 
+    // Helper ensures we deal with money properly (2 decimals)
+    const toCurrency = (amount: number) => {
+      return Math.round((amount + Number.EPSILON) * 100) / 100;
+    };
+
     // Calculate Stripe fee (1.5% + £0.20) - Informational only
-    const stripeFee = subTotal > 0 ? Math.round(((subTotal * 0.015) + 0.20) * 100) / 100 : 0;
+    // We calculate this with precision then round to 2 decimals
+    const stripeFee = subTotal > 0 ? toCurrency((subTotal * 0.015) + 0.20) : 0;
 
     let platformFee = 0;
     let fieldOwnerEarnings = 0;
@@ -109,15 +115,17 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
     } else {
       // Dynamic calculation for pending/future bookings
       // Platform fee is calculated on GROSS booking amount
-      platformFee = Math.round((subTotal * platformCommissionRate) / 100 * 100) / 100;
+      platformFee = toCurrency((subTotal * platformCommissionRate) / 100);
+
       // Field owner gets the remainder minus Stripe fee (Owner pays transaction costs)
       // Owner Amount = Gross - PlatformCommission - StripeFee
+      // We use the rounded values for subtraction to ensure accurate "ledger" math
       const rawEarnings = subTotal - platformFee - stripeFee;
-      fieldOwnerEarnings = Math.max(0, Math.round((rawEarnings + Number.EPSILON) * 100) / 100);
+      fieldOwnerEarnings = Math.max(0, toCurrency(rawEarnings));
     }
 
     // Calculate Net (Amount after Stripe fee) - For display only
-    const amountAfterStripeFee = Math.round((subTotal - stripeFee) * 100) / 100;
+    const amountAfterStripeFee = toCurrency(subTotal - stripeFee);
 
     return {
       subTotal,
@@ -255,9 +263,10 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                         value={
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${booking.status === 'confirmed' ? 'bg-[#3A6B22] text-white' :
                             booking.status === 'completed' ? 'bg-green text-white' :
-                              booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
-                                  'bg-gray-100 text-gray-700'
+                              booking.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                  booking.status === 'refunded' ? 'bg-orange-100 text-orange-700' :
+                                    'bg-gray-100 text-gray-700'
                             }`}>
                             {booking.status?.toUpperCase()}
                           </span>

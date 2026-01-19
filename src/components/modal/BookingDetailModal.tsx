@@ -422,7 +422,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             <div className="flex items-center justify-between py-2 sm:py-3 ">
                               <span className="text-xs sm:text-[16px] text-[#192215] opacity-70">Field Size</span>
                               <span className="text-xs sm:text-[16px] font-medium text-[#192215]">
-                                {field.size} acres
+                                {field.customFieldSize || field.size} acres
                               </span>
                             </div>
                           )}
@@ -513,8 +513,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             }}
                             disabled={!isReschedulable}
                             className={`w-full sm:flex-1 h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${isReschedulable
-                                ? 'bg-[#e8f5ff] border-2 border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
-                                : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                              ? 'bg-[#e8f5ff] border-2 border-[#0066cc] text-[#0066cc] hover:bg-[#d4ecff] cursor-pointer'
+                              : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                               }`}
                             title={!isReschedulable ? (
                               hasCompletedBookingInSubscription
@@ -539,8 +539,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                               }}
                               disabled={fullBooking?.subscription?.status === 'canceled' || fullBooking?.subscription?.cancelAtPeriodEnd}
                               className={`w-full sm:flex-1 h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${fullBooking?.subscription?.status === 'canceled' || fullBooking?.subscription?.cancelAtPeriodEnd
-                                  ? 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
-                                  : 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
+                                ? 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                                : 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
                                 }`}
                               title={
                                 fullBooking?.subscription?.status === 'canceled' || fullBooking?.subscription?.cancelAtPeriodEnd
@@ -562,8 +562,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                               }}
                               disabled={!isCancellable}
                               className={`w-full sm:flex-1 h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${isCancellable
-                                  ? 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
-                                  : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                                ? 'bg-white border-2 border-blood-red text-blood-red hover:bg-blood-red-50 cursor-pointer'
+                                : 'bg-gray-100 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
                                 }`}
                               title={!isCancellable ? `Cannot cancel within ${cancellationWindowHours} hours of booking (${hoursUntilBooking} hours remaining)` : 'Cancel booking'}
                             >
@@ -597,8 +597,8 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                         }}
                         disabled={fullBooking?.hasReview}
                         className={`w-full h-12 sm:h-14 rounded-full text-sm sm:text-[16px] font-semibold transition-colors ${fullBooking?.hasReview
-                            ? 'bg-gray-100 border-2 border-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-[#3a6b22] text-white hover:bg-[#2d5319] cursor-pointer'
+                          ? 'bg-gray-100 border-2 border-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-[#3a6b22] text-white hover:bg-[#2d5319] cursor-pointer'
                           }`}
                       >
                         {fullBooking?.hasReview ? 'Reviewed' : 'Write a Review'}

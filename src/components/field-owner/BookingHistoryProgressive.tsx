@@ -4,10 +4,10 @@ import dynamic from 'next/dynamic';
 import { useFieldOwnerBookings, useRecentBookings, type Booking } from '@/hooks/queries/useFieldOwnerBookings';
 import FieldOwnerBookingDetailsModal from '@/components/modal/FieldOwnerBookingDetailsModal';
 import { Check } from 'lucide-react';
-import { 
-  StatsCardsSkeleton, 
+import {
+  StatsCardsSkeleton,
   BookingTabsSkeleton,
-  EarningsDashboardSkeleton 
+  EarningsDashboardSkeleton
 } from '@/components/skeletons/FieldOwnerSkeletons';
 
 // Lazy load the earnings dashboard
@@ -31,9 +31,9 @@ const StatsCards = ({ stats }: { stats: any }) => {
           </div>
           <div className="w-10 h-10 bg-green/10 rounded-full flex items-center justify-center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#3a6b22" strokeWidth="2"/>
-              <path d="M3 9H21" stroke="#3a6b22" strokeWidth="2"/>
-              <path d="M9 3V21" stroke="#3a6b22" strokeWidth="2"/>
+              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#3a6b22" strokeWidth="2" />
+              <path d="M3 9H21" stroke="#3a6b22" strokeWidth="2" />
+              <path d="M9 3V21" stroke="#3a6b22" strokeWidth="2" />
             </svg>
           </div>
         </div>
@@ -47,8 +47,8 @@ const StatsCards = ({ stats }: { stats: any }) => {
           </div>
           <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="#2563EB" strokeWidth="2"/>
-              <path d="M12 6V12L16 14" stroke="#2563EB" strokeWidth="2" strokeLinecap="round"/>
+              <circle cx="12" cy="12" r="10" stroke="#2563EB" strokeWidth="2" />
+              <path d="M12 6V12L16 14" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
         </div>
@@ -69,13 +69,13 @@ const StatsCards = ({ stats }: { stats: any }) => {
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-text text-sm">Revenue Today</p>
-            <p className="text-2xl font-bold text-dark-green mt-1">£{stats?.revenueToday || 0}</p>
+            <p className="text-gray-text text-sm">Total Earnings</p>
+            <p className="text-2xl font-bold text-dark-green mt-1">£{stats?.totalEarnings || 0}</p>
           </div>
           <div className="w-10 h-10 bg-green/10 rounded-full flex items-center justify-center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2V22" stroke="#3a6b22" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="#3a6b22" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M12 2V22" stroke="#3a6b22" strokeWidth="2" strokeLinecap="round" />
+              <path d="M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="#3a6b22" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
         </div>
@@ -100,11 +100,10 @@ const BookingTabs = ({ activeTab, onTabChange, data, isLoading, currentPage, onP
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id as any)}
-            className={`px-6 py-4 font-medium text-sm transition-colors ${
-              activeTab === tab.id
-                ? 'text-green border-b-2 border-green'
-                : 'text-gray-text hover:text-dark-green'
-            }`}
+            className={`px-6 py-4 font-medium text-sm transition-colors ${activeTab === tab.id
+              ? 'text-green border-b-2 border-green'
+              : 'text-gray-text hover:text-dark-green'
+              }`}
           >
             {tab.label}
           </button>
@@ -118,7 +117,7 @@ const BookingTabs = ({ activeTab, onTabChange, data, isLoading, currentPage, onP
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M9 11H15M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M9 11H15M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
             <p className="text-gray-500">No bookings found</p>
@@ -136,12 +135,11 @@ const BookingTabs = ({ activeTab, onTabChange, data, isLoading, currentPage, onP
                     <h3 className="font-semibold text-dark-green">
                       {booking.userName || 'Guest User'}
                     </h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      booking.status === 'CONFIRMED' ? 'bg-green/10 text-green' :
-                      booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                      booking.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${booking.status === 'confirmed' ? 'bg-green/10 text-green' :
+                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                        booking.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
+                      }`}>
                       {booking.status}
                     </span>
                   </div>
@@ -160,16 +158,16 @@ const BookingTabs = ({ activeTab, onTabChange, data, isLoading, currentPage, onP
                     <div>
                       <p className="text-gray-text">Time</p>
                       <p className="text-dark-green font-medium">
-                        {booking.startTime} - {booking.endTime}
+                        {booking.time}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-text">Dogs</p>
-                      <p className="text-dark-green font-medium">{booking.numberOfDogs}</p>
+                      <p className="text-dark-green font-medium">{booking.dogs}</p>
                     </div>
                     <div>
                       <p className="text-gray-text">Amount</p>
-                      <p className="text-dark-green font-medium">£{booking.totalAmount}</p>
+                      <p className="text-dark-green font-medium">£{booking.amount}</p>
                     </div>
                   </div>
                 </div>
@@ -185,11 +183,11 @@ const BookingTabs = ({ activeTab, onTabChange, data, isLoading, currentPage, onP
                 >
                   Previous
                 </button>
-                
+
                 <span className="px-4 py-1 text-sm text-gray-600">
                   Page {currentPage} of {totalPages}
                 </span>
-                
+
                 <button
                   onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
@@ -216,12 +214,12 @@ export default function BookingHistoryProgressive() {
   const [statsLoaded, setStatsLoaded] = useState(false);
 
   // Use React Query hook
-  const { 
-    data, 
-    isLoading, 
-    error, 
+  const {
+    data,
+    isLoading,
+    error,
     isError,
-    refetch 
+    refetch
   } = useFieldOwnerBookings(activeTab, currentPage);
 
   // Fetch recent bookings for overview
@@ -233,24 +231,24 @@ export default function BookingHistoryProgressive() {
   // Calculate stats from data
   const stats = React.useMemo(() => {
     if (!data) return null;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const todayBookings = data.bookings?.filter((b: Booking) => {
       const bookingDate = new Date(b.date);
       bookingDate.setHours(0, 0, 0, 0);
       return bookingDate.getTime() === today.getTime();
     }) || [];
 
-    const completedToday = todayBookings.filter((b: Booking) => b.status === 'COMPLETED').length;
-    const revenueToday = todayBookings.reduce((sum: number, b: Booking) => sum + b.totalAmount, 0);
+    const completedToday = todayBookings.filter((b: Booking) => b.status === 'completed').length;
+    const revenueToday = todayBookings.reduce((sum: number, b: Booking) => sum + b.amount, 0);
 
     return {
-      totalBookings: data.summary?.total || 0,
-      activeBookings: data.summary?.confirmed || 0,
+      totalBookings: data.stats?.totalBookings || 0,
+      activeBookings: 0,
       completedToday,
-      revenueToday: revenueToday.toFixed(2)
+      totalEarnings: data.stats?.totalEarnings || 0
     };
   }, [data]);
 
@@ -297,12 +295,12 @@ export default function BookingHistoryProgressive() {
               className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:shadow-md transition-shadow"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
             <h1 className="text-2xl lg:text-3xl font-bold text-dark-green">Field Dashboard</h1>
           </div>
-          
+
           <button
             onClick={handleAddField}
             className="px-4 py-2 bg-green text-white rounded-full hover:bg-green/90 transition-colors text-sm font-medium"
@@ -315,21 +313,19 @@ export default function BookingHistoryProgressive() {
         <div className="flex gap-4 mb-6">
           <button
             onClick={() => setActiveView('bookings')}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${
-              activeView === 'bookings'
-                ? 'bg-green text-white'
-                : 'bg-white text-gray-text hover:bg-gray-50'
-            }`}
+            className={`px-6 py-2 rounded-full font-medium transition-all ${activeView === 'bookings'
+              ? 'bg-green text-white'
+              : 'bg-white text-gray-text hover:bg-gray-50'
+              }`}
           >
             Bookings Overview
           </button>
           <button
             onClick={() => setActiveView('earnings')}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${
-              activeView === 'earnings'
-                ? 'bg-green text-white'
-                : 'bg-white text-gray-text hover:bg-gray-50'
-            }`}
+            className={`px-6 py-2 rounded-full font-medium transition-all ${activeView === 'earnings'
+              ? 'bg-green text-white'
+              : 'bg-white text-gray-text hover:bg-gray-50'
+              }`}
           >
             Earnings Dashboard
           </button>
@@ -370,7 +366,6 @@ export default function BookingHistoryProgressive() {
               setSelectedBooking(null);
             }}
             booking={selectedBooking}
-            onRefresh={refetch}
           />
         )}
       </div>

@@ -20,7 +20,7 @@ export interface Booking {
   userPhone?: string;
   time: string;
   orderId: string;
-  status: 'confirmed' | 'completed' | 'cancelled' | 'refunded';
+  status: 'confirmed' | 'completed' | 'cancelled' | 'refunded' | 'pending';
   frequency?: string;
   dogs: number;
   amount: number;
@@ -137,7 +137,7 @@ export function useRecentBookings(
 
 // Hook to get the appropriate booking query based on tab
 export function useFieldOwnerBookings(
-  tab: 'today' | 'upcoming' | 'completed',
+  tab: 'today' | 'upcoming' | 'previous',
   page: number = 1,
   options?: Omit<UseQueryOptions<BookingResponse, Error>, 'queryKey' | 'queryFn'>
 ) {
@@ -146,7 +146,7 @@ export function useFieldOwnerBookings(
       return useTodayBookings(page, options);
     case 'upcoming':
       return useUpcomingBookings(page, options);
-    case 'completed':
+    case 'previous':
       return useCompletedBookings(page, options);
     default:
       return useTodayBookings(page, options);

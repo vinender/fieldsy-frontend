@@ -82,19 +82,19 @@ export function FieldCard({
 
     // Filter out Google Maps images
     if (lowerImg.includes('maps.google') ||
-        lowerImg.includes('google.com/maps') ||
-        lowerImg.includes('maps.googleapis.com') ||
-        lowerImg.includes('staticmap') ||
-        lowerImg.includes('street_view') ||
-        lowerImg.includes('streetview')) {
+      lowerImg.includes('google.com/maps') ||
+      lowerImg.includes('maps.googleapis.com') ||
+      lowerImg.includes('staticmap') ||
+      lowerImg.includes('street_view') ||
+      lowerImg.includes('streetview')) {
       return false;
     }
 
     // Filter out other map service images
     if (lowerImg.includes('openstreetmap') ||
-        lowerImg.includes('mapbox') ||
-        lowerImg.includes('tile.openstreetmap') ||
-        lowerImg.includes('api.mapbox')) {
+      lowerImg.includes('mapbox') ||
+      lowerImg.includes('tile.openstreetmap') ||
+      lowerImg.includes('api.mapbox')) {
       return false;
     }
 
@@ -212,25 +212,25 @@ export function FieldCard({
             </div>
 
             <div className="relative mb-4 ">
-            <div className={`relative w-full ${imageAspect} overflow-hidden ${imageRoundness}`}>
-              {hasValidImage ? (
-                <LazyImage
-                  src={getImageUrl(image)}
-                  alt={name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  placeholder="/placeholder-field.jpg"
-                />
-              ) : (
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                  <div className="text-center text-green-700/60">
-                    <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-xs font-medium">No image</span>
+              <div className={`relative w-full ${imageAspect} overflow-hidden ${imageRoundness}`}>
+                {hasValidImage ? (
+                  <LazyImage
+                    src={getImageUrl(image)}
+                    alt={name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    placeholder="/placeholder-field.jpg"
+                  />
+                ) : (
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                    <div className="text-center text-green-700/60">
+                      <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-xs font-medium">No image</span>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
               <button
                 onClick={handleToggleFavorite}
@@ -253,7 +253,7 @@ export function FieldCard({
                 </span>
               </div>
               <div className="bg-dark-green rounded-md px-1.5 py-1 flex items-center gap-0.5">
-                <img src='/star.svg' className="w-3.5 h-3.5 fill-yellow text-yellow" fill="white" />
+                <img src='/star.svg' className="w-3.5 h-3.5 fill-yellow text-yellow" />
                 <span className="text-[12px] font-semibold text-white">{formatRating(rating).toFixed(1)}</span>
               </div>
             </div>
@@ -282,12 +282,14 @@ export function FieldCard({
               >
                 View Details
               </button>
-              <button
-                onClick={handleBookNowClick}
-                className="flex-1 bg-[#3A6B22] text-white text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#2d5a1b] transition-colors"
-              >
-                Book Now
-              </button>
+              {isClaimed && (
+                <button
+                  onClick={handleBookNowClick}
+                  className="flex-1 bg-[#3A6B22] text-white text-[14px] font-semibold py-2 rounded-[70px] hover:bg-[#2d5a1b] transition-colors"
+                >
+                  Book Now
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -384,12 +386,14 @@ export function FieldCard({
             >
               View Details
             </button>
-            <button
-              onClick={handleBookNowClick}
-              className="flex-1 py-1.5 text-[10px] font-medium text-white bg-[#3a6b22] rounded-full hover:bg-[#2a5b12] transition-colors"
-            >
-              {isClaimed ? 'Book Now' : 'Claim Field'}
-            </button>
+            {isClaimed && (
+              <button
+                onClick={handleBookNowClick}
+                className="flex-1 py-1.5 text-[10px] font-medium text-white bg-[#3a6b22] rounded-full hover:bg-[#2a5b12] transition-colors"
+              >
+                Book Now
+              </button>
+            )}
           </div>
 
         </div>
