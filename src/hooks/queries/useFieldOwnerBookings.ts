@@ -137,7 +137,7 @@ export function useRecentBookings(
 
 // Hook to get the appropriate booking query based on tab
 export function useFieldOwnerBookings(
-  tab: 'today' | 'upcoming' | 'previous',
+  tab: 'today' | 'upcoming' | 'previous' | 'completed',
   page: number = 1,
   options?: Omit<UseQueryOptions<BookingResponse, Error>, 'queryKey' | 'queryFn'>
 ) {
@@ -147,6 +147,7 @@ export function useFieldOwnerBookings(
     case 'upcoming':
       return useUpcomingBookings(page, options);
     case 'previous':
+    case 'completed':
       return useCompletedBookings(page, options);
     default:
       return useTodayBookings(page, options);
