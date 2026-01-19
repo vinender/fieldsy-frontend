@@ -13,7 +13,8 @@ export default function TestAmenities() {
 
     try {
       console.log('Testing direct axios call...');
-      const response = await axios.get('http://localhost:5000/api/amenities?activeOnly=true', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await axios.get(`${apiUrl}/amenities?activeOnly=true`, {
         headers: {
           'Accept': 'application/json',
         }

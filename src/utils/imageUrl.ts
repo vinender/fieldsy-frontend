@@ -19,7 +19,7 @@ export function getImageUrl(url: string | null | undefined): string {
   }
 
   // Otherwise, prepend the S3 base URL
-  const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://fieldsy.s3.us-east-1.amazonaws.com';
+  const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com';
   
   // Ensure no double slashes
   const cleanPath = url.startsWith('/') ? url.slice(1) : url;
@@ -64,7 +64,7 @@ export function getImageUrls(urls: (string | null | undefined)[]): string[] {
  * Check if URL is an S3 URL
  */
 export function isS3Url(url: string): boolean {
-  const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://fieldsy.s3.us-east-1.amazonaws.com';
+  const s3BaseUrl = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com';
   return url.includes('s3.amazonaws.com') || url.includes(s3BaseUrl);
 }
 

@@ -103,8 +103,8 @@ export default function TestS3Upload() {
           <div className="mt-8 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold text-sm text-gray-700 mb-2">S3 Configuration Status:</h3>
             <ul className="text-xs space-y-1 text-gray-600">
-              <li>✅ AWS_REGION: {process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1'}</li>
-              <li>✅ AWS_S3_BUCKET: fieldsy</li>
+              <li>✅ AWS_REGION: {process.env.NEXT_PUBLIC_AWS_REGION || 'eu-west-2'}</li>
+              <li>✅ AWS_S3_BUCKET: fieldsy-s3</li>
               <li>✅ AWS Credentials: Configured in .env.local</li>
               <li>✅ Upload endpoint: /api/upload/presigned-url</li>
             </ul>

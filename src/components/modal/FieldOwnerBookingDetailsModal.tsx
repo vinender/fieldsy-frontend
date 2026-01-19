@@ -110,8 +110,10 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
       // Dynamic calculation for pending/future bookings
       // Platform fee is calculated on GROSS booking amount
       platformFee = Math.round((subTotal * platformCommissionRate) / 100 * 100) / 100;
-      // Field owner gets the remainder (Stripe fee is covered by Platform Commission)
-      fieldOwnerEarnings = Math.round((subTotal - platformFee) * 100) / 100;
+      // Field owner gets the remainder minus Stripe fee (Owner pays transaction costs)
+      // Owner Amount = Gross - PlatformCommission - StripeFee
+      const rawEarnings = subTotal - platformFee - stripeFee;
+      fieldOwnerEarnings = Math.max(0, Math.round((rawEarnings + Number.EPSILON) * 100) / 100);
     }
 
     // Calculate Net (Amount after Stripe fee) - For display only

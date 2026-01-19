@@ -15,8 +15,11 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // Use INTERNAL_API_URL for server-side calls (Docker), fallback to NEXT_PUBLIC_API_URL
+    const apiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
     // Forward the request to the backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/chat/unread-count`, {
+    const response = await fetch(`${apiUrl}/chat/unread-count`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,

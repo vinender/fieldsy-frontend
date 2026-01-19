@@ -56,13 +56,13 @@ export default async function handler(
       idToken,
     };
 
+    // Use INTERNAL_API_URL for server-side calls (Docker), fallback to NEXT_PUBLIC_API_URL
+    const backendUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
     console.log('\n📤 Sending payload to backend:');
-    console.log('Backend URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api');
+    console.log('Backend URL:', backendUrl);
     console.log('Endpoint: /auth/social-login');
     console.log('Payload:', JSON.stringify(backendPayload, null, 2));
-
-    // Call backend API to handle social login
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
     const response = await fetch(`${backendUrl}/auth/social-login`, {
       method: 'POST',
       headers: {

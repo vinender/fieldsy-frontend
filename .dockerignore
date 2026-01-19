@@ -5,10 +5,11 @@ node_modules
 .next
 out
 
-# Environment files
+# Environment files (keep .env.production for build)
 .env
 .env.local
 .env.*.local
+!.env.production
 
 # IDE
 .vscode
