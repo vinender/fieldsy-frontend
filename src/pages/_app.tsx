@@ -14,6 +14,7 @@ import { LocationProvider } from "@/contexts/LocationContext"
 import { ChatProvider } from "@/contexts/ChatContext"
 import { MessageSocketProvider } from "@/contexts/MessageSocketContext"
 import { NavigationLoaderProvider } from "@/contexts/NavigationLoaderContext"
+import { usePublicSettings } from "@/hooks/usePublicSettings"
 import { PushNotificationProvider } from "@/components/providers/PushNotificationProvider"
 import { SessionMonitor } from "@/components/auth/SessionMonitor"
 import NavigationLoader from "@/components/common/NavigationLoader"
@@ -116,7 +117,12 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
   }, [])
 
   const isAuthenticated = !!user
-  const hideLayout = noLayoutPaths.some(path => router.pathname.startsWith(path))
+
+  // Site Live Check for Layout
+  const { data: settings } = usePublicSettings();
+  const isComingSoonMode = settings && settings.isLive === false && !settings.hasAccess;
+
+  const hideLayout = noLayoutPaths.some(path => router.pathname.startsWith(path)) || isComingSoonMode;
   const isMessagesPage = router.pathname === '/user/messages'
 
   const pageContent = (
