@@ -52,8 +52,13 @@ const FAQSectionWithImage = dynamic(
 
 
 
+import { usePublicSettings } from "@/hooks/usePublicSettings"
+import { BypassComingSoon } from "@/components/landing/BypassComingSoon"
+
 export default function HomePage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { data: settings, isLoading: settingsLoading } = usePublicSettings();
+
   // Use session hook to get authentication status and session data (includes role)
   const { data: session, status } = useSession({
     required: false,
@@ -68,12 +73,12 @@ export default function HomePage() {
   useEffect(() => {
     // Only track performance in development
     if (process.env.NODE_ENV === 'development') {
-      if (!isLoading && status !== 'loading') {
+      if (!authLoading && status !== 'loading') {
         PerformanceMonitor.mark('home-page-interactive');
         PerformanceMonitor.measure('Time to Interactive', 'home-page-start', 'home-page-interactive');
       }
     }
-  }, [isLoading, status])
+  }, [authLoading, status])
 
 
   useEffect(() => {
@@ -91,8 +96,14 @@ export default function HomePage() {
   }, [])
 
   // Show loading skeleton when loading data
-  if (isLoading || status === 'loading') {
+  if (authLoading || status === 'loading' || settingsLoading) {
     return <HomePageSkeleton />
+  }
+
+  // Check if site is live
+  // If not live and user doesn't have access, show Coming Soon with bypass
+  if (settings && settings.isLive === false && !settings.hasAccess) {
+    return <BypassComingSoon />
   }
 
   // When authenticated but role not yet loaded, show skeleton to avoid flash of wrong content
@@ -107,151 +118,151 @@ export default function HomePage() {
 
 
   // Otherwise show the regular landing page
-  
+
   return (
     <PageWithSkeleton skeleton={<HeroSkeleton />}>
       <div className="bg-light-cream overflow-x-hidden">
         {/* Hero Section - Always loaded immediately as it's above the fold */}
         <HeroSection />
 
-      {/* About Section - Lazy loaded with fade animation */}
-      <LazySection 
-        minHeight="500px"
-        rootMargin="50px"
-        animation="slideUp"
-        delay={50}
-        fallback={
-          <div className="py-20 bg-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
-              <Skeleton className="h-12 w-64 mx-auto mb-8" />
-              <div className="grid md:grid-cols-3 gap-8">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-48 w-full rounded-2xl" />
-                ))}
-              </div>
-            </div>
-          </div>
-        }
-      >
-        <AboutSection />
-      </LazySection>
-
-      {/* How It Works Section - Lazy loaded with scale animation */}
-      <LazySection 
-        minHeight="400px"
-        rootMargin="50px"
-        animation="scale"
-        delay={100}
-        fallback={
-          <div className="py-20 bg-light-cream">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
-              <Skeleton className="h-12 w-48 mx-auto mb-8" />
-              <div className="grid md:grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-32 w-full rounded-2xl" />
-                ))}
-              </div>
-            </div>
-          </div>
-        }
-      >
-        <HowItWorksSection />
-      </LazySection>
-
-      {/* Features Section - Lazy loaded with slide animation */}
-      <LazySection 
-        minHeight="500px"
-        rootMargin="50px"
-        animation="slideUp"
-        delay={100}
-        fallback={
-          <div className="py-20 bg-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
-              <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <Skeleton className="aspect-video rounded-2xl" />
-                <div className="space-y-4">
-                  <Skeleton className="h-10 w-3/4" />
-                  <Skeleton className="h-20 w-full" />
-                </div>
-              </div>
-            </div>
-          </div>
-        }
-      >
-        <FeaturesSection />
-      </LazySection>
-
-
-      {/* Platform Section - Lazy loaded with fade animation */}
-      <LazySection 
-        minHeight="500px"
-        rootMargin="50px"
-        animation="fade"
-        delay={100}
-        fallback={
-          <div className="py-20 bg-light-cream">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
-              <Skeleton className="h-10 w-72 mx-auto mb-8" />
-              <div className="grid md:grid-cols-2 gap-8">
-                <Skeleton className="aspect-video rounded-2xl" />
-                <Skeleton className="aspect-video rounded-2xl" />
-              </div>
-            </div>
-          </div>
-        }
-      >
-        <PlatformSection />
-      </LazySection>
-
-
-      {/* Testimonials Section - Lazy loaded with scale animation */}
-      <div id="testimonials">
-        <LazySection 
-          minHeight="400px"
+        {/* About Section - Lazy loaded with fade animation */}
+        <LazySection
+          minHeight="500px"
           rootMargin="50px"
-          animation="scale"
-          delay={100}
+          animation="slideUp"
+          delay={50}
           fallback={
             <div className="py-20 bg-white">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
-                <Skeleton className="h-10 w-64 mx-auto mb-8" />
-                <div className="grid md:grid-cols-3 gap-6">
+                <Skeleton className="h-12 w-64 mx-auto mb-8" />
+                <div className="grid md:grid-cols-3 gap-8">
                   {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-64 w-full rounded-2xl" />
+                    <Skeleton key={i} className="h-48 w-full rounded-2xl" />
                   ))}
                 </div>
               </div>
             </div>
           }
         >
-          <TestimonialsSection />
+          <AboutSection />
         </LazySection>
-      </div>  
 
-      {/* FAQ Section - Lazy loaded with slide up animation */}
-      <LazySection 
-        minHeight="500px"
-        rootMargin="50px"
-        animation="slideUp"
-        delay={100}
-        fallback={
-          <div className="py-20 bg-light-cream">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
-              <Skeleton className="h-10 w-48 mx-auto mb-8" />
-              <div className="max-w-3xl mx-auto space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-24 w-full rounded-xl" />
-                ))}
+        {/* How It Works Section - Lazy loaded with scale animation */}
+        <LazySection
+          minHeight="400px"
+          rootMargin="50px"
+          animation="scale"
+          delay={100}
+          fallback={
+            <div className="py-20 bg-light-cream">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
+                <Skeleton className="h-12 w-48 mx-auto mb-8" />
+                <div className="grid md:grid-cols-4 gap-6">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        }
-      >
-        <FAQSectionWithImage />
-      </LazySection>
+          }
+        >
+          <HowItWorksSection />
+        </LazySection>
 
-      {/* Footer */}
-      {/* <Footer /> */}
+        {/* Features Section - Lazy loaded with slide animation */}
+        <LazySection
+          minHeight="500px"
+          rootMargin="50px"
+          animation="slideUp"
+          delay={100}
+          fallback={
+            <div className="py-20 bg-white">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
+                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                  <Skeleton className="aspect-video rounded-2xl" />
+                  <div className="space-y-4">
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        >
+          <FeaturesSection />
+        </LazySection>
+
+
+        {/* Platform Section - Lazy loaded with fade animation */}
+        <LazySection
+          minHeight="500px"
+          rootMargin="50px"
+          animation="fade"
+          delay={100}
+          fallback={
+            <div className="py-20 bg-light-cream">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
+                <Skeleton className="h-10 w-72 mx-auto mb-8" />
+                <div className="grid md:grid-cols-2 gap-8">
+                  <Skeleton className="aspect-video rounded-2xl" />
+                  <Skeleton className="aspect-video rounded-2xl" />
+                </div>
+              </div>
+            </div>
+          }
+        >
+          <PlatformSection />
+        </LazySection>
+
+
+        {/* Testimonials Section - Lazy loaded with scale animation */}
+        <div id="testimonials">
+          <LazySection
+            minHeight="400px"
+            rootMargin="50px"
+            animation="scale"
+            delay={100}
+            fallback={
+              <div className="py-20 bg-white">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
+                  <Skeleton className="h-10 w-64 mx-auto mb-8" />
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-64 w-full rounded-2xl" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            }
+          >
+            <TestimonialsSection />
+          </LazySection>
+        </div>
+
+        {/* FAQ Section - Lazy loaded with slide up animation */}
+        <LazySection
+          minHeight="500px"
+          rootMargin="50px"
+          animation="slideUp"
+          delay={100}
+          fallback={
+            <div className="py-20 bg-light-cream">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-20">
+                <Skeleton className="h-10 w-48 mx-auto mb-8" />
+                <div className="max-w-3xl mx-auto space-y-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          }
+        >
+          <FAQSectionWithImage />
+        </LazySection>
+
+        {/* Footer */}
+        {/* <Footer /> */}
       </div>
     </PageWithSkeleton>
   )

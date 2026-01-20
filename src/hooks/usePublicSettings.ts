@@ -10,6 +10,8 @@ interface PublicSettings {
   siteUrl: string;
   supportEmail: string;
   maintenanceMode: boolean;
+  isLive: boolean;
+  hasAccess: boolean;
   bannerText?: string;
   highlightedText?: string;
 }
