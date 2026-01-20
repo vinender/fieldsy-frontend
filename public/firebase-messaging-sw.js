@@ -31,10 +31,11 @@ if (messaging) {
   messaging.onBackgroundMessage((payload) => {
     console.log('[SW] Background message received:', payload);
 
-    const notificationTitle = payload.notification?.title || 'Fieldsy';
+    const notificationTitle = payload.notification?.title || payload.data?.title || 'Fieldsy';
     const notificationOptions = {
-      body: payload.notification?.body || 'You have a new notification',
-      icon: '/logo.svg',
+      body: payload.notification?.body || payload.data?.body || 'You have a new notification',
+      icon: payload.notification?.icon || payload.data?.senderImage || '/logo.svg',
+      image: payload.notification?.image || payload.data?.image,
       badge: '/logo-badge.png',
       tag: payload.data?.notificationId || `fieldsy-${Date.now()}`,
       data: payload.data || {},
@@ -141,7 +142,8 @@ self.addEventListener('push', (event) => {
         const title = data.notification?.title || data.data?.title || 'Fieldsy';
         const notificationOptions = {
           body: data.notification?.body || data.data?.body || 'You have a new notification',
-          icon: '/logo.svg',
+          icon: data.notification?.icon || data.data?.senderImage || '/logo.svg',
+          image: data.notification?.image || data.data?.image,
           badge: '/logo-badge.png',
           data: data.data || {},
         };
