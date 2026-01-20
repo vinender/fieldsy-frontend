@@ -35,6 +35,7 @@ export interface FieldCardProps {
   fieldLocation?: any // Can be JSON object with lat/lng or legacy lat/long fields
   latitude?: number
   longitude?: number
+  fieldId?: string
 }
 
 
@@ -59,7 +60,8 @@ export function FieldCard({
   showAmenityLimit = 4,
   fieldLocation,
   latitude,
-  longitude
+  longitude,
+  fieldId
 }: FieldCardProps) {
   // Use new price fields if available, fallback to legacy price
   const displayPrice = price30min || price || 0
@@ -178,12 +180,12 @@ export function FieldCard({
     } else {
       // Navigate directly to book-field page for all users (logged in or not)
       // Login prompt will be shown on book-field page when they click Continue
-      router.push(`/fields/book-field?id=${id}`)
+      router.push(`/fields/book-field?id=${fieldId || id}`)
     }
   }
 
   const handleCardClick = () => {
-    onViewDetails?.(id)
+    onViewDetails?.(fieldId || id)
   }
 
   const containerClasses = isExpanded

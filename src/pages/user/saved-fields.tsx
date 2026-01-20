@@ -15,45 +15,45 @@ export default function SavedFieldsPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [likedFields, setLikedFields] = useState<string[]>([]);
-  
+
   // Fetch saved fields
   const { data: savedFieldsData, isLoading, error } = useSavedFields(page, 12);
-  
+
   const savedFields = savedFieldsData?.fields || [];
   const pagination = savedFieldsData?.pagination;
-  
+
   // Initialize liked fields when data loads
   useEffect(() => {
     if (savedFields.length > 0) {
       setLikedFields(savedFields.map(field => field.id));
     }
   }, [savedFields]);
-  
+
   const handleLike = (fieldId: string) => {
     // The FieldCard component will handle the actual API call
     // This is just for optimistic UI update
-    setLikedFields(prev => 
-      prev.includes(fieldId) 
+    setLikedFields(prev =>
+      prev.includes(fieldId)
         ? prev.filter(id => id !== fieldId)
         : [...prev, fieldId]
     );
   };
-  
+
   const handleViewDetails = (fieldId: string) => {
     router.push(`/fields/${fieldId}`);
   };
-  
+
   const handleBookNow = (fieldId: string) => {
     router.push(`/fields/book-field?id=${fieldId}`);
   };
-  
+
   const handleLoadMore = () => {
     if (pagination && page < pagination.totalPages) {
       setPage(page + 1);
     }
   };
 
-  console.log(';; field price', field)
+
 
   return (
     <UserLayout requireRole="DOG_OWNER">
@@ -80,7 +80,7 @@ export default function SavedFieldsPage() {
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 We couldn&apos;t load your saved fields. Please try again later.
               </p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="px-6 py-3 bg-[#3A6B22] text-white rounded-full font-medium hover:bg-[#2e5519] transition-colors"
               >
@@ -114,27 +114,28 @@ export default function SavedFieldsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                   {savedFields.map((field) => (
                     <FieldCard
-                    key={field.id}
-                    id={field.id}
-                    name={field.name || 'Unnamed Field'}
-                    price={field.price30min || 0}
-                    price30min={field.price30min}
-                    price1hr={field.price1hr}
-                    location={field.city ? `${field.city}, ${field.state || ''}` : 'Location'}
-                    rating={field.averageRating || 4.5}
-                    amenities={field.amenities || []}
-                    image={field.images?.[0] || ''}
-                    owner={field.owner?.name || 'Field Owner'}
-                    variant="expanded"
-                    isLiked={likedFields.includes(field.id)}
-                    onLike={handleLike}
-                    onViewDetails={handleViewDetails}
-                    onBookNow={handleBookNow}
-                    // Pass location data for distance calculation
-                    fieldLocation={field.location}
-                    latitude={field.latitude}
-                    longitude={field.longitude}
-                  />
+                      key={field.id}
+                      id={field.id}
+                      name={field.name || 'Unnamed Field'}
+                      price={field.price30min || 0}
+                      price30min={field.price30min}
+                      price1hr={field.price1hr}
+                      location={field.city ? `${field.city}, ${field.state || ''}` : 'Location'}
+                      rating={field.averageRating || 4.5}
+                      amenities={field.amenities || []}
+                      image={field.images?.[0] || ''}
+                      owner={field.owner?.name || 'Field Owner'}
+                      variant="expanded"
+                      isLiked={likedFields.includes(field.id)}
+                      onLike={handleLike}
+                      onViewDetails={handleViewDetails}
+                      onBookNow={handleBookNow}
+                      // Pass location data for distance calculation
+                      fieldLocation={field.location}
+                      latitude={field.latitude}
+                      longitude={field.longitude}
+                      fieldId={field.fieldId}
+                    />
                   ))}
                 </div>
               </div>
@@ -142,7 +143,7 @@ export default function SavedFieldsPage() {
               {/* Load More */}
               {pagination && page < pagination.totalPages && (
                 <div className="text-center mt-8">
-                  <button 
+                  <button
                     onClick={handleLoadMore}
                     className="px-6 py-3 border border-gray-300 rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                   >

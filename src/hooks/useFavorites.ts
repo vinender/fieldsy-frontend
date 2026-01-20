@@ -3,8 +3,9 @@ import { useSession } from 'next-auth/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-interface FavoriteField {
+export interface FavoriteField {
   id: string;
+  fieldId?: string; // Human-readable ID
   name: string;
   description?: string;
   address?: string;
@@ -86,7 +87,7 @@ export function useFavoriteStatus(fieldId: string | undefined) {
     queryKey: ['favorite-status', fieldId],
     queryFn: async () => {
       if (!fieldId) return false;
-      
+
       const token = (session as any)?.accessToken;
       if (!token) return false;
 

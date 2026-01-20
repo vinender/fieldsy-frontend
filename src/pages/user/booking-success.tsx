@@ -68,7 +68,7 @@ const BookingSuccessPage = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Booking ID:</span>
-                      <span className="font-medium text-[#192215]">#{booking.id?.slice(-8).toUpperCase()}</span>
+                      <span className="font-medium text-[#192215]">#{booking.bookingId || booking.id?.slice(-8).toUpperCase()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Field:</span>

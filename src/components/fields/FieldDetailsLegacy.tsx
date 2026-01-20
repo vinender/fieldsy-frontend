@@ -433,7 +433,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                     createdAt: field?.joinedOn || field?.owner?.createdAt,
                     profileImage: ownerImg || field?.owner?.image
                   }}
-                  fieldId={field?._id || field?.id}
+                  fieldId={field?.fieldId || field?._id || field?.id}
                   showMessage={!isSubmitted}
                 />
               )}
@@ -441,7 +441,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
               {!isClaimed && !isSubmitted && showClaimField && (
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={isSubmitted ? undefined : () => router.push(`/fields/claim-field-form?field_id=${field?.id}`)}
+                    onClick={isSubmitted ? undefined : () => router.push(`/fields/claim-field-form?field_id=${field?.fieldId || field?.id}`)}
                     className="flex-1 w-full bg-[#3A6B22] text-white font-semibold py-4 rounded-[70px] hover:bg-[#2e5519] transition"
                   >
                     Claim This Field
@@ -529,7 +529,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
 
                     <button
                       onClick={(isSubmitted || isPreview) ? undefined : () => {
-                        router.push(`/fields/book-field?id=${field?._id || field?.id}`);
+                        router.push(`/fields/book-field?id=${field?.fieldId || field?._id || field?.id}`);
                       }}
                       className={`font-semibold ${(isSubmitted || isPreview) ? 'text-green/60 cursor-default' : 'text-green hover:underline cursor-pointer'}`}
                       disabled={isSubmitted || isPreview}

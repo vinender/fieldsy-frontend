@@ -70,6 +70,14 @@ export default function PreviewPage() {
   const submitFieldMutation = useSubmitFieldForReview({
     onSuccess: () => {
       toast.success('Field submitted successfully!');
+
+      // Clear persistence when submitted
+      if (typeof window !== 'undefined') {
+        const persistenceKey = fieldData?.id ? `field-form-${fieldData.id}` : 'field-form-new';
+        localStorage.removeItem(persistenceKey);
+        localStorage.removeItem('field-form-new');
+      }
+
       // Refetch is handled in mutationFn, data should be fresh now
       setShowThankYou(true);
     }
@@ -107,8 +115,12 @@ export default function PreviewPage() {
     }
   };
 
-  const handleBackToList = () => {
-    router.push('/field-owner/my-fields');
+  const handleBack = () => {
+    if (fieldData?.isSubmitted) {
+      router.push('/field-owner/my-fields');
+    } else {
+      handleEdit();
+    }
   };
 
   // Transform field data to match the formData structure expected by FieldPreview
@@ -194,7 +206,7 @@ export default function PreviewPage() {
         onPreviewListing={() => {
           setShowThankYou(false);
           if (fieldId) {
-            handleBackToList();
+            handleBack();
           } else {
             router.push('/field-owner/preview');
           }
@@ -210,7 +222,7 @@ export default function PreviewPage() {
         isActive={!!fieldData?.isActive}
         isClaimed={!!fieldData?.isClaimed}
         onToggleActive={handleToggleActive}
-        onBack={fieldId ? handleBackToList : undefined}
+        onBack={fieldId ? handleBack : undefined}
       />
     </UserLayout>
   );

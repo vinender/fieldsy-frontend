@@ -350,7 +350,7 @@ const BookingHistoryPage = () => {
 
           return {
             _id: booking.id,
-            fieldId: booking.fieldId,
+            fieldId: booking.field?.fieldId || booking.fieldId,
             userId: booking.userId,
             name: booking.field?.name || 'Field',
             duration: booking.field?.bookingDuration === '30min' ? '30min' : '1hr',
@@ -1180,7 +1180,7 @@ const BookingHistoryPage = () => {
                         className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors ${i === page
                           ? 'bg-[#3a6b22] text-white'
                           : 'hover:bg-white/50 text-[#192215]'
-                        }`}
+                          }`}
                       >
                         {i}
                       </button>

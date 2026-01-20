@@ -5,29 +5,23 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
 
-// Firebase configuration will be injected when the service worker is registered
-// These are placeholders that get replaced with actual values
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: 'FIREBASE_API_KEY_PLACEHOLDER',
-  authDomain: 'FIREBASE_AUTH_DOMAIN_PLACEHOLDER',
-  projectId: 'FIREBASE_PROJECT_ID_PLACEHOLDER',
-  storageBucket: 'FIREBASE_STORAGE_BUCKET_PLACEHOLDER',
-  messagingSenderId: 'FIREBASE_MESSAGING_SENDER_ID_PLACEHOLDER',
-  appId: 'FIREBASE_APP_ID_PLACEHOLDER',
+  apiKey: 'AIzaSyBRbqS6fZzHAKlzkLMLxEtBUBLnnHYnrPI',
+  authDomain: 'fieldsy-web.firebaseapp.com',
+  projectId: 'fieldsy-web',
+  storageBucket: 'fieldsy-web.firebasestorage.app',
+  messagingSenderId: '580739528563',
+  appId: '1:580739528563:web:dd92c3c9d9c22187c47706',
 };
 
 // Initialize Firebase in the service worker
-// Only initialize if we have valid config (not placeholders)
 let messaging = null;
 
 try {
-  if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('PLACEHOLDER')) {
-    firebase.initializeApp(firebaseConfig);
-    messaging = firebase.messaging();
-    console.log('[SW] Firebase initialized successfully');
-  } else {
-    console.log('[SW] Firebase config not yet available, waiting for initialization');
-  }
+  firebase.initializeApp(firebaseConfig);
+  messaging = firebase.messaging();
+  console.log('[SW] Firebase initialized successfully');
 } catch (error) {
   console.error('[SW] Firebase initialization error:', error);
 }
@@ -128,27 +122,35 @@ self.addEventListener('install', (event) => {
 
 // Handle push events directly (fallback for when Firebase messaging isn't initialized)
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push event received');
+  if (!messaging) {
+    console.log('[SW] Push event received (Fallback)');
+    if (event.data) {
+      try {
+        // Attempt to parse JSON
+        // Note: FCM raw payloads might differ, but this is a good-faith fallback
+        let data = {};
+        try {
+          data = event.data.json();
+        } catch (e) {
+          console.log('[SW] Push data text:', event.data.text());
+          return;
+        }
 
-  if (event.data) {
-    try {
-      const data = event.data.json();
-      console.log('[SW] Push data:', data);
+        console.log('[SW] Push data:', data);
 
-      // Only show notification if Firebase messaging didn't handle it
-      if (!messaging) {
-        const title = data.notification?.title || 'Fieldsy';
-        const options = {
-          body: data.notification?.body || 'You have a new notification',
+        const title = data.notification?.title || data.data?.title || 'Fieldsy';
+        const notificationOptions = {
+          body: data.notification?.body || data.data?.body || 'You have a new notification',
           icon: '/logo.svg',
           badge: '/logo-badge.png',
           data: data.data || {},
         };
 
-        event.waitUntil(self.registration.showNotification(title, options));
+        event.waitUntil(self.registration.showNotification(title, notificationOptions));
+
+      } catch (error) {
+        console.error('[SW] Error parsing push data:', error);
       }
-    } catch (error) {
-      console.error('[SW] Error parsing push data:', error);
     }
   }
 });

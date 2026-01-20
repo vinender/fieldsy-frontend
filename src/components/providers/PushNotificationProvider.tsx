@@ -16,7 +16,8 @@ interface PushNotificationProviderProps {
  * - Can be configured to show a permission prompt UI
  */
 export const PushNotificationProvider: React.FC<PushNotificationProviderProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const { permissionState, isSupported, isConfigured, requestPermission } = usePushNotifications();
   const [hasPrompted, setHasPrompted] = useState(false);
   const [swRegistered, setSwRegistered] = useState(false);
@@ -65,7 +66,6 @@ export const PushNotificationProvider: React.FC<PushNotificationProviderProps> =
   // Auto-request permission after login (optional - currently disabled)
   // Uncomment the useEffect below to automatically prompt for permission
   // after user logs in. This is disabled by default for better UX.
-  /*
   useEffect(() => {
     // Auto-request permission if user is authenticated and hasn't been prompted
     if (
@@ -84,7 +84,6 @@ export const PushNotificationProvider: React.FC<PushNotificationProviderProps> =
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, isSupported, isConfigured, permissionState, hasPrompted, requestPermission]);
-  */
 
   // Auto-register token if permission already granted
   useEffect(() => {

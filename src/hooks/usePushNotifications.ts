@@ -27,7 +27,8 @@ interface UsePushNotificationsReturn {
  * Handles permission requests, token registration, and foreground message handling
  */
 export const usePushNotifications = (): UsePushNotificationsReturn => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [permissionState, setPermissionState] = useState<PermissionState>('default');
   const [isSupported, setIsSupported] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,11 +98,11 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
           duration: 5000,
           action: data.link
             ? {
-                label: 'View',
-                onClick: () => {
-                  window.location.href = data.link;
-                },
-              }
+              label: 'View',
+              onClick: () => {
+                window.location.href = data.link;
+              },
+            }
             : undefined,
         });
       }

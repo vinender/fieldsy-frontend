@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { useOwnerField, useOwnerFields, useSaveFieldProgress } from '@/hooks';
+import { useOwnerField, useOwnerFields, useSaveFieldProgress, useFieldDetails } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
 import { FieldOwnerDashboardSkeleton } from '@/components/skeletons/FieldOwnerDashboardSkeleton';
 import BackButton from '@/components/common/BackButton';
@@ -207,15 +207,63 @@ export default function FieldOwnerDashboard({
 
   const urlParams = typeof window !== 'undefined' ? getQueryFromPath() : { edit: false, addNew: false, fieldId: null };
 
-  // Wait for router to be ready before reading query params
-  // Combine props, router.query, and window location params for robustness
-  const isAddNewMode = initialAddNewMode || (router.isReady && router.query.addNew === 'true') || urlParams.addNew;
-  const isEditMode = initialEditMode || (router.isReady && router.query.edit === 'true') || urlParams.edit;
   // Ensure we use the prop fieldId if provided, effectively prioritizing parent state
   const editFieldId = initialFieldId || (router.query.fieldId as string) || urlParams.fieldId || undefined;
+
+  // Mode detection
+  const isAddNewMode = (initialAddNewMode || (router.isReady && router.query.addNew === 'true') || urlParams.addNew) && !editFieldId;
+  const isEditMode = initialEditMode || (router.isReady && router.query.edit === 'true') || urlParams.edit || !!editFieldId;
   const stepFromQuery = router.query.step as string | undefined;
 
-  // Fetch all fields when in edit mode to get specific field by ID
+  // Local Storage Persistence
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const persistenceKey = editFieldId ? `field-form-${editFieldId}` : 'field-form-new';
+
+    // Load from local storage on mount or id change
+    const savedData = localStorage.getItem(persistenceKey);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setFormData(prev => ({ ...prev, ...parsed }));
+        console.log(`[FormPersistence] Loaded data from ${persistenceKey}`);
+      } catch (e) {
+        console.error('Failed to parse persisted data', e);
+      }
+    }
+  }, [editFieldId]);
+
+  // Save to local storage on form data change
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const persistenceKey = editFieldId ? `field-form-${editFieldId}` : 'field-form-new';
+    localStorage.setItem(persistenceKey, JSON.stringify(formData));
+  }, [formData, editFieldId]);
+
+  // Sync active section to URL
+  useEffect(() => {
+    if (router.isReady && activeSection) {
+      const currentQuery = { ...router.query };
+      if (currentQuery.step !== activeSection) {
+        router.replace({
+          pathname: router.pathname,
+          query: { ...currentQuery, step: activeSection }
+        }, undefined, { shallow: true });
+      }
+    }
+  }, [activeSection, router.isReady]);
+
+  // Fetch specific field details when in edit mode (replaces searching in allFields)
+  const {
+    data: specificFieldResponse,
+    isLoading: fetchingSpecificField,
+    refetch: refetchSpecific
+  } = useFieldDetails(editFieldId || '', {
+    enabled: !!user && user.role === 'FIELD_OWNER' && !!editFieldId && router.isReady,
+  });
+
+  // Fetch all fields for general awareness/fallback
   const {
     data: allFields,
     isLoading: fetchingAllFields,
@@ -237,12 +285,22 @@ export default function FieldOwnerDashboard({
   const { data: amenitiesList } = useAmenities();
 
   // Determine which field data to use
-  const fieldData = isEditMode && editFieldId
-    ? allFields?.find((f: any) => f.id === editFieldId)
+  // Priority: Specific field details > All fields search > Single field
+  const specificFieldData = specificFieldResponse?.data || specificFieldResponse?.field || specificFieldResponse;
+
+  const fieldData = (isEditMode && editFieldId)
+    ? (specificFieldData || allFields?.find((f: any) => f.id === editFieldId))
     : singleField;
 
-  const fetchingField = isEditMode ? fetchingAllFields : fetchingSingleField;
-  const refetch = isEditMode ? refetchAllFields : refetchSingleField;
+  const fetchingField = isEditMode ? (fetchingSpecificField || fetchingAllFields) : fetchingSingleField;
+  const refetch = () => {
+    if (isEditMode && editFieldId) {
+      refetchSpecific();
+      refetchAllFields();
+    } else {
+      refetchSingleField();
+    }
+  };
 
   // Check if this is first-time field owner (no existing fields)
   const isFirstTimeFieldOwner = !fieldData && !isAddNewMode && !isEditMode;

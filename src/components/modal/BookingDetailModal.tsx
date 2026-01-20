@@ -458,6 +458,14 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             </div>
                           )}
 
+                          {/* Booking ID */}
+                          <div className="flex items-center justify-between py-2 sm:py-3 ">
+                            <span className="text-xs sm:text-[16px] text-[#192215] opacity-70">Booking ID</span>
+                            <span className="text-xs sm:text-[16px] font-medium text-[#192215]">
+                              #{fullBooking?.bookingId || (fullBooking?._id || fullBooking?.id)?.slice(-8).toUpperCase() || 'N/A'}
+                            </span>
+                          </div>
+
                           {/* Number of Dogs */}
                           <div className="flex items-center justify-between py-2 sm:py-3 ">
                             <span className="text-xs sm:text-[16px] text-[#192215] opacity-70">Number of Dogs</span>
