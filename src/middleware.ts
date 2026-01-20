@@ -55,6 +55,42 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Live Site Check
+  // "show comming soon only when fieldsy.co.uk or localhost:3000 is accessed"
+  const hostname = request.headers.get('host') || '';
+  // Check strict match or includes (includes is safer for subdomains or port variations locally)
+  const isTargetHost = hostname === 'fieldsy.co.uk' || hostname === 'www.fieldsy.co.uk' || hostname.includes('localhost:3000');
+
+  // Allow /coming-soon to be accessed to prevent redirect loop
+  if (isTargetHost && !path.startsWith('/coming-soon') && !path.startsWith('/api/') && !path.startsWith('/_next/') && !path.includes('.')) {
+    try {
+      // Fetch public settings to check isLive status
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const settingsRes = await fetch(`${apiUrl}/settings/public`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add cache control to prevent excessive backend calls
+        // cache: 'force-cache', 
+        // next: { revalidate: 60 } // Next.js specific for fetch
+      });
+
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        const isLive = settingsData.data?.isLive;
+
+        // If explicitly false, redirect to coming soon
+        if (isLive === false) {
+          return NextResponse.redirect(new URL('/coming-soon', request.url));
+        }
+      }
+    } catch (error) {
+      // Fail open (allow access) if settings check fails to avoid blocking site on API errors
+      console.error('Middleware live check failed:', error);
+    }
+  }
+
   // Get the token for auth checks - Fetch early to handle role-based blocking on public routes
   let token;
   try {
