@@ -108,7 +108,7 @@ export const BypassComingSoon = () => {
                                         <span>Verifying...</span>
                                     </>
                                 ) : (
-                                    'Bypass & Access Site'
+                                    'Submit'
                                 )}
                             </button>
                         </form>
