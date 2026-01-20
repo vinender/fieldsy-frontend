@@ -93,18 +93,8 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
 
       // Show toast notification for foreground messages
       if (title) {
-        toast(title, {
-          description: body,
-          duration: 5000,
-          action: data.link
-            ? {
-              label: 'View',
-              onClick: () => {
-                window.location.href = data.link;
-              },
-            }
-            : undefined,
-        });
+        console.log('[PushNotifications] Notification received in foreground:', title);
+        // Custom UI removed as per request
       }
     });
 
