@@ -184,8 +184,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     // Only connect if we have a token AND we're not on a public page
     if (token && shouldLoadNotifications) {
       let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-
       console.log('[NotificationContext] Raw NEXT_PUBLIC_BACKEND_URL:', socketUrl);
+
+      // Force production URL if running on fieldsy.co.uk
+      if (typeof window !== 'undefined' && window.location.hostname.includes('fieldsy.co.uk')) {
+        socketUrl = 'https://api.fieldsy.co.uk';
+        console.log('[NotificationContext] Detected production domain, forcing socketUrl to:', socketUrl);
+      }
 
       // Clean up URL
       if (socketUrl) {

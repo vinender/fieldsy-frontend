@@ -47,6 +47,13 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
+    // Force production URL if running on fieldsy.co.uk
+    if (typeof window !== 'undefined' && window.location.hostname.includes('fieldsy.co.uk')) {
+      socketUrl = 'https://api.fieldsy.co.uk';
+      console.log('[SocketContext] Forcing production socket URL:', socketUrl);
+    }
+
     console.log('[SocketContext] Raw socketUrl:', socketUrl);
 
     // Fix potential double protocol issue

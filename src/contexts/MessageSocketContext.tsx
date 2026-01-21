@@ -161,12 +161,19 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       return
     }
 
-    const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
+    let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
+
+    // Force production URL if running on fieldsy.co.uk
+    if (typeof window !== 'undefined' && window.location.hostname.includes('fieldsy.co.uk')) {
+      socketUrl = 'https://api.fieldsy.co.uk';
+      console.log('[MessageSocket] Forcing production socket URL:', socketUrl);
+    }
+
     console.log('[MessageSocket] socketUrl resolved to:', socketUrl);
     console.log('[MessageSocket] process.env.NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
 
     // Determine if we're in production
-    const isProduction = socketUrl.includes('indiitserver.in') || process.env.NODE_ENV === 'production'
+    const isProduction = socketUrl.includes('indiitserver.in') || process.env.NODE_ENV === 'production' || socketUrl.includes('fieldsy.co.uk')
 
     const newSocket = io(socketUrl, {
       auth: {
