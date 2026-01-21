@@ -28,13 +28,13 @@ interface MessageSocketContextType {
 const MessageSocketContext = createContext<MessageSocketContextType>({
   socket: null,
   isConnected: false,
-  joinConversation: () => {},
-  fetchMessages: () => {},
-  sendMessage: () => {},
-  markAsRead: () => {},
-  emitTyping: () => {},
-  connect: () => {},
-  disconnect: () => {},
+  joinConversation: () => { },
+  fetchMessages: () => { },
+  sendMessage: () => { },
+  markAsRead: () => { },
+  emitTyping: () => { },
+  connect: () => { },
+  disconnect: () => { },
   hasPendingMessages: false
 })
 
@@ -162,6 +162,8 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
+    console.log('[MessageSocket] socketUrl resolved to:', socketUrl);
+    console.log('[MessageSocket] process.env.NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
 
     // Determine if we're in production
     const isProduction = socketUrl.includes('indiitserver.in') || process.env.NODE_ENV === 'production'
@@ -194,7 +196,7 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         setTimeout(() => retryPendingMessages(), 500) // Small delay to ensure connection is stable
       }
     })
-    
+
     newSocket.on('connect_error', (error) => {
       // Only log in development, and make it clear this is often expected
       if (process.env.NODE_ENV === 'development') {

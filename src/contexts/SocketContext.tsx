@@ -15,8 +15,8 @@ const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
   sendMessage: async () => null,
-  markAsRead: () => {},
-  emitTyping: () => {}
+  markAsRead: () => { },
+  emitTyping: () => { }
 })
 
 export const useSocket = () => useContext(SocketContext)
@@ -26,7 +26,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const router = useRouter()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  
+
   // Check if we're on a public page where socket isn't needed
   const isPublicPage = router.pathname === '/' && status !== 'authenticated'
   const shouldConnect = status === 'authenticated' && !isPublicPage
@@ -36,18 +36,32 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (status === 'loading' || !shouldConnect) {
       return;
     }
-    
+
     // Get token from session or localStorage directly
     const sessionToken = (session as any)?.accessToken;
     const localToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
     const token = sessionToken || localToken;
-    
+
     if (!token) {
       return;
     }
 
-    const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-    
+    let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    console.log('[SocketContext] Raw socketUrl:', socketUrl);
+
+    // Fix potential double protocol issue
+    if (socketUrl.startsWith('https://https://')) {
+      socketUrl = socketUrl.replace('https://https://', 'https://');
+    }
+
+    // Validate protocol
+    if (!socketUrl.startsWith('http')) {
+      console.warn('[SocketContext] Invalid socket URL protocol, falling back to localhost');
+      socketUrl = 'http://localhost:5000';
+    }
+
+    console.log('[SocketContext] Connecting to:', socketUrl);
+
     const newSocket = io(socketUrl, {
       auth: {
         token: token
@@ -62,7 +76,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsConnected(true)
       newSocket.emit('join-conversations')
     })
-    
+
     newSocket.on('connect_error', (error) => {
       if (process.env.NODE_ENV === 'development') {
         console.error('Socket connection error:', error.message)

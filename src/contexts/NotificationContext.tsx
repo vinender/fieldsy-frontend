@@ -47,11 +47,11 @@ const defaultContextValue: NotificationContextType = {
   unreadCount: 0,
   isConnected: false,
   loading: false,
-  fetchNotifications: () => {},
-  markAsRead: async () => {},
-  markAllAsRead: async () => {},
-  deleteNotification: async () => {},
-  clearAll: async () => {},
+  fetchNotifications: () => { },
+  markAsRead: async () => { },
+  markAllAsRead: async () => { },
+  deleteNotification: async () => { },
+  clearAll: async () => { },
 };
 
 const NotificationContext = createContext<NotificationContextType>(defaultContextValue);
@@ -66,14 +66,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const router = useRouter();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  
+
   // Only fetch notifications if user is authenticated
   const isAuthenticated = !!session || !!authUser;
-  
+
   // Check if we're on landing page or other public pages where notifications aren't needed
   const isPublicPage = router.pathname === '/' && !isAuthenticated;
   const shouldLoadNotifications = isAuthenticated && !isPublicPage;
-  
+
   // Use React Query hooks for notifications - only enabled when needed
   const { data: notificationData, isLoading, refetch: refetchNotifications } = useNotificationQuery(1, 10, {
     enabled: shouldLoadNotifications,
@@ -134,7 +134,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAsRead = useCallback(async (id: string) => {
     try {
       await markNotificationAsReadMutation.mutateAsync(id);
-      
+
       // Also emit through socket if connected
       if (socket?.connected) {
         socket.emit('mark-notification-read', { notificationId: id });
@@ -148,7 +148,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAllAsRead = useCallback(async () => {
     try {
       await markAllAsReadMutation.mutateAsync();
-      
+
       // Also emit through socket if connected  
       if (socket?.connected) {
         socket.emit('mark-all-notifications-read');
@@ -179,12 +179,37 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Setup WebSocket connection
   useEffect(() => {
     const token = getAuthToken();
-    
+
+
     // Only connect if we have a token AND we're not on a public page
     if (token && shouldLoadNotifications) {
+      let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+      console.log('[NotificationContext] Raw NEXT_PUBLIC_BACKEND_URL:', socketUrl);
+
+      // Clean up URL
+      if (socketUrl) {
+        // Remove /api if present
+        socketUrl = socketUrl.replace('/api', '');
+
+        // Fix common issues like double protocols
+        if (socketUrl.startsWith('https://https://')) {
+          socketUrl = socketUrl.replace('https://https://', 'https://');
+        }
+
+        // Basic validation
+        if (!socketUrl.startsWith('http')) {
+          console.warn('[NotificationContext] Invalid socket URL format, falling back to localhost:', socketUrl);
+          socketUrl = 'http://localhost:5000';
+        }
+      } else {
+        socketUrl = 'http://localhost:5000';
+      }
+
+      console.log('[NotificationContext] Connecting to socket URL:', socketUrl);
 
       const socketInstance = io(
-        process.env.NEXT_PUBLIC_BACKEND_URL?.replace('/api', '') || 'http://localhost:5000',
+        socketUrl,
         {
           auth: {
             token,
