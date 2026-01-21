@@ -1,8 +1,13 @@
 import React from 'react';
 import { GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
 import BackButton from '@/components/common/BackButton';
+import { cn } from '@/lib/utils';
 
 const PrivacyPolicy = () => {
+  const router = useRouter();
+  const isMobileApp = router.query.mobile === 'true' || router.query.source === 'mobile';
+
   const privacyData = [
     {
       title: "1. Who We Are",
@@ -102,19 +107,27 @@ const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-[#FFFCF3] font-sans">
       {/* Main Container */}
-      <div className="w-full mx-auto px-4 sm:px-6 mt-20 lg:px-20 py-8 lg:py-10">
-        
+      <div className={cn(
+        "w-full mx-auto px-4 sm:px-6 lg:px-20 py-8 lg:py-10",
+        isMobileApp ? "mt-0" : "mt-20"
+      )}>
+
         {/* Back Button and Title */}
-        <div className="flex items-center gap-4 mt-[20px] mb-8 lg:mb-10">
-          <BackButton size="lg" />
-          <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
-            Privacy Policy
-          </h1>
-        </div>
+        {!isMobileApp && (
+          <div className="flex items-center gap-4 mt-[20px] mb-8 lg:mb-10">
+            <BackButton size="lg" />
+            <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
+              Privacy Policy
+            </h1>
+          </div>
+        )}
 
         {/* White Content Card */}
-        <div className="bg-white rounded-3xl lg:rounded-[40px] shadow-[0px_14px_24px_0px_rgba(0,0,0,0.06)] p-6 sm:p-8 lg:p-8">
-          
+        <div className={cn(
+          "bg-white rounded-3xl lg:rounded-[40px] shadow-[0px_14px_24px_0px_rgba(0,0,0,0.06)] p-6 sm:p-8 lg:p-8",
+          isMobileApp ? "mt-4" : ""
+        )}>
+
           {/* Header Section */}
           <div className="mb-8">
             <h2 className="text-xl lg:text-[20px] font-semibold text-[#0A2533] mb-2">
@@ -133,7 +146,7 @@ const PrivacyPolicy = () => {
                 <h3 className="text-xl lg:text-[20px] font-semibold text-[#0A2533]">
                   {section.title}
                 </h3>
-                
+
                 {section.hasSubsections ? (
                   <>
                     <p className="text-base lg:text-[16px] text-[#6B737D] leading-[28px]">

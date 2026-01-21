@@ -23,35 +23,27 @@ function AnimatedCounter({
       (entries) => {
         if (entries[0].isIntersecting && !hasAnimated) {
           setHasAnimated(true);
-
           const startTime = performance.now();
           const animate = (currentTime: number) => {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-
-            // Easing function for smooth deceleration
             const easeOutQuart = 1 - Math.pow(1 - progress, 4);
             const currentCount = Math.floor(easeOutQuart * end);
-
             setCount(currentCount);
-
             if (progress < 1) {
               requestAnimationFrame(animate);
             } else {
               setCount(end);
             }
           };
-
           requestAnimationFrame(animate);
         }
       },
       { threshold: 0.3 }
     );
-
     if (ref.current) {
       observer.observe(ref.current);
     }
-
     return () => observer.disconnect();
   }, [end, duration, hasAnimated]);
 
@@ -91,7 +83,6 @@ interface AboutHeroSectionProps {
   loading?: boolean
 }
 
-
 export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   // Default data for fallback
   const defaultData = {
@@ -107,32 +98,35 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
       { value: '100%', label: 'Safe, Secure & Fenced Spaces', order: 4 }
     ]
   }
-  
+
   const content = data || defaultData
   const sortedStats = content.stats.sort((a, b) => a.order - b.order)
 
+  // Check for mobile app mode to hide section title
+  const [isMobileApp, setIsMobileApp] = useState(false);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mobile') === 'true' || params.get('source') === 'mobile') {
+        setIsMobileApp(true);
+      }
+    }
+  }, []);
 
   if (loading) {
-
     return (
       <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 w-full lg:py-20 bg-light-cream">
-       
         <div className="w-full">
-
           <Skeleton className="h-6 w-24 mb-6 sm:mb-8" />
-          
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            
             <div>
               <Skeleton className="h-12 w-full mb-4" />
               <Skeleton className="h-12 w-3/4 mb-8" />
               <Skeleton className="h-24 w-full mb-8" />
               <Skeleton className="h-12 w-40" />
             </div>
-            
             <Skeleton className="h-[300px] sm:h-[400px] lg:h-[500px] w-full rounded-2xl" />
           </div>
-          
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-dark-green/20">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="text-center">
@@ -141,22 +135,20 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
               </div>
             ))}
           </div>
-
         </div>
-
       </section>
     )
   }
 
-
-
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 w-full lg:py-20 bg-light-cream">
       <div className="w-full">
-        <h2 className="text-[20px] xl:text-[29px] font-[600] text-dark-green">
-          {content.sectionTitle}
-        </h2>
-        
+        {!isMobileApp && (
+          <h2 className="text-[20px] xl:text-[29px] font-[600] text-dark-green">
+            {content.sectionTitle}
+          </h2>
+        )}
+
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Content */}
           <div>
@@ -168,18 +160,18 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
                 </span>
               ))}
             </h1>
-            
+
             <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-8 sm:mb-10 leading-relaxed sm:leading-relaxed lg:leading-[30px] font-[400]">
               {content.description}
             </p>
 
             <DownloadAppButton />
           </div>
-          
+
           {/* Right Image */}
           <div className="relative mt-8 lg:mt-0">
             <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl relative h-[300px] sm:h-[400px] lg:h-[500px]">
-              <Image 
+              <Image
                 src={content?.image || defaultData?.image}
                 alt="Dog playing with toy in field"
                 fill
@@ -191,7 +183,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
           </div>
 
         </div>
-        
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-dark-green/20">
           {sortedStats.map((stat, index) => {
@@ -199,9 +191,8 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
             return (
               <div
                 key={index}
-                className={`text-center ${
-                  index < sortedStats.length - 1 ? 'border-r border-dark-green/20 pr-4 sm:pr-6 lg:pr-8' : ''
-                } ${index === 1 ? 'border-r-0 md:border-r' : ''}`}
+                className={`text-center ${index < sortedStats.length - 1 ? 'border-r border-dark-green/20 pr-4 sm:pr-6 lg:pr-8' : ''
+                  } ${index === 1 ? 'border-r-0 md:border-r' : ''}`}
               >
                 <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] font-[400] text-dark-green mb-1 sm:mb-2 leading-tight xl:leading-[76px]">
                   <AnimatedCounter end={number} suffix={suffix} duration={2000} />
@@ -213,7 +204,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
             );
           })}
         </div>
-        
+
       </div>
     </section>
   )

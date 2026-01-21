@@ -1,8 +1,10 @@
 import dynamic from "next/dynamic"
 import { GetStaticProps } from "next"
+import { useRouter } from "next/router"
 import { AboutHeroSection } from "@/components/about/AboutHeroSection"
 import { LazySection } from "@/components/common/LazySection"
 import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils"
 import axiosClient from "@/lib/api/axios-client"
 
 
@@ -38,12 +40,16 @@ interface AboutPageProps {
 
 
 export default function AboutPage({ aboutData }: AboutPageProps) {
-
+  const router = useRouter()
+  const isMobileApp = router.query.mobile === 'true' || router.query.source === 'mobile';
 
   return (
-    <div className="min-h-screen overflow-x-hidden pt-20">
+    <div className={cn(
+      "min-h-screen overflow-x-hidden",
+      isMobileApp ? "pt-0" : "pt-20"
+    )}>
 
-     
+
 
       {/* Hero Section - Always loaded immediately as it's above the fold */}
       <AboutHeroSection data={aboutData?.heroSection} loading={false} />
@@ -56,16 +62,16 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
       </div> */}
 
       {/* Mission Section - Lazy loaded with intersection observer */}
-      <LazySection 
+      <LazySection
         minHeight="400px"
         threshold={0.1}
         rootMargin="100px"
       >
-        <AboutMissionSection data={aboutData?.missionSection} loading={false} />  
+        <AboutMissionSection data={aboutData?.missionSection} loading={false} />
       </LazySection>
 
       {/* Who We Are Section - Lazy loaded */}
-      <LazySection 
+      <LazySection
         minHeight="500px"
         threshold={0.1}
         rootMargin="100px"
@@ -74,7 +80,7 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
       </LazySection>
 
       {/* What We Do Section - Lazy loaded */}
-      <LazySection 
+      <LazySection
         minHeight="400px"
         threshold={0.1}
         rootMargin="100px"
@@ -83,7 +89,7 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
       </LazySection>
 
       {/* Why Fieldsy Section - Lazy loaded */}
-      <LazySection 
+      <LazySection
         minHeight="400px"
         threshold={0.1}
         rootMargin="100px"
@@ -92,7 +98,7 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
       </LazySection>
 
       {/* FAQ Section - Lazy loaded */}
-      <LazySection 
+      <LazySection
         minHeight="500px"
         threshold={0.1}
         rootMargin="100px"

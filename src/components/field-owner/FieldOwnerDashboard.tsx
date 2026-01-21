@@ -159,6 +159,7 @@ export default function FieldOwnerDashboard({
     requireDeposit: boolean;
     rules: string;
     policies: string;
+    areaType: string;
   }>({
     fieldName: '',
     fieldSize: '',
@@ -190,7 +191,8 @@ export default function FieldOwnerDashboard({
     requireDeposit: false,
     // Booking rules and policies
     rules: '',
-    policies: ''
+    policies: '',
+    areaType: ''
   });
 
 
@@ -364,7 +366,8 @@ export default function FieldOwnerDashboard({
         instantBooking: false,
         requireDeposit: false,
         rules: '',
-        policies: ''
+        policies: '',
+        areaType: ''
       });
       console.log('Form reset for add new mode');
     }
@@ -443,7 +446,8 @@ export default function FieldOwnerDashboard({
         instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
         rules: fieldData.rules?.[0] || '',
-        policies: fieldData.cancellationPolicy || ''
+        policies: fieldData.cancellationPolicy || '',
+        areaType: fieldData.areaType || ''
       }));
     }
   }, [fieldData, isAddNewMode, isEditMode, editFieldId, amenitiesList]);

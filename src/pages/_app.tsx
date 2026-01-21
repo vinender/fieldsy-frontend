@@ -7,6 +7,7 @@ import { DM_Sans } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { Header } from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
+import { cn } from "@/lib/utils"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 import { NotificationProvider } from "@/contexts/NotificationContext"
 import { SocketProvider } from "@/contexts/SocketContext"
@@ -122,7 +123,12 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
   const { data: settings } = usePublicSettings();
   const isComingSoonMode = settings && settings.isLive === false && !settings.hasAccess;
 
-  const hideLayout = noLayoutPaths.some(path => router.pathname.startsWith(path)) || isComingSoonMode;
+  // Check if we are in mobile app mode (no header/footer)
+  // We check for query param "mobile=true" or "source=mobile"
+  // The user specifically mentioned "if window object is null" which is true during SSR
+  const isMobileApp = router.query.mobile === 'true' || router.query.source === 'mobile';
+
+  const hideLayout = noLayoutPaths.some(path => router.pathname.startsWith(path)) || isComingSoonMode || isMobileApp;
   const isMessagesPage = router.pathname === '/user/messages'
 
   const pageContent = (
@@ -130,7 +136,7 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
       <div className={`${fontClassName} font-sans antialiased overflow-x-hidden`} suppressHydrationWarning>
         <div className="min-h-screen flex flex-col overflow-x-hidden">
           {!hideLayout && <Header />}
-          <main className="flex-grow overflow-x-hidden">
+          <main className={cn("flex-grow overflow-x-hidden", !hideLayout ? "" : "pt-0")}>
             <ErrorBoundary>
               {isMessagesPage && isAuthenticated ? (
                 <MessageSocketProvider>
