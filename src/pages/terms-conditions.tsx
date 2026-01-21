@@ -1,14 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
 import { apiClient } from '@/lib/api/client';
 import BackButton from '@/components/common/BackButton';
 import { ChevronLeft } from 'lucide-react';
 import { useTerms } from '@/hooks/useTerms';
+import { cn } from '@/lib/utils';
 
 
 
 const TermsConditions = () => {
+  const router = useRouter();
+  const [isMobileApp, setIsMobileApp] = useState(false);
   const { data: termsData, isLoading: loading } = useTerms();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const isApp = params.get('mobile') === 'true' ||
+        params.get('source') === 'mobile' ||
+        params.get('app') === 'true' ||
+        (window as any).__IS_MOBILE_APP__ === true ||
+        (window as any).ReactNativeWebView !== undefined;
+      setIsMobileApp(isApp);
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -19,17 +35,22 @@ const TermsConditions = () => {
   }
 
   return (
-    <div className="min-h-screen  bg-[#FFFCF3] mt-20 font-sans">
+    <div className={cn(
+      "min-h-screen bg-[#FFFCF3] font-sans",
+      isMobileApp ? "mt-0" : "mt-20"
+    )}>
       {/* Main Container */}
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-20 py-8 lg:py-10">
 
         {/* Back Button and Title */}
-        <div className="flex items-center mt-[20px]  gap-4 mb-8 lg:mb-10">
-          <BackButton size="lg" />
-          <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
-            Terms & Conditions
-          </h1>
-        </div>
+        {!isMobileApp && (
+          <div className="flex items-center mt-[20px]  gap-4 mb-8 lg:mb-10">
+            <BackButton size="lg" />
+            <h1 className="text-2xl sm:text-3xl lg:text-[29px] font-semibold text-dark-green drop-shadow-sm">
+              Terms & Conditions
+            </h1>
+          </div>
+        )}
 
         {/* White Content Card */}
         <div className="bg-white rounded-3xl lg:rounded-[40px] shadow-[0px_14px_24px_0px_rgba(0,0,0,0.06)] p-6 sm:p-8 lg:p-8">

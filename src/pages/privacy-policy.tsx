@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import BackButton from '@/components/common/BackButton';
@@ -6,7 +6,19 @@ import { cn } from '@/lib/utils';
 
 const PrivacyPolicy = () => {
   const router = useRouter();
-  const isMobileApp = router.query.mobile === 'true' || router.query.source === 'mobile';
+  const [isMobileApp, setIsMobileApp] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const isApp = params.get('mobile') === 'true' ||
+        params.get('source') === 'mobile' ||
+        params.get('app') === 'true' ||
+        (window as any).__IS_MOBILE_APP__ === true ||
+        (window as any).ReactNativeWebView !== undefined;
+      setIsMobileApp(isApp);
+    }
+  }, []);
 
   const privacyData = [
     {

@@ -124,9 +124,30 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
   const isComingSoonMode = settings && settings.isLive === false && !settings.hasAccess;
 
   // Check if we are in mobile app mode (no header/footer)
-  // We check for query param "mobile=true" or "source=mobile"
-  // The user specifically mentioned "if window object is null" which is true during SSR
-  const isMobileApp = router.query.mobile === 'true' || router.query.source === 'mobile';
+  const [isMobileApp, setIsMobileApp] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const checkMobile = () => {
+        const params = new URLSearchParams(window.location.search);
+        const isAppParam = params.get('mobile') === 'true' ||
+          params.get('source') === 'mobile' ||
+          params.get('app') === 'true';
+
+        const isAppFlag = (window as any).__IS_MOBILE_APP__ === true ||
+          (window as any).ReactNativeWebView !== undefined;
+
+        const isUA = /FieldsyMobileApp/i.test(navigator.userAgent);
+
+        setIsMobileApp(isAppParam || isAppFlag || isUA);
+      };
+
+      checkMobile();
+      // Also check on route change
+      router.events.on('routeChangeComplete', checkMobile);
+      return () => router.events.off('routeChangeComplete', checkMobile);
+    }
+  }, [router]);
 
   const hideLayout = noLayoutPaths.some(path => router.pathname.startsWith(path)) || isComingSoonMode || isMobileApp;
   const isMessagesPage = router.pathname === '/user/messages'

@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { GetStaticProps } from "next"
 import { useRouter } from "next/router"
@@ -41,7 +42,19 @@ interface AboutPageProps {
 
 export default function AboutPage({ aboutData }: AboutPageProps) {
   const router = useRouter()
-  const isMobileApp = router.query.mobile === 'true' || router.query.source === 'mobile';
+  const [isMobileApp, setIsMobileApp] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const isApp = params.get('mobile') === 'true' ||
+        params.get('source') === 'mobile' ||
+        params.get('app') === 'true' ||
+        (window as any).__IS_MOBILE_APP__ === true ||
+        (window as any).ReactNativeWebView !== undefined;
+      setIsMobileApp(isApp);
+    }
+  }, []);
 
   return (
     <div className={cn(
