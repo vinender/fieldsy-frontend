@@ -10,7 +10,7 @@ interface BackButtonProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export default function BackButton({ 
+export default function BackButton({
   label = 'Back',
   onClick,
   variant = 'cream',
@@ -104,7 +104,7 @@ export default function BackButton({
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <button 
+      <button
         onClick={handleClick}
         className={`
           ${sizeClasses[size]}
@@ -116,14 +116,14 @@ export default function BackButton({
         `}
         aria-label={label}
       >
-        <img 
-          src={svgPath} 
-          alt="Back" 
+        <img
+          src={svgPath}
+          alt="Back"
           className={`${iconSizes[size]}  pointer-events-none`}
         />
       </button>
       {showLabel && (
-        <span className="font-[600] text-[29px] leading-[20px] text-dark-green font-sans">
+        <span className="font-[600] text-[18px] sm:text-[29px] leading-tight sm:leading-[20px] text-dark-green font-sans">
           {label}
         </span>
       )}

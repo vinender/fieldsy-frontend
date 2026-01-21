@@ -158,7 +158,7 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute -top-12 right-0 sm:-right-12 sm:top-0 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors"
+          className="absolute -top-12 right-4 sm:-right-12 sm:top-0 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors z-50 shadow-md"
           aria-label="Close modal"
         >
           <svg
@@ -177,16 +177,16 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
         </button>
 
         {/* Modal Content */}
-        <div className="bg-white rounded-[32px] shadow-[0px_22px_70px_0px_rgba(0,0,0,0.06)] border border-[rgba(25,34,21,0.1)] flex flex-col max-h-[90vh]">
-          <div className="p-6 sm:p-8 overflow-y-auto scrollbar-hide flex-1">
+        <div className="bg-white rounded-[24px] sm:rounded-[32px] shadow-[0px_22px_70px_0px_rgba(0,0,0,0.06)] border border-[rgba(25,34,21,0.1)] flex flex-col max-h-[85vh] sm:max-h-[90vh]">
+          <div className="p-5 sm:p-8 overflow-y-auto scrollbar-hide flex-1">
             {booking ? (
               // Success State with Booking Data
               <>
                 {/* Header Section */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
-                    <div className="w-[48px] h-[48px] rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
+                    <div className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
                       {booking.userAvatar ? (
                         <img
                           src={booking.userAvatar}
@@ -194,22 +194,22 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-lg font-bold">
+                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-base sm:text-lg font-bold">
                           {(booking.userName || 'U').charAt(0).toUpperCase()}
                         </div>
                       )}
                     </div>
 
                     {/* Customer Info */}
-                    <div className="space-y-0.5">
-                      <h2 className="text-xl font-semibold text-[#192215]">
+                    <div className="space-y-0.5 min-w-0">
+                      <h2 className="text-lg sm:text-xl font-semibold text-[#192215] truncate">
                         {booking.userName || 'Customer'}
                       </h2>
-                      <p className="text-sm text-[#192215] opacity-70">
+                      <p className="text-xs sm:text-sm text-[#192215] opacity-70 truncate">
                         {booking.userEmail || 'No email provided'}
                       </p>
                       {booking.userPhone && (
-                        <p className="text-xs text-[#192215] opacity-70">
+                        <p className="text-[10px] sm:text-xs text-[#192215] opacity-70">
                           {booking.userPhone}
                         </p>
                       )}
@@ -218,7 +218,7 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
 
                   {/* Send Message Button */}
                   <button
-                    className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-5 py-2.5 rounded-full whitespace-nowrap text-sm"
+                    className="w-full sm:w-auto bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white font-semibold px-5 py-2 sm:py-2.5 rounded-full whitespace-nowrap text-xs sm:text-sm"
                     onClick={() => {
                       if (booking.userId) {
                         onClose();
@@ -237,9 +237,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                 </div>
 
                 {/* Order Details Section */}
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h3 className="text-base font-bold text-[#192215]">Order Details</h3>
+                <div className="space-y-4 sm:space-y-5">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <h3 className="text-sm sm:text-base font-bold text-[#192215]">Order Details</h3>
                     <div className="bg-white border border-black/5 rounded-[14px] p-3 space-y-2.5">
                       <DetailRow
                         label="Order ID"
@@ -343,12 +343,12 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                       <div className="h-px bg-gray-300 my-3" />
 
                       {/* Total */}
-                      <div className="flex justify-between items-start">
-                        <span className="text-base font-bold text-[#192215]">
+                      <div className="flex justify-between items-center sm:items-start pt-1">
+                        <span className="text-sm sm:text-base font-bold text-[#192215]">
                           Your Earnings
                         </span>
                         <span className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-[#3a6b22]">
+                          <span className="text-base sm:text-lg font-bold text-[#3a6b22]">
                             £{fees.total.toFixed(2)}
                           </span>
                         </span>

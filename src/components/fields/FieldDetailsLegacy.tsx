@@ -242,7 +242,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFCF3] mt-12 xl:mt-32 w-full">
+    <div className="min-h-screen bg-[#FFFCF3] mt-20 xl:mt-32 w-full">
 
       <div className="max-w-[1920px] mx-auto">
         {headerContent && (

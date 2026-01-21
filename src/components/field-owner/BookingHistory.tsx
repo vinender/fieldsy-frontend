@@ -185,10 +185,10 @@ export default function BookingHistory() {
           {/* Bookings Tabs */}
           <div className="mb-4 sm:mb-6">
 
-            <div className="flex flex-wrap bg-cream w-fit rounded-[50px] gap-2 sm:gap-3 px-2 sm:px-3 py-2">
+            <div className="flex bg-cream max-w-full overflow-x-auto scrollbar-hide rounded-[50px] gap-1 sm:gap-3 px-1 sm:px-3 py-2 whitespace-nowrap">
               <button
                 onClick={() => setActiveTab('today')}
-                className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'today'
+                className={`flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-[10px] xs:text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'today'
                   ? 'bg-light-green text-white'
                   : 'bg-cream text-dark-green hover:bg-cream/80'
                   }`}
@@ -199,7 +199,7 @@ export default function BookingHistory() {
 
               <button
                 onClick={() => setActiveTab('upcoming')}
-                className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'upcoming'
+                className={`flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-[10px] xs:text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'upcoming'
                   ? 'bg-light-green text-white'
                   : 'bg-cream text-dark-green hover:bg-cream/80'
                   }`}
@@ -209,7 +209,7 @@ export default function BookingHistory() {
               </button>
               <button
                 onClick={() => setActiveTab('completed')}
-                className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'completed'
+                className={`flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-[10px] xs:text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'completed'
                   ? 'bg-light-green text-white'
                   : 'bg-cream text-dark-green hover:bg-cream/80'
                   }`}
@@ -219,7 +219,7 @@ export default function BookingHistory() {
               </button>
               <button
                 onClick={() => setActiveTab('cancelled')}
-                className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'cancelled'
+                className={`flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-[10px] xs:text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'cancelled'
                   ? 'bg-light-green text-white'
                   : 'bg-cream text-dark-green hover:bg-cream/80'
                   }`}

@@ -62,7 +62,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
     }
   };
 
-  
+
   // Handle confirm toggle from modal
   const handleConfirmToggle = async () => {
     if (!onToggleActive) return;
@@ -179,7 +179,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
       return [];
     })(),
-    
+
     // Map other fields as needed
     state: formData?.county,
     openingTime: formData?.startTime,
@@ -212,36 +212,45 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
 
 
   const headerContent = (
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center w-full px-2 sm:px-0 pt-8 sm:pt-0 pb-4 sm:pb-0">
       <BackButton
-        size='lg'
+        size='sm'
+        className="md:scale-125 md:ml-4 scale-100"
         label={isSubmitted ? 'My Field' : 'Preview'}
         showLabel={true}
         onClick={onBack}
       />
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onEdit}
-          className="px-[20px] py-[16px] w-[120px] rounded-[70px] border border-green text-green text-[16px] font-[700] font-sans bg-cream transition-colors hover:bg-gray-50"
+          className="px-4 sm:px-[20px] py-2 sm:py-[16px] w-auto sm:w-[120px] rounded-[70px] border border-green text-green text-sm sm:text-[16px] font-[700] font-sans bg-cream transition-colors hover:bg-gray-50"
         >
           Edit
         </button>
         {isSubmitted ? (
-          <div className={`flex items-center bg-cream border border-green gap-2 rounded-[70px] px-[20px] py-[16px] ${!isClaimed ? 'opacity-50 cursor-not-allowed' : ''}`}>
-            <span className="text-[16px] font-[700] w-[110px] text-green">{isActive ? 'Enabled' : 'Disable Field'}</span>
-              <Switch
-                checked={!!isActive}
-                onCheckedChange={handleToggleStatusClick}
-                disabled={!isClaimed || isToggling}
-              />
+          <div className={`flex items-center bg-cream border border-green gap-2 rounded-[70px] px-3 sm:px-[20px] py-2 sm:py-[16px] ${!isClaimed ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <span className="text-sm sm:text-[16px] font-[700] w-auto sm:w-[110px] text-green">
+              {isActive ? 'Enabled' : (
+                <>
+                  <span className="hidden sm:inline">Disable Field</span>
+                  <span className="sm:hidden">Disabled</span>
+                </>
+              )}
+            </span>
+            <Switch
+              checked={!!isActive}
+              onCheckedChange={handleToggleStatusClick}
+              disabled={!isClaimed || isToggling}
+              className="scale-75 sm:scale-100"
+            />
           </div>
         ) : (
           <button
             onClick={onSubmit}
             disabled={isLoading}
-            className="px-[20px] py-[16px] w-[120px] rounded-full bg-green text-white font-semibold font-sans transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="px-5 sm:px-[20px] py-2 sm:py-[16px] w-auto sm:w-[120px] rounded-full bg-green text-white text-sm sm:text-base font-semibold font-sans transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {isLoading ? 'Submitting...' : 'Submit'}
+            {isLoading ? '...' : 'Submit'}
           </button>
         )}
       </div>
