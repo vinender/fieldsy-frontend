@@ -130,20 +130,15 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
     if (typeof window !== 'undefined') {
       const checkMobile = () => {
         const params = new URLSearchParams(window.location.search);
-        const isAppParam = params.get('mobile') === 'true' ||
+        const isApp = params.get('mobile') === 'true' ||
           params.get('source') === 'mobile' ||
           params.get('app') === 'true';
 
-        const isAppFlag = (window as any).__IS_MOBILE_APP__ === true ||
-          (window as any).ReactNativeWebView !== undefined;
-
-        const isUA = /FieldsyMobileApp/i.test(navigator.userAgent);
-
-        setIsMobileApp(isAppParam || isAppFlag || isUA);
+        setIsMobileApp(isApp);
       };
 
       checkMobile();
-      // Also check on route change
+      // Also check on route change to handle internal navigation
       router.events.on('routeChangeComplete', checkMobile);
       return () => router.events.off('routeChangeComplete', checkMobile);
     }

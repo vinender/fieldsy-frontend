@@ -107,9 +107,10 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('mobile') === 'true' || params.get('source') === 'mobile') {
-        setIsMobileApp(true);
-      }
+      const isApp = params.get('mobile') === 'true' ||
+        params.get('source') === 'mobile' ||
+        params.get('app') === 'true';
+      setIsMobileApp(isApp);
     }
   }, []);
 

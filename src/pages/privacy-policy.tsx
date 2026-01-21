@@ -13,9 +13,7 @@ const PrivacyPolicy = () => {
       const params = new URLSearchParams(window.location.search);
       const isApp = params.get('mobile') === 'true' ||
         params.get('source') === 'mobile' ||
-        params.get('app') === 'true' ||
-        (window as any).__IS_MOBILE_APP__ === true ||
-        (window as any).ReactNativeWebView !== undefined;
+        params.get('app') === 'true';
       setIsMobileApp(isApp);
     }
   }, []);
