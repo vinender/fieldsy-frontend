@@ -12,7 +12,8 @@ interface ExtendedSession extends Session {
   accessToken?: string;
   refreshToken?: string;
   user: {
-    id: string;
+    id: string; // Internal ObjectID
+    userId: string; // Human-readable ID
     email: string;
     name?: string | null;
     image?: string | null;
@@ -94,6 +95,7 @@ export const authOptions: NextAuthOptions = {
               const data = await response.json();
               return {
                 id: data.data.id,
+                userId: data.data.userId,
                 email: data.data.email,
                 name: data.data.name,
                 role: data.data.role,
@@ -124,6 +126,7 @@ export const authOptions: NextAuthOptions = {
               const data = await response.json();
               return {
                 id: data.data.user.id,
+                userId: data.data.user.userId,
                 email: data.data.user.email,
                 name: data.data.user.name,
                 role: data.data.user.role,
@@ -153,6 +156,7 @@ export const authOptions: NextAuthOptions = {
           provider: account?.provider || 'credentials',
           user: {
             id: user.id,
+            userId: (user as any).userId,
             email: user.email!,
             name: user.name,
             image: user.image,
@@ -189,7 +193,8 @@ export const authOptions: NextAuthOptions = {
         refreshToken: token.refreshToken as string,
         user: {
           ...session.user,
-          id: token.sub!,
+          id: (token.user as any)?.id || token.sub!,
+          userId: (token.user as any)?.userId,
           role: (token.user as any)?.role,
           provider: token.provider as string,
         }

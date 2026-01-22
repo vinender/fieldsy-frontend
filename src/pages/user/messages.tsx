@@ -179,28 +179,43 @@ const MessagesPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollHeightBeforeRef = useRef<number>(0);
+  const scrollTopBeforeRef = useRef<number>(0);
   const messageIdsSetRef = useRef<Set<string>>(new Set()); // Track all message IDs to prevent duplicates
   const processingMessagesRef = useRef<Set<string>>(new Set()); // Track messages being processed to prevent race conditions
 
-  // Get current user ID from session or localStorage
-  const getCurrentUserId = () => {
-    if (session?.user?.id) return session.user.id;
+  // Scroll to bottom helper
+  const scrollToBottom = useCallback(() => {
+    // Use requestAnimationFrame for smoother, more efficient scrolling
+    requestAnimationFrame(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    });
+  }, []);
 
-    // Check if we're in the browser before accessing localStorage
+  // Get current user ID from session or localStorage
+  const getCurrentUserIds = () => {
+    const ids: string[] = [];
+    if (session?.user?.id) ids.push(session.user.id);
+    if ((session?.user as any)?.userId) ids.push((session?.user as any).userId);
+
     if (typeof window !== 'undefined') {
       const currentUser = localStorage.getItem('currentUser');
       if (currentUser) {
         try {
           const user = JSON.parse(currentUser);
-          return user.id || user._id;
+          if (user.id) ids.push(user.id);
+          if (user._id) ids.push(user._id);
+          if (user.userId) ids.push(user.userId);
         } catch { }
       }
     }
-    return null;
+    return Array.from(new Set(ids.filter(Boolean)));
   };
 
-
-  const currentUserId = getCurrentUserId();
+  const currentUserIds = useMemo(() => getCurrentUserIds(), [session, status]);
+  const currentUserId = currentUserIds[0]; // primary ID for socket joining, etc.
 
   // Helper function to get other user
   const getOtherUser = (conversation: Conversation): User | undefined => {
@@ -445,11 +460,15 @@ const MessagesPage = () => {
             // Combine optimistic with new messages (avoiding duplicates)
             return [...newMessages, ...optimistic];
           });
+          // After merging optimistic messages, scroll to bottom if needed
+          scrollToBottom();
         } else {
           // No optimistic messages, safe to replace
           messageIdsSetRef.current.clear();
           processingMessagesRef.current.clear();
           safelyUpdateMessages(() => data.messages || []);
+          // Initial load - scroll to bottom
+          scrollToBottom();
         }
         setIsLoadingMessages(false);
 
@@ -505,6 +524,30 @@ const MessagesPage = () => {
           return [...uniqueNewMessages, ...prev];
         });
 
+        // Restore scroll position after messages are prepended
+        // We do this here because we know the messages state has been updated
+        // Use requestAnimationFrame AND a small timeout to ensure DOM has rendered
+        if (scrollHeightBeforeRef.current > 0) {
+          const container = messagesContainerRef.current;
+          if (container) {
+            // We use a small timeout to let the DOM update
+            setTimeout(() => {
+              const scrollHeightAfter = container.scrollHeight;
+              const heightDiff = scrollHeightAfter - scrollHeightBeforeRef.current;
+              container.scrollTop = heightDiff + scrollTopBeforeRef.current;
+              console.log('[Messages] Restored scroll position:', {
+                beforeHeight: scrollHeightBeforeRef.current,
+                afterHeight: scrollHeightAfter,
+                beforeTop: scrollTopBeforeRef.current,
+                newTop: heightDiff + scrollTopBeforeRef.current,
+                diff: heightDiff
+              });
+              scrollHeightBeforeRef.current = 0; // Reset
+              scrollTopBeforeRef.current = 0; // Reset
+            }, 30);
+          }
+        }
+
         // Mark unread messages as read
         const unreadMessageIds = data.messages
           .filter((msg: Message) => msg.receiverId === currentUserId && !msg.isRead)
@@ -547,7 +590,7 @@ const MessagesPage = () => {
       messageSocket.off('conversation-error', handleConversationError);
       messageSocket.off('message-error', handleMessageError);
     };
-  }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount, safelyUpdateMessages]);
+  }, [messageSocket, selectedConversation, currentUserId, markAsRead, decrementUnreadCount, safelyUpdateMessages, scrollToBottom]);
 
   // Listen for new messages and typing indicators
   useEffect(() => {
@@ -656,54 +699,36 @@ const MessagesPage = () => {
 
     // Listen for both new-message and new-message-notification events
     console.log('[Messages] ✅ Registering socket event listeners');
-    console.log('[Messages] Socket ID:', activeSocket.id);
-    console.log('[Messages] Socket connected?', activeSocket.connected);
+    console.log('[Messages] Socket ID:', activeSocket?.id);
+    console.log('[Messages] Socket connected?', activeSocket?.connected);
 
-    activeSocket.on('new-message', handleNewMessage);
-    console.log('[Messages] ✅ Registered new-message listener');
-
-    activeSocket.on('new-message-notification', (data: any) => {
+    activeSocket?.on('new-message', handleNewMessage);
+    activeSocket?.on('new-message-notification', (data: any) => {
       console.log('[Messages] new-message-notification received:', data);
       if (data.message) {
         handleNewMessage(data.message);
       }
     });
-    console.log('[Messages] ✅ Registered new-message-notification listener');
 
-    activeSocket.on('user-typing', handleUserTyping);
-    console.log('[Messages] ✅ Registered user-typing listener');
+    activeSocket?.on('user-typing', handleUserTyping);
 
     // Test: Log all events received
     const anyEventHandler = (eventName: string, ...args: any[]) => {
       console.log(`[Messages] 🔔 Socket event received: ${eventName}`, args);
     };
-    activeSocket.onAny(anyEventHandler);
+    activeSocket?.onAny(anyEventHandler);
 
     return () => {
       console.log('[Messages] ❌ Unregistering socket event listeners');
-      activeSocket.off('new-message', handleNewMessage);
-      activeSocket.off('new-message-notification');
-      activeSocket.off('user-typing', handleUserTyping);
-      activeSocket.offAny(anyEventHandler);
+      activeSocket?.off('new-message', handleNewMessage);
+      activeSocket?.off('new-message-notification');
+      activeSocket?.off('user-typing', handleUserTyping);
+      activeSocket?.offAny(anyEventHandler);
     };
-  }, [socket, messageSocket, currentUserId, safelyUpdateMessages]); // Added safelyUpdateMessages to deps
+  }, [socket, messageSocket, currentUserId, safelyUpdateMessages, scrollToBottom]); // Added scrollToBottom to deps
 
-  // Scroll to bottom when new messages arrive - optimized with requestAnimationFrame
-  useEffect(() => {
-    // Use requestAnimationFrame for smoother, more efficient scrolling
-    requestAnimationFrame(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-      }
-    });
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    // Only scroll the messages container, not the entire page
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  };
+  // REMOVED: This was causing auto-scroll-to-bottom even when loading older messages
+  // Now we call scrollToBottom explicitly when needed (new messages/initial load only)
 
   // Update conversations from React Query data
   useEffect(() => {
@@ -927,13 +952,13 @@ const MessagesPage = () => {
       createdAt: new Date().toISOString(),
       isRead: false,
       sender: {
-        id: currentUserId!,
+        id: currentUserId || '',
         name: session?.user?.name || 'You',
         email: session?.user?.email || '',
-        image: session?.user?.image,
+        image: session?.user?.image || undefined,
         role: (session?.user as any)?.role || 'DOG_OWNER'
       },
-      receiver: otherUser // Add receiver info as well
+      receiver: otherUser || undefined // Add receiver info as well
     };
 
     // Add optimistic message to UI immediately - direct state update for optimistic messages
@@ -1023,7 +1048,7 @@ const MessagesPage = () => {
 
     // Send via socket - if not connected, wait briefly for connection
     // Use ref to get current connection status
-    if (isMessageSocketConnectedRef.current && sendMessageViaSocket) {
+    if (isMessageSocketConnectedRef.current) {
       doSendMessage();
     } else {
       // Socket not connected yet - wait briefly for it to connect
@@ -1034,7 +1059,7 @@ const MessagesPage = () => {
       const tryConnect = setInterval(() => {
         attempts++;
         // Use ref to get current connection status (not stale closure value)
-        if (isMessageSocketConnectedRef.current && sendMessageViaSocket) {
+        if (isMessageSocketConnectedRef.current) {
           clearInterval(tryConnect);
           doSendMessage();
         } else if (attempts >= maxAttempts) {
@@ -1053,7 +1078,7 @@ const MessagesPage = () => {
         }
       }, 250);
     }
-  }, [messageInput, selectedConversation, isBlocked, currentUserId, session, isMessageSocketConnected, sendMessageViaSocket, emitTyping, safelyUpdateMessages]);
+  }, [messageInput, selectedConversation, isBlocked, currentUserId, session, isMessageSocketConnected, sendMessageViaSocket, emitTyping, safelyUpdateMessages, scrollToBottom]);
 
   const handleTyping = useCallback(() => {
     if (!selectedConversation) return;
@@ -1125,11 +1150,19 @@ const MessagesPage = () => {
     }
 
     console.log('[Messages] Loading more messages before:', oldestMessageId);
-    setIsLoadingMoreMessages(true);
 
     // Save current scroll position to restore after loading
     const container = messagesContainerRef.current;
-    const scrollHeightBefore = container?.scrollHeight || 0;
+    if (container) {
+      scrollHeightBeforeRef.current = container.scrollHeight;
+      scrollTopBeforeRef.current = container.scrollTop;
+      console.log('[Messages] Captured scroll state before loading:', {
+        height: scrollHeightBeforeRef.current,
+        top: scrollTopBeforeRef.current
+      });
+    }
+
+    setIsLoadingMoreMessages(true);
 
     // Emit fetch-messages with cursor
     if (messageSocket && isMessageSocketConnected) {
@@ -1138,15 +1171,6 @@ const MessagesPage = () => {
         beforeMessageId: oldestMessageId,
         limit: 30
       });
-
-      // Restore scroll position after messages are prepended
-      setTimeout(() => {
-        if (container) {
-          const scrollHeightAfter = container.scrollHeight;
-          const heightDiff = scrollHeightAfter - scrollHeightBefore;
-          container.scrollTop = heightDiff;
-        }
-      }, 100);
     } else {
       setIsLoadingMoreMessages(false);
     }
@@ -1331,7 +1355,7 @@ const MessagesPage = () => {
                         {/* Avatar */}
                         <div className="relative">
                           <img
-                            src={getUserImage(otherUser)}
+                            src={getUserImage(otherUser) || '/user.svg'}
                             alt={otherUser.name}
                             className="w-12 h-12 rounded-full object-cover"
                             onError={(e) => {
@@ -1398,7 +1422,7 @@ const MessagesPage = () => {
                         return otherUser ? (
                           <>
                             <img
-                              src={getUserImage(otherUser)}
+                              src={getUserImage(otherUser) || '/user.svg'}
                               alt={otherUser.name}
                               className="w-10 sm:w-14 h-10 sm:h-14 rounded-full object-cover"
                               onError={(e) => {
@@ -1541,15 +1565,21 @@ const MessagesPage = () => {
 
                               {/* Messages for this date */}
                               <div className="space-y-4">
-                                {dateMessages.map((message) => (
-                                  <MessageItem
-                                    key={message.id}
-                                    message={message}
-                                    isMyMessage={message.senderId === currentUserId}
-                                    isNewMessage={newMessageIds.has(message.id)}
-                                    formatMessageTime={formatMessageTime}
-                                  />
-                                ))}
+                                {dateMessages.map((message) => {
+                                  const isMine = currentUserIds.includes(message.senderId);
+                                  if (process.env.NODE_ENV === 'development' && message.content === 'debug-id') {
+                                    console.log('[Chat Debug] Message:', message.id, 'SenderID:', message.senderId, 'MyIDs:', currentUserIds, 'IsMine:', isMine);
+                                  }
+                                  return (
+                                    <MessageItem
+                                      key={message.id}
+                                      message={message}
+                                      isMyMessage={isMine}
+                                      isNewMessage={newMessageIds.has(message.id)}
+                                      formatMessageTime={formatMessageTime}
+                                    />
+                                  );
+                                })}
                               </div>
                             </div>
                           );
