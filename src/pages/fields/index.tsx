@@ -182,7 +182,7 @@ export default function SearchResults() {
   // Build query parameters for React Query - use applied filters
   const queryParams: FieldsParams = {
     page: currentPage,
-    limit: 9,
+    limit: 12,
     ...(searchValue && { search: searchValue }),
     ...(zipCode && { zipCode }),
     // Use explicit lat/lng from search, or fallback to current location
@@ -226,7 +226,7 @@ export default function SearchResults() {
       lng: currentLocation.lng,
       radius: 10,
       page: currentPage,
-      limit: 9,
+      limit: 12,
       // Include sort parameters if configured
       ...(hasSortApplied && {
         sortBy: Object.keys(sortConfig).join(','),
