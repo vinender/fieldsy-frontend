@@ -414,9 +414,9 @@ export default function SearchResults() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                   <div className="flex flex-col gap-1 flex-1 w-full">
                     <div className="flex  flex-wrap items-center gap-2">
-                      {!activeIsLoading && (
+                      {!activeIsLoading && totalResults > 0 && (
                         <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
-                          {shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `Over ${totalResults} results`}
+                          {shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `${totalResults} results`}
                         </h1>
                       )}
                       {shouldUseNearbyFields && hasNearbyResults && locationDisplay && (
