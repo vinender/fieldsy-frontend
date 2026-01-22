@@ -250,7 +250,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
             disabled={isLoading}
             className="px-5 sm:px-[20px] py-2 sm:py-[16px] w-auto sm:w-[120px] rounded-full bg-green text-white text-sm sm:text-base font-semibold font-sans transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {isLoading ? '...' : 'Submit'}
+            {isLoading ? 'Submitting...' : 'Submit'}
           </button>
         )}
       </div>

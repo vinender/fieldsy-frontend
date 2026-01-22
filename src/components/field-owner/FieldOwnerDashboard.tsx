@@ -159,7 +159,6 @@ export default function FieldOwnerDashboard({
     requireDeposit: boolean;
     rules: string;
     policies: string;
-    areaType: string;
   }>({
     fieldName: '',
     fieldSize: '',
@@ -192,7 +191,6 @@ export default function FieldOwnerDashboard({
     // Booking rules and policies
     rules: '',
     policies: '',
-    areaType: ''
   });
 
 
@@ -210,7 +208,7 @@ export default function FieldOwnerDashboard({
   const urlParams = typeof window !== 'undefined' ? getQueryFromPath() : { edit: false, addNew: false, fieldId: null };
 
   // Ensure we use the prop fieldId if provided, effectively prioritizing parent state
-  const editFieldId = initialFieldId || (router.query.fieldId as string) || urlParams.fieldId || undefined;
+  const editFieldId = fieldId || initialFieldId || (router.query.fieldId as string) || urlParams.fieldId || undefined;
 
   // Mode detection
   const isAddNewMode = (initialAddNewMode || (router.isReady && router.query.addNew === 'true') || urlParams.addNew) && !editFieldId;
@@ -335,8 +333,8 @@ export default function FieldOwnerDashboard({
 
   // Reset form when in add new mode
   useEffect(() => {
-    if (isAddNewMode) {
-      setFieldId(null);
+    // Only reset if we are truly in add new mode AND have no active field ID
+    if (isAddNewMode && !fieldId && !editFieldId) {
       setFormData({
         fieldName: '',
         fieldSize: '',
@@ -366,12 +364,11 @@ export default function FieldOwnerDashboard({
         instantBooking: false,
         requireDeposit: false,
         rules: '',
-        policies: '',
-        areaType: ''
+        policies: ''
       });
       console.log('Form reset for add new mode');
     }
-  }, [isAddNewMode]);
+  }, [isAddNewMode, fieldId, editFieldId]);
 
   // Load field data when fetched (only if not in add new mode)
   useEffect(() => {
@@ -446,8 +443,7 @@ export default function FieldOwnerDashboard({
         instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
         rules: fieldData.rules?.[0] || '',
-        policies: fieldData.cancellationPolicy || '',
-        areaType: fieldData.areaType || ''
+        policies: fieldData.cancellationPolicy || ''
       }));
     }
   }, [fieldData, isAddNewMode, isEditMode, editFieldId, amenitiesList]);
@@ -583,27 +579,13 @@ export default function FieldOwnerDashboard({
   // Use custom save progress mutation hook
   const saveProgressMutation = useSaveFieldProgress({
     onSuccess: (result) => {
+      let finalId = fieldId;
       if (result.fieldId) {
-        // Always update fieldId from response
-        if (!fieldId || fieldId !== result.fieldId) {
-          setFieldId(result.fieldId);
-          // Update URL with fieldId for persistence across page refreshes
-          const currentQuery = { ...router.query };
-          if (isAddNewMode) {
-            // When in addNew mode and we get a fieldId, switch to edit mode
-            router.replace({
-              pathname: router.pathname,
-              query: { ...currentQuery, edit: 'true', fieldId: result.fieldId, addNew: undefined }
-            }, undefined, { shallow: true });
-          } else if (!currentQuery.fieldId) {
-            // Add fieldId to URL if not present
-            router.replace({
-              pathname: router.pathname,
-              query: { ...currentQuery, fieldId: result.fieldId }
-            }, undefined, { shallow: true });
-          }
-        }
+        finalId = result.fieldId;
+        // Update both local state and what handleNext will use
+        setFieldId(result.fieldId);
       }
+
       // Refetch field data after saving
       refetch();
       // Clear validation errors on successful save
@@ -613,7 +595,9 @@ export default function FieldOwnerDashboard({
         savedImagesRef.current = formData.images || [];
         console.log('[FieldForm] Saved images ref updated after save:', savedImagesRef.current);
       }
-      handleNext();
+
+      // Pass the new fieldId to handleNext so it can perform atomic transition
+      handleNext(finalId);
     },
     onError: (error) => {
       console.error('Failed to save progress:', error);
@@ -745,15 +729,37 @@ export default function FieldOwnerDashboard({
     }
   };
 
-  const handleNext = () => {
+  const handleNext = (newFieldId?: string | null) => {
     const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
     const currentIndex = sections.indexOf(activeSection);
+
+    // Use the new ID if provided (happens on first save), otherwise use existing state
+    const effectiveFieldId = newFieldId || fieldId;
+
     if (currentIndex < sections.length - 1) {
-      setActiveSection(sections[currentIndex + 1]);
+      const nextSection = sections[currentIndex + 1];
+
+      // If we have a fieldId (new or existing), ensure URL is synced to 'edit' mode with that ID
+      if (effectiveFieldId) {
+        const currentQuery = { ...router.query };
+        router.push({
+          pathname: router.pathname,
+          query: {
+            ...currentQuery,
+            edit: 'true',
+            fieldId: effectiveFieldId,
+            step: nextSection,
+            addNew: undefined
+          }
+        }, undefined, { shallow: true });
+      }
+
+      setActiveSection(nextSection);
     } else if (currentIndex === sections.length - 1) {
       // On last tab (booking-rules), redirect to preview page with the current field ID
-      if (fieldId) {
-        router.push(`/field-owner/preview?fieldId=${fieldId}`);
+      const finalId = effectiveFieldId || fieldId;
+      if (finalId) {
+        router.push(`/field-owner/preview?fieldId=${finalId}`);
       } else {
         router.push('/field-owner/preview');
       }

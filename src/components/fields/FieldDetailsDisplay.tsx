@@ -89,12 +89,6 @@ export default function FieldDetailsDisplay({
         ? field.fenceType.split(',').map((s: string) => s.trim().split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')).join(', ')
         : '6 ft steel mesh, fully enclosed'
     },
-    {
-      label: 'Area Type',
-      value: field?.areaType
-        ? field.areaType.split(',').map((s: string) => s.trim().split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')).join(', ')
-        : 'Paddock'
-    },
     { label: 'Terrain Type', value: field?.type || 'Soft grass + walking path' },
     { label: 'Surface type', value: field?.surfaceType || 'Flat with gentle slopes' },
     { label: 'Max Dogs', value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : '4 dogs allowed' },

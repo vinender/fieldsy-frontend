@@ -66,10 +66,17 @@ export default function PreviewPage() {
     }
   }, [fieldData]);
 
+  const [optimisticSubmitted, setOptimisticSubmitted] = useState(false);
+  const [optimisticActive, setOptimisticActive] = useState(false);
+
   // Submit field mutation
   const submitFieldMutation = useSubmitFieldForReview({
     onSuccess: () => {
       toast.success('Field submitted successfully!');
+
+      // Set optimistic state
+      setOptimisticSubmitted(true);
+      setOptimisticActive(true); // Default to active after submission if that's the backend behavior
 
       // Clear persistence when submitted
       if (typeof window !== 'undefined') {
@@ -82,6 +89,14 @@ export default function PreviewPage() {
       setShowThankYou(true);
     }
   });
+
+  useEffect(() => {
+    // Sync optimistic state with fieldData when it changes
+    if (fieldData) {
+      if (fieldData.isSubmitted) setOptimisticSubmitted(false);
+      // We don't sync isActive here because it might conflict with manual toggle
+    }
+  }, [fieldData]);
 
   useEffect(() => {
     // Redirect if not a field owner
@@ -101,6 +116,7 @@ export default function PreviewPage() {
 
   const handleSubmit = async () => {
     if (fieldData?.id) {
+      // Show loading state, the change to Enabled/Disabled happens in onSuccess
       await submitFieldMutation.mutateAsync({ fieldId: fieldData.id });
     }
   };
@@ -108,10 +124,16 @@ export default function PreviewPage() {
   const handleToggleActive = async () => {
     if (!fieldData?.id) return;
     try {
+      // Optimistically update active state
+      const newActiveState = !fieldData.isActive;
+      setOptimisticActive(newActiveState);
+
       await axiosClient.patch(`/fields/${fieldData.id}/toggle-status`);
       refetch();
     } catch (e) {
       console.error(e);
+      // Revert optimistic update on error
+      setOptimisticActive(!!fieldData.isActive);
     }
   };
 
@@ -218,8 +240,8 @@ export default function PreviewPage() {
         onEdit={handleEdit}
         onSubmit={handleSubmit}
         isLoading={submitFieldMutation.isPending}
-        isSubmitted={!!fieldData?.isSubmitted}
-        isActive={!!fieldData?.isActive}
+        isSubmitted={optimisticSubmitted || !!fieldData?.isSubmitted}
+        isActive={optimisticActive || !!fieldData?.isActive}
         isClaimed={!!fieldData?.isClaimed}
         onToggleActive={handleToggleActive}
         onBack={fieldId ? handleBack : undefined}

@@ -30,7 +30,6 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
   const fenceTypeOptions = fieldOptions?.data?.fenceType || [];
   const fenceSizeOptions = fieldOptions?.data?.fenceSize || [];
   const surfaceTypeOptions = fieldOptions?.data?.surfaceType || [];
-  const areaTypeOptions = fieldOptions?.data?.areaType || [];
   const openingDaysOptions = fieldOptions?.data?.openingDays || [];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -257,11 +256,11 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
                 Fence Type <span className="text-red-500">*</span>
               </label>
-              <CustomMultiSelect
+              <CustomSelect
                 name="fenceType"
                 value={formData.fenceType}
                 onChange={(value) => handleInputChange({ target: { name: 'fenceType', value } } as any)}
-                placeholder="Select fence type(s)"
+                placeholder="Select fence type"
                 options={fenceTypeOptions}
               />
               {validationErrors.fenceType && (
@@ -269,21 +268,6 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-                Area Type <span className="text-red-500">*</span>
-              </label>
-              <CustomMultiSelect
-                name="areaType"
-                value={formData.areaType}
-                onChange={(value) => handleInputChange({ target: { name: 'areaType', value } } as any)}
-                placeholder="Select area type(s)"
-                options={areaTypeOptions}
-              />
-              {validationErrors.areaType && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.areaType}</p>
-              )}
-            </div>
 
             <div>
               <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
@@ -478,18 +462,56 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
           Choose Amenities
         </h2>
-        <CustomMultiSelect
-          name="amenities"
-          value={Array.isArray(formData.amenities) ? formData.amenities.join(',') : ''}
-          onChange={(value) => {
-            setFormData((prev: any) => ({
-              ...prev,
-              amenities: value ? value.split(',') : []
-            }));
-          }}
-          placeholder="Select amenities"
-          options={amenities?.map(a => ({ id: a.id, value: a.id, label: a.name })) || []}
-        />
+        <div className="flex flex-wrap gap-3">
+          {amenitiesLoading ? (
+            <div className="text-gray-500">Loading amenities...</div>
+          ) : amenities && amenities.length > 0 ? (
+            amenities.map((amenity) => {
+              const currentAmenities = Array.isArray(formData.amenities) ? formData.amenities : [];
+              const isSelected = currentAmenities.includes(amenity.id);
+
+              return (
+                <div
+                  key={amenity.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleAmenityToggle(amenity.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleAmenityToggle(amenity.id);
+                    }
+                  }}
+                  className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer ${isSelected
+                    ? 'bg-cream border-green'
+                    : 'bg-white border-gray-200 hover:border-green/50'
+                    }`}
+                  aria-pressed={isSelected}
+                >
+                  <CustomCheckbox
+                    checked={isSelected}
+                    onChange={() => handleAmenityToggle(amenity.id)}
+                  />
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-5 h-5">
+                      <AmenityIcon
+                        src={amenity.icon}
+                        alt={amenity.name}
+                        color={isSelected ? ICON_COLORS.green : ICON_COLORS.black}
+                        size={20}
+                      />
+                    </div>
+                    <span className="font-sans text-sm text-dark-green">
+                      {amenity.label || amenity.name}
+                    </span>
+                  </div>
+                </div >
+              );
+            })
+          ) : (
+            <div className="text-gray-500">No amenities available</div>
+          )}
+        </div>
         {validationErrors.amenities && (
           <p className="text-red-500 text-sm mt-1">{validationErrors.amenities}</p>
         )}

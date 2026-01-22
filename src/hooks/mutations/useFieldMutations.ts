@@ -28,14 +28,17 @@ export function useSaveFieldProgress(
 
   const mutation = useMutation({
     mutationFn: async ({ step, data, fieldId }: SaveProgressData) => {
-      const response = await axiosClient.post('/fields/save-progress', {
+      // Use POST for first save (no fieldId) and PUT for updates
+      const method = fieldId ? 'put' : 'post';
+      const response = await axiosClient[method]('/fields/save-progress', {
         step,
         data,
         fieldId,
       });
       return response.data as SaveProgressResponse;
     },
-    onSuccess: (result) => {
+    ...options,
+    onSuccess: async (result, variables, context) => {
       // Invalidate and refetch owner field data (both single and list queries)
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerFields() });
@@ -48,18 +51,19 @@ export function useSaveFieldProgress(
       }
 
       if (options?.onSuccess) {
-        options.onSuccess(result, {} as SaveProgressData, {} as any);
+        // @ts-ignore - Handle possible argument mismatch in different versions
+        return options.onSuccess(result, variables, context, undefined as any);
       }
     },
-    onError: (error: any) => {
+    onError: async (error: any, variables, context) => {
       console.error('Error saving progress:', error);
       toast.error(error.response?.data?.message || 'Failed to save progress. Please try again.');
-      
+
       if (options?.onError) {
-        options.onError(error, {} as SaveProgressData, {} as any);
+        // @ts-ignore - Handle possible argument mismatch in different versions
+        return options.onError(error, variables, context, undefined as any);
       }
     },
-    ...options,
   });
 
   return {
@@ -89,31 +93,30 @@ export function useSubmitFieldForReview(
         fieldId,
       });
 
-      // Refetch queries immediately after successful mutation
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: fieldQueryKeys.ownerField() }),
-        queryClient.refetchQueries({ queryKey: fieldQueryKeys.ownerFields() })
-      ]);
-
       return response.data;
     },
-    onSuccess: (result) => {
+    ...options,
+    onSuccess: async (result, variables, context) => {
+      // Invalidate queries instead of waiting for refetch to make UI responsive
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerFields() });
+
       if (options?.onSuccess) {
-        options.onSuccess(result, {} as any, {} as any);
+        // @ts-ignore
+        return options.onSuccess(result, variables, context, undefined as any);
       } else {
-        // Only show default toast if no custom onSuccess is provided
         toast.success('Field submitted for review successfully!');
       }
     },
-    onError: (error: any) => {
+    onError: async (error: any, variables, context) => {
       console.error('Error submitting field:', error);
       toast.error(error.response?.data?.message || 'Failed to submit field. Please try again.');
-      
+
       if (options?.onError) {
-        options.onError(error, {} as any, {} as any);
+        // @ts-ignore
+        return options.onError(error, variables, context, undefined as any);
       }
     },
-    ...options,
   });
 
   return {
@@ -140,23 +143,25 @@ export function useCreateField(
       const response = await axiosClient.post('/fields', fieldData);
       return response.data;
     },
-    onSuccess: (result) => {
+    ...options,
+    onSuccess: async (result, variables, context) => {
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.all });
       toast.success('Field created successfully!');
-      
+
       if (options?.onSuccess) {
-        options.onSuccess(result, {} as any, {} as any);
+        // @ts-ignore
+        return options.onSuccess(result, variables, context, undefined as any);
       }
     },
-    onError: (error: any) => {
+    onError: async (error: any, variables, context) => {
       console.error('Error creating field:', error);
       toast.error(error.response?.data?.message || 'Failed to create field. Please try again.');
-      
+
       if (options?.onError) {
-        options.onError(error, {} as any, {} as any);
+        // @ts-ignore
+        return options.onError(error, variables, context, undefined as any);
       }
     },
-    ...options,
   });
 
   return {
@@ -183,7 +188,8 @@ export function useUpdateField(
       const response = await axiosClient.put(`/fields/${id}`, data);
       return response.data;
     },
-    onSuccess: (result, variables) => {
+    ...options,
+    onSuccess: async (result, variables, context) => {
       // Invalidate specific field and owner field queries
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.fieldDetails(variables.id) });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
@@ -191,18 +197,19 @@ export function useUpdateField(
       toast.success('Field updated successfully!');
 
       if (options?.onSuccess) {
-        options.onSuccess(result, variables, {} as any);
+        // @ts-ignore
+        return options.onSuccess(result, variables, context, undefined as any);
       }
     },
-    onError: (error: any, variables) => {
+    onError: async (error: any, variables, context) => {
       console.error('Error updating field:', error);
       toast.error(error.response?.data?.message || 'Failed to update field. Please try again.');
-      
+
       if (options?.onError) {
-        options.onError(error, variables, {} as any);
+        // @ts-ignore
+        return options.onError(error, variables, context, undefined as any);
       }
     },
-    ...options,
   });
 
   return {
@@ -218,7 +225,6 @@ export function useUpdateField(
   };
 }
 
-
 // Hook to delete a field
 export function useDeleteField(
   options?: Omit<UseMutationOptions<any, Error, string>, 'mutationFn'>
@@ -230,24 +236,26 @@ export function useDeleteField(
       const response = await axiosClient.delete(`/fields/${fieldId}`);
       return response.data;
     },
-    onSuccess: (result, fieldId) => {
+    ...options,
+    onSuccess: async (result, variables, context) => {
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.all });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
       toast.success('Field deleted successfully!');
 
       if (options?.onSuccess) {
-        options.onSuccess(result, fieldId, {} as any);
+        // @ts-ignore
+        return options.onSuccess(result, variables, context, undefined as any);
       }
     },
-    onError: (error: any, fieldId) => {
+    onError: async (error: any, variables, context) => {
       console.error('Error deleting field:', error);
       toast.error(error.response?.data?.message || 'Failed to delete field. Please try again.');
 
       if (options?.onError) {
-        options.onError(error, fieldId, {} as any);
+        // @ts-ignore
+        return options.onError(error, variables, context, undefined as any);
       }
     },
-    ...options,
   });
 
   return {
@@ -274,29 +282,31 @@ export function useToggleFieldStatus(
       const response = await axiosClient.patch(`/fields/${fieldId}/toggle-status`);
       return response.data;
     },
-    onSuccess: (result, fieldId) => {
+    ...options,
+    onSuccess: async (result, variables, context) => {
       // Invalidate field queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.all });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerField() });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerFields() });
-      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.fieldDetails(fieldId) });
+      queryClient.invalidateQueries({ queryKey: fieldQueryKeys.fieldDetails(variables) });
 
       // Show success message from backend
       toast.success(result.message || 'Field status updated successfully!');
 
       if (options?.onSuccess) {
-        options.onSuccess(result, fieldId, {} as any);
+        // @ts-ignore
+        return options.onSuccess(result, variables, context, undefined as any);
       }
     },
-    onError: (error: any, fieldId) => {
+    onError: async (error: any, variables, context) => {
       console.error('Error toggling field status:', error);
       toast.error(error.response?.data?.message || 'Failed to update field status. Please try again.');
 
       if (options?.onError) {
-        options.onError(error, fieldId, {} as any);
+        // @ts-ignore
+        return options.onError(error, variables, context, undefined as any);
       }
     },
-    ...options,
   });
 
   return {
@@ -310,4 +320,4 @@ export function useToggleFieldStatus(
     data: mutation.data,
     reset: mutation.reset,
   };
-};
+}
