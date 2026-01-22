@@ -30,9 +30,9 @@ import { formatMessageTimestamp, formatChatListTime, formatChatDateHeader } from
 interface User {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   image?: string;
-  role: string;
+  role?: string;
 }
 
 interface Message {
@@ -58,7 +58,8 @@ interface Conversation {
   lastMessage?: string;
   lastMessageAt?: string;
   unreadCount: number;
-  messages: Message[];
+  messages?: Message[];
+  otherUser?: User;
 }
 
 // Message character limit
@@ -84,8 +85,8 @@ const MessageItem = memo(({
       <div className={`max-w-[70%] sm:max-w-[528px] ${isMyMessage ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
         <div
           className={`px-4 sm:px-6 py-3 sm:py-4 break-words ${styles.messageBubble} ${isMyMessage
-              ? 'bg-light-green text-white rounded-tl-[30px] sm:rounded-tl-[60px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-tr-[15px] sm:rounded-tr-[30px] rounded-br-none'
-              : 'bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none'
+            ? 'bg-light-green text-white rounded-tl-[30px] sm:rounded-tl-[60px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-tr-[15px] sm:rounded-tr-[30px] rounded-br-none'
+            : 'bg-cream text-dark-green rounded-tr-[30px] sm:rounded-tr-[60px] rounded-tl-[15px] sm:rounded-tl-[30px] rounded-bl-[30px] sm:rounded-bl-[60px] rounded-br-none'
             } ${isNewMessage ? 'transition-all duration-300' : ''
             }`}
         >
@@ -203,6 +204,7 @@ const MessagesPage = () => {
 
   // Helper function to get other user
   const getOtherUser = (conversation: Conversation): User | undefined => {
+    if (conversation.otherUser) return conversation.otherUser;
     return conversation?.participants?.find(p => p.id !== currentUserId);
   };
 
@@ -632,11 +634,11 @@ const MessagesPage = () => {
         setConversations(prev => prev.map(conv =>
           conv.id === message.conversationId
             ? {
-                ...conv,
-                unreadCount: conv.unreadCount + 1,
-                lastMessage: message.content,
-                lastMessageAt: message.createdAt
-              }
+              ...conv,
+              unreadCount: conv.unreadCount + 1,
+              lastMessage: message.content,
+              lastMessageAt: message.createdAt
+            }
             : conv
         ));
         // Also refresh from API to ensure consistency
@@ -1440,8 +1442,8 @@ const MessagesPage = () => {
                             }}
                             disabled={blockStatusData?.data?.isBlocked}
                             className={`block w-full text-left text-[14px] py-3 px-4 transition-colors ${blockStatusData?.data?.isBlocked
-                                ? 'text-gray-400 cursor-not-allowed bg-gray-50'
-                                : 'text-dark-green hover:bg-gray-50 cursor-pointer'
+                              ? 'text-gray-400 cursor-not-allowed bg-gray-50'
+                              : 'text-dark-green hover:bg-gray-50 cursor-pointer'
                               }`}
                           >
                             {blockStatusData?.data?.isBlocked ? 'User Already Blocked' : 'Block User'}
@@ -1628,8 +1630,8 @@ const MessagesPage = () => {
                         <button
                           onClick={handleSendMessage}
                           className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${messageInput.trim()
-                              ? 'bg-green hover:bg-green-hover'
-                              : 'bg-gray-text'
+                            ? 'bg-green hover:bg-green-hover'
+                            : 'bg-gray-text'
                             }`}
                           disabled={!messageInput.trim()}
                         >
@@ -1639,10 +1641,10 @@ const MessagesPage = () => {
                       {messageInput.length > 0 && (
                         <div className="flex justify-end">
                           <span className={`text-xs ${messageInput.length >= MESSAGE_CHAR_LIMIT
-                              ? 'text-red-600 font-semibold'
-                              : messageInput.length >= MESSAGE_CHAR_LIMIT * 0.9
-                                ? 'text-orange-600'
-                                : 'text-gray-500'
+                            ? 'text-red-600 font-semibold'
+                            : messageInput.length >= MESSAGE_CHAR_LIMIT * 0.9
+                              ? 'text-orange-600'
+                              : 'text-gray-500'
                             }`}>
                             {messageInput.length}/{MESSAGE_CHAR_LIMIT}
                           </span>

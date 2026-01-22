@@ -1,4 +1,4 @@
-import { useQuery, UseQueryOptions, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, UseQueryOptions, useInfiniteQuery, UseInfiniteQueryOptions, InfiniteData } from '@tanstack/react-query';
 import axiosClient from '@/lib/api/axios-client';
 
 // Query keys
@@ -17,28 +17,43 @@ export interface Message {
   senderId: string;
   receiverId: string;
   content: string;
-  read: boolean;
+  isRead: boolean;
   createdAt: string;
   updatedAt: string;
   sender?: {
     id: string;
     name: string;
-    avatar?: string;
+    image?: string;
   };
 }
 
 export interface Conversation {
   id: string;
-  participants: string[];
-  lastMessage?: Message;
+  participants: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string;
+    role: string;
+  }[];
+  fieldId?: string;
+  field?: {
+    id: string;
+    name: string;
+    images: string[];
+  };
+  lastMessage?: string;
+  lastMessageAt?: string;
   unreadCount: number;
-  createdAt: string;
-  updatedAt: string;
+  messages: Message[];
   otherUser?: {
     id: string;
     name: string;
-    avatar?: string;
+    image?: string;
+    role: string;
   };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ConversationsResponse {
@@ -131,7 +146,7 @@ export function useMessages(
 export function useInfiniteMessages(
   conversationId: string,
   limit: number = 50,
-  options?: Omit<UseQueryOptions<MessagesResponse, Error>, 'queryKey' | 'queryFn'>
+  options?: any
 ) {
   return useInfiniteQuery({
     queryKey: messageQueryKeys.messages(conversationId),
