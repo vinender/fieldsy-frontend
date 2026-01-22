@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import io, { Socket } from 'socket.io-client'
+import { getSocketUrl } from '@/lib/utils/socket-url'
 
 interface SocketContextType {
   socket: Socket | null
@@ -46,36 +47,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-
-    // Force production URL if running on fieldsy.co.uk
-    if (typeof window !== 'undefined' && window.location.hostname.includes('fieldsy.co.uk')) {
-      socketUrl = 'https://api.fieldsy.co.uk';
-      console.log('[SocketContext] Forcing production socket URL:', socketUrl);
-    }
-
-    console.log('[SocketContext] Raw socketUrl:', socketUrl);
-
-    // Fix potential double protocol issue and other malformed URL patterns
-    if (socketUrl && typeof socketUrl === 'string') {
-      // Fix https://https:// typos
-      if (socketUrl.startsWith('https://https://')) {
-        socketUrl = socketUrl.replace('https://https://', 'https://');
-      }
-
-      // Fix the "https://https/" issue reported by user
-      if (socketUrl === 'https' || socketUrl === 'https/' || socketUrl === 'https://https') {
-        socketUrl = 'https://api.fieldsy.co.uk';
-        console.log('[SocketContext] Malformed socketUrl detected, falling back to production:', socketUrl);
-      }
-
-      // Final fallback/validation
-      if (!socketUrl.startsWith('http')) {
-        console.warn('[SocketContext] Invalid socket URL protocol, falling back to localhost');
-        socketUrl = 'http://localhost:5000';
-      }
-    }
-
+    // Get socket URL with automatic malformed URL fixing
+    const socketUrl = getSocketUrl('[SocketContext]');
     console.log('[SocketContext] Connecting to:', socketUrl);
 
     const newSocket = io(socketUrl, {

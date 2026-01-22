@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react';
 import { useAuth } from '@/contexts/AuthContext';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
+import { getSocketUrl } from '@/lib/utils/socket-url';
 import { useNotifications as useNotificationQuery, useUnreadNotificationsCount } from '@/hooks/queries/useNotificationQueries';
 import {
   useMarkNotificationAsRead,
@@ -180,43 +181,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const token = getAuthToken();
 
-
     // Only connect if we have a token AND we're not on a public page
     if (token && shouldLoadNotifications) {
-      let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-      console.log('[NotificationContext] Raw NEXT_PUBLIC_BACKEND_URL:', socketUrl);
-
-      // Force production URL if running on fieldsy.co.uk
-      if (typeof window !== 'undefined' && window.location.hostname.includes('fieldsy.co.uk')) {
-        socketUrl = 'https://api.fieldsy.co.uk';
-        console.log('[NotificationContext] Detected production domain, forcing socketUrl to:', socketUrl);
-      }
-
-      // Clean up URL
-      if (socketUrl) {
-        // Remove /api if present
-        socketUrl = socketUrl.replace('/api', '');
-
-        // Fix common issues like double protocols
-        if (socketUrl.startsWith('https://https://')) {
-          socketUrl = socketUrl.replace('https://https://', 'https://');
-        }
-
-        // Fix the "https://https/" issue reported by user
-        if (socketUrl === 'https' || socketUrl === 'https/' || socketUrl === 'https://https') {
-          socketUrl = 'https://api.fieldsy.co.uk';
-          console.log('[NotificationContext] Malformed socketUrl detected, falling back to production:', socketUrl);
-        }
-
-        // Basic validation
-        if (!socketUrl.startsWith('http')) {
-          console.warn('[NotificationContext] Invalid socket URL format, falling back to localhost:', socketUrl);
-          socketUrl = 'http://localhost:5000';
-        }
-      } else {
-        socketUrl = 'http://localhost:5000';
-      }
-
+      // Get socket URL with automatic malformed URL fixing
+      const socketUrl = getSocketUrl('[NotificationContext]');
       console.log('[NotificationContext] Connecting to socket URL:', socketUrl);
 
       const socketInstance = io(

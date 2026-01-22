@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import io, { Socket } from 'socket.io-client'
+import { getSocketUrl } from '@/lib/utils/socket-url'
 
 interface PendingMessage {
   conversationId: string
@@ -161,37 +162,9 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       return
     }
 
-    let socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
-
-    // Force production URL if running on fieldsy.co.uk
-    if (typeof window !== 'undefined' && window.location.hostname.includes('fieldsy.co.uk')) {
-      socketUrl = 'https://api.fieldsy.co.uk';
-      console.log('[MessageSocket] Forcing production socket URL:', socketUrl);
-    }
-
-    console.log('[MessageSocket] socketUrl resolved to:', socketUrl);
-
-    // Fix potential double protocol issue and other malformed URL patterns
-    if (socketUrl && typeof socketUrl === 'string') {
-      // Fix https://https:// typos
-      if (socketUrl.startsWith('https://https://')) {
-        socketUrl = socketUrl.replace('https://https://', 'https://');
-      }
-
-      // Fix the "https://https/" issue reported by user
-      if (socketUrl === 'https' || socketUrl === 'https/' || socketUrl === 'https://https') {
-        socketUrl = 'https://api.fieldsy.co.uk';
-        console.log('[MessageSocket] Malformed socketUrl detected, falling back to production:', socketUrl);
-      }
-
-      // Final fallback/validation
-      if (!socketUrl.startsWith('http')) {
-        console.warn('[MessageSocket] Invalid socket URL protocol, falling back to localhost');
-        socketUrl = 'http://localhost:5000';
-      }
-    }
-
-    console.log('[MessageSocket] process.env.NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
+    // Get socket URL with automatic malformed URL fixing
+    const socketUrl = getSocketUrl('[MessageSocket]');
+    console.log('[MessageSocket] Connecting to:', socketUrl);
 
     // Determine if we're in production
     const isProduction = socketUrl.includes('indiitserver.in') || process.env.NODE_ENV === 'production' || socketUrl.includes('fieldsy.co.uk')
