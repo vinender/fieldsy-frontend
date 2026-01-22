@@ -56,15 +56,24 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     console.log('[SocketContext] Raw socketUrl:', socketUrl);
 
-    // Fix potential double protocol issue
-    if (socketUrl.startsWith('https://https://')) {
-      socketUrl = socketUrl.replace('https://https://', 'https://');
-    }
+    // Fix potential double protocol issue and other malformed URL patterns
+    if (socketUrl && typeof socketUrl === 'string') {
+      // Fix https://https:// typos
+      if (socketUrl.startsWith('https://https://')) {
+        socketUrl = socketUrl.replace('https://https://', 'https://');
+      }
 
-    // Validate protocol
-    if (!socketUrl.startsWith('http')) {
-      console.warn('[SocketContext] Invalid socket URL protocol, falling back to localhost');
-      socketUrl = 'http://localhost:5000';
+      // Fix the "https://https/" issue reported by user
+      if (socketUrl === 'https' || socketUrl === 'https/' || socketUrl === 'https://https') {
+        socketUrl = 'https://api.fieldsy.co.uk';
+        console.log('[SocketContext] Malformed socketUrl detected, falling back to production:', socketUrl);
+      }
+
+      // Final fallback/validation
+      if (!socketUrl.startsWith('http')) {
+        console.warn('[SocketContext] Invalid socket URL protocol, falling back to localhost');
+        socketUrl = 'http://localhost:5000';
+      }
     }
 
     console.log('[SocketContext] Connecting to:', socketUrl);

@@ -95,8 +95,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Get auth token from either NextAuth or custom auth
   const getAuthToken = useCallback(() => {
     // Try NextAuth first
-    if (session?.accessToken) {
-      return session.accessToken;
+    if ((session as any)?.accessToken) {
+      return (session as any).accessToken;
     }
 
     // Only access localStorage on client-side
@@ -118,7 +118,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
 
     return null;
-  }, [session?.accessToken]);
+  }, [(session as any)?.accessToken]);
 
   // Fetch notifications via socket
   const fetchNotifications = useCallback((page: number = 1, limit: number = 20) => {
@@ -200,6 +200,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         // Fix common issues like double protocols
         if (socketUrl.startsWith('https://https://')) {
           socketUrl = socketUrl.replace('https://https://', 'https://');
+        }
+
+        // Fix the "https://https/" issue reported by user
+        if (socketUrl === 'https' || socketUrl === 'https/' || socketUrl === 'https://https') {
+          socketUrl = 'https://api.fieldsy.co.uk';
+          console.log('[NotificationContext] Malformed socketUrl detected, falling back to production:', socketUrl);
         }
 
         // Basic validation

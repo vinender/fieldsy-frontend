@@ -170,6 +170,27 @@ export const MessageSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     console.log('[MessageSocket] socketUrl resolved to:', socketUrl);
+
+    // Fix potential double protocol issue and other malformed URL patterns
+    if (socketUrl && typeof socketUrl === 'string') {
+      // Fix https://https:// typos
+      if (socketUrl.startsWith('https://https://')) {
+        socketUrl = socketUrl.replace('https://https://', 'https://');
+      }
+
+      // Fix the "https://https/" issue reported by user
+      if (socketUrl === 'https' || socketUrl === 'https/' || socketUrl === 'https://https') {
+        socketUrl = 'https://api.fieldsy.co.uk';
+        console.log('[MessageSocket] Malformed socketUrl detected, falling back to production:', socketUrl);
+      }
+
+      // Final fallback/validation
+      if (!socketUrl.startsWith('http')) {
+        console.warn('[MessageSocket] Invalid socket URL protocol, falling back to localhost');
+        socketUrl = 'http://localhost:5000';
+      }
+    }
+
     console.log('[MessageSocket] process.env.NEXT_PUBLIC_BACKEND_URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
 
     // Determine if we're in production
