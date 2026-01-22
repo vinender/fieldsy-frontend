@@ -6,17 +6,29 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 // Types
 export interface Transaction {
   id: string;
+  bookingId?: string | null; // Human-readable booking ID (e.g., "1234")
   orderId: string;
   paymentId: string;
   date: string;
   amount: number;
   status: 'completed' | 'refunded' | 'failed' | 'pending' | 'processing' | 'canceled' | 'in_transit';
   type: string;
-  fieldName?: string;
+  fieldName?: string | null;
   fieldAddress?: string;
-  customerName?: string;
+  customerName?: string | null;
   customerEmail?: string;
   description?: string;
+  bookingCount?: number;
+  bookings?: Array<{
+    id: string;
+    bookingId?: string;
+    fieldName: string;
+    customerName: string;
+    date: string;
+    time: string;
+    amount: number;
+    status: string;
+  }>;
 }
 
 export interface EarningsHistory {
@@ -107,8 +119,27 @@ export const useEarningsHistory = (params?: {
               status = 'failed';
             }
 
+            // Get human-readable booking ID (prefer top-level, fallback to first booking)
+            const bookingId = payout.humanReadableBookingId ||
+              payout.bookings?.[0]?.bookingId ||
+              null;
+
+            // Get field name (prefer top-level, fallback to first booking)
+            const fieldName = payout.fieldName ||
+              payout.bookings?.[0]?.fieldName ||
+              null;
+
+            // Get customer name (prefer top-level which handles multiple bookings)
+            const customerName = payout.customerName ||
+              (payout.bookings?.length === 1
+                ? payout.bookings[0]?.customerName
+                : payout.bookings?.length > 1
+                  ? `${payout.bookings.length} bookings`
+                  : null);
+
             return {
             id: payout.id,
+            bookingId, // Human-readable booking ID
             orderId: payout.stripePayoutId || payout.id,
             paymentId: payout.stripePayoutId || payout.id,
             date: payout.createdAt,
@@ -116,10 +147,11 @@ export const useEarningsHistory = (params?: {
             status,
             type: 'payout',
             description: payout.description,
-            fieldName: payout.bookings?.[0]?.fieldName || 'Field',
-            customerName: payout.bookings?.map((b: any) => b.customerName).join(', ') || 'Multiple bookings',
+            fieldName,
+            customerName,
             bookingCount: payout.bookingCount || payout.bookings?.length || 1,
-            arrivalDate: payout.arrivalDate
+            arrivalDate: payout.arrivalDate,
+            bookings: payout.bookings // Include full booking details if needed
           };
         }),
           totalEarnings: payouts.reduce((sum: number, p: any) => sum + p.amount, 0),

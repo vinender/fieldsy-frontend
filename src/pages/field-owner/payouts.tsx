@@ -512,15 +512,23 @@ const EarningsHistory: React.FC = () => {
               {earningsData?.transactions && earningsData.transactions.length > 0 ? (
                 earningsData.transactions.map((transaction, index) => {
                   const statusStyles = getStatusStyles(transaction.status);
+                  // Display booking ID: prefer human-readable, show count for multiple, or fallback
+                  const displayBookingId = transaction.bookingId
+                    ? `#${transaction.bookingId}`
+                    : transaction.bookingCount && transaction.bookingCount > 1
+                      ? `${transaction.bookingCount} bookings`
+                      : null;
                   return (
                     <React.Fragment key={transaction.id}>
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 py-4">
-                        {/* Left side - Order details */}
+                        {/* Left side - Booking details */}
                         <div className="space-y-2.5">
                           <div className="space-y-0.5">
-                            <h3 className="text-lg font-bold text-[#192215]">
-                              Order ID - {transaction.id}
-                            </h3>
+                            {displayBookingId && (
+                              <h3 className="text-lg font-bold text-[#192215]">
+                                Booking ID - {displayBookingId}
+                              </h3>
+                            )}
                             <p className="text-sm sm:text-base font-medium text-[#192215]">
                               Payment ID - {transaction.paymentId.slice(0, 12)}...
                             </p>
