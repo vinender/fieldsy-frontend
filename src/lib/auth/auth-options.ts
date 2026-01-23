@@ -7,6 +7,34 @@ import { verifyPassword } from '@/lib/auth/password-utils';
 import { generateTokens, verifyToken } from '@/lib/auth/jwt-utils';
 import { findUserByEmail } from '@/lib/auth/user-store';
 
+// Log Apple configuration at startup
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('[NextAuth] Apple Sign In Configuration Check');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  APPLE_CLIENT_ID:', process.env.APPLE_CLIENT_ID ? `✅ ${process.env.APPLE_CLIENT_ID}` : '❌ NOT SET');
+console.log('  APPLE_CLIENT_SECRET:', process.env.APPLE_CLIENT_SECRET ? `✅ SET (length: ${process.env.APPLE_CLIENT_SECRET.length})` : '❌ NOT SET');
+console.log('  NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '❌ NOT SET');
+console.log('  NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? '✅ SET' : '❌ NOT SET');
+console.log('  NODE_ENV:', process.env.NODE_ENV);
+if (process.env.APPLE_CLIENT_SECRET) {
+  try {
+    const parts = process.env.APPLE_CLIENT_SECRET.split('.');
+    if (parts.length === 3) {
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+      console.log('  APPLE_CLIENT_SECRET JWT Claims:');
+      console.log('    - iss (Team ID):', payload.iss);
+      console.log('    - sub (Client ID):', payload.sub);
+      console.log('    - aud:', payload.aud);
+      console.log('    - iat:', payload.iat, `(${new Date(payload.iat * 1000).toISOString()})`);
+      console.log('    - exp:', payload.exp, `(${new Date(payload.exp * 1000).toISOString()})`);
+      const isExpired = Date.now() / 1000 > payload.exp;
+      console.log('    - Expired:', isExpired ? '⚠️ YES - REGENERATE!' : '✅ NO');
+    }
+  } catch (e) {
+    console.log('  ⚠️ Could not decode APPLE_CLIENT_SECRET');
+  }
+}
+console.log('═══════════════════════════════════════════════════════════════');
 
 interface ExtendedSession extends Session {
   accessToken?: string;
@@ -476,8 +504,57 @@ export const authOptions: NextAuthOptions = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-  // Disable debug mode to prevent excessive logging that can cause issues
-  debug: false,
+
+  // Enable debug mode for Apple Sign In troubleshooting
+  debug: true,
+
+  // Add event handlers for debugging
+  events: {
+    async signIn(message) {
+      console.log('═══════════════════════════════════════════════════════════════');
+      console.log('[NextAuth EVENT] signIn triggered');
+      console.log('═══════════════════════════════════════════════════════════════');
+      console.log('User:', message.user?.email);
+      console.log('Account provider:', message.account?.provider);
+      console.log('Is new user:', message.isNewUser);
+    },
+    async signOut(message) {
+      console.log('[NextAuth EVENT] signOut');
+    },
+    async createUser(message) {
+      console.log('[NextAuth EVENT] createUser:', message.user?.email);
+    },
+    async linkAccount(message) {
+      console.log('[NextAuth EVENT] linkAccount:', message.account?.provider);
+    },
+  },
+
+  // Add logger for detailed NextAuth debugging
+  logger: {
+    error(code, metadata) {
+      console.error('═══════════════════════════════════════════════════════════════');
+      console.error('[NextAuth ERROR]', code);
+      console.error('═══════════════════════════════════════════════════════════════');
+      if (metadata instanceof Error) {
+        console.error('Error message:', metadata.message);
+        console.error('Error stack:', metadata.stack);
+      } else {
+        console.error('Metadata:', JSON.stringify(metadata, null, 2));
+      }
+    },
+    warn(code) {
+      console.warn('[NextAuth WARN]', code);
+    },
+    debug(code, metadata) {
+      // Log debug messages for Apple-related operations
+      if (code.toLowerCase().includes('apple') || code.toLowerCase().includes('oauth')) {
+        console.log('[NextAuth DEBUG]', code);
+        if (metadata) {
+          console.log('Debug metadata:', JSON.stringify(metadata, null, 2));
+        }
+      }
+    },
+  },
 };
 
 async function refreshAccessToken(token: JWT) {

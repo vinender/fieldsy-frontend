@@ -92,6 +92,20 @@ export default function LoginPage() {
         }
       } else if (error === 'Configuration') {
         toast.error('Social login is not configured yet.');
+      } else if (error === 'OAuthSignin') {
+        // OAuth sign-in error (often redirect URL issue)
+        console.error('[Login] OAuthSignin error - likely redirect URL issue');
+        toast.error('Apple Sign In failed. This may be a configuration issue with the redirect URL.');
+      } else if (error === 'OAuthCallback') {
+        // OAuth callback error
+        console.error('[Login] OAuthCallback error');
+        toast.error('Sign in callback failed. Please try again.');
+      } else if (error === 'OAuthCreateAccount') {
+        console.error('[Login] OAuthCreateAccount error');
+        toast.error('Could not create account. This email may already be registered.');
+      } else if (error === 'Callback') {
+        console.error('[Login] General callback error');
+        toast.error('Sign in failed during callback. Please try again.');
       } else if (error.startsWith('AccessDenied:')) {
         // Extract the actual error message from the error string
         const actualMessage = error.substring('AccessDenied:'.length);
