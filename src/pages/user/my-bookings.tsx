@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import {
   ArrowLeft,
@@ -25,12 +25,11 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useCancelBooking, useRescheduleBooking } from '@/hooks/useBookingApi';
 import { formatAmenities, formatDateDDMMYYYY } from '@/utils/formatters';
-import { calculateDistance, formatDistance } from '@/utils/location';
 import { toast } from 'sonner';
-import { getAmenityBySlug, mapAmenityConfigs } from '@/config/amenities.config';
+import { getAmenityBySlug } from '@/config/amenities.config';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { BookingCardSkeleton } from '@/components/skeletons/SkeletonComponents';
-import { SvgIcon } from '@/components/ui/SvgIcon';
+import { useUserBookingsByStatus } from '@/hooks/queries/useBookingQueries';
 
 
 // Subscription data for recurring bookings
@@ -99,18 +98,20 @@ const BookingHistoryPage = () => {
   const cancelBookingMutation = useCancelBooking();
   const rescheduleBookingMutation = useRescheduleBooking();
   const cancellationWindow = useCancellationWindow();
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
 
   // Update active tab based on query params
   useEffect(() => {
     if (!router.isReady) return;
 
     const { status, tab } = router.query;
+    type TabType = 'upcoming' | 'completed' | 'cancelled';
+    const validTabs: TabType[] = ['upcoming', 'completed', 'cancelled'];
 
     if (status) {
       const statusStr = status as string;
-      if (['upcoming', 'completed', 'cancelled'].includes(statusStr)) {
-        setActiveTab(statusStr);
+      if (validTabs.includes(statusStr as TabType)) {
+        setActiveTab(statusStr as TabType);
       } else if (statusStr === 'confirmed') {
         setActiveTab('upcoming');
       } else if (statusStr === 'previous') {
@@ -122,8 +123,8 @@ const BookingHistoryPage = () => {
       }
     } else if (tab) {
       const tabStr = tab as string;
-      if (['upcoming', 'completed', 'cancelled'].includes(tabStr)) {
-        setActiveTab(tabStr);
+      if (validTabs.includes(tabStr as TabType)) {
+        setActiveTab(tabStr as TabType);
       } else if (tabStr === 'previous') {
         // Support old 'previous' tab for backwards compatibility
         setActiveTab('completed');
@@ -145,22 +146,33 @@ const BookingHistoryPage = () => {
   const [bookingToReview, setBookingToReview] = useState<Booking | null>(null);
   const [bookingToCancelSub, setBookingToCancelSub] = useState<Booking | null>(null);
   const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [appliedFilters, setAppliedFilters] = useState<any>(null);
+
+  // Use React Query for bookings - caches data per tab, refetches in background
+  const {
+    data: rawBookings,
+    pagination,
+    isLoading,
+    isFetching,
+    error: queryError,
+    refetch,
+  } = useUserBookingsByStatus({
+    status: activeTab,
+    page,
+    limit: 10,
+    filters: appliedFilters,
+  });
 
   // Track if any modal is open or about to open (used to prevent showing loading state during modal operations)
-  // Include booking objects to catch the moment between setting booking and opening modal
   const isAnyModalOpenOrPending = isCancelModalOpen || isRescheduleModalOpen || isReviewModalOpen || isModalOpen ||
     bookingToCancel !== null || bookingToReschedule !== null || bookingToReview !== null;
 
-  // Using a ref ensures we always have the latest value in async functions
-  const isAnyModalOpenRef = React.useRef(false);
-  isAnyModalOpenRef.current = isAnyModalOpenOrPending;
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalBookings, setTotalBookings] = useState(0);
-  const [appliedFilters, setAppliedFilters] = useState<any>(null);
+  // Derived values from pagination
+  const totalPages = pagination?.totalPages || 1;
+  const totalBookings = pagination?.total || 0;
+  const loading = isLoading && !isAnyModalOpenOrPending;
+  const error = queryError ? 'Failed to fetch bookings' : null;
   // const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
@@ -206,17 +218,73 @@ const BookingHistoryPage = () => {
     return 0;
   };
 
+  // Reset page when tab changes
   useEffect(() => {
-    // Reset page when tab changes
     if (activeTab) {
       setPage(1);
     }
   }, [activeTab]);
 
-  useEffect(() => {
-    console.log('[MyBookings] useEffect triggered - activeTab:', activeTab);
-    fetchBookings();
-  }, [activeTab, page, session, appliedFilters]);
+  // Transform raw bookings data to match frontend interface
+  const bookings = useMemo(() => {
+    if (!rawBookings || rawBookings.length === 0) return [];
+
+    return rawBookings.map((booking: any) => {
+      // Calculate the actual price if totalPrice is missing or 0
+      let calculatedPrice = booking.totalPrice || 0;
+
+      if ((!calculatedPrice || calculatedPrice === 0) && booking.field?.pricePerHour) {
+        const startMinutes = timeToMinutes(booking.startTime);
+        const endMinutes = timeToMinutes(booking.endTime);
+        const durationHours = (endMinutes - startMinutes) / 60;
+        const numberOfDogs = booking.numberOfDogs || 1;
+
+        if (booking.field?.bookingDuration === '30min') {
+          const duration30MinBlocks = durationHours * 2;
+          calculatedPrice = booking.field.pricePerHour * duration30MinBlocks * numberOfDogs;
+        } else {
+          calculatedPrice = booking.field.pricePerHour * durationHours * numberOfDogs;
+        }
+      }
+
+      return {
+        _id: booking.id,
+        fieldId: booking.field?.fieldId || booking.fieldId,
+        userId: booking.userId,
+        name: booking.field?.name || 'Field',
+        duration: booking.field?.bookingDuration === '30min' ? '30min' : '1hr',
+        price: calculatedPrice || booking.totalPrice || 0,
+        currency: '£',
+        image: booking.field?.images?.[0] || '/fields/field-placeholder.jpg',
+        features: booking.field?.amenities ? formatAmenities(booking.field.amenities).join(' • ') : booking.field?.description || 'Field description',
+        location: booking.field?.address ? `${booking.field.address}, ${booking.field.city}, ${booking.field.state}` : 'Location',
+        distance: null,
+        time: booking.timeSlot || `${booking.startTime} – ${booking.endTime}`,
+        date: formatDateDDMMYYYY(new Date(booking.date)),
+        rawDate: booking.date,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        dogs: booking.numberOfDogs || 1,
+        recurring: booking.repeatBooking && booking.repeatBooking.toLowerCase() !== 'none' ? `Recurring ${booking.repeatBooking}` : null,
+        status: booking.status.toLowerCase() === 'confirmed' ? 'upcoming' : booking.status.toLowerCase() as any,
+        paymentStatus: booking.paymentStatus?.toLowerCase() || 'paid',
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+        rescheduleCount: booking.rescheduleCount || 0,
+        hasReview: booking.hasReview || false,
+        fieldReview: booking.fieldReview || null,
+        field: booking.field,
+        averageRating: booking.field?.averageRating || 0,
+        subscription: booking.subscription || null,
+        isCancellable: booking.isCancellable ?? false,
+        isReschedulable: booking.isReschedulable ?? false,
+        hasCompletedBookingInSubscription: booking.hasCompletedBookingInSubscription ?? false,
+        hoursUntilBooking: booking.hoursUntilBooking ?? 0,
+        cancellationWindow: booking.cancellationWindow ?? 24,
+        canCancelSubscriptionImmediately: booking.canCancelSubscriptionImmediately ?? false
+      };
+    });
+  }, [rawBookings]);
 
   // Effect to handle deep linking to a specific booking via query param
   useEffect(() => {
@@ -241,175 +309,6 @@ const BookingHistoryPage = () => {
       }
     }
   }, [router.query, bookings, isModalOpen]);
-
-  const fetchBookings = async (showLoading = true) => {
-    // Only show loading state if no modal is open (prevents full page refresh when modal triggers refetch)
-    if (showLoading && !isAnyModalOpenRef.current) {
-      setLoading(true);
-    }
-    setError(null);
-
-    try {
-      // Get token from session or localStorage
-      let token = (session as any)?.accessToken;
-
-      if (!token) {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          token = user.token;
-        }
-      }
-
-      if (!token) {
-        setError('Please login to view bookings');
-        setLoading(false);
-        return;
-      }
-
-      // Prepare query params based on active tab
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', '10');
-      if (activeTab === 'completed') {
-        params.append('status', 'COMPLETED');
-        params.append('includeExpired', 'true');
-      } else if (activeTab === 'upcoming') {
-        params.append('status', 'CONFIRMED');
-        params.append('includeFuture', 'true');
-      } else if (activeTab === 'cancelled') {
-        params.append('status', 'CANCELLED');
-        params.append('includeExpired', 'true');
-      } else {
-        params.append('status', 'PENDING');
-      }
-
-      // Add date range filters if applied
-      if (appliedFilters) {
-        if (appliedFilters.dateRange === 'customDate' && appliedFilters.startDate && appliedFilters.endDate) {
-          params.append('startDate', appliedFilters.startDate.toISOString());
-          params.append('endDate', appliedFilters.endDate.toISOString());
-        } else if (appliedFilters.dateRange !== 'customDate') {
-          params.append('dateRange', appliedFilters.dateRange);
-        }
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/my-bookings?${params.toString()}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const bookingData = data.data || [];
-
-        // Transform backend data to match frontend interface
-        const transformedBookings = bookingData.map((booking: any) => {
-          // Calculate the actual price if totalPrice is missing or 0
-          let calculatedPrice = booking.totalPrice || 0;
-
-          if ((!calculatedPrice || calculatedPrice === 0) && booking.field?.pricePerHour) {
-            // Calculate based on duration and number of dogs
-            const startTime = booking.startTime;
-            const endTime = booking.endTime;
-            const startMinutes = timeToMinutes(startTime);
-            const endMinutes = timeToMinutes(endTime);
-            const durationHours = (endMinutes - startMinutes) / 60;
-            const numberOfDogs = booking.numberOfDogs || 1;
-
-            if (booking.field?.bookingDuration === '30min') {
-              const duration30MinBlocks = durationHours * 2;
-              calculatedPrice = booking.field.pricePerHour * duration30MinBlocks * numberOfDogs;
-            } else {
-              calculatedPrice = booking.field.pricePerHour * durationHours * numberOfDogs;
-            }
-          }
-
-          // Calculate distance if user location and field location are available
-          // Calculate distance if user location and field location are available
-          let distance = null;
-          // if (userLocation && booking.field) {
-          //   const fieldLat = booking.field.latitude || booking.field.location?.lat;
-          //   const fieldLng = booking.field.longitude || booking.field.location?.lng;
-
-          //   if (fieldLat && fieldLng) {
-          //     const distanceInMiles = calculateDistance(
-          //       userLocation.lat,
-          //       userLocation.lng,
-          //       fieldLat,
-          //       fieldLng
-          //     );
-          //     distance = formatDistance(distanceInMiles);
-          //   }
-          // }
-
-          return {
-            _id: booking.id,
-            fieldId: booking.field?.fieldId || booking.fieldId,
-            userId: booking.userId,
-            name: booking.field?.name || 'Field',
-            duration: booking.field?.bookingDuration === '30min' ? '30min' : '1hr',
-            price: calculatedPrice || booking.totalPrice || 0,
-            currency: '£',
-            image: booking.field?.images?.[0] || '/fields/field-placeholder.jpg',
-            features: booking.field?.amenities ? formatAmenities(booking.field.amenities).join(' • ') : booking.field?.description || 'Field description',
-            location: booking.field?.address ? `${booking.field.address}, ${booking.field.city}, ${booking.field.state}` : 'Location',
-            distance: distance,
-            time: booking.timeSlot || `${booking.startTime} – ${booking.endTime}`,
-            date: formatDateDDMMYYYY(new Date(booking.date)),
-            rawDate: booking.date, // Keep raw date for calculations
-            startTime: booking.startTime, // Keep raw start time
-            endTime: booking.endTime, // Keep raw end time
-            dogs: booking.numberOfDogs || 1,
-            recurring: booking.repeatBooking && booking.repeatBooking.toLowerCase() !== 'none' ? `Recurring ${booking.repeatBooking}` : null,
-            status: booking.status.toLowerCase() === 'confirmed' ? 'upcoming' : booking.status.toLowerCase() as any,
-            paymentStatus: booking.paymentStatus?.toLowerCase() || 'paid',
-            createdAt: booking.createdAt,
-            updatedAt: booking.updatedAt,
-            rescheduleCount: booking.rescheduleCount || 0, // Include reschedule count for badge display
-            // Include review status
-            hasReview: booking.hasReview || false,
-            fieldReview: booking.fieldReview || null,
-            // Include field data for modal
-            field: booking.field,
-            averageRating: booking.field?.averageRating || 0,
-            // Include subscription data for recurring bookings
-            subscription: booking.subscription || null,
-            // Calculated fields from backend for mobile app compatibility
-            isCancellable: booking.isCancellable ?? false,
-            isReschedulable: booking.isReschedulable ?? false,
-            hasCompletedBookingInSubscription: booking.hasCompletedBookingInSubscription ?? false,
-            hoursUntilBooking: booking.hoursUntilBooking ?? 0,
-            cancellationWindow: booking.cancellationWindow ?? 24,
-            canCancelSubscriptionImmediately: booking.canCancelSubscriptionImmediately ?? false
-          };
-        });
-
-        setBookings(transformedBookings);
-
-        // Set pagination info
-        if (data.pagination) {
-          setTotalPages(data.pagination.totalPages || Math.ceil(data.pagination.total / data.pagination.limit));
-          setTotalBookings(data.pagination.total || 0);
-        }
-      } else if (response.status === 401) {
-        setError('Session expired. Please login again');
-        router.push('/login');
-      } else {
-        setError('Failed to fetch bookings');
-      }
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      setError('Network error. Please check your connection.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
 
   // Use actual bookings from API only
@@ -468,7 +367,7 @@ const BookingHistoryPage = () => {
         setIsCancelSubModalOpen(false);
         setBookingToCancelSub(null);
         // Refresh bookings in background
-        fetchBookings(false);
+        refetch();
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || 'Failed to cancel recurring booking', {
@@ -514,22 +413,11 @@ const BookingHistoryPage = () => {
             position: 'top-center',
           });
 
-          // Update the booking status locally immediately
-          setBookings(prevBookings =>
-            prevBookings.map(booking =>
-              booking._id === bookingId
-                ? { ...booking, status: 'cancelled' as const }
-                : booking
-            )
-          );
-
           setIsCancelModalOpen(false);
           setBookingToCancel(null);
 
-          // Also refresh from server in background to ensure consistency (no loading state)
-          setTimeout(() => {
-            fetchBookings(false);
-          }, 500);
+          // Refresh from server in background
+          refetch();
         },
         onError: (error: any) => {
           const errorMessage = error.response?.data?.message || 'Failed to cancel booking';
@@ -553,10 +441,8 @@ const BookingHistoryPage = () => {
           setIsRescheduleModalOpen(false);
           setBookingToReschedule(null);
 
-          // Refresh bookings in background to show updated data (no loading state)
-          setTimeout(() => {
-            fetchBookings(false);
-          }, 500);
+          // Refresh bookings in background
+          refetch();
         },
         onError: (error: any) => {
           const errorMessage = error.response?.data?.message || 'Failed to reschedule booking';
@@ -569,7 +455,7 @@ const BookingHistoryPage = () => {
   };
 
 
-  const BookingCard = ({ booking }: { booking: Booking }) => {
+  const BookingCard = ({ booking, onRefresh }: { booking: Booking; onRefresh: () => void }) => {
     const [showCancelSubModal, setShowCancelSubModal] = useState(false);
     const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
     console.log(';; fullBooking', booking);
@@ -614,8 +500,8 @@ const BookingHistoryPage = () => {
           // Note: Success toast is handled by NotificationContext via socket notification
           // Don't show a duplicate toast here
           setShowCancelSubModal(false);
-          // Refresh bookings in background to show updated data (no loading state)
-          fetchBookings(false);
+          // Refresh bookings in background
+          onRefresh();
         } else {
           const errorData = await response.json();
           toast.error(errorData.message || 'Failed to cancel recurring booking', {
@@ -1005,6 +891,13 @@ const BookingHistoryPage = () => {
               <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
             </button>
             <h1 className="text-[24px] sm:text-[29px] font-semibold text-[#192215]">Booking History</h1>
+            {/* Subtle indicator when refreshing in background */}
+            {isFetching && !isLoading && (
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="w-4 h-4 border-2 border-[#3a6b22]/30 border-t-[#3a6b22] rounded-full animate-spin" />
+                <span className="hidden sm:inline">Updating...</span>
+              </div>
+            )}
           </div>
 
           {/* Tabs and Filter */}
@@ -1078,7 +971,7 @@ const BookingHistoryPage = () => {
                 </div>
                 <p className="text-red-500 font-medium mb-2">{error}</p>
                 <button
-                  onClick={() => fetchBookings()}
+                  onClick={() => refetch()}
                   className="text-[#3A6B22] font-medium hover:underline"
                 >
                   Try Again
@@ -1110,7 +1003,7 @@ const BookingHistoryPage = () => {
               </div>
             ) : (
               displayBookings.map((booking) => (
-                <BookingCard key={booking._id} booking={booking} />
+                <BookingCard key={booking._id} booking={booking} onRefresh={refetch} />
               ))
             )}
           </div>
@@ -1242,22 +1135,11 @@ const BookingHistoryPage = () => {
             }}
             booking={bookingToCancel}
             onSuccess={() => {
-              // Update the booking status locally immediately
-              setBookings(prevBookings =>
-                prevBookings.map(booking =>
-                  booking._id === bookingToCancel._id
-                    ? { ...booking, status: 'cancelled' as const }
-                    : booking
-                )
-              );
-
               setIsCancelModalOpen(false);
               setBookingToCancel(null);
 
-              // Refresh from server in background to ensure consistency (no loading state)
-              setTimeout(() => {
-                fetchBookings(false);
-              }, 500);
+              // Refresh bookings from server
+              refetch();
             }}
           />
         )}
@@ -1287,18 +1169,10 @@ const BookingHistoryPage = () => {
             fieldName={bookingToReview.name}
             bookingId={bookingToReview._id}
             onReviewAdded={async () => {
-              // Update the booking's hasReview status immediately
-              setBookings(prevBookings =>
-                prevBookings.map(b =>
-                  b._id === bookingToReview._id
-                    ? { ...b, hasReview: true }
-                    : b
-                )
-              );
               setIsReviewModalOpen(false);
               setBookingToReview(null);
-              // Also refresh bookings in background from server to get the actual review data
-              await fetchBookings(false);
+              // Refresh bookings from server to get the actual review data
+              refetch();
             }}
           />
         )}

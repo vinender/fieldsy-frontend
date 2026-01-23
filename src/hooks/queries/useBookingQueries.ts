@@ -4,6 +4,8 @@ import axiosClient from '@/lib/api/axios-client';
 // Query keys
 export const bookingQueryKeys = {
   userBookings: () => ['bookings', 'my-bookings'] as const,
+  userBookingsByStatus: (status: string, page: number, filters?: any) =>
+    ['bookings', 'my-bookings', status, page, JSON.stringify(filters)] as const,
   bookingDetails: (id: string) => ['booking', id] as const,
   cancelledBookings: (page: number) => ['bookings', 'cancelled', page] as const,
   hasCompletedBooking: (fieldId: string) => ['bookings', 'has-completed', fieldId] as const,
@@ -57,6 +59,106 @@ export function useUserBookings(options?: Omit<UseQueryOptions<UserBookingsRespo
     isError: query.isError,
     isSuccess: query.isSuccess,
     refetch: query.refetch,
+  };
+}
+
+// Interface for booking status query params
+export interface BookingStatusParams {
+  status: 'upcoming' | 'completed' | 'cancelled';
+  page?: number;
+  limit?: number;
+  filters?: {
+    dateRange?: string;
+    startDate?: Date;
+    endDate?: Date;
+  };
+}
+
+export interface BookingsByStatusResponse {
+  success: boolean;
+  data: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+// Hook to fetch user bookings by status with proper caching
+// Shows cached data immediately on tab change, refetches in background
+export function useUserBookingsByStatus(
+  params: BookingStatusParams,
+  options?: Omit<UseQueryOptions<BookingsByStatusResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  const { status, page = 1, limit = 10, filters } = params;
+
+  // Map tab status to API status
+  const getApiStatus = () => {
+    switch (status) {
+      case 'upcoming':
+        return 'CONFIRMED';
+      case 'completed':
+        return 'COMPLETED';
+      case 'cancelled':
+        return 'CANCELLED';
+      default:
+        return 'PENDING';
+    }
+  };
+
+  const query = useQuery({
+    queryKey: bookingQueryKeys.userBookingsByStatus(status, page, filters),
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page.toString());
+      queryParams.append('limit', limit.toString());
+      queryParams.append('status', getApiStatus());
+
+      // Add status-specific params
+      if (status === 'completed' || status === 'cancelled') {
+        queryParams.append('includeExpired', 'true');
+      }
+      if (status === 'upcoming') {
+        queryParams.append('includeFuture', 'true');
+      }
+
+      // Add date range filters if applied
+      if (filters) {
+        if (filters.dateRange === 'customDate' && filters.startDate && filters.endDate) {
+          queryParams.append('startDate', filters.startDate.toISOString());
+          queryParams.append('endDate', filters.endDate.toISOString());
+        } else if (filters.dateRange && filters.dateRange !== 'customDate') {
+          queryParams.append('dateRange', filters.dateRange);
+        }
+      }
+
+      const response = await axiosClient.get(`/bookings/my-bookings?${queryParams.toString()}`);
+      return response.data as BookingsByStatusResponse;
+    },
+    // Caching configuration for smooth tab switching
+    staleTime: 30 * 1000, // Data is fresh for 30 seconds (short so refetch happens often)
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: 'always', // Always refetch when window regains focus (browser tab switch)
+    refetchOnReconnect: 'always', // Always refetch when coming back online
+    refetchOnMount: false, // Don't refetch if data exists in cache (for tab switching within app)
+    placeholderData: (previousData) => previousData, // Show previous data while fetching
+    ...options,
+  });
+
+  return {
+    data: query.data?.data || [],
+    pagination: query.data?.pagination,
+    loading: query.isLoading,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching, // True when background refetch is happening
+    error: query.error,
+    isError: query.isError,
+    isSuccess: query.isSuccess,
+    refetch: query.refetch,
+    isPlaceholderData: query.isPlaceholderData,
   };
 }
 
