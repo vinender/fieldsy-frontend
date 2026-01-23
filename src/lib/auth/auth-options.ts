@@ -8,34 +8,66 @@ import { generateTokens, verifyToken } from '@/lib/auth/jwt-utils';
 import { findUserByEmail } from '@/lib/auth/user-store';
 
 // Log Apple configuration at startup
-console.log('═══════════════════════════════════════════════════════════════');
-console.log('[NextAuth] Apple Sign In Configuration Check');
-console.log('═══════════════════════════════════════════════════════════════');
-console.log('  APPLE_CLIENT_ID:', process.env.APPLE_CLIENT_ID ? `✅ ${process.env.APPLE_CLIENT_ID}` : '❌ NOT SET');
-console.log('  APPLE_CLIENT_SECRET:', process.env.APPLE_CLIENT_SECRET ? `✅ SET (length: ${process.env.APPLE_CLIENT_SECRET.length})` : '❌ NOT SET');
-console.log('  NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '❌ NOT SET');
-console.log('  NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? '✅ SET' : '❌ NOT SET');
-console.log('  NODE_ENV:', process.env.NODE_ENV);
-
+console.log('\n\n');
+console.log('╔═══════════════════════════════════════════════════════════════════════════╗');
+console.log('║           🍎 APPLE SIGN IN CONFIGURATION CHECK AT STARTUP 🍎             ║');
+console.log('╠═══════════════════════════════════════════════════════════════════════════╣');
+console.log('║ APPLE_CLIENT_ID:');
+if (process.env.APPLE_CLIENT_ID) {
+  console.log('║   ✅ SET:', process.env.APPLE_CLIENT_ID);
+} else {
+  console.log('║   ❌ NOT SET - Apple Sign In will NOT work!');
+}
+console.log('║');
+console.log('║ APPLE_CLIENT_SECRET:');
 if (process.env.APPLE_CLIENT_SECRET) {
+  console.log('║   ✅ SET (JWT length:', process.env.APPLE_CLIENT_SECRET.length, 'chars)');
   try {
     const parts = process.env.APPLE_CLIENT_SECRET.split('.');
     if (parts.length === 3) {
       const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-      console.log('  APPLE_CLIENT_SECRET JWT Claims:');
-      console.log('    - iss (Team ID):', payload.iss);
-      console.log('    - sub (Client ID):', payload.sub);
-      console.log('    - aud:', payload.aud);
-      console.log('    - iat:', payload.iat, `(${new Date(payload.iat * 1000).toISOString()})`);
-      console.log('    - exp:', payload.exp, `(${new Date(payload.exp * 1000).toISOString()})`);
-      const isExpired = Date.now() / 1000 > payload.exp;
-      console.log('    - Expired:', isExpired ? '⚠️ YES - REGENERATE!' : '✅ NO');
+      console.log('║');
+      console.log('║   JWT CLAIMS DECODED:');
+      console.log('║     - iss (Apple Team ID):', payload.iss);
+      console.log('║     - sub (Services ID/Client ID):', payload.sub);
+      console.log('║     - aud:', payload.aud);
+      console.log('║     - iat (Issued At):', new Date(payload.iat * 1000).toISOString());
+      console.log('║     - exp (Expires At):', new Date(payload.exp * 1000).toISOString());
+      const now = Math.floor(Date.now() / 1000);
+      const isExpired = now > payload.exp;
+      const daysUntilExpiry = Math.floor((payload.exp - now) / 86400);
+      console.log('║');
+      if (isExpired) {
+        console.log('║   ⚠️⚠️⚠️ TOKEN IS EXPIRED! ⚠️⚠️⚠️');
+        console.log('║   Run: cd backend && node generate-apple-client-secret.js');
+      } else {
+        console.log('║   ✅ Token is VALID - expires in', daysUntilExpiry, 'days');
+      }
+      // Verify sub matches APPLE_CLIENT_ID
+      if (payload.sub !== process.env.APPLE_CLIENT_ID) {
+        console.log('║');
+        console.log('║   ⚠️ WARNING: JWT sub (', payload.sub, ') does NOT match APPLE_CLIENT_ID (', process.env.APPLE_CLIENT_ID, ')');
+        console.log('║   This WILL cause invalid_client errors!');
+      }
+    } else {
+      console.log('║   ⚠️ Invalid JWT format (expected 3 parts, got', parts.length, ')');
     }
   } catch (e) {
-    console.log('  ⚠️ Could not decode APPLE_CLIENT_SECRET');
+    console.log('║   ⚠️ Could not decode JWT:', e);
   }
+} else {
+  console.log('║   ❌ NOT SET - Apple Sign In will NOT work!');
 }
-console.log('═══════════════════════════════════════════════════════════════');
+console.log('║');
+console.log('║ OTHER CONFIG:');
+console.log('║   NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '❌ NOT SET');
+console.log('║   NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? '✅ SET' : '❌ NOT SET');
+console.log('║   NODE_ENV:', process.env.NODE_ENV);
+console.log('║');
+console.log('║ Expected Apple Callback URL:');
+console.log('║   ', (process.env.NEXTAUTH_URL || 'http://localhost:3000') + '/api/auth/callback/apple');
+console.log('╚═══════════════════════════════════════════════════════════════════════════╝');
+console.log('\n');
 
 interface ExtendedSession extends Session {
   accessToken?: string;
@@ -84,21 +116,31 @@ export const authOptions: NextAuthOptions = {
     // Only add Apple provider if credentials are available
     // Note: APPLE_CLIENT_SECRET should be a pre-generated JWT (use backend/generate-apple-client-secret.js)
     ...(process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
-      ? [
-        AppleProvider({
-          clientId: process.env.APPLE_CLIENT_ID,
-          clientSecret: process.env.APPLE_CLIENT_SECRET,
-          authorization: {
-            params: {
-              scope: 'name email',
-              response_mode: 'form_post',
+      ? (() => {
+        console.log('[NextAuth] 🍎 Initializing Apple Provider with:');
+        console.log('  - clientId:', process.env.APPLE_CLIENT_ID);
+        console.log('  - clientSecret: JWT with', process.env.APPLE_CLIENT_SECRET?.length, 'chars');
+        return [
+          AppleProvider({
+            clientId: process.env.APPLE_CLIENT_ID,
+            clientSecret: process.env.APPLE_CLIENT_SECRET,
+            authorization: {
+              params: {
+                scope: 'name email',
+                response_mode: 'form_post',
+              },
             },
-          },
-          // Use 'state' instead of PKCE - Apple's form_post doesn't work well with PKCE cookies
-          checks: ['state'],
-        }),
-      ]
-      : []),
+            // Use 'state' instead of PKCE - Apple's form_post doesn't work well with PKCE cookies
+            checks: ['state'],
+          }),
+        ];
+      })()
+      : (() => {
+        console.log('[NextAuth] ⚠️ Apple Provider NOT initialized - missing credentials');
+        console.log('  - APPLE_CLIENT_ID:', process.env.APPLE_CLIENT_ID ? '✅' : '❌ Missing');
+        console.log('  - APPLE_CLIENT_SECRET:', process.env.APPLE_CLIENT_SECRET ? '✅' : '❌ Missing');
+        return [];
+      })()),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -533,15 +575,65 @@ export const authOptions: NextAuthOptions = {
   // Add logger for detailed NextAuth debugging
   logger: {
     error(code, metadata) {
-      console.error('═══════════════════════════════════════════════════════════════');
-      console.error('[NextAuth ERROR]', code);
-      console.error('═══════════════════════════════════════════════════════════════');
+      console.error('\n');
+      console.error('╔═══════════════════════════════════════════════════════════════════════════╗');
+      console.error('║                    ❌ NEXTAUTH ERROR ❌                                   ║');
+      console.error('╠═══════════════════════════════════════════════════════════════════════════╣');
+      console.error('║ Error Code:', code);
+
       if (metadata instanceof Error) {
-        console.error('Error message:', metadata.message);
-        console.error('Error stack:', metadata.stack);
+        console.error('║ Error Message:', metadata.message);
+        console.error('║ Error Stack:', metadata.stack);
       } else {
-        console.error('Metadata:', JSON.stringify(metadata, null, 2));
+        const metaObj = metadata as any;
+        console.error('║ Provider:', metaObj?.providerId || 'unknown');
+        console.error('║ Error Details:', JSON.stringify(metadata, null, 2));
       }
+
+      // If it's an Apple OAuth error, show the current config being used
+      const metaObj = metadata as any;
+      if (metaObj?.providerId === 'apple' || code === 'OAUTH_CALLBACK_ERROR') {
+        console.error('║');
+        console.error('║ 🍎 APPLE CONFIG AT ERROR TIME:');
+        console.error('║   APPLE_CLIENT_ID:', process.env.APPLE_CLIENT_ID || '❌ NOT SET');
+        console.error('║   APPLE_CLIENT_SECRET:', process.env.APPLE_CLIENT_SECRET ? `✅ SET (${process.env.APPLE_CLIENT_SECRET.length} chars)` : '❌ NOT SET');
+
+        if (process.env.APPLE_CLIENT_SECRET) {
+          try {
+            const parts = process.env.APPLE_CLIENT_SECRET.split('.');
+            if (parts.length === 3) {
+              const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+              const now = Math.floor(Date.now() / 1000);
+              const isExpired = now > payload.exp;
+              console.error('║   JWT Team ID (iss):', payload.iss);
+              console.error('║   JWT Client ID (sub):', payload.sub);
+              console.error('║   JWT Expires:', new Date(payload.exp * 1000).toISOString());
+              console.error('║   JWT Expired:', isExpired ? '⚠️ YES - THIS IS THE PROBLEM!' : '✅ No');
+
+              if (payload.sub !== process.env.APPLE_CLIENT_ID) {
+                console.error('║');
+                console.error('║   ⚠️ MISMATCH: JWT sub does not match APPLE_CLIENT_ID!');
+                console.error('║   JWT sub:', payload.sub);
+                console.error('║   APPLE_CLIENT_ID:', process.env.APPLE_CLIENT_ID);
+              }
+
+              if (metaObj?.error?.message === 'invalid_client') {
+                console.error('║');
+                console.error('║ 🔧 FIX: The "invalid_client" error means:');
+                console.error('║   1. APPLE_CLIENT_SECRET JWT is expired (most common)');
+                console.error('║   2. JWT sub does not match APPLE_CLIENT_ID in Apple Developer Console');
+                console.error('║   3. Apple Key ID in JWT header is wrong or revoked');
+                console.error('║');
+                console.error('║ To regenerate: cd backend && node generate-apple-client-secret.js');
+              }
+            }
+          } catch (e) {
+            console.error('║   Could not decode JWT:', e);
+          }
+        }
+      }
+      console.error('╚═══════════════════════════════════════════════════════════════════════════╝');
+      console.error('\n');
     },
     warn(code) {
       console.warn('[NextAuth WARN]', code);
