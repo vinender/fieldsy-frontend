@@ -16,6 +16,7 @@ console.log('  APPLE_CLIENT_SECRET:', process.env.APPLE_CLIENT_SECRET ? `✅ SET
 console.log('  NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '❌ NOT SET');
 console.log('  NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? '✅ SET' : '❌ NOT SET');
 console.log('  NODE_ENV:', process.env.NODE_ENV);
+
 if (process.env.APPLE_CLIENT_SECRET) {
   try {
     const parts = process.env.APPLE_CLIENT_SECRET.split('.');
