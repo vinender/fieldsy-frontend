@@ -118,20 +118,14 @@ export function LoginForm() {
 
   // Handle role selection from modal
   async function handleRoleSelection(role: 'DOG_OWNER' | 'FIELD_OWNER') {
-    console.log('%c==================== APPLE/GOOGLE SIGN IN START ====================', 'background: #4CAF50; color: white; padding: 4px 8px; font-weight: bold;');
-    console.log('%c[LoginForm] Provider:', 'color: #2196F3; font-weight: bold;', pendingProvider);
-    console.log('%c[LoginForm] Selected role:', 'color: #2196F3; font-weight: bold;', role);
-    console.log('%c[LoginForm] Current URL:', 'color: #2196F3; font-weight: bold;', window.location.href);
-    console.log('%c[LoginForm] Current origin:', 'color: #2196F3; font-weight: bold;', window.location.origin);
+    console.log('[LoginForm] Starting social sign in - Provider:', pendingProvider, 'Role:', role);
 
     if (!pendingProvider) {
-      console.error('%c[LoginForm] ❌ No pending provider set - aborting', 'color: red; font-weight: bold;');
+      console.error('[LoginForm] No pending provider set');
       return;
     }
 
     const isGoogle = pendingProvider === 'google';
-    const providerName = isGoogle ? 'Google' : 'Apple';
-
     if (isGoogle) {
       setIsGoogleLoading(true);
     } else {
@@ -139,92 +133,24 @@ export function LoginForm() {
     }
 
     try {
-      // Store the role in both localStorage (for client) and server storage
+      // Store the role for the callback to use
       localStorage.setItem('pendingUserRole', role);
-      console.log('%c[LoginForm] ✅ Stored role in localStorage:', 'color: green;', role);
-
-      // Store on server for NextAuth callback to retrieve
-      console.log('%c[LoginForm] 📡 Calling storePendingRoleMutation...', 'color: #FF9800;');
       await storePendingRoleMutation.mutateAsync({ role });
-      console.log('%c[LoginForm] ✅ Stored role on server:', 'color: green;', role);
+      console.log('[LoginForm] Role stored, calling signIn for:', pendingProvider);
 
-      // Call the social login with redirect: false to capture errors
-      console.log('%c[LoginForm] 🚀 Calling signIn for provider:', 'color: #9C27B0; font-weight: bold;', pendingProvider);
-      console.log('%c[LoginForm] 📝 signIn options:', 'color: #9C27B0;', { redirect: false, callbackUrl: '/' });
-
-      const result = await signIn(pendingProvider, {
-        redirect: false,
+      // Use default redirect: true - let NextAuth handle the OAuth flow
+      // Errors will come back as query params on the login page
+      await signIn(pendingProvider, {
         callbackUrl: '/',
       });
-
-      console.log('%c[LoginForm] 📨 signIn result:', 'color: #673AB7; font-weight: bold;', JSON.stringify(result, null, 2));
-
-      if (result?.error) {
-        // Log detailed error information
-        console.error('%c[LoginForm] ❌ signIn returned error:', 'background: red; color: white; padding: 2px 6px;', result.error);
-        console.error('%c[LoginForm] Full error result:', 'color: red;', {
-          error: result.error,
-          status: result.status,
-          ok: result.ok,
-          url: result.url,
-        });
-
-        // Handle specific error types
-        if (result.error === 'OAuthSignin') {
-          console.error('%c[LoginForm] ⚠️ OAuthSignin error - Check Apple/Google configuration', 'color: orange; font-weight: bold;');
-          toast.error(`${providerName} Sign In configuration error. Please contact support.`);
-        } else if (result.error === 'OAuthCallback') {
-          console.error('%c[LoginForm] ⚠️ OAuthCallback error - Callback from provider failed', 'color: orange; font-weight: bold;');
-          toast.error(`${providerName} Sign In callback failed. Please try again.`);
-        } else if (result.error === 'OAuthCreateAccount') {
-          console.error('%c[LoginForm] ⚠️ OAuthCreateAccount error - Account creation failed', 'color: orange; font-weight: bold;');
-          toast.error(`Failed to create account with ${providerName}. Please try again.`);
-        } else if (result.error === 'OAuthAccountNotLinked') {
-          console.error('%c[LoginForm] ⚠️ OAuthAccountNotLinked error - Email already registered differently', 'color: orange; font-weight: bold;');
-          toast.error('This email is already registered with a different sign-in method.');
-        } else if (result.error === 'Callback') {
-          console.error('%c[LoginForm] ⚠️ Callback error - General callback failure', 'color: orange; font-weight: bold;');
-          toast.error(`${providerName} Sign In failed during callback. Please try again.`);
-        } else if (result.error === 'AccessDenied') {
-          console.error('%c[LoginForm] ⚠️ AccessDenied error - User denied access', 'color: orange; font-weight: bold;');
-          toast.error(`Access denied. Please allow ${providerName} Sign In to continue.`);
-        } else if (result.error === 'Configuration') {
-          console.error('%c[LoginForm] ⚠️ Configuration error - Provider not configured properly', 'color: orange; font-weight: bold;');
-          toast.error(`${providerName} Sign In is not configured. Please contact support.`);
-        } else {
-          console.error('%c[LoginForm] ⚠️ Unknown error type:', 'color: orange; font-weight: bold;', result.error);
-          toast.error(`${providerName} Sign In failed: ${result.error}`);
-        }
-      } else if (result?.ok && result?.url) {
-        // Success - redirect manually
-        console.log('%c[LoginForm] ✅ signIn successful! Redirecting to:', 'background: green; color: white; padding: 2px 6px;', result.url);
-        window.location.href = result.url;
-        return; // Don't run finally cleanup since we're redirecting
-      } else {
-        console.warn('%c[LoginForm] ⚠️ Unexpected signIn result - no error but also not ok:', 'color: orange;', result);
-        toast.error(`${providerName} Sign In returned unexpected result. Please try again.`);
-      }
+      // Note: This won't return - browser will redirect to OAuth provider
     } catch (error: any) {
-      console.error('%c[LoginForm] ❌ Exception during sign in:', 'background: red; color: white; padding: 2px 6px;', error);
-      console.error('%c[LoginForm] Error name:', 'color: red;', error?.name);
-      console.error('%c[LoginForm] Error message:', 'color: red;', error?.message);
-      console.error('%c[LoginForm] Error stack:', 'color: red;', error?.stack);
-      console.error('%c[LoginForm] Full error object:', 'color: red;', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-
-      if (error?.message?.includes('OAuthAccountNotLinked')) {
-        toast.error('This email is already registered with a different method');
-      } else if (error?.message?.includes('Configuration')) {
-        toast.info(`${providerName} login is not configured yet`);
-      } else {
-        toast.error(`${providerName} login failed. Please try again.`);
-      }
-    } finally {
-      console.log('%c[LoginForm] 🧹 Cleaning up state...', 'color: #607D8B;');
+      console.error('[LoginForm] Sign in error:', error?.message);
+      toast.error(`${isGoogle ? 'Google' : 'Apple'} login failed. Please try again.`);
       setShowRoleModal(false);
       setPendingProvider(null);
       setIsGoogleLoading(false);
       setIsAppleLoading(false);
-      console.log('%c==================== APPLE/GOOGLE SIGN IN END ====================', 'background: #4CAF50; color: white; padding: 4px 8px; font-weight: bold;');
     }
   }
 
