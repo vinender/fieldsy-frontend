@@ -35,6 +35,11 @@ export default function LoginPage() {
   }, [status, session, router])
 
   useEffect(() => {
+    // Log page load for debugging
+    console.log('%c[Login Page] Mounted', 'background: #2196F3; color: white; padding: 2px 6px;');
+    console.log('%c[Login Page] Current URL:', 'color: #2196F3;', window.location.href);
+    console.log('%c[Login Page] Query params:', 'color: #2196F3;', router.query);
+
     // Check if redirected due to expired session
     if (router.query.expired === 'true') {
       toast.error('Your session has expired. Please login again.')
@@ -50,6 +55,12 @@ export default function LoginPage() {
     if (router.query.error) {
       const error = router.query.error as string;
       const message = router.query.message as string;
+
+      // Log the error prominently in browser console
+      console.error('%c==================== OAUTH ERROR DETECTED ====================', 'background: #f44336; color: white; padding: 4px 8px; font-weight: bold;');
+      console.error('%c[Login Page] Error type:', 'color: red; font-weight: bold;', error);
+      console.error('%c[Login Page] Error message:', 'color: red;', message || 'No message provided');
+      console.error('%c[Login Page] Full query params:', 'color: red;', JSON.stringify(router.query, null, 2));
 
       // Check for specific error types
       if (error === 'DuplicateAccount' && message) {
@@ -91,20 +102,33 @@ export default function LoginPage() {
           toast.error('Sign in failed. The email may already be registered with a different role.');
         }
       } else if (error === 'Configuration') {
+        console.error('%c[Login Page] Configuration error - Provider not properly configured', 'color: orange; font-weight: bold;');
         toast.error('Social login is not configured yet.');
       } else if (error === 'OAuthSignin') {
         // OAuth sign-in error (often redirect URL issue)
-        console.error('[Login] OAuthSignin error - likely redirect URL issue');
-        toast.error('Apple Sign In failed. This may be a configuration issue with the redirect URL.');
+        console.error('%c[Login Page] OAuthSignin error - OAuth provider rejected the sign-in request', 'background: orange; color: black; padding: 2px 6px; font-weight: bold;');
+        console.error('%c[Login Page] This usually means:', 'color: orange;');
+        console.error('%c  - Invalid redirect URL configured in Apple/Google console', 'color: orange;');
+        console.error('%c  - Missing or invalid client ID', 'color: orange;');
+        console.error('%c  - Provider configuration mismatch', 'color: orange;');
+        toast.error('Social Sign In failed. This may be a configuration issue.');
       } else if (error === 'OAuthCallback') {
         // OAuth callback error
-        console.error('[Login] OAuthCallback error');
+        console.error('%c[Login Page] OAuthCallback error - Callback from OAuth provider failed', 'background: orange; color: black; padding: 2px 6px; font-weight: bold;');
+        console.error('%c[Login Page] This usually means:', 'color: orange;');
+        console.error('%c  - Token verification failed', 'color: orange;');
+        console.error('%c  - Backend social-login API call failed', 'color: orange;');
+        console.error('%c  - Session creation failed', 'color: orange;');
         toast.error('Sign in callback failed. Please try again.');
       } else if (error === 'OAuthCreateAccount') {
-        console.error('[Login] OAuthCreateAccount error');
+        console.error('%c[Login Page] OAuthCreateAccount error - Could not create user account', 'background: orange; color: black; padding: 2px 6px; font-weight: bold;');
+        console.error('%c[Login Page] This usually means:', 'color: orange;');
+        console.error('%c  - Email already exists with different provider', 'color: orange;');
+        console.error('%c  - Backend user creation failed', 'color: orange;');
         toast.error('Could not create account. This email may already be registered.');
       } else if (error === 'Callback') {
-        console.error('[Login] General callback error');
+        console.error('%c[Login Page] General Callback error', 'background: orange; color: black; padding: 2px 6px; font-weight: bold;');
+        console.error('%c[Login Page] Check network tab for failed API calls', 'color: orange;');
         toast.error('Sign in failed during callback. Please try again.');
       } else if (error.startsWith('AccessDenied:')) {
         // Extract the actual error message from the error string
@@ -123,8 +147,11 @@ export default function LoginPage() {
 
         toast.error(actualMessage || 'Sign in failed. Please try again.');
       } else {
+        console.error('%c[Login Page] Unknown error type:', 'color: red; font-weight: bold;', error);
         toast.error('Sign in failed. Please try again.');
       }
+
+      console.error('%c==================== END OAUTH ERROR ====================', 'background: #f44336; color: white; padding: 4px 8px; font-weight: bold;');
 
       // Remove the error and message query params
       const { error: _, message: __, ...rest } = router.query
@@ -132,6 +159,15 @@ export default function LoginPage() {
         pathname: router.pathname,
         query: rest
       }, undefined, { shallow: true })
+    }
+
+    // Check for auth error cookies (set by social-login API)
+    const cookies = document.cookie.split(';');
+    const authErrorCookie = cookies.find(c => c.trim().startsWith('authErrorMessage='));
+    if (authErrorCookie && !router.query.error) {
+      const errorMessage = decodeURIComponent(authErrorCookie.split('=')[1]);
+      console.error('%c[Login Page] Found authErrorMessage cookie:', 'color: orange;', errorMessage);
+      // Cookie will be handled by the AccessDenied case above if present
     }
 
     // Check if social login requires OTP verification
