@@ -96,9 +96,9 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
     const isCustomCommission = booking?.isCustomCommission || false;
     const defaultCommissionRate = booking?.defaultCommissionRate || 20;
 
-    // Helper ensures we deal with money properly (2 decimals)
+    // Helper ensures we deal with money properly (2 decimals, truncated not rounded)
     const toCurrency = (amount: number) => {
-      return Math.round((amount + Number.EPSILON) * 100) / 100;
+      return Math.floor(amount * 100) / 100;
     };
 
     // Calculate Stripe fee (1.5% + £0.20) - Informational only
