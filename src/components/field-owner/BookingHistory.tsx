@@ -185,7 +185,7 @@ export default function BookingHistory() {
           {/* Bookings Tabs */}
           <div className="mb-4 sm:mb-6">
 
-            <div className="flex bg-cream max-w-full overflow-x-auto scrollbar-hide rounded-[50px] gap-1 sm:gap-3 px-1 sm:px-3 py-2 whitespace-nowrap">
+            <div className="inline-flex bg-cream overflow-x-auto scrollbar-hide rounded-[50px] gap-1 sm:gap-3 px-1 sm:px-3 py-2 whitespace-nowrap">
               <button
                 onClick={() => setActiveTab('today')}
                 className={`flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 rounded-full text-[10px] xs:text-xs sm:text-sm md:text-base font-medium transition-all font-sans ${activeTab === 'today'

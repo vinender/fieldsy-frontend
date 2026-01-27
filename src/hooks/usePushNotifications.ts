@@ -156,7 +156,6 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       });
 
       console.log('[PushNotifications] Token registered with backend');
-      toast.success('Push notifications enabled');
       return true;
     } catch (error: any) {
       console.error('[PushNotifications] Error requesting permission:', error);

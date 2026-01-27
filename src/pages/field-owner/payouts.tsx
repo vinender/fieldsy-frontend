@@ -512,11 +512,12 @@ const EarningsHistory: React.FC = () => {
               {earningsData?.transactions && earningsData.transactions.length > 0 ? (
                 earningsData.transactions.map((transaction, index) => {
                   const statusStyles = getStatusStyles(transaction.status);
-                  // Display booking ID: prefer human-readable, show count for multiple, or fallback
-                  const displayBookingId = transaction.bookingId
-                    ? `#${transaction.bookingId}`
-                    : transaction.bookingCount && transaction.bookingCount > 1
-                      ? `${transaction.bookingCount} bookings`
+                  const isBatch = (transaction.bookingCount || 0) > 1;
+                  // Display booking ID: for single bookings show human-readable ID, for batch show count
+                  const displayBookingId = isBatch
+                    ? `Batch Payment - ${transaction.bookingCount} bookings`
+                    : transaction.bookingId
+                      ? `#${transaction.bookingId}`
                       : null;
                   return (
                     <React.Fragment key={transaction.id}>
@@ -526,7 +527,7 @@ const EarningsHistory: React.FC = () => {
                           <div className="space-y-0.5">
                             {displayBookingId && (
                               <h3 className="text-lg font-bold text-[#192215]">
-                                Booking ID - {displayBookingId}
+                                {isBatch ? displayBookingId : `Booking ID - ${displayBookingId}`}
                               </h3>
                             )}
                             <p className="text-sm sm:text-base font-medium text-[#192215]">
@@ -537,7 +538,7 @@ const EarningsHistory: React.FC = () => {
                                 Field: {transaction.fieldName}
                               </p>
                             )}
-                            {transaction.customerName && (
+                            {transaction.customerName && !isBatch && (
                               <p className="text-sm text-gray-600">
                                 Customer: {transaction.customerName}
                               </p>
