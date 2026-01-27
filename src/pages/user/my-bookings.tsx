@@ -693,12 +693,22 @@ const BookingHistoryPage = () => {
                       </button>
                     );
                   })()}
-                  <button
-                    onClick={() => setShowCancelSubModal(true)}
-                    className="w-full py-2 px-2 border-2 rounded-full text-[11px] sm:text-[13px] font-bold transition-colors bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer"
-                    title="Cancel recurring subscription">
-                    Cancel Subscription
-                  </button>
+                  {(() => {
+                    const isSubCancelled = booking.subscription?.status === 'canceled' || booking.subscription?.cancelAtPeriodEnd;
+                    return (
+                      <button
+                        onClick={() => !isSubCancelled && setShowCancelSubModal(true)}
+                        disabled={!!isSubCancelled}
+                        className={`w-full py-2 px-2 border-2 rounded-full text-[11px] sm:text-[13px] font-bold transition-colors ${
+                          isSubCancelled
+                            ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
+                            : 'bg-white border-red-500 text-red-500 hover:bg-red-50 cursor-pointer'
+                        }`}
+                        title={isSubCancelled ? 'Subscription cancellation already scheduled' : 'Cancel recurring subscription'}>
+                        {isSubCancelled ? 'Cancellation Scheduled' : 'Cancel Subscription'}
+                      </button>
+                    );
+                  })()}
                 </>
               ) : (
                 /* Regular booking: show reschedule and cancel side by side */
