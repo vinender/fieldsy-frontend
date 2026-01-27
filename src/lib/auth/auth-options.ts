@@ -25,9 +25,15 @@ if (process.env.APPLE_CLIENT_SECRET) {
   try {
     const parts = process.env.APPLE_CLIENT_SECRET.split('.');
     if (parts.length === 3) {
+      // Decode header (contains key ID) and payload
+      const header = JSON.parse(Buffer.from(parts[0], 'base64').toString());
       const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
       console.log('║');
-      console.log('║   JWT CLAIMS DECODED:');
+      console.log('║   JWT HEADER:');
+      console.log('║     - alg (Algorithm):', header.alg);
+      console.log('║     - kid (Key ID):', header.kid, '← MUST EXIST IN APPLE DEVELOPER CONSOLE');
+      console.log('║');
+      console.log('║   JWT PAYLOAD:');
       console.log('║     - iss (Apple Team ID):', payload.iss);
       console.log('║     - sub (Services ID/Client ID):', payload.sub);
       console.log('║     - aud:', payload.aud);
@@ -602,13 +608,21 @@ export const authOptions: NextAuthOptions = {
           try {
             const parts = process.env.APPLE_CLIENT_SECRET.split('.');
             if (parts.length === 3) {
+              // Decode header (contains key ID)
+              const header = JSON.parse(Buffer.from(parts[0], 'base64').toString());
               const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
               const now = Math.floor(Date.now() / 1000);
               const isExpired = now > payload.exp;
-              console.error('║   JWT Team ID (iss):', payload.iss);
-              console.error('║   JWT Client ID (sub):', payload.sub);
-              console.error('║   JWT Expires:', new Date(payload.exp * 1000).toISOString());
-              console.error('║   JWT Expired:', isExpired ? '⚠️ YES - THIS IS THE PROBLEM!' : '✅ No');
+
+              console.error('║   JWT Header:');
+              console.error('║     - alg (Algorithm):', header.alg);
+              console.error('║     - kid (Key ID):', header.kid, '← CHECK THIS IN APPLE DEVELOPER CONSOLE');
+              console.error('║   JWT Payload:');
+              console.error('║     - iss (Team ID):', payload.iss);
+              console.error('║     - sub (Client ID):', payload.sub);
+              console.error('║     - aud:', payload.aud);
+              console.error('║     - Expires:', new Date(payload.exp * 1000).toISOString());
+              console.error('║     - Expired:', isExpired ? '⚠️ YES' : '✅ No');
 
               if (payload.sub !== process.env.APPLE_CLIENT_ID) {
                 console.error('║');
@@ -619,12 +633,22 @@ export const authOptions: NextAuthOptions = {
 
               if (metaObj?.error?.message === 'invalid_client') {
                 console.error('║');
-                console.error('║ 🔧 FIX: The "invalid_client" error means:');
-                console.error('║   1. APPLE_CLIENT_SECRET JWT is expired (most common)');
-                console.error('║   2. JWT sub does not match APPLE_CLIENT_ID in Apple Developer Console');
-                console.error('║   3. Apple Key ID in JWT header is wrong or revoked');
+                console.error('║ 🔧 FIX for "invalid_client":');
+                console.error('║   Since JWT is NOT expired, the issue is likely:');
                 console.error('║');
-                console.error('║ To regenerate: cd backend && node generate-apple-client-secret.js');
+                console.error('║   1. Key ID (kid):', header.kid, 'may be REVOKED or DELETED');
+                console.error('║      → Go to Apple Developer Console > Certificates, Identifiers & Profiles > Keys');
+                console.error('║      → Verify this Key ID exists and is active');
+                console.error('║');
+                console.error('║   2. The private key (.p8 file) may not match the Key ID');
+                console.error('║      → Download a fresh .p8 file from Apple if needed');
+                console.error('║');
+                console.error('║   3. Services ID (com.fieldsy.web) may not be configured for Sign in with Apple');
+                console.error('║      → Go to Identifiers > Services IDs > com.fieldsy.web');
+                console.error('║      → Ensure "Sign In with Apple" is enabled');
+                console.error('║      → Check Return URLs include: https://fieldsy.co.uk/api/auth/callback/apple');
+                console.error('║');
+                console.error('║ To regenerate with a new key: cd backend && node generate-apple-client-secret.js');
               }
             }
           } catch (e) {

@@ -117,12 +117,12 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
       fieldOwnerEarnings = storedFieldOwnerEarnings;
     } else {
       // Dynamic calculation for pending/future bookings
-      // Platform fee is calculated on GROSS booking amount
-      platformFee = toCurrency((subTotal * platformCommissionRate) / 100);
+      // Platform fee is calculated on NET amount (after Stripe fee)
+      platformFee = toCurrency((amountAfterStripeFee * platformCommissionRate) / 100);
 
-      // Field owner gets the remainder minus Stripe fee (Owner pays transaction costs)
-      // Owner Amount = Gross - PlatformCommission - StripeFee
-      const rawEarnings = subTotal - platformFee - stripeFee;
+      // Field owner gets the remaining net amount after platform commission
+      // Owner Amount = Net (after Stripe) - PlatformCommission
+      const rawEarnings = amountAfterStripeFee - platformFee;
       fieldOwnerEarnings = Math.max(0, toCurrency(rawEarnings));
     }
 
@@ -333,7 +333,7 @@ const FieldOwnerBookingDetailsModal: React.FC<FieldOwnerBookingDetailsModalProps
                           <span className="flex items-center gap-1">
                             <span className="text-red-600">-£{fees.fieldsyFee.toFixed(2)}</span>
                             <span className="text-xs text-gray-500">
-                              ({fees.platformCommissionRate}% of total{fees.isCustomCommission ? ' - Custom Rate' : ''})
+                              ({fees.platformCommissionRate}% of net{fees.isCustomCommission ? ' - Custom Rate' : ''})
                             </span>
                           </span>
                         }
