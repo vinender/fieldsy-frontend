@@ -8,6 +8,8 @@ import {
 import { stripePromise } from '@/lib/stripe';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
+import { bookingQueryKeys } from '@/hooks/queries/useBookingQueries';
 import { BookingSuccessModal } from '../modal/BookingSuccessModal';
 import { toast } from 'sonner';
 import Spinner from '@/components/ui/Spinner';
@@ -42,13 +44,14 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
 }) => {
   const router = useRouter();
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const [bookingId, setBookingId] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
-  
+
   // Use useRef to track if we've already initiated payment for this specific booking
   const paymentInitiatedRef = useRef(false);
   const bookingKeyRef = useRef(`${fieldId}_${date}_${JSON.stringify(timeSlots)}_${paymentMethodId}`);
@@ -227,16 +230,19 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
+    queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
     router.push('/user/my-bookings');
   };
 
   const handleCheckHistory = () => {
     setShowSuccessModal(false);
+    queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
     router.push('/user/my-bookings');
   };
 
   const handleGoHome = () => {
     setShowSuccessModal(false);
+    queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
     router.push('/');
   };
 
@@ -307,6 +313,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   const elements = useElements();
   const router = useRouter();
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
@@ -314,7 +321,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   const [bookingId, setBookingId] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
-  
+
   // Use useRef to track if we've already initiated payment for this specific booking
   const paymentInitiatedRef = useRef(false);
   const bookingKeyRef = useRef(`${fieldId}_${date}_${JSON.stringify(timeSlots)}_new_card`);
@@ -533,16 +540,19 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
+    queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
     router.push('/user/my-bookings');
   };
 
   const handleCheckHistory = () => {
     setShowSuccessModal(false);
+    queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
     router.push('/user/my-bookings');
   };
 
   const handleGoHome = () => {
     setShowSuccessModal(false);
+    queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
     router.push('/');
   };
 
