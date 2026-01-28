@@ -143,8 +143,7 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
       // "New review received" for field owner
       if (typeLower.includes('received') || typeLower.includes('new_review') || typeLower.includes('new-review')) {
         if (isFieldOwner && fieldId) {
-          const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
-          router.push(`/fields/${fieldId}${reviewParam}#reviews`)
+          router.push(`/field-owner/preview?fieldId=${fieldId}#reviews`)
           return
         }
       }
@@ -171,8 +170,12 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
 
       // Fallback for review notifications
       if (fieldId) {
-        const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
-        router.push(`/fields/${fieldId}${reviewParam}#reviews`)
+        if (isFieldOwner) {
+          router.push(`/field-owner/preview?fieldId=${fieldId}#reviews`)
+        } else {
+          const reviewParam = reviewId ? `?reviewId=${reviewId}` : ''
+          router.push(`/fields/${fieldId}${reviewParam}#reviews`)
+        }
       } else {
         router.push(isFieldOwner ? '/' : '/user/my-bookings?tab=previous')
       }

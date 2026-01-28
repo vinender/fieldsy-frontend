@@ -262,7 +262,7 @@ export default function FieldPreview({ formData, onEdit, onSubmit, isLoading, is
       <FieldDetailsScreen
         field={field}
         isPreview={true}
-        showReviews={false}
+        showReviews={!!isSubmitted || !!isClaimed}
         showOwnerInfo={false}
         showClaimField={false}
         headerContent={headerContent}

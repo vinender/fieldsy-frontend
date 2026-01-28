@@ -23,6 +23,7 @@ interface FieldSearchInputProps {
 
 interface FieldSuggestion {
   id: string;
+  fieldId?: string;
   name: string;
   location: string;
   address?: string;
@@ -383,8 +384,8 @@ function FieldSearchInputComponent({
                     // Save field name to search history before navigating
                     saveSearchToHistory(field.name || 'Dog Field');
                     setShowDropdown(false);
-                    // Use direct Next.js router to avoid showing full page loader
-                    nextRouter.push(`/fields/${field.id}`);
+                    // Use human-readable fieldId for clean URLs
+                    nextRouter.push(`/fields/${field.fieldId || field.id}`);
                   }}
                   className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-start gap-2 sm:gap-3 border-b last:border-b-0 transition-colors"
                 >
