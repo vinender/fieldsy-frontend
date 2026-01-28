@@ -316,7 +316,7 @@ const ClaimFieldPage = () => {
   };
 
   // Show loading state
-  if (isLoadingEligibility) {
+  if (isLoadingEligibility) { 
     return (
       <UserLayout>
         <div className="min-h-screen bg-light flex items-center justify-center">
