@@ -373,7 +373,7 @@ export default function BookingHistory() {
                       {/* Booking Details */}
                       <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-dark-green/70 font-sans">Order ID</span>
+                          <span className="text-xs text-dark-green/70 font-sans">Booking Id</span>
                           <p className="text-xs font-medium text-dark-green font-sans">{displayBooking.orderId}</p>
                         </div>
                         {displayBooking.frequency && (

@@ -314,7 +314,7 @@ const ClaimFieldPage = () => {
       setErrors(prev => ({ ...prev, isLegalOwner: '' }));
     }
   };
-
+  
   // Show loading state
   if (isLoadingEligibility) { 
     return (

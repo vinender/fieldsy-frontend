@@ -120,7 +120,7 @@ const EarningsHistory: React.FC = () => {
                   <div className="space-y-2.5">
                     <div className="space-y-0.5">
                       <h3 className="text-lg font-bold text-[#192215]">
-                        Order ID - {transaction.orderId}
+                        Booking Id - {transaction.orderId}
                       </h3>
                       <p className="text-sm sm:text-base font-medium text-[#192215]">
                         Payment ID- {transaction.paymentId}
