@@ -321,8 +321,8 @@ const ClaimFieldPage = () => {
       <UserLayout>
         <div className="min-h-screen bg-light flex items-center justify-center">
           <div className="text-center">
-            <Spinner size="lg" />
-            <p className="mt-4 text-gray-600">Loading field information...</p>
+            {/* <Spinner size="lg" /> */}
+            {/* <p className="mt-4 text-gray-600">Loading field information...</p> */}
           </div>
         </div>
       </UserLayout>
