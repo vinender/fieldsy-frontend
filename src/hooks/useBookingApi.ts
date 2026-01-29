@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '@/lib/api/axios-client';
+import { bookingQueryKeys } from './queries/useBookingQueries';
 
 // Types
 interface RefundEligibilityResponse {
@@ -73,19 +74,19 @@ export const useCheckRefundEligibility = (bookingId: string, enabled = true) => 
 // Hook to cancel booking
 export const useCancelBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: cancelBooking,
     onSuccess: (data) => {
-      // Invalidate bookings queries to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
-      
+      // Invalidate all booking queries to refresh the lists
+      queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
+      queryClient.invalidateQueries({ queryKey: ['bookings', 'cancelled'] });
+
       // Show success message
-      const message = data.data.isRefundEligible 
+      const message = data.data.isRefundEligible
         ? 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
         : 'Booking cancelled successfully. This booking was not eligible for a refund.';
-      
+
       // You can dispatch a toast notification here if you have a toast system
       console.log('Success:', message);
     },
@@ -100,14 +101,13 @@ export const useCancelBooking = () => {
 // Hook to reschedule booking
 export const useRescheduleBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: rescheduleBooking,
     onSuccess: (data) => {
-      // Invalidate bookings queries to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
-      
+      // Invalidate all booking queries to refresh the lists
+      queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
+
       // Show success message
       console.log('Success:', 'Booking rescheduled successfully');
     },

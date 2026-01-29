@@ -143,7 +143,7 @@ export function useUserBookingsByStatus(
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnWindowFocus: 'always', // Always refetch when window regains focus (browser tab switch)
     refetchOnReconnect: 'always', // Always refetch when coming back online
-    refetchOnMount: false, // Don't refetch if data exists in cache (for tab switching within app)
+    refetchOnMount: true, // Refetch if data is stale (e.g., after reschedule/cancel invalidation)
     placeholderData: (previousData) => previousData, // Show previous data while fetching
     ...options,
   });
