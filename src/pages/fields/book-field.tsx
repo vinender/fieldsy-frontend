@@ -986,7 +986,7 @@ const BookFieldPage = () => {
                     </button>
                   </div>
                   <p className="text-sm text-gray-600 mt-3">
-                    While you book for {selectedDuration === '60min' ? '1 hr' : '30 min'} you actually get {selectedDuration === '60min' ? '50 mins' : '25 mins'}
+                    While you book for {selectedDuration === '60min' ? '1 hr' : '30 min'} you actually get {selectedDuration === '60min' ? '55 mins' : '25 mins'}
                   </p>
                 </div>
 
