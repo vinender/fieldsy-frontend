@@ -28,6 +28,15 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordData = z.infer<typeof resetPasswordSchema>
 
+// Prevent leading whitespace in inputs
+const preventLeadingWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const input = e.currentTarget;
+  // Prevent space at the start of input or when input is empty
+  if (e.key === ' ' && (input.value === '' || input.selectionStart === 0)) {
+    e.preventDefault();
+  }
+};
+
 export default function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -179,6 +188,7 @@ export default function ResetPasswordForm() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter new password"
                         {...register("password")}
+                        onKeyDown={preventLeadingWhitespace}
                         className="w-full px-4 py-2.5 pl-12 pr-12 bg-white rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
                         autoComplete="new-password"
                       />
@@ -204,6 +214,7 @@ export default function ResetPasswordForm() {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm new password"
                         {...register("confirmPassword")}
+                        onKeyDown={preventLeadingWhitespace}
                         className="w-full px-4 py-2.5 pl-12 pr-12 bg-white rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
                         autoComplete="new-password"
                       />

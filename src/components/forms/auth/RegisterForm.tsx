@@ -47,6 +47,14 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
+// Prevent leading whitespace in inputs
+const preventLeadingWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const input = e.currentTarget;
+  // Prevent space at the start of input or when input is empty
+  if (e.key === ' ' && (input.value === '' || input.selectionStart === 0)) {
+    e.preventDefault();
+  }
+};
 
 export default function RegisterForm() {
 
@@ -322,6 +330,7 @@ export default function RegisterForm() {
                 type="text"
                 placeholder="Enter full name"
                 {...register("fullName")}
+                onKeyDown={preventLeadingWhitespace}
                 className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
                 autoComplete="name"
               />
@@ -337,6 +346,7 @@ export default function RegisterForm() {
                 type="email"
                 placeholder="Enter email address"
                 {...register("email")}
+                onKeyDown={preventLeadingWhitespace}
                 className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 mt-1 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
                 autoComplete="email"
               />
@@ -405,6 +415,7 @@ export default function RegisterForm() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
                   {...register("password")}
+                  onKeyDown={preventLeadingWhitespace}
                   className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 pr-10 md:pr-12 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
                   autoComplete="new-password"
                 />

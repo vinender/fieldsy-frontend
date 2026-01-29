@@ -19,6 +19,15 @@ const forgotPasswordSchema = z.object({
 
 type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>
 
+// Prevent leading whitespace in inputs
+const preventLeadingWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const input = e.currentTarget;
+  // Prevent space at the start of input or when input is empty
+  if (e.key === ' ' && (input.value === '' || input.selectionStart === 0)) {
+    e.preventDefault();
+  }
+};
+
 export default function ForgotPasswordForm() {
   const router = useRouter()
   const {
@@ -114,6 +123,7 @@ export default function ForgotPasswordForm() {
                     type="email"
                     placeholder="Enter your email address"
                     {...register("email")}
+                    onKeyDown={preventLeadingWhitespace}
                     className="w-full px-4 py-3 pl-12 bg-white rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 autofill:bg-white"
                     autoComplete="email"
                   />

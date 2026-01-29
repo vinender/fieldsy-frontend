@@ -22,6 +22,15 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
+// Prevent leading whitespace in inputs
+const preventLeadingWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const input = e.currentTarget;
+  // Prevent space at the start of input or when input is empty
+  if (e.key === ' ' && (input.value === '' || input.selectionStart === 0)) {
+    e.preventDefault();
+  }
+};
+
 export function LoginForm() {
   const router = useResponsiveRouter()
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
@@ -273,6 +282,7 @@ export function LoginForm() {
                 {...register("email")}
                 placeholder="Enter email address"
                 disabled={loginWithOtpCheckMutation.isLoading}
+                onKeyDown={preventLeadingWhitespace}
                 className="h-12 border-gray-300 focus:border-green focus:ring-green/20"
               />
               {errors.email && (
@@ -291,6 +301,7 @@ export function LoginForm() {
                   {...register("password")}
                   placeholder="Enter password"
                   disabled={loginWithOtpCheckMutation.isLoading}
+                  onKeyDown={preventLeadingWhitespace}
                   className="h-12 pr-12 border-gray-300  focus:border-green focus:ring-green/20"
                 />
                 <button
