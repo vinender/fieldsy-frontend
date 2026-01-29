@@ -101,6 +101,10 @@ const BookFieldPage = () => {
         const data = JSON.parse(storedData);
         setRescheduleData(data);
         setNumberOfDogs(data.numberOfDogs?.toString() || '1');
+        // Set duration from original booking (duration cannot be changed during reschedule)
+        if (data.duration) {
+          setSelectedDuration(data.duration as BookingDuration);
+        }
       }
     }
   }, [isRescheduleMode]);
@@ -940,16 +944,23 @@ const BookFieldPage = () => {
                   <label className="text-[18px] font-semibold text-dark-green block mb-2">
                     Session Duration
                   </label>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Select your preferred session length. Includes 5 minutes buffer time for field preparation.
-                  </p>
+                  {isRescheduleMode ? (
+                    <p className="text-sm text-amber-600 mb-3">
+                      Duration cannot be changed when rescheduling. Your original booking duration is preserved.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-600 mb-3">
+                      Select your preferred session length. Includes 5 minutes buffer time for field preparation.
+                    </p>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => setSelectedDuration('30min')}
+                      onClick={() => !isRescheduleMode && setSelectedDuration('30min')}
+                      disabled={isRescheduleMode}
                       className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${selectedDuration === '30min'
                         ? 'bg-[#8FB366] text-white border-[#8FB366]'
                         : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
-                        }`}
+                        } ${isRescheduleMode ? 'cursor-not-allowed opacity-60' : ''}`}
                     >
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-lg font-bold">30 min</span>
@@ -959,11 +970,12 @@ const BookFieldPage = () => {
                       </div>
                     </button>
                     <button
-                      onClick={() => setSelectedDuration('60min')}
+                      onClick={() => !isRescheduleMode && setSelectedDuration('60min')}
+                      disabled={isRescheduleMode}
                       className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${selectedDuration === '60min'
                         ? 'bg-[#8FB366] text-white border-[#8FB366]'
                         : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
-                        }`}
+                        } ${isRescheduleMode ? 'cursor-not-allowed opacity-60' : ''}`}
                     >
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-lg font-bold">60 min</span>

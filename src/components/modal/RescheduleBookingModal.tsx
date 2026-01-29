@@ -100,6 +100,25 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
       return;
     }
 
+    // Calculate duration from startTime and endTime if available
+    let duration = '60min'; // Default
+    if (booking.startTime && booking.endTime) {
+      const parseTime = (timeStr: string): number => {
+        const match = timeStr.match(/(\d+):(\d+)(AM|PM)?/i);
+        if (!match) return 0;
+        let hours = parseInt(match[1]);
+        const minutes = parseInt(match[2]);
+        const period = match[3]?.toUpperCase();
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+      };
+      const startMinutes = parseTime(booking.startTime);
+      const endMinutes = parseTime(booking.endTime);
+      const durationMinutes = endMinutes - startMinutes;
+      duration = durationMinutes <= 30 ? '30min' : '60min';
+    }
+
     // Store booking info in localStorage for the book-field page to access
     localStorage.setItem('rescheduleBooking', JSON.stringify({
       bookingId: bookingId,
@@ -107,7 +126,8 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
       numberOfDogs: booking.dogs,
       originalDate: booking.rawDate || booking.date,
       originalTime: booking.time,
-      recurring: booking.recurring || 'None'
+      recurring: booking.recurring || 'None',
+      duration: duration // Store original booking duration
     }));
 
     // Navigate to book-field page in reschedule mode with recurring parameter
