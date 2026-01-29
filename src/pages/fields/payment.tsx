@@ -705,7 +705,7 @@ const PaymentPage = () => {
                 <div className="text-sm sm:text-base lg:text-[18px] leading-relaxed sm:leading-[24px] lg:leading-[28px]">
                   <span className="font-semibold text-[#D21A00]">Cancellation & Refund Policy: </span>
                   <span className="font-medium text-[#323232]">
-                    You can cancel your booking up to {cancellationWindowHours} hours in advance for a full refund.
+                    You can cancel your booking up to {cancellationWindowHours} hour(s) in advance for a full refund.
                     Cancellations made within {cancellationWindowHours} hours of the booking time are not eligible for a refund.
                   </span>
                 </div>
