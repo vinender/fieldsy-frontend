@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import {
   ArrowLeft,
@@ -99,6 +99,16 @@ const BookingHistoryPage = () => {
   const rescheduleBookingMutation = useRescheduleBooking();
   const cancellationWindow = useCancellationWindow();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
+  const prevTabRef = useRef(activeTab);
+
+  // Track tab switches to show skeleton during transitions
+  useEffect(() => {
+    if (prevTabRef.current !== activeTab) {
+      setIsTabSwitching(true);
+      prevTabRef.current = activeTab;
+    }
+  }, [activeTab]);
 
   // Update active tab based on query params
   useEffect(() => {
@@ -168,10 +178,18 @@ const BookingHistoryPage = () => {
   const isAnyModalOpenOrPending = isCancelModalOpen || isRescheduleModalOpen || isReviewModalOpen || isModalOpen ||
     bookingToCancel !== null || bookingToReschedule !== null || bookingToReview !== null;
 
+  // Clear tab switching state when fetch completes
+  useEffect(() => {
+    if (!isFetching && isTabSwitching) {
+      setIsTabSwitching(false);
+    }
+  }, [isFetching, isTabSwitching]);
+
   // Derived values from pagination
   const totalPages = pagination?.totalPages || 1;
   const totalBookings = pagination?.total || 0;
-  const loading = isLoading && !isAnyModalOpenOrPending;
+  // Show loading skeleton when initial load OR during tab switch (even if cached data exists)
+  const loading = (isLoading || isTabSwitching) && !isAnyModalOpenOrPending;
   const error = queryError ? 'Failed to fetch bookings' : null;
   // const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
@@ -901,13 +919,6 @@ const BookingHistoryPage = () => {
               <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
             </button>
             <h1 className="text-[24px] sm:text-[29px] font-semibold text-[#192215]">Booking History</h1>
-            {/* Subtle indicator when refreshing in background */}
-            {isFetching && !isLoading && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <div className="w-4 h-4 border-2 border-[#3a6b22]/30 border-t-[#3a6b22] rounded-full animate-spin" />
-                <span className="hidden sm:inline">Updating...</span>
-              </div>
-            )}
           </div>
 
           {/* Tabs and Filter */}
