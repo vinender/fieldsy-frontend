@@ -253,7 +253,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => {
-                        setEditingReview(review.id);
+                        setEditingReview(review.reviewId || review.id);
                         setReviewForm({
                           rating: review.rating,
                           title: review.title || '',
@@ -267,7 +267,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDeleteReview(review.id)}
+                      onClick={() => handleDeleteReview(review.reviewId || review.id)}
                       className="text-sm text-red-600 hover:underline"
                     >
                       Delete
@@ -340,7 +340,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
             {/* Actions */}
             <div className="flex items-center gap-4 mt-3">
               <button
-                onClick={() => handleMarkHelpful(review.id)}
+                onClick={() => handleMarkHelpful(review.reviewId || review.id)}
                 className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800"
               >
                 <ThumbsUp size={16} />
@@ -349,7 +349,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
 
               {session?.user?.id === fieldOwnerId && !review.response && (
                 <button
-                  onClick={() => setResponseForm({ reviewId: review.id, response: '' })}
+                  onClick={() => setResponseForm({ reviewId: review.reviewId || review.id, response: '' })}
                   className="text-sm text-blue-600 hover:underline"
                 >
                   Respond
@@ -358,7 +358,7 @@ export default function FieldReviews({ fieldId, fieldOwnerId }: FieldReviewsProp
             </div>
 
             {/* Response Form */}
-            {responseForm.reviewId === review.id && (
+            {(responseForm.reviewId === review.reviewId || responseForm.reviewId === review.id) && (
               <form onSubmit={handleSubmitResponse} className="mt-3">
                 <textarea
                   value={responseForm.response}

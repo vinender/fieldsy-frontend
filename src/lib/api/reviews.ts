@@ -4,6 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export interface Review {
   id: string;
+  reviewId?: string;  // Human-readable ID (e.g., "1001", "1002")
   fieldId: string;
   userId: string;
   userName?: string;
