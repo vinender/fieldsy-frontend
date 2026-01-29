@@ -84,7 +84,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="border-t border-white/20 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center">
           <p className="text-white/80 text-sm sm:text-base">
-            © Copyright 2025. Fieldsy. All Rights Reserved.
+            © Copyright 2026. Fieldsy. All Rights Reserved.
           </p>
         </div>
       </div>

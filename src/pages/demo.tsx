@@ -616,7 +616,7 @@ export default function AboutUs() {
 
           <div className="mt-8 lg:mt-12 pt-4 border-t border-[#729c50]">
             <p className="text-center text-[14px] lg:text-[16px] opacity-50">
-              © Copyright 2025. Fieldsy. All Rights Reserved.
+              © Copyright 2026. Fieldsy. All Rights Reserved.
             </p>
           </div>
         </div>
