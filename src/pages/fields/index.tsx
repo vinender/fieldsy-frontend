@@ -557,7 +557,7 @@ export default function SearchResults() {
                             fieldId: field.fieldId
                           } : field)}
                           variant="expanded"
-                          isLiked={likedFields.includes(field.id)}
+                          isLiked={field.isLiked ?? likedFields.includes(field.id)}
                           onLike={handleLike}
                           onViewDetails={handleViewDetails}
                           onBookNow={handleBookNow}

@@ -49,7 +49,7 @@ export function FieldCard({
   rating,
   image,
   amenities = [],
-  isLiked: propIsLiked = false,
+  isLiked: propIsLiked,
   isClaimed = true,
   onLike,
   onViewDetails,
@@ -143,12 +143,19 @@ export function FieldCard({
   // const displayDistance = calculatedDistance || providedDistance
 
   // Favorite status and toggle
-  const { data: isFavorited } = useFavoriteStatus(id)
+  // Only fetch favorite status if not provided via props (avoids N+1 API calls)
+  const shouldFetchFavoriteStatus = propIsLiked === undefined
+  const { data: isFavorited } = useFavoriteStatus(shouldFetchFavoriteStatus ? id : undefined)
   const toggleFavoriteMutation = useToggleFavorite(id)
-  const [isLiked, setIsLiked] = useState(propIsLiked)
+  const [isLiked, setIsLiked] = useState(propIsLiked ?? false)
 
   useEffect(() => {
-    setIsLiked(isFavorited || propIsLiked)
+    // Use prop value if provided, otherwise use fetched value
+    if (propIsLiked !== undefined) {
+      setIsLiked(propIsLiked)
+    } else if (isFavorited !== undefined) {
+      setIsLiked(isFavorited)
+    }
   }, [isFavorited, propIsLiked])
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
