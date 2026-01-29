@@ -173,7 +173,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
             </div>
 
             <div className="bg- rounded-2xl p-6">
-              {/* <h3 className="text-lg text-blue-500 font-semibold mb-3 font-sans">
+              <h3 className="text-lg text-blue-500 font-semibold mb-3 font-sans">
                 Reschedule Policy:
               </h3>
               <p className="text-base leading-relaxed text-dark-green font-sans">
@@ -181,7 +181,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
                 <span className="font-bold">cancellation window</span>
                 {' '}before the booking time, with a maximum of{' '}
                 <span className="font-bold">3 reschedules per booking</span>.
-              </p> */}
+              </p>
               <p className="text-base leading-relaxed mt-3 text-dark-green font-sans">
                 For recurring bookings, rescheduling is{' '}
                 <span className="font-bold">not available</span>

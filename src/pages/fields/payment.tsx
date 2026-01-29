@@ -709,14 +709,14 @@ const PaymentPage = () => {
                     Cancellations made within {cancellationWindowHours} hours of the booking time are not eligible for a refund.
                   </span>
                 </div>
-                <div className="text-sm sm:text-base lg:text-[18px] leading-relaxed sm:leading-[24px] lg:leading-[28px] mt-2">
+                {/* <div className="text-sm sm:text-base lg:text-[18px] leading-relaxed sm:leading-[24px] lg:leading-[28px] mt-2">
                   <span className="font-semibold text-[#0066cc]">Reschedule Policy: </span>
                   <span className="font-medium text-[#323232]">
                     You can reschedule your booking up to {cancellationWindowHours} hours before the booking time, with a maximum of 3 reschedules per booking.
                     For recurring bookings, rescheduling is not available once any booking in the subscription has been completed.
                     The recurring interval cannot be changed during rescheduling.
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
