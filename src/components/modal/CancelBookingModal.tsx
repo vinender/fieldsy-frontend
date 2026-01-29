@@ -159,7 +159,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
         // If still invalid, try parsing as is
         if (isNaN(bookingDateTime.getTime())) {
           bookingDateTime = new Date(booking.date);
-        }
+        } 
 
         // If still invalid, manually parse
         if (isNaN(bookingDateTime.getTime())) {
