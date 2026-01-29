@@ -149,6 +149,8 @@ export default function PreviewPage() {
   const transformFieldToFormData = (fieldData: FieldData) => {
     console.log('Raw fieldData.amenities from API:', fieldData.amenities);
     return {
+      id: fieldData.id,  // Include id for reviews fetching
+      fieldId: fieldData.fieldId,  // Include fieldId for human-readable ID
       fieldName: fieldData.name || '',
       fieldSize: fieldData.size || '',
       customFieldSize: fieldData.customFieldSize || '',
