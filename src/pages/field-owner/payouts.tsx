@@ -19,6 +19,10 @@ import {
   useGetOnboardingLink,
   useStripeBalance
 } from '@/hooks';
+import {
+  PayoutsPageSkeleton,
+  PayoutsTransactionListSkeleton
+} from '@/components/skeletons/FieldOwnerSkeletons';
 
 const EarningsHistory: React.FC = () => {
   const router = useRouter();
@@ -69,7 +73,7 @@ const EarningsHistory: React.FC = () => {
   const { data: heldPayoutsData } = useHeldPayouts();
 
   // Stripe Connect hooks
-  const { data: accountStatus, refetch: refetchAccount } = useStripeAccountStatus();
+  const { data: accountStatus, isLoading: isLoadingAccount, refetch: refetchAccount } = useStripeAccountStatus();
   const createAccount = useCreateStripeAccount({
     onSuccess: () => refetchAccount()
   });
@@ -194,6 +198,11 @@ const EarningsHistory: React.FC = () => {
     setCurrentPage(1); // Reset to first page when filtering
   };
 
+  // Show full-page skeleton while account status and summary are loading on initial mount
+  if (!mounted || isLoadingAccount || isLoadingSummary) {
+    return <PayoutsPageSkeleton />;
+  }
+
   if (historyError) {
     return (
       <div className="min-h-screen bg-[#fffcf3] py-8 px-4 mt-28 sm:px-6 lg:px-8 xl:px-20">
@@ -234,25 +243,19 @@ const EarningsHistory: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      {!mounted || isLoadingSummary ? (
-                        <div className="h-10 bg-gray-200 rounded animate-pulse w-48"></div>
-                      ) : (
-                        <h2 className="text-2xl sm:text-3xl font-bold text-[#192215]">
-                          {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
-                            ? `Total Earnings ${formatCurrency(summaryData?.totalEarnings || 0)}`
-                            : accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
-                            ? 'Account Restricted'
-                            : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
-                            ? 'Account Unable to Receive Payments'
-                            : heldPayoutsData?.data?.totalHeldAmount > 0
-                            ? 'Pending Payments Awaiting Release'
-                            : 'Connect your bank for payouts'}
-                        </h2>
-                      )}
+                      <h2 className="text-2xl sm:text-3xl font-bold text-[#192215]">
+                        {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
+                          ? `Total Earnings ${formatCurrency(summaryData?.totalEarnings || 0)}`
+                          : accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
+                          ? 'Account Restricted'
+                          : accountStatus?.data?.hasAccount && !accountStatus?.data?.payoutsEnabled
+                          ? 'Account Unable to Receive Payments'
+                          : heldPayoutsData?.data?.totalHeldAmount > 0
+                          ? 'Pending Payments Awaiting Release'
+                          : 'Connect your bank for payouts'}
+                      </h2>
                       <p className="text-base sm:text-lg text-gray-500 max-w-2xl">
-                        {!mounted
-                          ? 'Link your bank account securely to receive payouts directly. Fast, safe, and hassle-free transfers every time you get paid.'
-                          : accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
+                        {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled
                           ? 'Your bank account is connected and ready to receive payments. Payouts are processed automatically and securely.'
                           : accountStatus?.data?.hasAccount && accountStatus?.data?.isRestricted
                           ? 'Your account needs additional information to start receiving payments.'
@@ -264,7 +267,7 @@ const EarningsHistory: React.FC = () => {
                       </p>
 
                       {/* Show pending payment details when bank is not connected and there are held payouts */}
-                      {mounted && !accountStatus?.data?.hasAccount && heldPayoutsData?.data?.totalHeldAmount > 0 && (
+                      {!accountStatus?.data?.hasAccount && heldPayoutsData?.data?.totalHeldAmount > 0 && (
                         <div className="flex flex-wrap gap-3 mt-4">
                           <div className="bg-white rounded-lg px-4 py-2 border border-amber-300">
                             <p className="text-xs text-amber-700 font-medium">Total Pending</p>
@@ -495,17 +498,7 @@ const EarningsHistory: React.FC = () => {
         {accountStatus?.data?.hasAccount && accountStatus?.data?.payoutsEnabled && (
           <>
           {isLoadingHistory ? (
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="py-4">
-                <div className="animate-pulse">
-                  <div className="h-6 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/5"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <PayoutsTransactionListSkeleton />
         ) : (
           <>
             <div className="space-y-4">

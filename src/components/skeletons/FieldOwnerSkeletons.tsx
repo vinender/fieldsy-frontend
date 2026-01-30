@@ -175,6 +175,97 @@ export const BookingHistoryPageSkeleton = () => {
   );
 };
 
+// Skeleton for the payouts page header/account status card
+export const PayoutsHeaderSkeleton = () => {
+  return (
+    <div className="bg-[#f8f1d7] rounded-2xl p-5 sm:p-6 border border-black/5">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          {/* Icon placeholder */}
+          <Skeleton className="w-16 h-16 rounded-xl flex-shrink-0" />
+          <div className="space-y-2 flex-1">
+            {/* Title */}
+            <Skeleton className="h-8 sm:h-9 w-64 sm:w-80" />
+            {/* Description text */}
+            <Skeleton className="h-5 w-full max-w-xl" />
+            <Skeleton className="h-5 w-3/4 max-w-md" />
+          </div>
+        </div>
+        {/* Button placeholder */}
+        <Skeleton className="h-12 w-40 rounded-full flex-shrink-0 self-start lg:self-center" />
+      </div>
+    </div>
+  );
+};
+
+// Skeleton for the status filter tabs
+export const PayoutsFilterTabsSkeleton = () => {
+  return (
+    <div className="flex gap-2 mb-6">
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-10 w-28 rounded-full" />
+      ))}
+    </div>
+  );
+};
+
+// Skeleton for a single transaction row
+export const PayoutsTransactionRowSkeleton = () => {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 py-4">
+      {/* Left side */}
+      <div className="space-y-2.5">
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-52" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-4 w-44" />
+      </div>
+      {/* Right side */}
+      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5">
+        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-8 w-24 rounded-full" />
+      </div>
+    </div>
+  );
+};
+
+// Skeleton for the transaction list
+export const PayoutsTransactionListSkeleton = () => {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <React.Fragment key={i}>
+          <PayoutsTransactionRowSkeleton />
+          {i < 5 && <div className="h-px bg-gray-200" />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
+
+// Full payouts page skeleton (used when everything is loading initially)
+export const PayoutsPageSkeleton = () => {
+  return (
+    <div className="min-h-screen bg-[#fffcf3] py-8 px-4 mt-28 sm:px-6 lg:px-8 xl:px-20">
+      <div className="max-w-[1920px] mx-auto">
+        {/* Header */}
+        <div className="space-y-4 mb-10">
+          <Skeleton className="h-8 sm:h-9 w-56" />
+          <PayoutsHeaderSkeleton />
+        </div>
+
+        {/* Filter tabs */}
+        <PayoutsFilterTabsSkeleton />
+
+        {/* Transaction list */}
+        <PayoutsTransactionListSkeleton />
+      </div>
+    </div>
+  );
+};
+
 // Combined skeleton for FieldOwnerDashboard (Add Field)
 export const FieldOwnerDashboardPageSkeleton = () => {
   return (
