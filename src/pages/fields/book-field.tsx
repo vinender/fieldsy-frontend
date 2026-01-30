@@ -551,8 +551,69 @@ const BookFieldPage = () => {
     );
   }
 
-  // Check if field is unclaimed - unclaimed fields cannot be booked
-  if (field && field.isClaimed === false) {
+  // Field eligibility checks for booking page
+  // Priority: 1. isBlocked (admin) → 2. isActive + isApproved (discoverability) → 3. isClaimed (bookability)
+
+  // 1. Blocked by admin - field is NOT visible at all
+  if (field && field.isBlocked === true) {
+    return (
+      <UserLayout>
+        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md shadow-sm">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Available</h3>
+              <p className="text-gray-600 mb-4">
+                This field is currently not available.
+              </p>
+              <a
+                href="/fields"
+                className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity"
+              >
+                Browse Other Fields
+              </a>
+            </div>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
+  // 2. Field must be active AND approved to be discoverable
+  if (field && (field.isActive === false || field.isApproved === false)) {
+    return (
+      <UserLayout>
+        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md shadow-sm">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Available</h3>
+              <p className="text-gray-600 mb-4">
+                This field is currently not available for bookings. The field owner may have temporarily disabled it.
+              </p>
+              <a
+                href="/fields"
+                className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity"
+              >
+                Browse Other Fields
+              </a>
+            </div>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
+  // 3. Field must be claimed to be bookable
+  if (field && field.isClaimed !== true) {
     return (
       <UserLayout>
         <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center px-4">
@@ -1017,7 +1078,7 @@ const BookFieldPage = () => {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-[18px] font-semibold text-dark-green block">
-                      Preferred Time
+                      Preferred Time {isRescheduleMode && <span className="text-sm font-normal text-gray-500">(Select one)</span>}
                     </label>
                     {selectedDate && (
                       <button
@@ -1119,8 +1180,8 @@ const BookFieldPage = () => {
                                   >
                                     {slot.time}
                                   </button>
-                                  {/* Cross button to deselect */}
-                                  {selectedTimeSlots.includes(slot.time) && (
+                                  {/* Cross button to deselect - hidden in reschedule mode (single slot auto-replaces) */}
+                                  {selectedTimeSlots.includes(slot.time) && !isRescheduleMode && (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1174,8 +1235,8 @@ const BookFieldPage = () => {
                                   >
                                     {slot.time}
                                   </button>
-                                  {/* Cross button to deselect */}
-                                  {selectedTimeSlots.includes(slot.time) && (
+                                  {/* Cross button to deselect - hidden in reschedule mode (single slot auto-replaces) */}
+                                  {selectedTimeSlots.includes(slot.time) && !isRescheduleMode && (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1229,8 +1290,8 @@ const BookFieldPage = () => {
                                   >
                                     {slot.time}
                                   </button>
-                                  {/* Cross button to deselect */}
-                                  {selectedTimeSlots.includes(slot.time) && (
+                                  {/* Cross button to deselect - hidden in reschedule mode (single slot auto-replaces) */}
+                                  {selectedTimeSlots.includes(slot.time) && !isRescheduleMode && (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1375,13 +1436,15 @@ const BookFieldPage = () => {
                               className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-sm text-green border border-green-200"
                             >
                               {slot}
-                              <button
-                                onClick={() => removeTimeSlot(slot)}
-                                className="ml-1 hover:bg-green-100 rounded-full p-0.5 transition-colors"
-                                title="Remove slot"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
+                              {!isRescheduleMode && (
+                                <button
+                                  onClick={() => removeTimeSlot(slot)}
+                                  className="ml-1 hover:bg-green-100 rounded-full p-0.5 transition-colors"
+                                  title="Remove slot"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
                             </span>
                           ))}
                         </div>
@@ -1405,7 +1468,7 @@ const BookFieldPage = () => {
 
                     // Validate time slot selection FIRST for both modes
                     if (selectedTimeSlots.length === 0) {
-                      toast.error('Please select at least one time slot to continue');
+                      toast.error(isRescheduleMode ? 'Please select a time slot to reschedule' : 'Please select at least one time slot to continue');
                       return;
                     }
 
