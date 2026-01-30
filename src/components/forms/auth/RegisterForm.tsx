@@ -56,6 +56,13 @@ const preventLeadingWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
   }
 };
 
+// Prevent all whitespace in password fields
+const preventAllWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === ' ') {
+    e.preventDefault();
+  }
+};
+
 export default function RegisterForm() {
 
   const router = useResponsiveRouter()
@@ -415,7 +422,7 @@ export default function RegisterForm() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
                   {...register("password")}
-                  onKeyDown={preventLeadingWhitespace}
+                  onKeyDown={preventAllWhitespace}
                   className="w-full px-3 md:px-4 bg-white py-2 md:py-2.5 pr-10 md:pr-12 rounded-[76px] border border-gray-300 focus:border-green focus:outline-none focus:ring-1 focus:ring-green/20 shadow-none hover:border-gray-300 autofill:bg-white"
                   autoComplete="new-password"
                 />

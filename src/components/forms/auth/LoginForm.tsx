@@ -31,6 +31,13 @@ const preventLeadingWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
   }
 };
 
+// Prevent all whitespace in password fields
+const preventAllWhitespace = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === ' ') {
+    e.preventDefault();
+  }
+};
+
 export function LoginForm() {
   const router = useResponsiveRouter()
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
@@ -301,7 +308,7 @@ export function LoginForm() {
                   {...register("password")}
                   placeholder="Enter password"
                   disabled={loginWithOtpCheckMutation.isLoading}
-                  onKeyDown={preventLeadingWhitespace}
+                  onKeyDown={preventAllWhitespace}
                   className="h-12 pr-12 border-gray-300  focus:border-green focus:ring-green/20"
                 />
                 <button
