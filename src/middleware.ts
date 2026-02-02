@@ -62,11 +62,15 @@ export async function middleware(request: NextRequest) {
   if (isTargetHost && !path.startsWith('/api/') && !path.startsWith('/_next/') && !path.includes('.')) {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      // Read device access token from cookie
+      const accessToken = request.cookies.get('fieldsy_access')?.value || '';
+
       const settingsRes = await fetch(`${apiUrl}/settings/public`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'x-forwarded-for': request.headers.get('x-forwarded-for') || '',
+          ...(accessToken ? { 'x-access-token': accessToken } : {}),
         },
       });
 

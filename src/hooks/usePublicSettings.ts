@@ -21,8 +21,17 @@ export const usePublicSettings = () => {
   return useQuery({
     queryKey: ['publicSettings'],
     queryFn: async () => {
+      // Read access token from cookie to send as header
+      const tokenMatch = typeof document !== 'undefined'
+        ? document.cookie.match(/(?:^|;\s*)fieldsy_access=([^;]*)/)
+        : null;
+      const accessToken = tokenMatch?.[1] || '';
+
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/settings/public`
+        `${process.env.NEXT_PUBLIC_API_URL}/settings/public`,
+        {
+          headers: accessToken ? { 'x-access-token': accessToken } : {},
+        }
       );
       return response.data.data as PublicSettings;
     },

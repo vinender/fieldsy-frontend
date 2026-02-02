@@ -633,7 +633,7 @@ const PaymentPage = () => {
                   )}
                 </div>
 
-                {/* Payment Summary */}
+                {/* Payment Summary */} 
                 <div>
                   <h3 className="text-base sm:text-[18px] font-bold text-[#192215] mb-2 sm:mb-2.5">Payment Summary</h3>
                   <div className="bg-white rounded-[12px] sm:rounded-[14px] p-3 sm:p-4 border border-black/6">

@@ -26,11 +26,14 @@ export const BypassComingSoon = () => {
             });
 
             if (response.data.success) {
-                toast.success('Access granted! Whitelisting your IP...');
-                // Reload the page after a short delay to let the IP sync
+                // Store access token as a persistent cookie (90 days)
+                if (response.data.accessToken) {
+                    document.cookie = `fieldsy_access=${response.data.accessToken}; path=/; max-age=${90 * 24 * 60 * 60}; SameSite=Lax`;
+                }
+                toast.success('Access granted!');
                 setTimeout(() => {
                     window.location.reload();
-                }, 1500);
+                }, 1000);
             }
         } catch (error: any) {
             console.error('Bypass failed:', error);
