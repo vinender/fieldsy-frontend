@@ -1,4 +1,5 @@
 import type { AppProps } from "next/app"
+import Head from "next/head"
 import { SessionProvider } from "next-auth/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useState, useEffect } from "react"
@@ -83,21 +84,26 @@ export default function App({
   const isDevelopment = process.env.NODE_ENV === 'development'
 
   return (
-    <SessionProvider
-      session={session}
-      refetchInterval={isDevelopment ? 0 : 15 * 60} // Disable in dev, 15 min in prod
-      refetchOnWindowFocus={false} // Disable refetch on window focus
-      refetchWhenOffline={false} // Don't refetch when offline
-    >
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <AppShell Component={Component} pageProps={pageProps} fontClassName={dmSans.variable} />
-        </AuthProvider>
-        {process.env.NODE_ENV === 'development' && (
-          <ReactQueryDevtools initialIsOpen={false} />
-        )}
-      </QueryClientProvider>
-    </SessionProvider>
+    <>
+      <Head>
+        <title>Fieldsy - Book Dog Fields Online</title>
+      </Head>
+      <SessionProvider
+        session={session}
+        refetchInterval={isDevelopment ? 0 : 15 * 60} // Disable in dev, 15 min in prod
+        refetchOnWindowFocus={false} // Disable refetch on window focus
+        refetchWhenOffline={false} // Don't refetch when offline
+      >
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <AppShell Component={Component} pageProps={pageProps} fontClassName={dmSans.variable} />
+          </AuthProvider>
+          {process.env.NODE_ENV === 'development' && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
+        </QueryClientProvider>
+      </SessionProvider>
+    </>
   )
 }
 
