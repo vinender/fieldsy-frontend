@@ -500,7 +500,7 @@ const PaymentPage = () => {
                   )}
                 </div>
               </div>
-
+                  
               {/* Right Column - Booking Details & Payment Summary */}
               <div className="space-y-6 sm:space-y-8">
                 {/* Field Details Card */}
@@ -509,12 +509,12 @@ const PaymentPage = () => {
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
                       {/* Field Image Skeleton */}
                       <div className="w-full sm:w-[216px] h-[160px] sm:h-[145px] rounded-[10px] bg-gray-200 animate-pulse flex-shrink-0" />
-                      {/* Field Info Skeleton */}
-                      <div className="flex-1 space-y-3 sm:space-y-4">
-                        <div className="h-8 bg-gray-200 rounded animate-pulse w-3/4" />
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
-                        <div className="h-12 bg-gray-200 rounded animate-pulse" />
-                      </div>
+                        {/* Field Info Skeleton */}
+                        <div className="flex-1 space-y-3 sm:space-y-4">
+                          <div className="h-8 bg-gray-200 rounded animate-pulse w-3/4" />
+                          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+                          <div className="h-12 bg-gray-200 rounded animate-pulse" />
+                        </div>
                     </div>
                   ) : (
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
