@@ -18,19 +18,31 @@ export default function FieldDetailsPage({ fieldId, fieldData }: FieldDetailsPag
 
 export const getStaticPaths: GetStaticPaths = async () => {
   try {
-    // Fetch the most popular/recent fields to pre-build
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/fields?limit=50&sortBy=views&sortOrder=desc`
-    );
-    const data = await response.json();
-    console.log(';;;fields data', data);
-    const paths = data?.data?.map((field: any) => ({
-      params: { field_id: field.fieldId || field._id || field.id },
-    })) || [];
+    const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const allPaths: { params: { field_id: string } }[] = [];
+    let page = 1;
+    const limit = 100;
+    let hasMore = true;
+
+    // Fetch all fields in batches to pre-build every page
+    while (hasMore) {
+      const response = await fetch(`${API}/fields?page=${page}&limit=${limit}`);
+      const data = await response.json();
+      const fields = data?.data || [];
+
+      for (const field of fields) {
+        const fieldId = field.fieldId || field._id || field.id;
+        if (fieldId) {
+          allPaths.push({ params: { field_id: fieldId } });
+        }
+      }
+
+      hasMore = fields.length === limit;
+      page++;
+    }
 
     return {
-      paths,
-      // Use 'blocking' to server-render pages on-demand if the path doesn't exist
+      paths: allPaths,
       fallback: 'blocking',
     };
   } catch (error) {
@@ -60,7 +72,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
 
     const data = await response.json();
-    console.log(';;;fields data', data);
 
     return {
       props: {
