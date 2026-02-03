@@ -437,13 +437,15 @@ const MyProfilePage = () => {
                     />
                     <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                       <Check className="w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
-                      <button
-                        type="button"
-                        onClick={() => setShowEmailChangeModal(true)}
-                        className="text-xs sm:text-sm font-semibold text-[#3a6b22] hover:text-[#2e5519] transition-colors underline"
-                      >
-                        Edit
-                      </button>
+                      {(profile.provider === 'general' || profile.provider === 'credentials' || !profile.provider) && (
+                        <button
+                          type="button"
+                          onClick={() => setShowEmailChangeModal(true)}
+                          className="text-xs sm:text-sm font-semibold text-[#3a6b22] hover:text-[#2e5519] transition-colors underline"
+                        >
+                          Edit
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
