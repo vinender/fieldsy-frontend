@@ -43,7 +43,7 @@ export function FeaturesSection() {
       <div className="mx-auto w-full">
         {/* Header */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between border-b pb-[24px] mb-16">
-          <h2 className="text-5xl xl:whitespace-nowrap font-bold text-[#1F3A1F] mb-6 lg:mb-0">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:whitespace-nowrap font-bold text-[#1F3A1F] mb-6 lg:mb-0">
             Why Choose Fieldsy?
           </h2>
 

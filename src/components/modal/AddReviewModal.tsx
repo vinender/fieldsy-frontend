@@ -112,10 +112,10 @@ export const AddReviewModal = ({
           </button>
 
           {/* Content */}
-          <div className="p-10">
+          <div className="p-5 sm:p-8 lg:p-10">
             {/* Header */}
             <div className="mb-8">
-              <h2 className="text-[29px] font-semibold text-[#192215] mb-2">
+              <h2 className="text-[20px] sm:text-[24px] lg:text-[29px] font-semibold text-[#192215] mb-2">
                 Share Your Experiences
               </h2>
               <p className="text-[15px] text-[#8d8d8d] leading-[22px]">

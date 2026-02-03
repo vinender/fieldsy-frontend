@@ -63,7 +63,7 @@ export const BypassComingSoon = () => {
                         />
                     </div>
 
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
                         Coming Soon
                     </h1>
 

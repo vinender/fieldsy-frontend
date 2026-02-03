@@ -123,7 +123,7 @@ export default function BackButton({
         />
       </button>
       {showLabel && (
-        <span className="font-[600] text-[18px] sm:text-[29px] leading-tight sm:leading-[20px] text-dark-green font-sans">
+        <span className="font-[600] text-[16px] sm:text-[20px] md:text-[24px] lg:text-[29px] leading-tight sm:leading-[20px] text-dark-green font-sans">
           {label}
         </span>
       )}

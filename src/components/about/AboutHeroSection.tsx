@@ -145,7 +145,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 w-full lg:py-20 bg-light-cream">
       <div className="w-full">
         {!isMobileApp && (
-          <h2 className="text-[20px] xl:text-[29px] font-[600] text-dark-green">
+          <h2 className="text-[16px] sm:text-[18px] md:text-[20px] xl:text-[29px] font-[600] text-dark-green">
             {content.sectionTitle}
           </h2>
         )}

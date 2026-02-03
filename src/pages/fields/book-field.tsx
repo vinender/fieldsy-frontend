@@ -936,7 +936,7 @@ const BookFieldPage = () => {
 
             {/* Right Column - Booking Form */}
             <div className="bg-white rounded-[20px] p-6 border border-dark-green/10">
-              <h2 className="text-[24px] font-bold text-dark-green mb-6 leading-[31px]">
+              <h2 className="text-[18px] sm:text-[20px] lg:text-[24px] font-bold text-dark-green mb-6 leading-[26px] sm:leading-[28px] lg:leading-[31px]">
                 Pick a date and available time slot to book this field for your dog's next adventure.
               </h2>
 

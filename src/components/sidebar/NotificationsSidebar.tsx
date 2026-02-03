@@ -322,7 +322,7 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
                 <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-dark-green" />
               </button>
               <div className="min-w-0 flex-1">
-                <h2 className="text-[22px] sm:text-[29px] font-semibold text-dark-green truncate">Notifications</h2>
+                <h2 className="text-[18px] sm:text-[22px] lg:text-[29px] font-semibold text-dark-green truncate">Notifications</h2>
                 {unreadCount > 0 && (
                   <p className="text-xs sm:text-sm text-gray-600">{unreadCount} unread</p>
                 )}

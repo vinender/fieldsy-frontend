@@ -153,7 +153,7 @@ const ChangePasswordSidebar: React.FC<ChangePasswordSidebarProps> = ({
             >
               <ArrowLeft className="w-6 h-6 text-[#192215]" />
             </button>
-            <h2 className="text-[29px] font-semibold text-[#192215]">
+            <h2 className="text-[20px] sm:text-[24px] lg:text-[29px] font-semibold text-[#192215]">
               Change Password
             </h2>
           </div>

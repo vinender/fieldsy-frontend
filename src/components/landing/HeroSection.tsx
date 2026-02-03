@@ -74,7 +74,7 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
         {/* Hero Text - positioned 123px from top */}
         <div className="px-4 sm:px-6 lg:px-8 xl:px-20 pt-[150px] sm:pt-32 md:pt-40 xl:pt-[211px]">
           <div className="w-full max-w-[626px] text-left">
-            <h1 className="text-5xl md:text-5xl xl:text-[68px] font-semibold sm:font-bold xl:font-[700] leading-tight sm:leading-tight md:leading-tight xl:leading-[76px] text-white mb-4 sm:mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] font-semibold sm:font-bold xl:font-[700] leading-tight sm:leading-tight md:leading-tight xl:leading-[76px] text-white mb-4 sm:mb-6">
               {bannerText && highlightedText && bannerText.includes(highlightedText) ? (
                 bannerText.split(highlightedText).map((part, index, array) => (
                   <React.Fragment key={index}>

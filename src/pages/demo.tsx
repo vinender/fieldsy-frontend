@@ -108,7 +108,7 @@ const NavigationItem = ({ item }) => (
 const StatisticItem = ({ stat, index, total }) => (
   <>
     <div className="text-center">
-      <h3 className="text-[32px] sm:text-[48px] lg:text-[68px] font-normal text-[#212d1b] leading-tight">
+      <h3 className="text-[22px] sm:text-[32px] md:text-[48px] lg:text-[68px] font-normal text-[#212d1b] leading-tight">
         {stat.value}
       </h3>
       <p className="text-[14px] sm:text-[16px] lg:text-[18px] text-dark-green opacity-70 max-w-[200px] mx-auto">
@@ -127,7 +127,7 @@ const WhatWeDoCard = ({ item }) => (
       <span className="text-[24px] font-bold text-white">{item.number}</span>
     </div>
     <div>
-      <h3 className="text-[20px] lg:text-[24px] font-semibold text-dark-green mb-2.5">
+      <h3 className="text-[16px] sm:text-[18px] lg:text-[24px] font-semibold text-dark-green mb-2.5">
         {item.title}
       </h3>
       <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed">
@@ -269,7 +269,7 @@ export default function AboutUs() {
       <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-20 pb-12 lg:pb-20">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-center">
           <div className="flex-1">
-            <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-[#212d1b] leading-tight mb-4">
+            <h2 className="text-[22px] sm:text-[28px] md:text-[36px] lg:text-[48px] font-bold text-[#212d1b] leading-tight mb-4">
               All-in-One Platform for Smarter Field Operations
             </h2>
             <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed mb-8 lg:mb-10">
@@ -308,10 +308,10 @@ export default function AboutUs() {
       <section className="relative py-12 lg:py-20 mb-12 lg:mb-20">
         <div className="absolute inset-0 bg-gradient-to-b from-white to-transparent rounded-[20px] lg:rounded-[40px]" />
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-20 text-center">
-          <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-[#212d1b] mb-6 lg:mb-8">
+          <h2 className="text-[22px] sm:text-[28px] md:text-[36px] lg:text-[48px] font-bold text-[#212d1b] mb-6 lg:mb-8">
             Our Mission
           </h2>
-          <p className="text-[20px] sm:text-[26px] lg:text-[32px] text-[#212d1b] leading-relaxed max-w-[1129px] mx-auto">
+          <p className="text-[16px] sm:text-[20px] md:text-[26px] lg:text-[32px] text-[#212d1b] leading-relaxed max-w-[1129px] mx-auto">
             At Fieldsy, we're on a mission to simplify field data management for{' '}
             <span className="font-semibold text-[#3A6B22]">
               modern real estate, infrastructure, and surveying professionals
@@ -326,7 +326,7 @@ export default function AboutUs() {
         <div className="flex flex-col xl:flex-row gap-6 lg:gap-[34px] items-center justify-between">
           {/* Card 1 */}
           <div className="bg-white rounded-[20px] lg:rounded-[32px] p-6 w-full xl:w-[362px] h-auto xl:h-[479px] shadow-[0px_6px_50px_0px_rgba(0,0,0,0.03)] border border-[rgba(219,215,196,0.34)]">
-            <h3 className="text-[20px] lg:text-[24px] font-bold text-dark-green mb-2.5">
+            <h3 className="text-[16px] sm:text-[18px] lg:text-[24px] font-bold text-dark-green mb-2.5">
               Who We Are
             </h3>
             <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed mb-6">
@@ -362,7 +362,7 @@ export default function AboutUs() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <h3 className="text-[20px] lg:text-[24px] font-bold text-dark-green mb-2">
+            <h3 className="text-[16px] sm:text-[18px] lg:text-[24px] font-bold text-dark-green mb-2">
               Loved by Paws and People Alike
             </h3>
             <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed">
@@ -376,7 +376,7 @@ export default function AboutUs() {
       <section className="bg-[#F8F1D7] py-12 lg:py-20">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-20">
           <div className="text-center mb-8 lg:mb-[50px]">
-            <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-dark-green mb-4">
+            <h2 className="text-[22px] sm:text-[28px] md:text-[36px] lg:text-[48px] font-bold text-dark-green mb-4">
               What We Do
             </h2>
             <p className="text-[16px] lg:text-[18px] text-dark-green leading-relaxed max-w-[1000px] mx-auto">
@@ -403,7 +403,7 @@ export default function AboutUs() {
             />
           </div>
           <div className="flex-1">
-            <h2 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold text-[#212d1b] mb-4">
+            <h2 className="text-[22px] sm:text-[28px] md:text-[36px] lg:text-[48px] font-bold text-[#212d1b] mb-4">
               Why Fieldsy?
             </h2>
             <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed mb-6 lg:mb-8">
@@ -420,7 +420,7 @@ export default function AboutUs() {
             </div>
 
             <div className="bg-gradient-to-r from-[#8FB36633] to-transparent p-4 lg:p-5 border-l-[5px] border-[#8FB366]">
-              <h3 className="text-[20px] lg:text-[24px] font-semibold text-dark-green mb-2.5">
+              <h3 className="text-[16px] sm:text-[18px] lg:text-[24px] font-semibold text-dark-green mb-2.5">
                 Let's Build the Future of Field Intelligence
               </h3>
               <p className="text-[16px] lg:text-[18px] text-dark-green opacity-70 leading-relaxed">
@@ -442,7 +442,7 @@ export default function AboutUs() {
           <div className="flex flex-col xl:flex-row gap-8 lg:gap-20 items-start">
             {/* FAQ Content */}
             <div className="w-full xl:max-w-[634px] bg-[#FFFCF3] rounded-[20px] p-6 lg:p-8 border border-[#e6ebf2] shadow-[0px_20px_39px_-1px_rgba(0,44,66,0.03)]">
-              <h2 className="text-[28px] sm:text-[36px] lg:text-[42px] font-semibold text-[#0a2533] text-center mb-6 capitalize">
+              <h2 className="text-[22px] sm:text-[28px] md:text-[36px] lg:text-[42px] font-semibold text-[#0a2533] text-center mb-6 capitalize">
                 Frequently Asked Questions
               </h2>
 
@@ -487,7 +487,7 @@ export default function AboutUs() {
                 </div>
 
                 <div className="relative z-10 max-w-[480px]">
-                  <h2 className="text-[32px] sm:text-[40px] lg:text-[45px] font-bold text-white leading-tight mb-6">
+                  <h2 className="text-[22px] sm:text-[28px] md:text-[36px] lg:text-[45px] font-bold text-white leading-tight mb-6">
                     Download The<br />Fieldsy App Today!
                   </h2>
                   <div className="flex flex-col sm:flex-row gap-4">
@@ -545,7 +545,7 @@ export default function AboutUs() {
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-[20px] lg:text-[24px] font-semibold text-[#8FB366] mb-2.5">
+              <h3 className="text-[16px] sm:text-[18px] lg:text-[24px] font-semibold text-[#8FB366] mb-2.5">
                 Quick Links
               </h3>
               <ul className="space-y-2">
@@ -564,7 +564,7 @@ export default function AboutUs() {
 
             {/* Other Links */}
             <div>
-              <h3 className="text-[20px] lg:text-[24px] font-semibold text-[#8FB366] mb-2.5">
+              <h3 className="text-[16px] sm:text-[18px] lg:text-[24px] font-semibold text-[#8FB366] mb-2.5">
                 Other Links
               </h3>
               <ul className="space-y-2">
@@ -583,7 +583,7 @@ export default function AboutUs() {
 
             {/* Contact Info */}
             <div>
-              <h3 className="text-[20px] lg:text-[24px] font-semibold text-[#8FB366] mb-5">
+              <h3 className="text-[16px] sm:text-[18px] lg:text-[24px] font-semibold text-[#8FB366] mb-5">
                 Contact Info
               </h3>
               <div className="space-y-6 lg:space-y-8">

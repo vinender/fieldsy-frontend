@@ -69,7 +69,7 @@ export  function HowItWorksSection() {
         <div className="grid grid-cols-1 h-full  lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Section - Process Steps */}
           <div className="h-full">
-            <h2 className="text-5xl font-bold text-dark-green mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-dark-green mb-8 sm:mb-10 lg:mb-12">
               How Fieldsy Works
             </h2>
             <div className="space-y-4">

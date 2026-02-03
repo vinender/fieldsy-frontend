@@ -558,7 +558,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
 
                     {rulesOpen && (
                       <div className="px-4 pb-4 space-y-2">
-                        <span className="text-dark-green font-[700] text-[24px]  ">Host Rules</span>
+                        <span className="text-dark-green font-[700] text-[18px] sm:text-[20px] lg:text-[24px]  ">Host Rules</span>
 
                         {/* Host rules cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
@@ -587,7 +587,7 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         </div>
 
                         {/* Community safety rules list */}
-                        <h4 className="font-[700] text-[24px] text-dark-green mb-2">
+                        <h4 className="font-[700] text-[18px] sm:text-[20px] lg:text-[24px] text-dark-green mb-2">
                           {field?.rules ? 'Community safety rules' : 'Community safety rules'}
                         </h4>
                         <div className="space-y-3">

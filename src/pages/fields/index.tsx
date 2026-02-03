@@ -20,14 +20,15 @@ import { detectPostcodeInQuery } from '@/utils/postcode';
 
 interface SearchResultsProps {
   initialFieldsData: FieldsResponse | null;
+  initialPage: number;
 }
 
-export default function SearchResults({ initialFieldsData }: SearchResultsProps) {
+export default function SearchResults({ initialFieldsData, initialPage }: SearchResultsProps) {
   const router = useRouter();
   const { } = useSession();
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const { user, isLoading: authLoading } = useAuth();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage || 1);
   const [searchValue, setSearchValue] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [lat, setLat] = useState<number | undefined>();
@@ -264,21 +265,6 @@ export default function SearchResults({ initialFieldsData }: SearchResultsProps)
     enabled: routerReady && !!currentLocation && !searchValue && !zipCode && !lat && !lng,
   });
 
-  // Only use pre-fetched data for the default first page (matches what getStaticProps fetched)
-  const isDefaultFirstPage = currentPage === 1 && !searchValue && !zipCode && !lat && !lng && !hasSortApplied;
-
-  // Use React Query hook to fetch fields (fallback/default)
-  const {
-    data: fieldsData,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useFields(queryParams, {
-    enabled: routerReady,
-    ...(initialFieldsData && isDefaultFirstPage ? { initialData: initialFieldsData } : {}),
-  });
-
   // Check if any filters are applied (not default values)
   const hasActiveFilters =
     (appliedFilters.size && appliedFilters.size !== '' && appliedFilters.size !== 'All') ||
@@ -291,6 +277,21 @@ export default function SearchResults({ initialFieldsData }: SearchResultsProps)
     appliedFilters.availability.length > 0;
 
   console.log('Has Active Filters:', hasActiveFilters);
+
+  // Only use pre-fetched data when query matches what getStaticProps fetched (no search/filters/sort)
+  const isDefaultQuery = !searchValue && !zipCode && !lat && !lng && !hasSortApplied && !hasActiveFilters;
+
+  // Use React Query hook to fetch fields (fallback/default)
+  const {
+    data: fieldsData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useFields(queryParams, {
+    enabled: routerReady,
+    ...(initialFieldsData && isDefaultQuery ? { initialData: initialFieldsData } : {}),
+  });
 
   // Determine which data to use - don't use nearby fields if filters are applied
   const shouldUseNearbyFields = !!currentLocation && !searchValue && !zipCode && !lat && !lng && !hasActiveFilters;
@@ -325,11 +326,21 @@ export default function SearchResults({ initialFieldsData }: SearchResultsProps)
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      // Update URL with page number (preserve existing query params)
-      const query = { ...router.query, page: page > 1 ? String(page) : undefined };
-      if (page <= 1) delete query.page;
-      router.push({ pathname: router.pathname, query }, undefined, { shallow: true, scroll: false });
-      // Scroll to top instantly — smooth can be unreliable during re-renders
+
+      const isDefaultBrowse = !searchValue && !zipCode && !lat && !lng && !hasSortApplied && !hasActiveFilters;
+
+      if (isDefaultBrowse) {
+        // Navigate to pre-built SSG page
+        const url = page === 1 ? '/fields' : `/fields/page/${page}`;
+        router.push(url, undefined, { scroll: false });
+      } else {
+        // Keep query-param pagination for search/filter results
+        const query = { ...router.query, page: page > 1 ? String(page) : undefined };
+        if (page <= 1) delete query.page;
+        router.push({ pathname: router.pathname, query }, undefined, { shallow: true, scroll: false });
+      }
+
+      // Scroll to top instantly
       window.scrollTo(0, 0);
     }
   };
@@ -448,7 +459,7 @@ export default function SearchResults({ initialFieldsData }: SearchResultsProps)
                   <div className="flex flex-col gap-1 flex-1 w-full">
                     <div className="flex  flex-wrap items-center gap-2">
                       {!activeIsLoading && totalResults > 0 && (
-                        <h1 className="text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
+                        <h1 className="text-[16px] sm:text-[20px] md:text-[24px] lg:text-[29px] font-semibold text-dark-green">
                           {shouldUseNearbyFields && hasNearbyResults ? `${totalResults} nearby fields` : `${totalResults} results`}
                         </h1>
                       )}
@@ -695,7 +706,7 @@ export const getStaticProps: GetStaticProps<SearchResultsProps> = async () => {
   }
 
   return {
-    props: { initialFieldsData },
+    props: { initialFieldsData, initialPage: 1 },
     revalidate: 300, // Regenerate every 5 minutes
   };
 };

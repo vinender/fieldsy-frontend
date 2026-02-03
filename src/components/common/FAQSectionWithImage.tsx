@@ -57,7 +57,7 @@ export function FAQSectionWithImage({ title = "Frequently Asked Questions", init
 
             {/* Green App Download Card */}
             <div className="relative z-10 w-full max-w-[340px] xs:max-w-[380px] sm:max-w-[420px] md:max-w-[460px] lg:max-w-[500px] bg-[#8FB366] rounded-[20px] sm:rounded-[24px] lg:rounded-[26px] p-6 pt-8 xs:p-7 xs:pt-10 sm:p-8 sm:pt-12 md:p-10 md:pt-14 text-center shadow-xl">
-              <h2 className="text-white text-[44px] font-bold leading-[47px] mb-5 sm:mb-6 md:mb-8">
+              <h2 className="text-white text-[24px] sm:text-[32px] lg:text-[44px] font-bold leading-[30px] sm:leading-[38px] lg:leading-[47px] mb-5 sm:mb-6 md:mb-8">
                 Download The <br />
                 Fieldsy App Today!
               </h2>

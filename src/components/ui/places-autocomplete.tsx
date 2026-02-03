@@ -185,7 +185,7 @@ export function PlacesAutocomplete({
       {isFocused && inputValue.trim().length === 0 && recentSearches.length > 0 && (
         <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border overflow-hidden z-40">
           <div className="px-5 py-4 border-b">
-            <h4 className="text-[20px] font-bold text-dark-green">Recent Search</h4>
+            <h4 className="text-[16px] sm:text-[18px] lg:text-[20px] font-bold text-dark-green">Recent Search</h4>
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
             {recentSearches.map((item, idx) => (
@@ -203,7 +203,7 @@ export function PlacesAutocomplete({
                     <img src='/location.svg' className="w-6 h-6 text-green" />
                   </div>
                   <div>
-                    <div className="text-[18px] font-semibold text-dark-green">{item.title}</div>
+                    <div className="text-[15px] sm:text-[16px] lg:text-[18px] font-semibold text-dark-green">{item.title}</div>
                     <div className="text-sm text-dark-green/70">{item.subtitle}</div>
                   </div>
                 </div>

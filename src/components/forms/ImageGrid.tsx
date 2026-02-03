@@ -45,7 +45,7 @@ export function ImageGrid({ images, title, description }: ImageGridProps) {
 
       {/* Bottom Text */}
       <div className="absolute bottom-8 left-8 right-8 z-10">
-        <h2 className="font-[800] text-[32px] leading-[58px] mb-3 text-green">
+        <h2 className="font-[800] text-[20px] sm:text-[24px] lg:text-[32px] leading-[28px] sm:leading-[36px] lg:leading-[58px] mb-3 text-green">
           {title}
         </h2>
         <p className="text-dark-green/40 font-[400] text-[16px] leading-[24px]">

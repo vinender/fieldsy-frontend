@@ -143,25 +143,25 @@ export function AboutSection() {
         {/* Statistics Section */}
        <div className="grid grid-cols-2  md:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={500} suffix="+" duration={2000} />
             </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Early Access Signups</div>
           </div>
           <div className="text-center border-r-0 md:border-r border-dark-green/20 pr-0 xl:pr-8">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={200} suffix="+" duration={2000} />
             </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Private Fields Being Onboarded</div>
           </div>
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={50} suffix="+" duration={1500} />
             </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Cities Covered Across the UK</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] leading-tight sm:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={100} suffix="%" duration={1800} />
             </div>
             <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Safe, Secure & Fenced Spaces</div>

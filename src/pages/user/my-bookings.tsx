@@ -918,7 +918,7 @@ const BookingHistoryPage = () => {
             <button className="w-10 h-10 sm:w-12 sm:h-12 bg-[#f8f1d7] rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors">
               <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-[#192215]" />
             </button>
-            <h1 className="text-[24px] sm:text-[29px] font-semibold text-[#192215]">Booking History</h1>
+            <h1 className="text-[20px] sm:text-[24px] lg:text-[29px] font-semibold text-[#192215]">Booking History</h1>
           </div>
 
           {/* Tabs and Filter */}
