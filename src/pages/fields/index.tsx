@@ -99,8 +99,13 @@ export default function SearchResults() {
   //     });
   // }, [currentLocation, requestLocation]);
 
+  // Track whether we've initialized from the URL to avoid a stale page=1 fetch
+  const [routerReady, setRouterReady] = useState(false);
+
   // Parse query parameters on mount and when router.query changes
   useEffect(() => {
+    if (!router.isReady) return;
+
     const { search, zipCode: zip, lat: latitude, lng: longitude, page } = router.query;
 
     if (search) {
@@ -119,7 +124,9 @@ export default function SearchResults() {
         setCurrentPage(parsed);
       }
     }
-  }, [router.query]);
+
+    setRouterReady(true);
+  }, [router.isReady, router.query]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -249,7 +256,7 @@ export default function SearchResults() {
     error: errorNearby,
     refetch: refetchNearby,
   } = useNearbyFields(nearbyParams, {
-    enabled: !!currentLocation && !searchValue && !zipCode && !lat && !lng,
+    enabled: routerReady && !!currentLocation && !searchValue && !zipCode && !lat && !lng,
   });
 
   // Use React Query hook to fetch fields (fallback/default)
@@ -259,7 +266,7 @@ export default function SearchResults() {
     isError,
     error,
     refetch,
-  } = useFields(queryParams);
+  } = useFields(queryParams, { enabled: routerReady });
 
   // Check if any filters are applied (not default values)
   const hasActiveFilters =
@@ -310,8 +317,9 @@ export default function SearchResults() {
       // Update URL with page number (preserve existing query params)
       const query = { ...router.query, page: page > 1 ? String(page) : undefined };
       if (page <= 1) delete query.page;
-      router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      router.push({ pathname: router.pathname, query }, undefined, { shallow: true, scroll: false });
+      // Scroll to top instantly — smooth can be unreliable during re-renders
+      window.scrollTo(0, 0);
     }
   };
 
