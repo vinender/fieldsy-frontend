@@ -7,17 +7,22 @@ import FieldsFilter, { FilterState } from '@/components/fields/FieldsFilter';
 import { FieldSearchInput } from '@/components/ui/field-search-input';
 import { UserLayout } from '@/components/layout/UserLayout';
 import mockData from '@/data/mock-data.json';
+import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import { FieldGridSkeleton } from '@/components/skeletons/FieldCardSkeleton';
 import { useSession } from 'next-auth/react';
-import { useFields, FieldsParams, useNearbyFields, usePriceRange } from '@/hooks/queries/useFieldQueries';
+import { useFields, FieldsParams, useNearbyFields, usePriceRange, FieldsResponse } from '@/hooks/queries/useFieldQueries';
 import { NearbyFieldsParams } from '@/lib/api/fields';
 import { useLocation } from '@/contexts/LocationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { detectPostcodeInQuery } from '@/utils/postcode';
 
 
-export default function SearchResults() {
+interface SearchResultsProps {
+  initialFieldsData: FieldsResponse | null;
+}
+
+export default function SearchResults({ initialFieldsData }: SearchResultsProps) {
   const router = useRouter();
   const { } = useSession();
   const sortDropdownRef = useRef<HTMLDivElement>(null);
@@ -266,7 +271,10 @@ export default function SearchResults() {
     isError,
     error,
     refetch,
-  } = useFields(queryParams, { enabled: routerReady });
+  } = useFields(queryParams, {
+    enabled: routerReady,
+    ...(initialFieldsData ? { initialData: initialFieldsData } : {}),
+  });
 
   // Check if any filters are applied (not default values)
   const hasActiveFilters =
@@ -669,3 +677,22 @@ export default function SearchResults() {
     </UserLayout>
   );
 }
+
+export const getStaticProps: GetStaticProps<SearchResultsProps> = async () => {
+  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  let initialFieldsData: FieldsResponse | null = null;
+
+  try {
+    const res = await fetch(`${API}/fields/active?page=1&limit=12`);
+    if (res.ok) {
+      initialFieldsData = await res.json();
+    }
+  } catch {
+    // Build-time fetch failed; client will fetch on mount
+  }
+
+  return {
+    props: { initialFieldsData },
+    revalidate: 300, // Regenerate every 5 minutes
+  };
+};
