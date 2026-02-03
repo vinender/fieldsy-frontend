@@ -437,7 +437,7 @@ const MyProfilePage = () => {
                     />
                     <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                       <Check className="w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
-                      {(profile.provider === 'general' || profile.provider === 'credentials' || !profile.provider) && (
+                      {(profile.provider === 'general' || profile.provider === 'credentials') && (
                         <button
                           type="button"
                           onClick={() => setShowEmailChangeModal(true)}
@@ -521,7 +521,7 @@ const MyProfilePage = () => {
 
               {/* Actions */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 sm:pt-6">
-                {profile.provider === 'general' || profile.provider === 'credentials' || !profile.provider ? (
+                {profile.provider === 'general' || profile.provider === 'credentials' ? (
                   <button
                     onClick={() => setIsPasswordSidebarOpen(true)}
                     className="px-6 py-2.5 sm:px-0 sm:py-0 border-2 border-[#3a6b22] sm:border-0 rounded-full sm:rounded-none text-sm sm:text-base font-semibold text-[#3a6b22] sm:underline hover:bg-[#3a6b22] sm:hover:bg-transparent hover:text-white sm:hover:text-[#3a6b22] hover:opacity-80 transition-all text-center sm:text-left"
