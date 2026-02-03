@@ -1,6 +1,5 @@
-"use client"
-
 import dynamic from "next/dynamic"
+import { GetStaticProps } from "next"
 import { HeroSection } from "@/components/landing/HeroSection"
 import FieldOwnerHome from "@/components/field-owner/FieldOwnerHome"
 import { HomePageSkeleton } from "@/components/skeletons/HomePageSkeleton"
@@ -55,9 +54,17 @@ const FAQSectionWithImage = dynamic(
 import { usePublicSettings } from "@/hooks/usePublicSettings"
 import { BypassComingSoon } from "@/components/landing/BypassComingSoon"
 
-export default function HomePage() {
+interface HomePageProps {
+  settings: any | null;
+  faqs: any | null;
+}
+
+export default function HomePage({ settings: staticSettings, faqs: staticFaqs }: HomePageProps) {
   const { user, isLoading: authLoading } = useAuth();
-  const { data: settings, isLoading: settingsLoading } = usePublicSettings();
+  const { data: settings } = usePublicSettings();
+
+  // Use pre-fetched settings from getStaticProps, with client-side hook as fallback
+  const resolvedSettings = settings || staticSettings;
 
   // Use session hook to get authentication status and session data (includes role)
   const { data: session, status } = useSession({
@@ -95,14 +102,9 @@ export default function HomePage() {
     };
   }, [])
 
-  // Show loading skeleton when loading data
-  if (authLoading || status === 'loading' || settingsLoading) {
-    return <HomePageSkeleton />
-  }
-
-  // Check if site is live
+  // Check if site is live (use pre-fetched settings for instant check)
   // If not live and user doesn't have access, show Coming Soon with bypass
-  if (settings && settings.isLive === false && !settings.hasAccess) {
+  if (resolvedSettings && resolvedSettings.isLive === false && !resolvedSettings.hasAccess) {
     return <BypassComingSoon />
   }
 
@@ -123,7 +125,7 @@ export default function HomePage() {
     <PageWithSkeleton skeleton={<HeroSkeleton />}>
       <div className="bg-light-cream overflow-x-hidden">
         {/* Hero Section - Always loaded immediately as it's above the fold */}
-        <HeroSection />
+        <HeroSection settings={staticSettings} />
 
         {/* About Section - Lazy loaded with fade animation */}
         <LazySection
@@ -258,7 +260,7 @@ export default function HomePage() {
             </div>
           }
         >
-          <FAQSectionWithImage />
+          <FAQSectionWithImage initialFaqs={staticFaqs} />
         </LazySection>
 
         {/* Footer */}
@@ -267,3 +269,37 @@ export default function HomePage() {
     </PageWithSkeleton>
   )
 }
+
+export const getStaticProps: GetStaticProps = async () => {
+  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  let settings = null;
+  let faqs = null;
+
+  try {
+    const [settingsRes, faqsRes] = await Promise.all([
+      fetch(`${API}/settings/public`),
+      fetch(`${API}/faqs`),
+    ]);
+
+    if (settingsRes.ok) {
+      const settingsData = await settingsRes.json();
+      settings = settingsData?.data || null;
+    }
+
+    if (faqsRes.ok) {
+      const faqsData = await faqsRes.json();
+      faqs = faqsData?.data || null;
+    }
+  } catch (error) {
+    console.error('Error fetching home page data:', error);
+  }
+
+  return {
+    props: {
+      settings,
+      faqs,
+    },
+    // Revalidate every 30 minutes
+    revalidate: 1800,
+  };
+};

@@ -3,15 +3,21 @@ import { useFAQs } from "@/hooks/queries/useFAQQueries"
 
 interface FAQSectionWithImageProps {
   title?: string
+  initialFaqs?: { faqs?: { question: string; answer: string }[] } | null
 }
 
-export function FAQSectionWithImage({ title = "Frequently Asked Questions" }: FAQSectionWithImageProps) {
+export function FAQSectionWithImage({ title = "Frequently Asked Questions", initialFaqs }: FAQSectionWithImageProps) {
   const { faqs: dynamicFAQs, loading } = useFAQs()
-  
-  // Convert dynamic FAQs to FAQItem format - show first 6 for the homepage
-  // Use default FAQs if no dynamic FAQs available
-  const faqs: FAQItem[] = dynamicFAQs.length > 0
-    ? dynamicFAQs.slice(0, 6).map(faq => ({
+
+  // Use pre-fetched FAQs from getStaticProps if available, otherwise use hook data
+  const faqSource = dynamicFAQs.length > 0
+    ? dynamicFAQs
+    : initialFaqs?.faqs || []
+
+  // Convert to FAQItem format - show first 6 for the homepage
+  // Use default FAQs if no data available from either source
+  const faqs: FAQItem[] = faqSource.length > 0
+    ? faqSource.slice(0, 6).map(faq => ({
         question: faq.question,
         answer: faq.answer
       }))

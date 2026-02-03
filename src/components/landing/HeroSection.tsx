@@ -3,11 +3,19 @@ import { FieldSearchInput } from '@/components/ui/field-search-input';
 import Image from 'next/image';
 import { usePublicSettings } from '@/hooks/usePublicSettings';
 
-export function HeroSection() {
+interface HeroSectionProps {
+  settings?: {
+    bannerText?: string;
+    highlightedText?: string;
+  } | null;
+}
+
+export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
   const [highResLoaded, setHighResLoaded] = useState(false);
 
-  // Use cached React Query hook instead of direct fetch
-  const { data: settings } = usePublicSettings();
+  // Use prop data if available (from getStaticProps), otherwise fall back to client-side hook
+  const { data: hookSettings } = usePublicSettings();
+  const settings = propSettings || hookSettings;
   const bannerText = settings?.bannerText || 'Find Safe, Private Dog Walking Fields';
   const highlightedText = settings?.highlightedText || 'Near You';
 

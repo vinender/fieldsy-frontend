@@ -17,6 +17,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { ProfileSkeleton } from '@/components/skeletons/SkeletonComponents';
 import { DeleteProfileImageModal } from '@/components/modal/DeleteProfileImageModal';
+import { EmailChangeModal } from '@/components/modal/EmailChangeModal';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { validateUKPhoneNumber, sanitizePhoneInput, UK_PHONE_MAX_LENGTH } from '@/utils/phoneValidation';
 
@@ -30,6 +31,7 @@ const MyProfilePage = () => {
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [showFullBio, setShowFullBio] = useState(false);
   const [isRemovingPhone, setIsRemovingPhone] = useState(false);
+  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
   
   // Fetch profile data
   const { data: profile, isLoading, error, isFetching, isSessionLoading, isEnabled } = useProfile();
@@ -431,9 +433,18 @@ const MyProfilePage = () => {
                       type="email"
                       value={formData.email}
                       disabled
-                      className="h-12 sm:h-14 pr-12 text-sm sm:text-[15px] border-[#e3e3e3] text-opacity-30"
+                      className="h-12 sm:h-14 pr-20 text-sm sm:text-[15px] border-[#e3e3e3] text-opacity-30"
                     />
-                    <Check className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
+                    <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      <Check className="w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
+                      <button
+                        type="button"
+                        onClick={() => setShowEmailChangeModal(true)}
+                        className="text-xs sm:text-sm font-semibold text-[#3a6b22] hover:text-[#2e5519] transition-colors underline"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -551,6 +562,14 @@ const MyProfilePage = () => {
         onClose={() => setShowDeleteImageModal(false)}
         onConfirm={confirmDeleteImage}
         isDeleting={deleteImageMutation.isPending}
+      />
+
+      {/* Email Change Modal */}
+      <EmailChangeModal
+        isOpen={showEmailChangeModal}
+        onClose={() => setShowEmailChangeModal(false)}
+        currentEmail={formData.email}
+        onSuccess={() => setShowEmailChangeModal(false)}
       />
     </div>
   );
