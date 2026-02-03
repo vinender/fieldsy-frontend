@@ -279,18 +279,21 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
   console.log('Has Active Filters:', hasActiveFilters);
 
   // Only use pre-fetched data when query matches what getStaticProps fetched (no search/filters/sort)
+  // AND the page matches what was pre-built (prevents showing stale page data during navigation)
   const isDefaultQuery = !searchValue && !zipCode && !lat && !lng && !hasSortApplied && !hasActiveFilters;
+  const isMatchingInitialData = initialFieldsData && isDefaultQuery && currentPage === (initialPage || 1);
 
   // Use React Query hook to fetch fields (fallback/default)
   const {
     data: fieldsData,
     isLoading,
+    isFetching,
     isError,
     error,
     refetch,
   } = useFields(queryParams, {
     enabled: routerReady,
-    ...(initialFieldsData && isDefaultQuery ? { initialData: initialFieldsData } : {}),
+    ...(isMatchingInitialData ? { initialData: initialFieldsData } : {}),
   });
 
   // Determine which data to use - don't use nearby fields if filters are applied
@@ -304,7 +307,8 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
 
   // Use nearby fields if available, otherwise fallback to default fields
   const activeData = shouldUseNearbyFields && hasNearbyResults ? nearbyFieldsData : fieldsData;
-  const activeIsLoading = shouldUseNearbyFields ? isLoadingNearby : isLoading;
+  // Show skeleton when loading OR when fetching without matching initial data (page transition)
+  const activeIsLoading = shouldUseNearbyFields ? isLoadingNearby : (isLoading || (isFetching && !fieldsData));
   const activeIsError = shouldUseNearbyFields ? isErrorNearby : isError;
   const activeError = shouldUseNearbyFields ? errorNearby : error;
   const activeRefetch = shouldUseNearbyFields ? refetchNearby : refetch;

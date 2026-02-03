@@ -5,7 +5,9 @@ export  function HowItWorksSection() {
   const [activeStep, setActiveStep] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoError, setVideoError] = useState(false)
-  
+  const [videoLoading, setVideoLoading] = useState(true)
+  const [loadProgress, setLoadProgress] = useState(0)
+
   const steps = [
     {
       icon: "/how-it-works/field.svg",
@@ -14,7 +16,7 @@ export  function HowItWorksSection() {
       image: "/dog.mp4",
       thumbnail: "/how-it-works/dog.webp"
     },
-    { 
+    {
       icon: "/how-it-works/icon2.svg",
       title: "Select a Time Slots",
       description: "Choose from available time slots that work for your schedule.",
@@ -40,18 +42,23 @@ export  function HowItWorksSection() {
     }
   ]
 
-  
+
   // Effect to handle video playback when activeStep changes
   useEffect(() => {
     setVideoError(false); // Reset error state when step changes
-    
+
+    if (steps[activeStep].image.endsWith('.mp4')) {
+      setVideoLoading(true);
+      setLoadProgress(0);
+    }
+
     // Small delay to ensure video element is mounted
     const timer = setTimeout(() => {
       if (videoRef.current && steps[activeStep].image.endsWith('.mp4')) {
         // Reset and play video
         videoRef.current.currentTime = 0;
         videoRef.current.muted = true; // Ensure muted for autoplay
-        
+
         videoRef.current.play().catch(error => {
           console.log('Video autoplay failed:', error);
           // If still fails, mark as error
@@ -59,9 +66,24 @@ export  function HowItWorksSection() {
         });
       }
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [activeStep]);
+
+  // Track video loading progress
+  const handleVideoProgress = () => {
+    if (videoRef.current && videoRef.current.buffered.length > 0 && videoRef.current.duration > 0) {
+      const bufferedEnd = videoRef.current.buffered.end(videoRef.current.buffered.length - 1);
+      const duration = videoRef.current.duration;
+      const percent = Math.round((bufferedEnd / duration) * 100);
+      setLoadProgress(percent);
+    }
+  };
+
+  const handleVideoCanPlay = () => {
+    setVideoLoading(false);
+    setLoadProgress(100);
+  };
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 xl:px-20 bg-light-cream">
@@ -112,42 +134,77 @@ export  function HowItWorksSection() {
           <div className="relative h-full">
             <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl ">
               {steps[activeStep].image.endsWith('.mp4') && !videoError ? (
-                <video
-                  ref={videoRef}
-                  key={`video-${activeStep}`}
-                  poster={(steps[activeStep] as any).thumbnail || undefined}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="auto"
-                  controls={false}
-                  className="w-full h-full object-cover"
-                  onError={() => {
-                    console.log('Video failed to load, falling back to image');
-                    setVideoError(true);
-                  }}
-                  onLoadedData={(e) => {
-                    // Ensure video plays when data is loaded
-                    const video = e.currentTarget;
-                    video.muted = true;
-                    video.play().catch(err => {
-                      console.log('Autoplay prevented:', err);
+                <>
+                  <video
+                    ref={videoRef}
+                    key={`video-${activeStep}`}
+                    poster={(steps[activeStep] as any).thumbnail || undefined}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
+                    controls={false}
+                    className="w-full h-full object-cover"
+                    onError={() => {
+                      console.log('Video failed to load, falling back to image');
                       setVideoError(true);
-                    });
-                  }}
-                >
-                  <source src={steps[activeStep].image} type="video/mp4" />
-                  {/* Fallback to image if video doesn't load */}
-                  {(steps[activeStep] as any).thumbnail && (
-                    <Image
-                      src={(steps[activeStep] as any).thumbnail}
-                      alt={steps[activeStep].title}
-                      fill
-                      className="object-cover"
-                    />
+                    }}
+                    onProgress={handleVideoProgress}
+                    onCanPlayThrough={handleVideoCanPlay}
+                    onLoadedData={(e) => {
+                      // Ensure video plays when data is loaded
+                      const video = e.currentTarget;
+                      video.muted = true;
+                      video.play().catch(err => {
+                        console.log('Autoplay prevented:', err);
+                        setVideoError(true);
+                      });
+                    }}
+                  >
+                    <source src={steps[activeStep].image} type="video/mp4" />
+                    {/* Fallback to image if video doesn't load */}
+                    {(steps[activeStep] as any).thumbnail && (
+                      <Image
+                        src={(steps[activeStep] as any).thumbnail}
+                        alt={steps[activeStep].title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                  </video>
+
+                  {/* Video loading overlay with percentage */}
+                  {videoLoading && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+                        {/* Circular progress */}
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                          <circle
+                            cx="50" cy="50" r="42"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="6"
+                          />
+                          <circle
+                            cx="50" cy="50" r="42"
+                            fill="none"
+                            stroke="#8FB366"
+                            strokeWidth="6"
+                            strokeLinecap="round"
+                            strokeDasharray={`${2 * Math.PI * 42}`}
+                            strokeDashoffset={`${2 * Math.PI * 42 * (1 - loadProgress / 100)}`}
+                            className="transition-all duration-300"
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-white text-sm sm:text-base font-semibold">
+                          {loadProgress}%
+                        </span>
+                      </div>
+                      <p className="mt-3 text-white/80 text-xs sm:text-sm font-medium">Loading video...</p>
+                    </div>
                   )}
-                </video>
+                </>
               ) : (
                 <Image
                   src={(steps[activeStep] as any).thumbnail || steps[activeStep].image}

@@ -11,6 +11,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
+  const [lowResLoaded, setLowResLoaded] = useState(false);
   const [highResLoaded, setHighResLoaded] = useState(false);
 
   // Use prop data if available (from getStaticProps), otherwise fall back to client-side hook
@@ -20,11 +21,17 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
   const highlightedText = settings?.highlightedText || 'Near You';
 
   useEffect(() => {
+    // Preload the low-res image first so it appears all at once (not top-to-bottom)
+    const lowRes = new window.Image();
+    lowRes.src = '/green-field.png';
+    lowRes.onload = () => {
+      setLowResLoaded(true);
+    };
+
     // Preload the high-resolution image
-    const img = new window.Image();
-    img.src = '/green-field-high-res.webp';
-    img.onload = () => {
-      // Add a small delay to ensure smooth transition
+    const highRes = new window.Image();
+    highRes.src = '/green-field-high-res.webp';
+    highRes.onload = () => {
       setTimeout(() => {
         setHighResLoaded(true);
       }, 100);
@@ -40,12 +47,25 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
   ), []);
 
   return (
-    <div className="relative min-h-screen bg-gray-100">
-      {/* Low-res Background Image (loads immediately) */}
-      <div 
-        className={`absolute inset-0 z-0 transition-opacity duration-100 ${highResLoaded ? 'opacity-100' : 'opacity-100'}`}
+    <div className="relative min-h-screen bg-gray-200">
+      {/* Skeleton shimmer while image loads */}
+      {!lowResLoaded && (
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200"
+            style={{
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s ease-in-out infinite',
+            }}
+          />
+        </div>
+      )}
+
+      {/* Low-res Background Image (hidden until fully loaded to prevent progressive rendering) */}
+      <div
+        className={`absolute inset-0 z-0 transition-opacity duration-500 ${lowResLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          backgroundImage: `url('/green-field.png')`,
+          backgroundImage: lowResLoaded ? `url('/green-field.png')` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'

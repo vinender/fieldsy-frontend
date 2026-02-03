@@ -130,7 +130,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
         {/* About Section - Lazy loaded with fade animation */}
         <LazySection
           minHeight="500px"
-          rootMargin="50px"
+          rootMargin="400px"
           animation="slideUp"
           delay={50}
           fallback={
@@ -152,7 +152,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
         {/* How It Works Section - Lazy loaded with scale animation */}
         <LazySection
           minHeight="400px"
-          rootMargin="50px"
+          rootMargin="400px"
           animation="scale"
           delay={100}
           fallback={
@@ -174,7 +174,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
         {/* Features Section - Lazy loaded with slide animation */}
         <LazySection
           minHeight="500px"
-          rootMargin="50px"
+          rootMargin="400px"
           animation="slideUp"
           delay={100}
           fallback={
@@ -198,7 +198,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
         {/* Platform Section - Lazy loaded with fade animation */}
         <LazySection
           minHeight="500px"
-          rootMargin="50px"
+          rootMargin="400px"
           animation="fade"
           delay={100}
           fallback={
@@ -221,7 +221,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
         <div id="testimonials">
           <LazySection
             minHeight="400px"
-            rootMargin="50px"
+            rootMargin="400px"
             animation="scale"
             delay={100}
             fallback={
@@ -244,7 +244,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
         {/* FAQ Section - Lazy loaded with slide up animation */}
         <LazySection
           minHeight="500px"
-          rootMargin="50px"
+          rootMargin="400px"
           animation="slideUp"
           delay={100}
           fallback={
