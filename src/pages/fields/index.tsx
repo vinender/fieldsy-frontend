@@ -101,7 +101,7 @@ export default function SearchResults() {
 
   // Parse query parameters on mount and when router.query changes
   useEffect(() => {
-    const { search, zipCode: zip, lat: latitude, lng: longitude } = router.query;
+    const { search, zipCode: zip, lat: latitude, lng: longitude, page } = router.query;
 
     if (search) {
       setSearchValue(search as string);
@@ -112,6 +112,12 @@ export default function SearchResults() {
     if (latitude && longitude) {
       setLat(parseFloat(latitude as string));
       setLng(parseFloat(longitude as string));
+    }
+    if (page) {
+      const parsed = parseInt(page as string, 10);
+      if (!isNaN(parsed) && parsed >= 1) {
+        setCurrentPage(parsed);
+      }
     }
   }, [router.query]);
 
@@ -291,12 +297,20 @@ export default function SearchResults() {
   console.log('fields', fields);
   const handleSearch = () => {
     setCurrentPage(1);
+    // Reset page in URL when searching
+    const query = { ...router.query };
+    delete query.page;
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
     // React Query will automatically refetch with new params
   };
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+      // Update URL with page number (preserve existing query params)
+      const query = { ...router.query, page: page > 1 ? String(page) : undefined };
+      if (page <= 1) delete query.page;
+      router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
