@@ -264,6 +264,9 @@ export default function SearchResults({ initialFieldsData }: SearchResultsProps)
     enabled: routerReady && !!currentLocation && !searchValue && !zipCode && !lat && !lng,
   });
 
+  // Only use pre-fetched data for the default first page (matches what getStaticProps fetched)
+  const isDefaultFirstPage = currentPage === 1 && !searchValue && !zipCode && !lat && !lng && !hasSortApplied;
+
   // Use React Query hook to fetch fields (fallback/default)
   const {
     data: fieldsData,
@@ -273,7 +276,7 @@ export default function SearchResults({ initialFieldsData }: SearchResultsProps)
     refetch,
   } = useFields(queryParams, {
     enabled: routerReady,
-    ...(initialFieldsData ? { initialData: initialFieldsData } : {}),
+    ...(initialFieldsData && isDefaultFirstPage ? { initialData: initialFieldsData } : {}),
   });
 
   // Check if any filters are applied (not default values)
