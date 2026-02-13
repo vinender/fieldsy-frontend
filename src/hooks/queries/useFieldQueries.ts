@@ -358,3 +358,42 @@ export function usePriceRange(
     ...options,
   });
 }
+
+// Google Reviews types
+export interface GoogleReview {
+  authorName: string;
+  authorPhoto?: string;
+  rating: number;
+  text: string;
+  time: number;
+  relativeTime: string;
+}
+
+export interface GoogleReviewsResponse {
+  success: boolean;
+  data: {
+    reviews: GoogleReview[];
+    averageRating: number;
+    totalReviews: number;
+    message?: string;
+  };
+}
+
+// Hook to fetch Google reviews for a field
+export function useGoogleReviews(
+  fieldId: string,
+  options?: Omit<UseQueryOptions<GoogleReviewsResponse, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: ['fields', fieldId, 'google-reviews'],
+    queryFn: async () => {
+      const { data } = await axiosClient.get<GoogleReviewsResponse>(`/fields/${fieldId}/google-reviews`);
+      return data;
+    },
+    enabled: !!fieldId,
+    staleTime: 5 * 60 * 1000, // 5 minutes - reviews don't change frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false, // Don't refetch on every focus
+    ...options,
+  });
+}

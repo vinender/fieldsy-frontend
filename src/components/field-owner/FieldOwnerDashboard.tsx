@@ -486,11 +486,12 @@ export default function FieldOwnerDashboard({
         break;
 
       case 'pricing-availability':
-        if (!formData.price30min || parseFloat(formData.price30min) <= 0) {
-          errors.price30min = 'Please enter a valid price for 30 minute bookings (must be greater than 0)';
-        }
-        if (!formData.price1hr || parseFloat(formData.price1hr) <= 0) {
-          errors.price1hr = 'Please enter a valid price for 1 hour bookings (must be greater than 0)';
+        // At least one price (30min or 1hr) is required
+        const has30minPrice = formData.price30min && parseFloat(formData.price30min) > 0;
+        const has1hrPrice = formData.price1hr && parseFloat(formData.price1hr) > 0;
+
+        if (!has30minPrice && !has1hrPrice) {
+          errors.price1hr = 'Please enter a valid price for at least one slot duration (30 minutes or 1 hour)';
         }
         break;
 

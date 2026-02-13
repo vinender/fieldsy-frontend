@@ -107,28 +107,10 @@ export function TimeInput({
     ? `${selectedHour}:${selectedMinute} ${selectedPeriod}`
     : '';
 
-  // Get hours based on whether this is start/end time and selected period
+  // Get hours - fully flexible, all hours available for field owners
   const getFilteredHours = (): number[] => {
-    if (isStartTime) {
-      if (selectedPeriod === 'AM') {
-        // AM: 7, 8, 9, 10, 11
-        return [7, 8, 9, 10, 11];
-      } else {
-        // PM: 12, 1, 2, 3, 4, 5, 6, 7, 8 (max 8 PM for start to allow valid end time)
-        return [12, 1, 2, 3, 4, 5, 6, 7, 8];
-      }
-    }
-    if (isEndTime) {
-      if (selectedPeriod === 'PM') {
-        // End time PM: 12, 1, 2, 3, 4, 5, 6, 7, 8 (max 8 PM - last selectable hour)
-        return [12, 1, 2, 3, 4, 5, 6, 7, 8];
-      } else {
-        // End time AM: 12, 7, 8, 9, 10, 11 (reasonable morning hours)
-        return [7, 8, 9, 10, 11, 12];
-      }
-    }
-    // Default: all hours (12, 1, 2, 3, ... 11)
-    return Array.from({ length: 12 }, (_, i) => i === 0 ? 12 : i);
+    // All hours available: 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+    return [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
   };
 
   const hours = getFilteredHours();

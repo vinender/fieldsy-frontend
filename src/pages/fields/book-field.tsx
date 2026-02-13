@@ -220,6 +220,22 @@ const BookFieldPage = () => {
     }
   }, [field]); // Only run when field data changes
 
+  // Auto-select duration based on which prices are available (skip if in reschedule mode)
+  useEffect(() => {
+    if (field && !isRescheduleMode) {
+      const has30minPrice = field.price30min && field.price30min > 0;
+      const has1hrPrice = field.price1hr && field.price1hr > 0;
+
+      // If only one duration has a price, auto-select it
+      if (has30minPrice && !has1hrPrice) {
+        setSelectedDuration('30min');
+      } else if (has1hrPrice && !has30minPrice) {
+        setSelectedDuration('60min');
+      }
+      // If both have prices, keep the default (60min)
+    }
+  }, [field, isRescheduleMode]); // Run when field data changes
+
   // Calculate min date (today) and max date based on system settings
   const minDate = new Date();
   const maxDate = new Date();
@@ -1014,37 +1030,43 @@ const BookFieldPage = () => {
                       Select your preferred session length. Includes 5 minutes buffer time for field preparation.
                     </p>
                   )}
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => !isRescheduleMode && setSelectedDuration('30min')}
-                      disabled={isRescheduleMode}
-                      className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${selectedDuration === '30min'
-                        ? 'bg-[#8FB366] text-white border-[#8FB366]'
-                        : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
-                        } ${isRescheduleMode ? 'cursor-not-allowed opacity-60' : ''}`}
-                    >
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-lg font-bold">30 min</span>
-                        <span className={`text-sm font-semibold ${selectedDuration === '30min' ? 'text-white' : 'text-[#3A6B22]'}`}>
-                          £{field.price30min || field.price || 0}/dog
-                        </span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => !isRescheduleMode && setSelectedDuration('60min')}
-                      disabled={isRescheduleMode}
-                      className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${selectedDuration === '60min'
-                        ? 'bg-[#8FB366] text-white border-[#8FB366]'
-                        : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
-                        } ${isRescheduleMode ? 'cursor-not-allowed opacity-60' : ''}`}
-                    >
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-lg font-bold">60 min</span>
-                        <span className={`text-sm font-semibold ${selectedDuration === '60min' ? 'text-white' : 'text-[#3A6B22]'}`}>
-                          £{field.price1hr || field.price || 0}/dog
-                        </span>
-                      </div>
-                    </button>
+                  <div className={`grid gap-3 ${field.price30min && field.price30min > 0 && field.price1hr && field.price1hr > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {/* Only show 30min option if price is set */}
+                    {field.price30min && field.price30min > 0 && (
+                      <button
+                        onClick={() => !isRescheduleMode && setSelectedDuration('30min')}
+                        disabled={isRescheduleMode}
+                        className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${selectedDuration === '30min'
+                          ? 'bg-[#8FB366] text-white border-[#8FB366]'
+                          : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
+                          } ${isRescheduleMode ? 'cursor-not-allowed opacity-60' : ''}`}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-lg font-bold">30 min</span>
+                          <span className={`text-sm font-semibold ${selectedDuration === '30min' ? 'text-white' : 'text-[#3A6B22]'}`}>
+                            £{field.price30min}/dog
+                          </span>
+                        </div>
+                      </button>
+                    )}
+                    {/* Only show 60min option if price is set */}
+                    {field.price1hr && field.price1hr > 0 && (
+                      <button
+                        onClick={() => !isRescheduleMode && setSelectedDuration('60min')}
+                        disabled={isRescheduleMode}
+                        className={`py-3 px-4 rounded-[14px] text-[14px] font-medium transition-colors border ${selectedDuration === '60min'
+                          ? 'bg-[#8FB366] text-white border-[#8FB366]'
+                          : 'bg-white text-dark-green border-dark-green/10 hover:bg-gray-50'
+                          } ${isRescheduleMode ? 'cursor-not-allowed opacity-60' : ''}`}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-lg font-bold">60 min</span>
+                          <span className={`text-sm font-semibold ${selectedDuration === '60min' ? 'text-white' : 'text-[#3A6B22]'}`}>
+                            £{field.price1hr}/dog
+                          </span>
+                        </div>
+                      </button>
+                    )}
                   </div>
                   <p className="text-sm text-gray-600 mt-3">
                     While you book for {selectedDuration === '60min' ? '1 hr' : '30 min'} you actually get {selectedDuration === '60min' ? '55 mins' : '25 mins'}

@@ -65,7 +65,6 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   const isReschedulable = fullBooking?.isReschedulable ?? false;
   const hoursUntilBooking = fullBooking?.hoursUntilBooking ?? 0;
   const hasCompletedBookingInSubscription = fullBooking?.hasCompletedBookingInSubscription ?? false;
-  const rescheduleCount = fullBooking?.rescheduleCount ?? 0;
 
   // Check if booking is a recurring booking (has subscription OR repeatBooking is not "None"/null/undefined)
   const isRecurringBooking = !!(
@@ -527,11 +526,7 @@ export const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                             title={!isReschedulable ? (
                               hasCompletedBookingInSubscription
                                 ? 'Cannot reschedule - a booking in this subscription has already been completed'
-                                : hoursUntilBooking < cancellationWindowHours
-                                  ? `Cannot reschedule within ${cancellationWindowHours} hours of booking (${hoursUntilBooking.toFixed(1)} hours remaining)`
-                                  : rescheduleCount >= 3
-                                    ? 'Maximum reschedule limit (3) reached for this booking'
-                                    : `Cannot reschedule within ${cancellationWindowHours} hours of booking`
+                                : `Cannot reschedule within ${cancellationWindowHours} hours of booking (${hoursUntilBooking.toFixed(1)} hours remaining)`
                             ) : 'Reschedule booking'}
                           >
                             Reschedule Booking

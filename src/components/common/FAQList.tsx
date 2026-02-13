@@ -20,7 +20,7 @@ export const defaultFaqs: FAQItem[] = [
   {
     question: "Can I cancel or reschedule my booking?",
     answer:
-      "Yes, you can cancel your booking up to the cancellation window (default 12 hours) before your scheduled time for a full refund. Rescheduling is allowed up to 3 times per booking, within the same cancellation window. For recurring bookings, rescheduling is not available once any booking in the subscription has been completed, and the recurring interval cannot be changed.",
+      "Yes, you can cancel or reschedule your booking up to 12 hours before your scheduled time. Cancellations made within 12 hours may be subject to our cancellation policy. Rescheduling is unlimited - you can reschedule as many times as you like up to 12 hours before. For recurring bookings, rescheduling is not available once any booking in the subscription has been completed.",
   },
   {
     question: "Is it safe for all dog breeds?",

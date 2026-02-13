@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Shield, BadgeCheck, ChevronDown, ChevronRight, CheckCircle, MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { useFieldReviews } from '@/hooks/useReviews';
+import { useGoogleReviews } from '@/hooks/queries/useFieldQueries';
 import { format } from 'date-fns';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { LoginPromptModal } from '@/components/modal/LoginPromptModal';
@@ -92,6 +93,11 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   const reviewsData = reviewsResp?.data || { reviews: [], stats: { averageRating: 0, totalReviews: 0, ratingDistribution: {} } };
   const reviews = reviewsData.reviews || [];
   const reviewStats = reviewsData.stats || { averageRating: 0, totalReviews: 0, ratingDistribution: {} };
+
+  // Fetch Google reviews (live from Google Places API)
+  const { data: googleReviewsResp, isLoading: googleReviewsLoading } = useGoogleReviews(fieldId);
+  const googleReviewsData = googleReviewsResp?.data || { reviews: [], averageRating: 0, totalReviews: 0 };
+  const googleReviews = googleReviewsData.reviews || [];
 
   // Helper function to get label from slug
   const getFieldPropertyLabel = (category: string, slug: string) => {
@@ -937,6 +943,69 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
               ) : (
                 <div className="bg-white border flex flex-col justify-between border-gray-200 rounded-2xl p-6">
                   <p className="text-gray-600 text-sm text-center">No reviews yet. Be the first to book and review this field!</p>
+                </div>
+              )}
+
+              {/* Google Reviews Section */}
+              {googleReviews.length > 0 && (
+                <div className="mt-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <img src="/google-icon.svg" alt="Google" className="w-6 h-6" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    <h3 className="text-xl font-bold text-dark-green">Google Reviews</h3>
+                    {googleReviewsData.averageRating > 0 && (
+                      <div className="flex items-center gap-2 ml-auto">
+                        <RatingStars rating={googleReviewsData.averageRating} size={16} />
+                        <span className="text-sm text-gray-600">
+                          {googleReviewsData.averageRating.toFixed(1)} ({googleReviewsData.totalReviews} reviews)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-6">
+                    {googleReviews.map((review: any, index: number) => (
+                      <div key={index} className="bg-white rounded-2xl p-6 border border-gray-200">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center w-full">
+                            <div className="w-10 h-10 bg-gray-100 rounded-full mr-3 overflow-hidden flex items-center justify-center">
+                              {review.authorPhoto ? (
+                                <img
+                                  src={review.authorPhoto}
+                                  alt={review.authorName}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { e.currentTarget.src = '/user.svg'; }}
+                                />
+                              ) : (
+                                <img src="/user.svg" alt="User" className="w-6 h-6" />
+                              )}
+                            </div>
+                            <div className="flex justify-between w-full">
+                              <div className="flex flex-col">
+                                <h4 className="font-semibold text-[#090F1F]">{review.authorName}</h4>
+                                <div className="text-xs text-gray-500">{review.relativeTime}</div>
+                              </div>
+                              <div className="flex items-center">
+                                <RatingStars rating={review.rating || 0} size={16} />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed">{review.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {googleReviewsLoading && (
+                <div className="mt-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Skeleton className="w-6 h-6 rounded" />
+                    <Skeleton className="w-40 h-6" />
+                  </div>
+                  <div className="space-y-4">
+                    {[1, 2].map((i) => (
+                      <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

@@ -75,14 +75,19 @@ export default function PricingAvailability({ formData, setFormData, validationE
       <div className="space-y-8">
         {/* Price Inputs for both durations */}
         <div className="space-y-6">
-          <label className="block text-sm font-medium text-dark-green font-sans">
-            Set your pricing for each booking duration <span className="text-red-500">*</span>
-          </label>
+          <div>
+            <label className="block text-sm font-medium text-dark-green font-sans">
+              Set your pricing for booking durations <span className="text-red-500">*</span>
+            </label>
+            <p className="text-sm text-gray-500 mt-1 font-sans">
+              Set at least one price. Only the durations you set prices for will be available to book.
+            </p>
+          </div>
 
           {/* 30 Minutes Price */}
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              30 Minutes Booking <span className="text-red-500">*</span>
+              30 Minutes Booking <span className="text-gray-400 text-xs">(optional)</span>
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
@@ -119,7 +124,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
           {/* 1 Hour Price */}
           <div>
             <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-              1 Hour Booking <span className="text-red-500">*</span>
+              1 Hour Booking <span className="text-gray-400 text-xs">(optional)</span>
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-input font-sans">
@@ -177,10 +182,10 @@ export default function PricingAvailability({ formData, setFormData, validationE
                 Reschedule Policy:
               </h3>
               <p className="text-base leading-relaxed text-dark-green font-sans">
-                Users can reschedule their booking up to the{' '}
-                <span className="font-bold">cancellation window</span>
-                {' '}before the booking time, with a maximum of{' '}
-                <span className="font-bold">3 reschedules per booking</span>.
+                Users can reschedule their booking up to{' '}
+                <span className="font-bold">12 hours</span>
+                {' '}before the booking time. There is{' '}
+                <span className="font-bold">no limit</span> on the number of reschedules.
               </p>
               <p className="text-base leading-relaxed mt-3 text-dark-green font-sans">
                 For recurring bookings, rescheduling is{' '}

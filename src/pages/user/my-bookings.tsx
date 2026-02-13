@@ -689,13 +689,11 @@ const BookingHistoryPage = () => {
                         rescheduleTitle = 'Cannot reschedule - a booking in this subscription has already been completed';
                       } else if (hoursUntilBooking < bookingCancellationWindow) {
                         rescheduleTitle = `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`;
-                      } else if (rescheduleCount >= 3) {
-                        rescheduleTitle = 'Maximum reschedule limit (3) reached for this booking';
                       } else {
                         rescheduleTitle = 'Cannot reschedule this booking';
                       }
                     } else {
-                      rescheduleTitle = `Reschedule booking (${rescheduleCount}/3 used)`;
+                      rescheduleTitle = rescheduleCount > 0 ? `Reschedule booking (rescheduled ${rescheduleCount} time${rescheduleCount === 1 ? '' : 's'})` : 'Reschedule booking';
                     }
 
                     return (
@@ -734,10 +732,8 @@ const BookingHistoryPage = () => {
                   {(() => {
                     const rescheduleCount = booking.rescheduleCount || 0;
                     const rescheduleTitle = !isReschedulable
-                      ? !isCancellable
-                        ? `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`
-                        : 'Maximum reschedule limit (3) reached for this booking'
-                      : `Reschedule booking (${rescheduleCount}/3 used)`;
+                      ? `Cannot reschedule within ${bookingCancellationWindow} hours of booking (${hoursUntilBooking} hours remaining)`
+                      : rescheduleCount > 0 ? `Reschedule booking (rescheduled ${rescheduleCount} time${rescheduleCount === 1 ? '' : 's'})` : 'Reschedule booking';
 
                     return (
                       <button

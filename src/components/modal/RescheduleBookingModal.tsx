@@ -37,10 +37,9 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
 }) => {
   const router = useRouter();
   const settingsCancellationWindow = useCancellationWindow();
-  // Use booking's cancellation window if available (from same API call), otherwise use settings
-  const cancellationWindowHours = booking.cancellationWindow ?? settingsCancellationWindow;
+  // Use booking's cancellation window if available (from same API call), otherwise use settings (default 12 hours)
+  const cancellationWindowHours = booking.cancellationWindow ?? settingsCancellationWindow ?? 12;
   const rescheduleCount = booking.rescheduleCount || 0;
-  const remainingReschedules = 3 - rescheduleCount;
   const hasCompletedBookingInSubscription = booking.hasCompletedBookingInSubscription ?? false;
 
   // Calculate hours until booking in real-time (more accurate than backend-provided value)
@@ -76,14 +75,12 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
 
   const hoursUntilBooking = calculateHoursUntilBooking();
 
-  // Check all conditions for rescheduling
+  // Check all conditions for rescheduling (unlimited reschedules allowed)
   const isWithinCancellationWindow = hoursUntilBooking < cancellationWindowHours;
-  const hasReachedRescheduleLimit = rescheduleCount >= 3;
 
   // Calculate canReschedule locally for real-time accuracy
-  // Don't trust backend value as it may be stale
-  const canReschedule = !hasReachedRescheduleLimit &&
-    !isWithinCancellationWindow &&
+  // Unlimited reschedules allowed, just check time window and subscription status
+  const canReschedule = !isWithinCancellationWindow &&
     !hasCompletedBookingInSubscription;
 
   const handleProceed = () => {
@@ -178,7 +175,7 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
         {!canReschedule ? (
           <>
             {/* Within Cancellation Window Warning */}
-            {isWithinCancellationWindow && !hasReachedRescheduleLimit && !hasCompletedBookingInSubscription && (
+            {isWithinCancellationWindow && !hasCompletedBookingInSubscription && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
                 <div className="flex items-start gap-2">
                   <Clock className="w-5 h-5 text-red-600 mt-0.5" />
@@ -195,26 +192,8 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
               </div>
             )}
 
-            {/* Reschedule Limit Reached Warning */}
-            {hasReachedRescheduleLimit && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm text-red-700 font-semibold mb-2">
-                      Maximum Reschedule Limit Reached
-                    </p>
-                    <p className="text-sm text-red-600">
-                      You have already rescheduled this booking 3 times, which is the maximum allowed.
-                      If you need to change the booking time, please cancel this booking and create a new one.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Recurring Booking Completed Warning */}
-            {hasCompletedBookingInSubscription && !hasReachedRescheduleLimit && (
+            {hasCompletedBookingInSubscription && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
@@ -233,19 +212,14 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
           </>
         ) : (
           <>
-            {/* Reschedule Count Info */}
+            {/* Reschedule Count Info - informational only, no limit */}
             {rescheduleCount > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-gray-600 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-amber-700">
-                      <strong>Reschedules Used:</strong> {rescheduleCount} of 3
-                      {remainingReschedules > 0 && (
-                        <span className="block mt-1">
-                          You have {remainingReschedules} reschedule{remainingReschedules === 1 ? '' : 's'} remaining for this booking.
-                        </span>
-                      )}
+                    <p className="text-sm text-gray-700">
+                      This booking has been rescheduled {rescheduleCount} time{rescheduleCount === 1 ? '' : 's'}.
                     </p>
                   </div>
                 </div>
@@ -260,7 +234,7 @@ export const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
                   <p className="text-sm text-blue-700">
                     <strong>Note:</strong> You'll be redirected to select a new date and time slot.
                     Rescheduling is free and maintains your original payment.
-                    The same cancellation policy ({cancellationWindowHours} hours notice) will apply to the new booking time.
+                    The same policy ({cancellationWindowHours} hours notice) will apply to the new booking time.
                   </p>
                 </div>
               </div>

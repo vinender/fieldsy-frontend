@@ -5,7 +5,6 @@ import { CustomMultiSelect } from '@/components/ui/custom-multi-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import { TimeInput } from '@/components/ui/time-input';
-import { usePublicSettings } from '@/hooks/usePublicSettings';
 import { useAmenities } from '@/hooks/api/useAmenities';
 import { useFieldOptions } from '@/hooks/api/useFieldOptions';
 import { AmenityIcon, ICON_COLORS } from '@/components/ui/AmenityIcon';
@@ -18,10 +17,8 @@ interface FieldDetailsProps {
 }
 
 export default function FieldDetails({ formData, setFormData, validationErrors = {} }: FieldDetailsProps) {
-  const { data: settings } = usePublicSettings();
   const { data: amenities, isLoading: amenitiesLoading } = useAmenities();
   const { data: fieldOptions, isLoading: optionsLoading } = useFieldOptions();
-  const minimumOperatingHours = (settings as any)?.minimumFieldOperatingHours || 4;
   const [timeError, setTimeError] = useState('');
 
   // Extract options from API response
@@ -67,7 +64,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
     return totalHours * 60 + (minutes || 0);
   };
 
-  // Validate time difference
+  // Validate time difference - just ensure end time is after start time
   const validateTimeDifference = (startTime: string, endTime: string) => {
     if (!startTime || !endTime) {
       setTimeError('');
@@ -77,7 +74,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
     const startMinutes = timeToMinutes(startTime);
     const endMinutes = timeToMinutes(endTime);
 
-    // Calculate time difference, handling overnight periods (e.g., 8 PM to 2 AM)
+    // Calculate time difference
     let diffMinutes = endMinutes - startMinutes;
 
     // If end time is "before" start time, it means the period crosses midnight
@@ -86,11 +83,9 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
       diffMinutes = diffMinutes + (24 * 60); // Add 24 hours in minutes
     }
 
-    const diffHours = diffMinutes / 60;
-
-    // Only check minimum operating hours, allow any 24-hour period
-    if (diffHours < minimumOperatingHours) {
-      setTimeError(`Field must be open for at least ${minimumOperatingHours} hours`);
+    // Just ensure end time is different from start time (at least some duration)
+    if (diffMinutes === 0) {
+      setTimeError('End time must be different from start time');
     } else {
       setTimeError('');
     }
@@ -99,7 +94,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
   // Validate whenever times change
   useEffect(() => {
     validateTimeDifference(formData.startTime, formData.endTime);
-  }, [formData.startTime, formData.endTime, minimumOperatingHours]);
+  }, [formData.startTime, formData.endTime]);
 
   console.log('fieldData formData', formData);
 
@@ -356,6 +351,27 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         </div>
       </div>
 
+      {/* Google Maps URL Section */}
+      <div>
+        <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
+          Google Reviews
+        </h2>
+        <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
+          Google Maps URL <span className="text-gray-400 text-xs">(optional)</span>
+        </label>
+        <Input
+          name="googleMapsUrl"
+          value={formData.googleMapsUrl || ''}
+          onChange={handleInputChange}
+          placeholder="https://maps.google.com/..."
+          className="mb-2"
+        />
+        <p className="text-gray-500 text-xs">
+          Add your Google Maps business URL to display Google reviews on your field page.
+          Find your URL by searching for your location on Google Maps and copying the URL from your browser.
+        </p>
+      </div>
+
       {/* Opening Days & Hours */}
       <div>
         <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
@@ -388,22 +404,20 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 name="startTime"
                 value={formData.startTime}
                 onChange={(value) => {
-                  // Calculate auto end time based on minimum hours, capped at 8 PM (20:00)
+                  // Auto-calculate a suggested end time (1 hour after start) - no caps
                   const calculateAutoEndTime = (startTime: string): string => {
                     if (!startTime) return '';
 
                     // Parse 24-hour format from TimeInput
                     const [hours, minutes] = startTime.split(':').map(Number);
 
-                    // Add minimum operating hours
-                    let endHours = hours + minimumOperatingHours;
+                    // Add 1 hour as default duration
+                    let endHours = hours + 1;
                     let endMinutes = minutes || 0;
 
-                    // Cap end time at 8 PM (20:00) - don't allow beyond this
-                    const maxEndHour = 20; // 8 PM in 24-hour format
-                    if (endHours > maxEndHour) {
-                      endHours = maxEndHour;
-                      endMinutes = 0;
+                    // Handle day overflow (e.g., 23:00 + 1 = 00:00)
+                    if (endHours >= 24) {
+                      endHours = endHours - 24;
                     }
 
                     // Return in 24-hour format (HH:MM) for TimeInput component
@@ -416,7 +430,7 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                   setFormData((prev: any) => ({
                     ...prev,
                     startTime: value,
-                    endTime: autoEndTime // Auto-set end time
+                    endTime: autoEndTime // Auto-set end time (can be changed by user)
                   }));
                   validateTimeDifference(value, autoEndTime);
                 }}
@@ -444,7 +458,6 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 placeholder="Select end time"
                 isEndTime={true}
                 startTime={formData.startTime}
-                minHoursDifference={minimumOperatingHours}
               />
               {validationErrors.endTime && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.endTime}</p>
