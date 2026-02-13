@@ -454,8 +454,8 @@ export default function FieldDetailsDisplay({
                     <p className="text-sm text-gray-600 whitespace-pre-wrap">{field.policies}</p>
                   ) : (
                     <div className="space-y-3 text-sm text-gray-600">
-                      <p>• Free cancellation up to 24 hours before your booking</p>
-                      <p>• 50% refund for cancellations made 12-24 hours in advance</p>
+                      <p>• Free cancellation up to 12 hours before your booking</p>
+                      <p>• 50% refund for cancellations made 12 hrs in advance</p>
                       <p>• No refund for cancellations made less than 12 hours before booking</p>
                       <p>• Weather-related cancellations may be rescheduled at no extra cost</p>
                     </div>

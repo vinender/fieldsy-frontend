@@ -44,7 +44,7 @@ const FAQS = [
   },
   {
     question: 'Can I cancel or reschedule my booking?',
-    answer: 'Yes, you can cancel your booking up to the cancellation window (default 24 hours) for a full refund. Rescheduling is allowed up to 3 times per booking. For recurring bookings, rescheduling is not available once any booking has been completed.',
+    answer: 'Yes, you can cancel your booking up to the cancellation window (default 12 hours) for a full refund. Rescheduling is allowed up to 3 times per booking. For recurring bookings, rescheduling is not available once any booking has been completed.',
   },
   {
     question: 'Is it safe for all dog breeds?',

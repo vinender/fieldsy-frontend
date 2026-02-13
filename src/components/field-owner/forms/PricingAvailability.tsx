@@ -165,7 +165,7 @@ export default function PricingAvailability({ formData, setFormData, validationE
               <p className="text-base leading-relaxed text-dark-green font-sans">
                 Users can cancel their booking up to the{' '}
                 <span className="font-bold">cancellation window</span>
-                {' '}(default 24 hours) in advance for a{' '}
+                {' '}(default 12 hours) in advance for a{' '}
                 <span className="font-bold">full refund</span>.
                 Cancellations made within the cancellation window are{' '}
                 <span className="font-bold">non-refundable</span>.

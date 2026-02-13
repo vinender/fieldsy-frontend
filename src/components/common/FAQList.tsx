@@ -20,7 +20,7 @@ export const defaultFaqs: FAQItem[] = [
   {
     question: "Can I cancel or reschedule my booking?",
     answer:
-      "Yes, you can cancel your booking up to the cancellation window (default 24 hours) before your scheduled time for a full refund. Rescheduling is allowed up to 3 times per booking, within the same cancellation window. For recurring bookings, rescheduling is not available once any booking in the subscription has been completed, and the recurring interval cannot be changed.",
+      "Yes, you can cancel your booking up to the cancellation window (default 12 hours) before your scheduled time for a full refund. Rescheduling is allowed up to 3 times per booking, within the same cancellation window. For recurring bookings, rescheduling is not available once any booking in the subscription has been completed, and the recurring interval cannot be changed.",
   },
   {
     question: "Is it safe for all dog breeds?",
@@ -30,7 +30,7 @@ export const defaultFaqs: FAQItem[] = [
   {
     question: "What is your refund policy?",
     answer:
-      "Full refunds are available for cancellations made at least 24 hours before your booking. Cancellations within 24 hours may receive a partial refund or credit for future bookings, depending on circumstances.",
+      "Full refunds are available for cancellations made at least 12 hours before your booking. Cancellations within 12 hours may receive a partial refund or credit for future bookings, depending on circumstances.",
   },
   {
     question: "How do I access the field after booking?",

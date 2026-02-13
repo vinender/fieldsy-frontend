@@ -250,7 +250,7 @@ export default function FieldDetailsDashboard() {
   ];
   
   const bookingPolicies = [
-    'All bookings must be made at least 24 hours in advance',
+    // 'All bookings must be made at least 24 hours in advance',
     'The minimum booking slot is 1 hour',
     'Free cancellation up to 12 hours before the scheduled start time',
     'Users arriving late will not receive a time extension',

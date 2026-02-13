@@ -315,15 +315,77 @@ const ClaimFieldPage = () => {
     }
   };
   
-  // Show loading state
-  if (isLoadingEligibility) { 
+  // Show loading skeleton
+  if (isLoadingEligibility) {
     return (
       <UserLayout>
-        <div className="min-h-screen bg-light flex items-center justify-center">
-          <div className="text-center">
-            {/* <Spinner size="lg" /> */}
-            {/* <p className="mt-4 text-gray-600">Loading field information...</p> */}
-          </div>
+        <div className="min-h-screen bg-light">
+          <main className="w-full mt-16 md:mt-[100px] py-4 lg:py-10 px-4 sm:px-6 lg:px-8 xl:px-20">
+            {/* Back Button Skeleton */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
+              <div className="w-24 h-4 bg-gray-200 rounded animate-pulse" />
+            </div>
+
+            {/* Form Container Skeleton */}
+            <div className="grid lg:grid-cols-2 border-b">
+              {/* Left Column - Personal Information Skeleton */}
+              <div className="bg-white rounded-l-2xl p-6 lg:p-8">
+                <div className="w-48 h-6 bg-gray-200 rounded animate-pulse mb-2" />
+                <div className="w-72 h-4 bg-gray-200 rounded animate-pulse mb-6" />
+
+                <div className="space-y-5">
+                  {/* Full Name Skeleton */}
+                  <div>
+                    <div className="w-20 h-4 bg-gray-200 rounded animate-pulse mb-2" />
+                    <div className="w-full h-12 bg-gray-100 rounded-full animate-pulse" />
+                  </div>
+
+                  {/* Email Skeleton */}
+                  <div>
+                    <div className="w-28 h-4 bg-gray-200 rounded animate-pulse mb-2" />
+                    <div className="w-full h-12 bg-gray-100 rounded-full animate-pulse" />
+                  </div>
+
+                  {/* Phone Skeleton */}
+                  <div>
+                    <div className="w-24 h-4 bg-gray-200 rounded animate-pulse mb-2" />
+                    <div className="w-full h-12 bg-gray-100 rounded-full animate-pulse" />
+                  </div>
+
+                  {/* Legal Owner Skeleton */}
+                  <div>
+                    <div className="w-56 h-4 bg-gray-200 rounded animate-pulse mb-3" />
+                    <div className="flex gap-3 w-1/2">
+                      <div className="flex-1 h-12 bg-gray-100 rounded-[14px] animate-pulse" />
+                      <div className="flex-1 h-12 bg-gray-100 rounded-[14px] animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Ownership Proof Skeleton */}
+              <div className="bg-white rounded-r-2xl p-6 lg:p-8">
+                <div className="w-40 h-6 bg-gray-200 rounded animate-pulse mb-2" />
+                <div className="w-80 h-4 bg-gray-200 rounded animate-pulse mb-6" />
+
+                {/* Document Uploader Skeleton */}
+                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 animate-pulse">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full mb-4" />
+                    <div className="w-48 h-4 bg-gray-200 rounded mb-2" />
+                    <div className="w-32 h-3 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons Skeleton */}
+            <div className="flex justify-center py-4 bg-white gap-4">
+              <div className="w-[150px] h-12 bg-gray-100 rounded-full animate-pulse" />
+              <div className="w-[150px] h-12 bg-gray-200 rounded-full animate-pulse" />
+            </div>
+          </main>
         </div>
       </UserLayout>
     );
