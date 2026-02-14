@@ -339,8 +339,30 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                     </h1>
                     <span className="text-xl lg:text-2xl text-dark-green">•</span>
                     <span className="text-xl lg:text-[24px]">
-                      <span className="font-bold text-[#3A6B22]">£{field?.price30min || field.price || 0}</span>
-                      <span className="font-light text-[16px] text-gray-500">/dog/30min</span>
+                      {(() => {
+                        const has30minPrice = field?.price30min && field.price30min > 0;
+                        const has1hrPrice = field?.price1hr && field.price1hr > 0;
+
+                        // Default to 30min if both are available, otherwise show what's set
+                        const displayPrice = has30minPrice
+                          ? field.price30min
+                          : has1hrPrice
+                          ? field.price1hr
+                          : field?.price || 0;
+
+                        const durationLabel = has30minPrice
+                          ? '/dog/30min'
+                          : has1hrPrice
+                          ? '/dog/1hr'
+                          : '/dog';
+
+                        return (
+                          <>
+                            <span className="font-bold text-[#3A6B22]">£{displayPrice}</span>
+                            <span className="font-light text-[16px] text-gray-500">{durationLabel}</span>
+                          </>
+                        );
+                      })()}
                     </span>
                   </div>
                   <button
