@@ -351,27 +351,6 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
         </div>
       </div>
 
-      {/* Google Maps URL Section */}
-      <div>
-        <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">
-          Google Reviews
-        </h2>
-        <label className="block text-sm font-medium mb-2 text-dark-green font-sans">
-          Google Maps URL <span className="text-gray-400 text-xs">(optional)</span>
-        </label>
-        <Input
-          name="googleMapsUrl"
-          value={formData.googleMapsUrl || ''}
-          onChange={handleInputChange}
-          placeholder="https://maps.google.com/..."
-          className="mb-2"
-        />
-        <p className="text-gray-500 text-xs">
-          Add your Google Maps business URL to display Google reviews on your field page.
-          Find your URL by searching for your location on Google Maps and copying the URL from your browser.
-        </p>
-      </div>
-
       {/* Opening Days & Hours */}
       <div>
         <h2 className="text-lg font-bold mb-4 text-dark-green font-sans">

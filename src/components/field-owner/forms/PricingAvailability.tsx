@@ -9,8 +9,8 @@ interface PricingAvailabilityProps {
 
 export default function PricingAvailability({ formData, setFormData, validationErrors = {} }: PricingAvailabilityProps) {
   const handlePriceChange = (field: 'price30min' | 'price1hr', value: string) => {
-    // Allow empty value
-    if (value === '') {
+    // Allow empty value or treat "0" as empty (no price)
+    if (value === '' || value === '0') {
       setFormData((prev: any) => ({
         ...prev,
         [field]: ''

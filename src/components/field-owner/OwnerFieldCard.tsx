@@ -64,20 +64,33 @@ export default function OwnerFieldCard({
         </p>
 
         <div className="flex justify-between items-center mt-4">
-          {/* Pricing */} 
-          <div className="flex flex-col">
-            <div>
-              <span className="text-green font-bold text-lg">
-                £{field.price30min || field.price || 0}
-              </span>
-              <span className="text-gray-500 font-light text-sm">/dog/30min</span>
-            </div>
-            <div>
-              <span className="text-green font-bold text-lg">
-                £{field.price1hr || field.price || 0}
-              </span>
-              <span className="text-gray-500 font-light text-sm">/dog/1hr</span>
-            </div>
+          {/* Pricing - only show prices that are actually set */}
+          <div className="flex flex-col gap-1">
+            {field.price30min && field.price30min > 0 && (
+              <div>
+                <span className="text-green font-bold text-lg">
+                  £{field.price30min}
+                </span>
+                <span className="text-gray-500 font-light text-sm">/dog/30min</span>
+              </div>
+            )}
+            {field.price1hr && field.price1hr > 0 && (
+              <div>
+                <span className="text-green font-bold text-lg">
+                  £{field.price1hr}
+                </span>
+                <span className="text-gray-500 font-light text-sm">/dog/1hr</span>
+              </div>
+            )}
+            {/* Fallback to legacy price if neither new price is set */}
+            {(!field.price30min || field.price30min <= 0) && (!field.price1hr || field.price1hr <= 0) && field.price > 0 && (
+              <div>
+                <span className="text-green font-bold text-lg">
+                  £{field.price}
+                </span>
+                <span className="text-gray-500 font-light text-sm">/dog</span>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
