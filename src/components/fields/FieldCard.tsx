@@ -47,6 +47,7 @@ export function FieldCard({
   distance: providedDistance,
   price,
   price30min,
+  price1hr,
   rating,
   image,
   amenities = [],
@@ -64,8 +65,18 @@ export function FieldCard({
   longitude,
   fieldId
 }: FieldCardProps) {
-  // Use new price fields if available, fallback to legacy price
-  const displayPrice = price30min || price || 0
+  // Determine display price - prioritize the lowest available price
+  // Check both price30min and price1hr (not legacy price to avoid showing old data)
+  const has30minPrice = price30min && price30min > 0;
+  const has1hrPrice = price1hr && price1hr > 0;
+
+  const displayPrice = has30minPrice && has1hrPrice
+    ? Math.min(price30min, price1hr) // Show lowest if both available
+    : has30minPrice
+    ? price30min
+    : has1hrPrice
+    ? price1hr
+    : price || 0; // Fallback to legacy price only if neither new price is set
 
   // Check if image is valid (not null, not empty, not placeholder, not map image)
   // WordPress URLs are now considered valid images
