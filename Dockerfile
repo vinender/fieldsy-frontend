@@ -27,6 +27,9 @@ RUN echo "=== .env.production contents ===" && cat .env.production && echo "=== 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Mock Google Fonts during build to avoid network timeouts in Docker
+ENV NEXT_FONT_GOOGLE_MOCKED_RESPONSES='[{"url":"https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap","content":"/* DM Sans - mocked during build */"}]'
+
 # Build the application (Next.js will read .env.production automatically)
 RUN npm run build
 
