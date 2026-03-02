@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 interface LazyImageProps {
   src: string;
@@ -9,6 +9,10 @@ interface LazyImageProps {
   blurDataURL?: string;
 }
 
+// Track images that have already been loaded in this session
+// so we skip the fade-in animation on remount (e.g. after skeleton flicker)
+const loadedImages = new Set<string>();
+
 export function LazyImage({
   src,
   alt,
@@ -16,11 +20,17 @@ export function LazyImage({
   placeholder = '/placeholder-field.jpg',
   blurDataURL,
 }: LazyImageProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const alreadyLoaded = loadedImages.has(src);
+  const [isLoading, setIsLoading] = useState(!alreadyLoaded);
   const [error, setError] = useState(false);
 
   // Use the provided placeholder if error occurs
   const imageSrc = error ? placeholder : src;
+
+  const handleLoad = useCallback(() => {
+    loadedImages.add(src);
+    setIsLoading(false);
+  }, [src]);
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
@@ -31,7 +41,7 @@ export function LazyImage({
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         className={`object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'
           }`}
-        onLoad={() => setIsLoading(false)}
+        onLoad={handleLoad}
         onError={() => {
           setError(true);
           setIsLoading(false);

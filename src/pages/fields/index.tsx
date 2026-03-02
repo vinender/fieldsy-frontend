@@ -266,11 +266,18 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
   });
 
   // Check if any filters are applied (not default values)
+  // Price range: consider "active" only if it differs from BOTH the current API range AND the initial mock range.
+  // This avoids a race condition where priceRangeData loads (updating minPrice/maxPrice) before the
+  // useEffect syncs appliedFilters.priceRange, briefly making hasActiveFilters=true and causing a re-fetch.
+  const isPriceRangeActive =
+    (appliedFilters.priceRange[0] !== minPrice || appliedFilters.priceRange[1] !== maxPrice) &&
+    (appliedFilters.priceRange[0] !== mockData.filterOptions.priceRange.min || appliedFilters.priceRange[1] !== mockData.filterOptions.priceRange.max);
+
   const hasActiveFilters =
     (appliedFilters.size && appliedFilters.size !== '' && appliedFilters.size !== 'All') ||
     appliedFilters.amenities.length > 0 ||
     (appliedFilters.rating && appliedFilters.rating !== '') ||
-    (appliedFilters.priceRange[0] !== minPrice || appliedFilters.priceRange[1] !== maxPrice) ||
+    isPriceRangeActive ||
     (appliedFilters.distanceRange[0] !== mockData.filterOptions.distanceRange.min ||
       appliedFilters.distanceRange[1] !== mockData.filterOptions.distanceRange.max) ||
     appliedFilters.date !== undefined ||
