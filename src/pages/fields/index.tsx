@@ -476,8 +476,9 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                         </span>
                       )}
                     </div>
+                    {shouldUseNearbyFields && hasNearbyResults && locationDisplay && (
 
-                    {/* <button
+                    <button
                       onClick={() => {
                         clearLocation();
                         setCurrentPage(1);
@@ -487,7 +488,8 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                     >
 
                       <X className="w-5 h-5 bg-black rounded-full text-white p-0.5" />
-                    </button> */}
+                    </button>
+                     )}
 
                   </div>
                   <div className="relative" ref={sortDropdownRef}>
