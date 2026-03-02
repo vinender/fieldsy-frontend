@@ -1,7 +1,7 @@
 import { MapPin, Star } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 import { useToggleFavorite, useFavoriteStatus } from "@/hooks/useFavorites"
@@ -40,7 +40,7 @@ export interface FieldCardProps {
 }
 
 
-export function FieldCard({
+export const FieldCard = React.memo(function FieldCard({
   id,
   name,
   location,
@@ -427,5 +427,5 @@ export function FieldCard({
       />
     </>
   )
-}
+});
 

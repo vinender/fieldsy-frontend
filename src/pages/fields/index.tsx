@@ -199,7 +199,8 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
   };
 
   // Build query parameters for React Query - use applied filters
-  const queryParams: FieldsParams = {
+  // Memoize to prevent new object identity on every render (avoids spurious React Query cache misses)
+  const queryParams: FieldsParams = useMemo(() => ({
     page: currentPage,
     limit: 12,
     ...(searchValue && { search: searchValue }),
@@ -230,7 +231,7 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
       sortBy: Object.keys(sortConfig).join(','),
       sortOrder: Object.keys(sortConfig).map(key => sortConfig[key as keyof typeof sortConfig]).join(',') as 'asc' | 'desc'
     })
-  };
+  }), [currentPage, searchValue, zipCode, lat, lng, currentLocation, appliedFilters, minPrice, maxPrice, sortConfig]);
 
   console.log('Query Params:', queryParams);
   console.log('Applied Filters:', appliedFilters);
