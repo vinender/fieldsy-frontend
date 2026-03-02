@@ -100,6 +100,7 @@ const BookingHistoryPage = () => {
   const cancellationWindow = useCancellationWindow();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
   const [isTabSwitching, setIsTabSwitching] = useState(false);
+  const [isPageSwitching, setIsPageSwitching] = useState(false);
   const prevTabRef = useRef(activeTab);
 
   // Track tab switches to show skeleton during transitions
@@ -157,7 +158,17 @@ const BookingHistoryPage = () => {
   const [bookingToCancelSub, setBookingToCancelSub] = useState<Booking | null>(null);
   const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
   const [page, setPage] = useState(1);
+  const prevPageRef = useRef(page);
   const [appliedFilters, setAppliedFilters] = useState<any>(null);
+
+  // Track page switches to show skeleton during transitions and scroll to top
+  useEffect(() => {
+    if (prevPageRef.current !== page) {
+      setIsPageSwitching(true);
+      prevPageRef.current = page;
+      window.scrollTo(0, 0);
+    }
+  }, [page]);
 
   // Use React Query for bookings - caches data per tab, refetches in background
   const {
@@ -178,18 +189,19 @@ const BookingHistoryPage = () => {
   const isAnyModalOpenOrPending = isCancelModalOpen || isRescheduleModalOpen || isReviewModalOpen || isModalOpen ||
     bookingToCancel !== null || bookingToReschedule !== null || bookingToReview !== null;
 
-  // Clear tab switching state when fetch completes
+  // Clear switching states when fetch completes
   useEffect(() => {
-    if (!isFetching && isTabSwitching) {
-      setIsTabSwitching(false);
+    if (!isFetching) {
+      if (isTabSwitching) setIsTabSwitching(false);
+      if (isPageSwitching) setIsPageSwitching(false);
     }
-  }, [isFetching, isTabSwitching]);
+  }, [isFetching, isTabSwitching, isPageSwitching]);
 
   // Derived values from pagination
   const totalPages = pagination?.totalPages || 1;
   const totalBookings = pagination?.total || 0;
-  // Show loading skeleton when initial load OR during tab switch (even if cached data exists)
-  const loading = (isLoading || isTabSwitching) && !isAnyModalOpenOrPending;
+  // Show loading skeleton when initial load, tab switch, or page switch (even if cached data exists)
+  const loading = (isLoading || isTabSwitching || isPageSwitching) && !isAnyModalOpenOrPending;
   const error = queryError ? 'Failed to fetch bookings' : null;
   // const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [amenitiesModalOpen, setAmenitiesModalOpen] = useState(false);
