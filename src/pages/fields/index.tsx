@@ -331,20 +331,12 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
 
-      const isDefaultBrowse = !searchValue && !zipCode && !lat && !lng && !hasSortApplied && !hasActiveFilters;
+      // Always use shallow routing so only the field list refreshes, not the entire page
+      const query = { ...router.query, page: page > 1 ? String(page) : undefined };
+      if (page <= 1) delete query.page;
+      router.push({ pathname: router.pathname, query }, undefined, { shallow: true, scroll: false });
 
-      if (isDefaultBrowse) {
-        // Navigate to pre-built SSG page
-        const url = page === 1 ? '/fields' : `/fields/page/${page}`;
-        router.push(url, undefined, { scroll: false });
-      } else {
-        // Keep query-param pagination for search/filter results
-        const query = { ...router.query, page: page > 1 ? String(page) : undefined };
-        if (page <= 1) delete query.page;
-        router.push({ pathname: router.pathname, query }, undefined, { shallow: true, scroll: false });
-      }
-
-      // Scroll to top instantly
+      // Scroll to top of results
       window.scrollTo(0, 0);
     }
   };
@@ -485,7 +477,7 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                       )}
                     </div>
 
-                    <button
+                    {/* <button
                       onClick={() => {
                         clearLocation();
                         setCurrentPage(1);
@@ -495,7 +487,7 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                     >
 
                       <X className="w-5 h-5 bg-black rounded-full text-white p-0.5" />
-                    </button>
+                    </button> */}
 
                   </div>
                   <div className="relative" ref={sortDropdownRef}>
