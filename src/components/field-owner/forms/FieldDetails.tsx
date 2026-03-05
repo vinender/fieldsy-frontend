@@ -74,18 +74,9 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
     const startMinutes = timeToMinutes(startTime);
     const endMinutes = timeToMinutes(endTime);
 
-    // Calculate time difference
-    let diffMinutes = endMinutes - startMinutes;
-
-    // If end time is "before" start time, it means the period crosses midnight
-    // Add 24 hours (1440 minutes) to get the actual duration
-    if (diffMinutes < 0) {
-      diffMinutes = diffMinutes + (24 * 60); // Add 24 hours in minutes
-    }
-
-    // Just ensure end time is different from start time (at least some duration)
-    if (diffMinutes === 0) {
-      setTimeError('End time must be different from start time');
+    // Closing time must be strictly after opening time (same day only)
+    if (endMinutes <= startMinutes) {
+      setTimeError('Closing time must be after opening time');
     } else {
       setTimeError('');
     }
@@ -383,34 +374,38 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
                 name="startTime"
                 value={formData.startTime}
                 onChange={(value) => {
-                  // Auto-calculate a suggested end time (1 hour after start) - no caps
+                  // Auto-calculate a suggested end time (1 hour after start, capped at 23:45)
                   const calculateAutoEndTime = (startTime: string): string => {
                     if (!startTime) return '';
 
-                    // Parse 24-hour format from TimeInput
                     const [hours, minutes] = startTime.split(':').map(Number);
-
-                    // Add 1 hour as default duration
                     let endHours = hours + 1;
-                    let endMinutes = minutes || 0;
+                    const endMinutes = minutes || 0;
 
-                    // Handle day overflow (e.g., 23:00 + 1 = 00:00)
+                    // Cap at 23:45 — no overnight wrapping
                     if (endHours >= 24) {
-                      endHours = endHours - 24;
+                      return '23:45';
                     }
 
-                    // Return in 24-hour format (HH:MM) for TimeInput component
                     const formattedMinutes = endMinutes.toString().padStart(2, '0');
                     return `${endHours.toString().padStart(2, '0')}:${formattedMinutes}`;
                   };
 
                   const autoEndTime = calculateAutoEndTime(value);
 
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    startTime: value,
-                    endTime: autoEndTime // Auto-set end time (can be changed by user)
-                  }));
+                  setFormData((prev: any) => {
+                    // If current end time is at or before new start time, use auto end time
+                    const currentEndMinutes = prev.endTime ? timeToMinutes(prev.endTime) : 0;
+                    const newStartMinutes = timeToMinutes(value);
+                    const newEndTime = (prev.endTime && currentEndMinutes > newStartMinutes)
+                      ? prev.endTime
+                      : autoEndTime;
+                    return {
+                      ...prev,
+                      startTime: value,
+                      endTime: newEndTime,
+                    };
+                  });
                   validateTimeDifference(value, autoEndTime);
                 }}
                 placeholder="Select start time"

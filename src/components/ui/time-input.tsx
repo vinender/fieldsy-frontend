@@ -124,38 +124,28 @@ export function TimeInput({
     return selectedHour || '12';
   };
   
-  // Calculate disabled hours for end time based on start time and minimum hours
-  const isHourDisabled = (hour: number, period: string): boolean => {
-    if (!isEndTime || !startTime || !minHoursDifference) return false;
+  // Check if a specific time option is disabled for end time (must be after start time, same day)
+  const isTimeDisabled = (hour: number, minute: string, period: string): boolean => {
+    if (!isEndTime || !startTime) return false;
 
-    // Convert hour to 24-hour format
+    // Convert to 24-hour format
     let hour24 = hour;
-    if (period === 'PM' && hour !== 12) {
-      hour24 += 12;
-    } else if (period === 'AM' && hour === 12) {
-      hour24 = 0;
-    }
+    if (period === 'PM' && hour !== 12) hour24 += 12;
+    else if (period === 'AM' && hour === 12) hour24 = 0;
 
-    // Parse start time
+    const endTotalMinutes = hour24 * 60 + parseInt(minute || '0');
+
     const [startHours, startMinutes] = startTime.split(':').map(Number);
     const startTotalMinutes = startHours * 60 + startMinutes;
 
-    // Calculate end time in minutes
-    const endTotalMinutes = hour24 * 60;
+    // End time must be strictly after start time (no overnight)
+    return endTotalMinutes <= startTotalMinutes;
+  };
 
-    // Calculate time difference, handling overnight periods
-    let diffMinutes = endTotalMinutes - startTotalMinutes;
-
-    // If end time is "before" start time, it means crossing midnight
-    // Add 24 hours to get the actual duration
-    if (diffMinutes < 0) {
-      diffMinutes = diffMinutes + (24 * 60);
-    }
-
-    const diffHours = diffMinutes / 60;
-
-    // Only disable if less than minimum hours
-    return diffHours < minHoursDifference;
+  // Keep backward compat - hour disabled if all minute options for that hour are disabled
+  const isHourDisabled = (hour: number, period: string): boolean => {
+    if (!isEndTime || !startTime) return false;
+    return minutes.every(m => isTimeDisabled(hour, m, period));
   };
 
   return (
@@ -218,21 +208,27 @@ export function TimeInput({
               <div>
                 <div className="text-xs font-semibold text-gray-500 mb-2">Minute</div>
                 <div className="space-y-1">
-                  {minutes.map(minute => (
-                    <button
-                      key={minute}
-                      type="button"
-                      onClick={() => handleTimeSelect(selectedHour || '12', minute, selectedPeriod)}
-                      className={`
-                        w-full px-2 py-1.5 text-sm rounded-lg transition-colors
-                        ${selectedMinute === minute 
-                          ? 'bg-light-green text-white font-medium' 
-                          : 'hover:bg-gray-100 text-gray-700'}
-                      `}
-                    >
-                      {minute}
-                    </button>
-                  ))}
+                  {minutes.map(minute => {
+                    const minuteDisabled = isTimeDisabled(parseInt(selectedHour || '12'), minute, selectedPeriod);
+                    return (
+                      <button
+                        key={minute}
+                        type="button"
+                        onClick={() => !minuteDisabled && handleTimeSelect(selectedHour || '12', minute, selectedPeriod)}
+                        disabled={minuteDisabled}
+                        className={`
+                          w-full px-2 py-1.5 text-sm rounded-lg transition-colors
+                          ${minuteDisabled
+                            ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                            : selectedMinute === minute
+                              ? 'bg-light-green text-white font-medium'
+                              : 'hover:bg-gray-100 text-gray-700'}
+                        `}
+                      >
+                        {minute}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -241,12 +237,13 @@ export function TimeInput({
                 <div className="text-xs font-semibold text-gray-500 mb-2">Period</div>
                 <div className="space-y-1">
                   {['AM', 'PM'].map(period => {
-                    // Disable AM for end time if start time is PM
+                    // Disable AM for end time if start time is PM (no overnight)
                     const isAMDisabledForEndTime = isEndTime && startTime && period === 'AM' && (() => {
                       const [startHours] = startTime.split(':').map(Number);
-                      return startHours >= 12; // Start time is PM (12:00 or later)
+                      return startHours >= 12; // Start time is PM
                     })();
 
+                    // Also disable PM-before-start (e.g. if start is 3PM, disable PM hours before 3)
                     const periodDisabled = isAMDisabledForEndTime || (selectedHour && isHourDisabled(parseInt(selectedHour), period));
                     return (
                       <button

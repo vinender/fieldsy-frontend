@@ -467,6 +467,13 @@ export default function FieldOwnerDashboard({
         if (!formData.openingDays) errors.openingDays = 'Please select your opening days';
         if (!formData.startTime) errors.startTime = 'Please select a start time';
         if (!formData.endTime) errors.endTime = 'Please select an end time';
+        if (formData.startTime && formData.endTime) {
+          const [sh, sm] = formData.startTime.split(':').map(Number);
+          const [eh, em] = formData.endTime.split(':').map(Number);
+          if ((eh * 60 + em) <= (sh * 60 + sm)) {
+            errors.endTime = 'Closing time must be after opening time';
+          }
+        }
         if (!formData.streetAddress?.trim()) {
           errors.streetAddress = 'Please enter a street address';
         } else if (!formData.addressVerified) {
