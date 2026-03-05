@@ -111,15 +111,15 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-w-[95vw] sm:max-w-5xl p-0 overflow-visible border-none rounded-2xl">
-        <div className="flex flex-col relative w-full border-[10px] rounded-[20px] border-white aspect-video bg-black items-center justify-center">
-          {/* Custom close button - Positioned inside container then translated out to avoid Chrome clipping */}
-          <DialogClose className="absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 z-[60] w-10 h-10 rounded-full outline-none bg-white flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors focus:outline-none">
-            <X className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
+      <DialogContent showCloseButton={false} className="max-w-[95vw] sm:max-w-6xl p-0 border-none rounded-2xl box-border overflow-visible">
+        {/* Close button - positioned on corner, half inside half outside */}
+        <DialogClose className="absolute -right-3 -top-3 sm:-right-4 sm:-top-4 z-[60] w-9 h-9 sm:w-10 sm:h-10 rounded-full outline-none bg-white backdrop-blur-sm flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors focus:outline-none">
+          <X className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+        <div className="flex flex-col relative w-full border-[10px] rounded-[20px] border-white bg-black items-center justify-center overflow-hidden" style={{ maxHeight: '90vh', aspectRatio: '16/9' }}>
           {/* Main image */}
-          <div className="relative w-full h-[80vh] flex items-center justify-center">
+          <div className="relative w-full h-full flex-1 flex items-center justify-center">
             {/* Loading spinner */}
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50 rounded-[10px]">
