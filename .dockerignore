@@ -40,5 +40,11 @@ Dockerfile
 docker-compose*.yml
 .dockerignore
 
+# Heavy public assets (serve from S3/CDN instead)
+public/fields
+public/dog.mp4
+public/green-field.svg
+public/green-field-high-res.png
+
 # Misc
 .DS_Store

@@ -18,17 +18,20 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
-# Ensure .env.production exists and show its contents for debugging
-RUN echo "=== .env.production contents ===" && cat .env.production && echo "=== end ==="
+# Copy config files first (change rarely - better layer caching)
+COPY package.json next.config.ts tsconfig.json postcss.config.mjs tailwind.config.ts ./
+COPY .env.production* ./
+
+# Copy source and public separately (change more often)
+COPY src ./src
+COPY public ./public
 
 # Set NODE_ENV to production so Next.js reads .env.production
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Skip font optimization during build to avoid network timeouts
-# Fonts will still be loaded from Google at runtime
 ENV NEXT_FONT_GOOGLE_SKIP_VALIDATE=1
 
 # Build the application (Next.js will read .env.production automatically)
@@ -49,10 +52,6 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-
-# Debug: List static files to verify they were copied
-RUN ls -la ./.next/static/css/ 2>/dev/null || echo "CSS dir check"
-RUN ls -la ./public/ | head -20
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
