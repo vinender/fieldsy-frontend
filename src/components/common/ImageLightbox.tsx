@@ -47,8 +47,6 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
         setIsLoading(true)
       }
     } else {
-      // Reset loaded images cache when dialog closes to ensure fresh loads on reopen
-      setLoadedImages(new Set())
       setIsLoading(true)
     }
   }, [open, initialIndex])
@@ -137,7 +135,7 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
               fill
               className={`object-cover select-none rounded-[10px] transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
               draggable={false}
-              quality={90}
+              unoptimized
               priority
               sizes="(max-width: 1200px) 100vw, 1200px"
               onLoad={handleImageLoad}
@@ -154,7 +152,7 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
                   width={1200}
                   height={800}
                   priority
-                  quality={90}
+                  unoptimized
                   onLoad={() => setLoadedImages(prev => new Set(prev).add(prevIndex))}
                 />
                 <Image
@@ -163,7 +161,7 @@ export function ImageLightbox({ images, open, initialIndex = 0, onOpenChange }: 
                   width={1200}
                   height={800}
                   priority
-                  quality={90}
+                  unoptimized
                   onLoad={() => setLoadedImages(prev => new Set(prev).add(nextIndex))}
                 />
               </div>

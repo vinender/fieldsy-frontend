@@ -938,7 +938,7 @@ const BookFieldPage = () => {
                   <OwnerInformation
                     owner={{
                       id: field.owner.id || field.owner._id || field.ownerId,
-                      name: field.owner.name,
+                      name: field.ownerName || field.owner.name,
                       email: field.owner.email,
                       isVerified: field.owner.isVerified,
                       createdAt: field.owner.createdAt,
