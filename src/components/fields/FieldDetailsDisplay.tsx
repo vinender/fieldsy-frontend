@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Shield, Heart, ChevronDown, BadgeCheck, CheckCircle } from 'lucide-react';
 import { ImageLightbox } from '@/components/common/ImageLightbox';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
@@ -35,20 +35,48 @@ export default function FieldDetailsDisplay({
   const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
   const [rulesOpen, setRulesOpen] = useState(true);
   const [bookingOpen, setBookingOpen] = useState(true);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [descTruncated, setDescTruncated] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
   const numericRating = typeof field?.rating === 'number' ? field.rating : Number(field?.rating) || 0;
+
+  // Detect if description text actually needs more than 3 lines
+  useEffect(() => {
+    if (descExpanded) return;
+    const el = descRef.current;
+    if (!el) return;
+    // Temporarily remove clamp to measure natural height
+    const prev = el.style.cssText;
+    el.style.webkitLineClamp = 'unset';
+    el.style.display = 'block';
+    el.style.overflow = 'visible';
+    const naturalHeight = el.scrollHeight;
+    // Restore clamp
+    el.style.cssText = prev;
+    el.style.webkitLineClamp = '3';
+    // Force reflow to get clamped height
+    const clampedHeight = el.clientHeight;
+    // Only show button if natural height exceeds clamped by a full line (~20px)
+    setDescTruncated(naturalHeight > clampedHeight + 10);
+  }, [field?.description, descExpanded]);
 
   const isClaimed = !isPreview && (field?.isActive || false);
 
   // Format opening hours with AM/PM
   const formattedOpeningHours = field?.openingTime && field?.closingTime
     ? formatOpeningHours(field.openingTime, field.closingTime)
-    : 'Monday to Friday (6:00 AM – 8:00 PM)';
+    : '7:00 AM to 8:00 PM';
 
-  console.log('Opening Hours Debug:', {
-    openingTime: field?.openingTime,
-    closingTime: field?.closingTime,
-    formatted: formattedOpeningHours
-  });
+  // Format opening days
+  const getOpeningDaysDisplay = () => {
+    const days = field?.operatingDays?.[0] || field?.openingDays;
+    if (!days) return 'Weekdays';
+    const daysLower = days.toLowerCase();
+    if (daysLower === 'everyday' || daysLower === 'every day' || daysLower === 'all-week') return 'Everyday';
+    if (daysLower === 'weekends' || daysLower === 'weekends only') return 'Weekends';
+    if (daysLower === 'weekdays' || daysLower === 'weekdays only') return 'Weekdays';
+    return days.charAt(0).toUpperCase() + days.slice(1);
+  };
 
   // Build field size display value - prioritize dropdown value, fallback to custom
   const getFieldSizeDisplay = () => {
@@ -92,6 +120,7 @@ export default function FieldDetailsDisplay({
     { label: 'Terrain Type', value: field?.type || 'Soft grass + walking path' },
     { label: 'Surface type', value: field?.surfaceType || 'Flat with gentle slopes' },
     { label: 'Max Dogs', value: field?.maxDogs ? `${field.maxDogs} dogs allowed` : '4 dogs allowed' },
+    { label: 'Opening Days', value: getOpeningDaysDisplay() },
     { label: 'Opening Hours', value: formattedOpeningHours },
   ];
 
@@ -394,9 +423,20 @@ export default function FieldDetailsDisplay({
             {/* Description */}
             <div>
               <h3 className="font-bold text-lg text-dark-green mb-2">Description</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p
+                ref={descRef}
+                className={`text-sm text-gray-600 leading-relaxed ${!descExpanded ? 'line-clamp-3' : ''}`}
+              >
                 {field?.description || 'Welcome to our secure dog field, the perfect space for your furry friend to run, play, and explore freely! Our fully enclosed field offers a safe environment where dogs can enjoy off-leash time without any worries.'}
               </p>
+              {descTruncated && (
+                <button
+                  onClick={() => setDescExpanded(!descExpanded)}
+                  className="text-sm font-medium text-[#3A6B22] mt-1 hover:underline"
+                >
+                  {descExpanded ? 'Show less' : 'Show more'}
+                </button>
+              )}
             </div>
 
             {/* Specifications */}
