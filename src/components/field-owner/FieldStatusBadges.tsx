@@ -7,6 +7,7 @@ interface FieldStatusBadgesProps {
   isApproved?: boolean;
   isClaimed?: boolean;
   variant?: 'card' | 'detail'; // 'card' for compact view, 'detail' for full view
+  hideActiveStatus?: boolean; // Hide active/disabled badge (useful when a separate toggle is shown)
 }
 
 type StatusType = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'active' | 'disabled' | 'claimed' | 'unclaimed';
@@ -83,7 +84,8 @@ export function FieldStatusBadges({
   isActive,
   isApproved,
   isClaimed,
-  variant = 'card'
+  variant = 'card',
+  hideActiveStatus = false
 }: FieldStatusBadgesProps) {
   // Determine the primary status based on the field state
   const getStatuses = (): StatusType[] => {
@@ -101,8 +103,8 @@ export function FieldStatusBadges({
       statuses.push('approved');
     }
 
-    // 3. Active/Disabled status (only show if approved)
-    if (isApproved !== false) {
+    // 3. Active/Disabled status (only show if approved and not hidden)
+    if (!hideActiveStatus && isApproved !== false) {
       if (isActive) {
         statuses.push('active');
       } else {
