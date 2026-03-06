@@ -61,9 +61,10 @@ interface HomePageProps {
 
 export default function HomePage({ settings: staticSettings, faqs: staticFaqs }: HomePageProps) {
   const { user, isLoading: authLoading } = useAuth();
-  const { data: settings } = usePublicSettings();
+  const { data: settings, isLoading: settingsLoading } = usePublicSettings();
 
-  // Use pre-fetched settings from getStaticProps, with client-side hook as fallback
+  // For coming-soon check, always prefer client-side settings (which include cookie/IP access check).
+  // Only fall back to staticSettings for non-access-related data (bannerText, etc.).
   const resolvedSettings = settings || staticSettings;
 
   // Use session hook to get authentication status and session data (includes role)
@@ -102,9 +103,10 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
     };
   }, [])
 
-  // Check if site is live (use pre-fetched settings for instant check)
-  // If not live and user doesn't have access, show Coming Soon with bypass
-  if (resolvedSettings && resolvedSettings.isLive === false && !resolvedSettings.hasAccess) {
+  // Coming Soon gate — only use CLIENT-SIDE settings (which include cookie/IP check).
+  // Never use staticSettings for this decision, because getStaticProps runs at build time
+  // without the user's cookie/IP, so hasAccess is always false and causes a flash.
+  if (settings && settings.isLive === false && !settings.hasAccess) {
     return <BypassComingSoon />
   }
 
