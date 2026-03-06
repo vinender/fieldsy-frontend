@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { useFieldOwnerBookings, useRecentBookings, type Booking } from '@/hooks/queries/useFieldOwnerBookings';
+import { useFieldOwnerBookings, useRecentBookings, type Booking, type BookingStats } from '@/hooks/queries/useFieldOwnerBookings';
 import { BookingHistorySkeleton } from '@/components/skeletons/BookingHistorySkeleton';
 import FieldOwnerBookingDetailsModal from '@/components/modal/FieldOwnerBookingDetailsModal';
 import { Check } from 'lucide-react';
@@ -95,13 +95,18 @@ export default function BookingHistory() {
 
   // Extract data from React Query response
   const bookings = data?.bookings || [];
-  const stats = data?.stats || {
-    todayBookings: 0,
-    totalBookings: 0,
-    totalEarnings: 0
-  };
   const pagination = data?.pagination;
   const totalPages = pagination?.totalPages || 1;
+
+  // Persist stats so they don't reset to zero when switching tabs
+  const statsRef = useRef<BookingStats>({ todayBookings: 0, totalBookings: 0, totalEarnings: 0 });
+  if (data?.stats && (data.stats.todayBookings > 0 || data.stats.totalBookings > 0 || data.stats.totalEarnings > 0)) {
+    statsRef.current = data.stats;
+  } else if (data?.stats && statsRef.current.totalBookings === 0) {
+    // Accept zero stats only if we haven't loaded any stats yet
+    statsRef.current = data.stats;
+  }
+  const stats = statsRef.current;
 
   const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
