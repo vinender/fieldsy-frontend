@@ -29,11 +29,23 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error to console in development only
     if (process.env.NODE_ENV === 'development') {
       console.log('ErrorBoundary caught error:', error.message);
     }
-    // You can also log the error to an error reporting service here
+    // Report error to backend for email notification
+    try {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/error-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: error.message,
+          stack: error.stack,
+          componentStack: errorInfo.componentStack,
+          url: typeof window !== 'undefined' ? window.location.href : '',
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+        }),
+      }).catch(() => {});
+    } catch (_) {}
   }
 
   render() {

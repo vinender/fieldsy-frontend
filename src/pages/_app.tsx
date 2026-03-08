@@ -47,10 +47,42 @@ const noLayoutPaths = [
   // Add more paths as needed
 ]
 
+function reportClientError(message: string, stack?: string) {
+  try {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/error-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        stack,
+        url: typeof window !== 'undefined' ? window.location.href : '',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      }),
+    }).catch(() => {});
+  } catch (_) {}
+}
+
 export default function App({
   Component,
   pageProps: { session, ...pageProps },
 }: AppProps) {
+  // Global error handlers for uncaught client-side errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      reportClientError(event.message, event.error?.stack);
+    };
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      const msg = event.reason?.message || String(event.reason);
+      reportClientError(`Unhandled Promise Rejection: ${msg}`, event.reason?.stack);
+    };
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
