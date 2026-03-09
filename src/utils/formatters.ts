@@ -1,3 +1,5 @@
+import { UK_TIMEZONE, getUKDateParts, getNowUK } from './ukTime';
+
 /**
  * Format currency values
  */
@@ -30,6 +32,7 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      timeZone: UK_TIMEZONE,
       ...options
     };
     return dateObj.toLocaleDateString('en-GB', defaultOptions);
@@ -54,9 +57,12 @@ export function formatDateDDMMYYYY(date: Date | string): string {
     return '';
   }
 
-  const day = dateObj.getDate().toString().padStart(2, '0');
-  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-  const year = dateObj.getFullYear();
+  const parts = getUKDateParts(dateObj);
+  if (!parts) return '';
+
+  const day = parts.day.toString().padStart(2, '0');
+  const month = parts.month.toString().padStart(2, '0');
+  const year = parts.year;
 
   return `${day}/${month}/${year}`;
 }
@@ -77,8 +83,10 @@ export function formatDateTimeDDMMYYYY(date: Date | string): string {
   }
 
   const datePart = formatDateDDMMYYYY(dateObj);
-  const hours = dateObj.getHours().toString().padStart(2, '0');
-  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+  const parts = getUKDateParts(dateObj);
+  if (!parts) return datePart;
+  const hours = parts.hours.toString().padStart(2, '0');
+  const minutes = parts.minutes.toString().padStart(2, '0');
 
   return `${datePart} ${hours}:${minutes}`;
 }
@@ -101,9 +109,11 @@ export function formatMessageTimestamp(date: Date | string): string {
     return '';
   }
 
-  // Always show only time (HH:mm) for messages
-  const hours = dateObj.getHours().toString().padStart(2, '0');
-  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+  // Always show only time (HH:mm) in UK timezone for messages
+  const parts = getUKDateParts(dateObj);
+  if (!parts) return '';
+  const hours = parts.hours.toString().padStart(2, '0');
+  const minutes = parts.minutes.toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 }
 
@@ -122,11 +132,13 @@ export function formatChatDateHeader(date: Date | string): string {
     return '';
   }
 
-  const now = new Date();
+  const nowUK = getNowUK();
+  const msgParts = getUKDateParts(dateObj);
+  if (!msgParts) return '';
 
-  // Reset time parts for date comparison
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const messageDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  // Reset time parts for date comparison (UK timezone)
+  const today = new Date(nowUK.getFullYear(), nowUK.getMonth(), nowUK.getDate());
+  const messageDate = new Date(msgParts.year, msgParts.month - 1, msgParts.day);
 
   const diffTime = today.getTime() - messageDate.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -143,7 +155,7 @@ export function formatChatDateHeader(date: Date | string): string {
 
   // Within last 7 days - show day name with date
   if (diffDays < 7) {
-    const dayName = dateObj.toLocaleDateString('en-GB', { weekday: 'long' });
+    const dayName = dateObj.toLocaleDateString('en-GB', { weekday: 'long', timeZone: UK_TIMEZONE });
     return `${dayName}`;
   }
 
@@ -169,18 +181,20 @@ export function formatChatListTime(date: Date | string): string {
     return '';
   }
 
-  const now = new Date();
+  const nowUK = getNowUK();
+  const msgParts = getUKDateParts(dateObj);
+  if (!msgParts) return '';
 
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const messageDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  const today = new Date(nowUK.getFullYear(), nowUK.getMonth(), nowUK.getDate());
+  const messageDate = new Date(msgParts.year, msgParts.month - 1, msgParts.day);
 
   const diffTime = today.getTime() - messageDate.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  // Today - show time
+  // Today - show time in UK timezone
   if (diffDays === 0) {
-    const hours = dateObj.getHours().toString().padStart(2, '0');
-    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    const hours = msgParts.hours.toString().padStart(2, '0');
+    const minutes = msgParts.minutes.toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   }
 
@@ -191,7 +205,7 @@ export function formatChatListTime(date: Date | string): string {
 
   // Within last 7 days - show short day name
   if (diffDays < 7) {
-    return dateObj.toLocaleDateString('en-GB', { weekday: 'short' });
+    return dateObj.toLocaleDateString('en-GB', { weekday: 'short', timeZone: UK_TIMEZONE });
   }
 
   // Older - show dd/mm/yyyy
@@ -361,12 +375,13 @@ export function formatTimeTo12Hour(time: string): string {
     // Extract time part if it's a full datetime string
     let timeString = time;
     if (time.includes('T') || time.includes(' ')) {
-      // Handle ISO datetime or datetime with space
+      // Handle ISO datetime or datetime with space — use UK timezone
       const date = new Date(time);
       if (!isNaN(date.getTime())) {
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
-        timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const parts = getUKDateParts(date);
+        if (parts) {
+          timeString = `${parts.hours.toString().padStart(2, '0')}:${parts.minutes.toString().padStart(2, '0')}`;
+        }
       } else {
         // Extract time portion manually if Date parsing fails
         timeString = time.split(/[T ]/)[1] || time;

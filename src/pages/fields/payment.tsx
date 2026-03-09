@@ -15,6 +15,7 @@ import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import FieldLocation from '@/components/fields/FieldLocation';
 // import { getUserLocation } from '@/utils/getUserLocation'; // Location request disabled
 import { formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
+import { getNowUK } from '@/utils/ukTime';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { DeleteCardConfirmationModal } from '@/components/modal/DeleteCardConfirmationModal';
 
@@ -121,22 +122,25 @@ const PaymentPage = () => {
   useEffect(() => {
     if (!router.isReady || !date || timeSlots.length === 0) return;
 
-    const bookingDate = new Date(date as string);
-    // Parse the earliest time slot (e.g., "8:00AM")
+    // Extract start time from slot (e.g., "4:00PM - 4:55PM" → "4:00PM")
     const earliestSlot = timeSlots[0];
-    const match = earliestSlot.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    const startTime = earliestSlot.split('-')[0].trim();
+    const match = startTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
     if (match) {
       let hour = parseInt(match[1]);
       const mins = parseInt(match[2]);
       const period = match[3]?.toUpperCase();
       if (period === 'PM' && hour !== 12) hour += 12;
       if (period === 'AM' && hour === 12) hour = 0;
-      bookingDate.setUTCHours(hour, mins, 0, 0);
-    }
 
-    if (bookingDate.getTime() < Date.now()) {
-      toast.error('This booking time has passed. Please select a new time slot.');
-      router.replace(`/fields/${field_id}`);
+      // Use UK time for comparison (all booking times are in UK timezone)
+      const bookingDate = new Date(date as string + 'T00:00:00');
+      bookingDate.setHours(hour, mins, 0, 0);
+
+      if (bookingDate.getTime() < getNowUK().getTime()) {
+        toast.error('This booking time has passed. Please select a new time slot.');
+        router.replace(`/fields/${field_id}`);
+      }
     }
   }, [router.isReady, date, timeSlots, field_id, router]);
 

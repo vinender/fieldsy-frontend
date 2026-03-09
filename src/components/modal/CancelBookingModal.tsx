@@ -4,6 +4,7 @@ import { useCheckRefundEligibility } from '@/hooks/useBookingApi';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
 import { useCancelBooking } from '@/hooks/mutations/useBookingMutations';
 import { toast } from 'sonner';
+import { getNowUK } from '@/utils/ukTime';
 
 // Inline spinner component for use within modals (doesn't use full-page Spinner)
 const InlineSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg'; className?: string }> = ({
@@ -21,17 +22,17 @@ const InlineSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg'; className?: string }>
   );
 };
 
-// Format date to DD/MM/YYYY
+// Format date to DD/MM/YYYY (UK timezone)
 const formatDate = (dateString: string): string => {
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; // Return original if invalid
-
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-
-    return `${day}/${month}/${year}`;
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      timeZone: 'Europe/London',
+    });
   } catch (error) {
     return dateString;
   }
@@ -131,8 +132,8 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
     // Only calculate fallback if API call fails
     if (isOpen && booking && eligibilityError) {
       console.error('API error, using fallback calculation:', eligibilityError);
-      // Calculate eligibility client-side as fallback
-      const now = new Date();
+      // Calculate eligibility client-side as fallback (using UK time)
+      const now = getNowUK();
 
       // Use rawDate if available, otherwise parse the display date
       let bookingDateTime: Date;

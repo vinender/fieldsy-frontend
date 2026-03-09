@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { ArrowLeft, Bell, Check, CheckCheck } from 'lucide-react'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistance } from 'date-fns'
+import { getNowUK } from '@/utils/ukTime'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 
@@ -405,7 +406,7 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
                           {notification.message}
                         </div>
                         <div className="text-[11px] sm:text-xs text-gray-500 mt-2">
-                          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                          {formatDistance(new Date(notification.createdAt), getNowUK(), { addSuffix: true })}
                         </div>
                       </div>
                     </div>

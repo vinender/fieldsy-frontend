@@ -22,6 +22,7 @@ import FieldLocation from '@/components/fields/FieldLocation';
 // import { getUserLocation } from '@/utils/getUserLocation'; // Distance calculation disabled
 import { useMaxAdvanceBookingDays } from '@/hooks/usePublicSettings';
 import { formatRating } from '@/utils/formatters';
+import { getNowUK } from '@/utils/ukTime';
 import axiosClient from '@/lib/api/axios-client';
 
 interface TimeSlot {
@@ -208,7 +209,7 @@ const BookFieldPage = () => {
   // Set initial selected date when field data is loaded
   useEffect(() => {
     if (field && !selectedDate) {
-      const today = new Date();
+      const today = getNowUK();
       const nextAvailable = findNextAvailableDate(today);
 
       if (nextAvailable) {
@@ -236,9 +237,9 @@ const BookFieldPage = () => {
     }
   }, [field, isRescheduleMode]); // Run when field data changes
 
-  // Calculate min date (today) and max date based on system settings
-  const minDate = new Date();
-  const maxDate = new Date();
+  // Calculate min date (today UK) and max date based on system settings
+  const minDate = getNowUK();
+  const maxDate = getNowUK();
   maxDate.setDate(maxDate.getDate() + maxAdvanceBookingDays);
 
   // Helper function to format time to 12-hour format with AM/PM
@@ -308,10 +309,11 @@ const BookFieldPage = () => {
   const isSlotInPast = (date: Date | null, hour: number, minute: number = 0) => {
     if (!date) return false;
 
-    // Only check for past slots on client side to ensure correct timezone
+    // Only check for past slots on client side
     if (!isClient) return false;
 
-    const now = new Date();
+    // Use UK time for all slot comparisons
+    const now = getNowUK();
     if (date.toDateString() !== now.toDateString()) {
       return false;
     }
@@ -385,8 +387,8 @@ const BookFieldPage = () => {
 
     // Use availability data if available, otherwise generate basic slots
     if (availabilityData?.data?.slots) {
-      // Only calculate current time on client side to ensure correct timezone
-      const now = isClient ? new Date() : null;
+      // Use UK time for slot past-time checks
+      const now = isClient ? getNowUK() : null;
       const isTodaySelected = Boolean(isClient && selectedDate && now && selectedDate.toDateString() === now.toDateString());
       const currentMinutes = now ? now.getHours() * 60 + now.getMinutes() : 0;
 
