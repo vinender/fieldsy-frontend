@@ -117,6 +117,29 @@ const PaymentPage = () => {
     }
   }, [paymentMethods]);
 
+  // Check if booking date/time is in the past — redirect if so
+  useEffect(() => {
+    if (!router.isReady || !date || timeSlots.length === 0) return;
+
+    const bookingDate = new Date(date as string);
+    // Parse the earliest time slot (e.g., "8:00AM")
+    const earliestSlot = timeSlots[0];
+    const match = earliestSlot.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (match) {
+      let hour = parseInt(match[1]);
+      const mins = parseInt(match[2]);
+      const period = match[3]?.toUpperCase();
+      if (period === 'PM' && hour !== 12) hour += 12;
+      if (period === 'AM' && hour === 12) hour = 0;
+      bookingDate.setUTCHours(hour, mins, 0, 0);
+    }
+
+    if (bookingDate.getTime() < Date.now()) {
+      toast.error('This booking time has passed. Please select a new time slot.');
+      router.replace(`/fields/${field_id}`);
+    }
+  }, [router.isReady, date, timeSlots, field_id, router]);
+
   // Track if this is a fresh navigation (not a refresh)
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
