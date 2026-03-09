@@ -7,9 +7,16 @@ export default function VerifyOTPPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  // Redirect logged-in users - go back or to their dashboard
+  // Redirect logged-in users - use callbackUrl, go back, or to their dashboard
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
+      // If callbackUrl is provided (e.g. from booking flow), redirect there
+      const callbackUrl = router.query.callbackUrl as string;
+      if (callbackUrl) {
+        router.replace(callbackUrl);
+        return;
+      }
+
       // Check if there's history to go back to
       if (window.history.length > 1 && document.referrer) {
         // Go back to previous page

@@ -62,6 +62,7 @@ const BookFieldPage = () => {
   const [isCheckingConflicts, setIsCheckingConflicts] = useState(false); // Loading state for conflict check
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>('60min'); // Default to 60 minutes
   const [showLoginPrompt, setShowLoginPrompt] = useState(false); // Show login prompt for unauthorized users
+  const [paymentRedirectUrl, setPaymentRedirectUrl] = useState<string | undefined>(undefined);
   const [skippedDates, setSkippedDates] = useState<Array<{ date: string; formattedDate: string; bookedBy: string }>>([]); // Skipped dates for recurring bookings
 
   // Hook for rescheduling
@@ -1457,6 +1458,23 @@ const BookFieldPage = () => {
                   onClick={async () => {
                     // Check if user is logged in first (for non-reschedule mode)
                     if (!isRescheduleMode && !session) {
+                      // Build the payment page URL with current selections so user
+                      // is redirected there after login/signup
+                      if (selectedDate && selectedTimeSlots.length > 0 && fieldIdToUse) {
+                        const priceForRedirect = selectedDuration === '30min'
+                          ? (field?.price30min || field?.price || 0)
+                          : (field?.price1hr || field?.price || 0);
+                        const paymentQuery = new URLSearchParams({
+                          field_id: fieldIdToUse,
+                          numberOfDogs: String(numberOfDogs || 1),
+                          date: selectedDate.toISOString().split('T')[0],
+                          timeSlots: JSON.stringify(selectedTimeSlots),
+                          repeatBooking: repeatBooking || 'None',
+                          price: String(priceForRedirect),
+                          duration: selectedDuration,
+                        });
+                        setPaymentRedirectUrl(`/fields/payment?${paymentQuery.toString()}`);
+                      }
                       setShowLoginPrompt(true);
                       return;
                     }
@@ -1729,6 +1747,7 @@ const BookFieldPage = () => {
         isOpen={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
         message="Please login or sign up to book this field"
+        redirectUrl={paymentRedirectUrl}
       />
     </>
   );

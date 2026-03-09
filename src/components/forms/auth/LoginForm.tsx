@@ -126,7 +126,8 @@ export function LoginForm() {
         const email = response.data.data.email;
         const role = response.data.data.role;
         // Redirect to OTP verification page
-        router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=login`);
+        const cbUrl = router.query.callbackUrl ? `&callbackUrl=${encodeURIComponent(router.query.callbackUrl as string)}` : '';
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=login${cbUrl}`);
       }
       // All other errors are already shown as toast by the mutation hook
     }
@@ -156,8 +157,9 @@ export function LoginForm() {
 
       // Use default redirect: true - let NextAuth handle the OAuth flow
       // Errors will come back as query params on the login page
+      const oauthCallbackUrl = (router.query.callbackUrl as string) || '/';
       await signIn(pendingProvider, {
-        callbackUrl: '/',
+        callbackUrl: oauthCallbackUrl,
       });
       // Note: This won't return - browser will redirect to OAuth provider
     } catch (error: any) {
@@ -341,7 +343,7 @@ export function LoginForm() {
           {/* Sign Up Link */}
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
-            <Link href="/sign-up" className="font-medium hover:underline text-green">
+            <Link href={router.query.callbackUrl ? `/sign-up?callbackUrl=${encodeURIComponent(router.query.callbackUrl as string)}` : '/sign-up'} className="font-medium hover:underline text-green">
               Sign up
             </Link>
           </p>

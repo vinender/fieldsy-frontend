@@ -114,7 +114,8 @@ export default function RegisterForm() {
   const registerWithOtpMutation = useRegisterWithOtp({
     onSuccess: (data, variables) => {
       // Redirect to verification page after successful registration
-      router.push(`/verify-otp?email=${encodeURIComponent(variables.email)}&role=${variables.role}&from=signup`);
+      const callbackUrl = router.query.callbackUrl ? `&callbackUrl=${encodeURIComponent(router.query.callbackUrl as string)}` : '';
+      router.push(`/verify-otp?email=${encodeURIComponent(variables.email)}&role=${variables.role}&from=signup${callbackUrl}`);
     }
   });
 

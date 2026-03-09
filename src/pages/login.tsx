@@ -140,7 +140,8 @@ export default function LoginPage() {
           if (parts.length >= 3) {
             const email = parts[1];
             const role = parts[2];
-            router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=social-login`);
+            const cbUrl = router.query.callbackUrl ? `&callbackUrl=${encodeURIComponent(router.query.callbackUrl as string)}` : '';
+            router.push(`/verify-otp?email=${encodeURIComponent(email)}&role=${role}&from=social-login${cbUrl}`);
             return; // Skip toast
           }
         }
@@ -184,7 +185,8 @@ export default function LoginPage() {
       sessionStorage.removeItem('otpType')
 
       // Redirect to OTP verification page
-      router.push(`/verify-otp?email=${encodeURIComponent(otpEmail)}&role=${otpRole || 'DOG_OWNER'}&from=social-login`)
+      const cbUrl2 = router.query.callbackUrl ? `&callbackUrl=${encodeURIComponent(router.query.callbackUrl as string)}` : '';
+      router.push(`/verify-otp?email=${encodeURIComponent(otpEmail)}&role=${otpRole || 'DOG_OWNER'}&from=social-login${cbUrl2}`)
     }
 
     // Check if there's a return URL stored in sessionStorage
