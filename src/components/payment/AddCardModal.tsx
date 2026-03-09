@@ -67,7 +67,15 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
       });
 
       if (error) {
-        toast.error(error.message || 'Failed to add card');
+        let userMessage = 'Failed to add card. Please try again.';
+        if (error.code === 'resource_missing') {
+          userMessage = 'Card setup session expired. Please close and try again.';
+        } else if (error.type === 'card_error' || error.type === 'validation_error') {
+          userMessage = error.message || 'Invalid card details. Please check and try again.';
+        } else if (error.message) {
+          userMessage = error.message;
+        }
+        toast.error(userMessage);
         setIsLoading(false);
         return;
       }

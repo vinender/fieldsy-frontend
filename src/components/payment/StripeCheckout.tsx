@@ -498,9 +498,17 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
     });
 
     if (stripeError) {
-      setError(stripeError.message || 'Payment failed');
+      let userMessage = 'Payment failed. Please try again.';
+      if (stripeError.code === 'resource_missing') {
+        userMessage = 'Payment session expired. Please refresh and try again.';
+      } else if (stripeError.type === 'card_error' || stripeError.type === 'validation_error') {
+        userMessage = stripeError.message || 'Invalid card details. Please check and try again.';
+      } else if (stripeError.message) {
+        userMessage = stripeError.message;
+      }
+      setError(userMessage);
       setProcessing(false);
-      onError?.(stripeError.message || 'Payment failed');
+      onError?.(userMessage);
       return;
     }
 
