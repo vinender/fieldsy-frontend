@@ -8,7 +8,7 @@ import { PageWithSkeleton } from "@/components/common/PageWithSkeleton"
 import { HeroSkeleton } from "@/components/skeletons/PageSkeletons"
 import { useAuth } from "@/contexts/AuthContext"
 import { useSession } from "next-auth/react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PerformanceMonitor } from "@/utils/performance"
 
@@ -62,6 +62,7 @@ interface HomePageProps {
 export default function HomePage({ settings: staticSettings, faqs: staticFaqs }: HomePageProps) {
   const { user, isLoading: authLoading } = useAuth();
   const { data: settings, isLoading: settingsLoading } = usePublicSettings();
+  const [mounted, setMounted] = useState(false);
 
   // For coming-soon check, always prefer client-side settings (which include cookie/IP access check).
   // Only fall back to staticSettings for non-access-related data (bannerText, etc.).
@@ -77,6 +78,11 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
 
   // Get role from either AuthContext user or session (session is faster after login)
   const userRole = user?.role || (session?.user as any)?.role;
+
+  // Prevent hydration mismatch: auth-dependent rendering only after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Only track performance in development
@@ -103,21 +109,22 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
     };
   }, [])
 
-  // Coming Soon gate — only use CLIENT-SIDE settings (which include cookie/IP check).
-  // Never use staticSettings for this decision, because getStaticProps runs at build time
-  // without the user's cookie/IP, so hasAccess is always false and causes a flash.
-  if (settings && settings.isLive === false && !settings.hasAccess) {
-    return <BypassComingSoon />
-  }
+  // Auth-dependent checks only run after mount to prevent hydration mismatch
+  if (mounted) {
+    // Coming Soon gate — only use CLIENT-SIDE settings (which include cookie/IP check).
+    if (settings && settings.isLive === false && !settings.hasAccess) {
+      return <BypassComingSoon />
+    }
 
-  // When authenticated but role not yet loaded, show skeleton to avoid flash of wrong content
-  if (status === 'authenticated' && !userRole) {
-    return <HomePageSkeleton />
-  }
+    // When authenticated but role not yet loaded, show skeleton to avoid flash of wrong content
+    if (status === 'authenticated' && !userRole) {
+      return <HomePageSkeleton />
+    }
 
-  // Show field owner dashboard on index route if authenticated as field owner
-  if (status === 'authenticated' && userRole === 'FIELD_OWNER') {
-    return <FieldOwnerHome />
+    // Show field owner dashboard on index route if authenticated as field owner
+    if (status === 'authenticated' && userRole === 'FIELD_OWNER') {
+      return <FieldOwnerHome />
+    }
   }
 
 

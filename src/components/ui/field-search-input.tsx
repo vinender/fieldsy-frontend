@@ -49,6 +49,7 @@ function FieldSearchInputComponent({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const previousSearchQuery = useRef<string>('');
+  const suppressDropdownRef = useRef(false);
   const nextRouter = useRouter(); // Direct Next.js router (no loader)
   const router = useResponsiveRouter(); // Router with loader for search navigation
 
@@ -148,8 +149,11 @@ function FieldSearchInputComponent({
     };
   }, [searchQuery, fetchSuggestions]);
 
-  // Show dropdown when suggestions are available
+  // Show dropdown when suggestions are available (but not after a suggestion was clicked)
   useEffect(() => {
+    if (suppressDropdownRef.current) {
+      return;
+    }
     if (suggestions.length > 0 && searchQuery.trim().length >= 2) {
       setShowDropdown(true);
     }
@@ -257,7 +261,7 @@ function FieldSearchInputComponent({
     }
   };
 
-  const shouldShowDropdown = showDropdown || (searchQuery.trim().length >= 2 && isLoadingSuggestions);
+  const shouldShowDropdown = !suppressDropdownRef.current && (showDropdown || (searchQuery.trim().length >= 2 && isLoadingSuggestions));
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -284,6 +288,8 @@ function FieldSearchInputComponent({
           const newValue = e.target.value;
           const previousValue = previousSearchQuery.current;
 
+          // Reset suppress flag when user types
+          suppressDropdownRef.current = false;
           setSearchQuery(newValue);
 
           // If user cleared the input (was not empty, now is empty) and on fields page
@@ -381,17 +387,20 @@ function FieldSearchInputComponent({
                 <button
                   key={field.id}
                   onClick={() => {
+                    // Suppress dropdown from re-opening
+                    suppressDropdownRef.current = true;
                     // Save field name to search history before navigating
                     saveSearchToHistory(field.name || 'Dog Field');
-                    // Clear suggestions and dropdown to prevent re-opening
+                    // Clear everything to prevent re-opening
                     setSuggestions([]);
                     setShowDropdown(false);
                     setSearchQuery('');
+                    setIsLoadingSuggestions(false);
                     // Cancel any pending suggestion requests
                     if (debounceTimerRef.current) {
                       clearTimeout(debounceTimerRef.current);
                     }
-                    // Use human-readable fieldId for clean URLs
+                    // Navigate directly to field details page
                     nextRouter.push(`/fields/${field.fieldId || field.id}`);
                   }}
                   className="w-full text-left px-4 sm:px-5 py-3 sm:py-4 hover:bg-cream/40 flex justify-between items-start gap-2 sm:gap-3 border-b last:border-b-0 transition-colors"

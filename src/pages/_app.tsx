@@ -17,7 +17,6 @@ import { ChatProvider } from "@/contexts/ChatContext"
 import { MessageSocketProvider } from "@/contexts/MessageSocketContext"
 import { NavigationLoaderProvider } from "@/contexts/NavigationLoaderContext"
 import { usePublicSettings } from "@/hooks/usePublicSettings"
-import { PushNotificationProvider } from "@/components/providers/PushNotificationProvider"
 import { SessionMonitor } from "@/components/auth/SessionMonitor"
 import NavigationLoader from "@/components/common/NavigationLoader"
 import ErrorBoundary from "@/components/common/ErrorBoundary"
@@ -227,36 +226,17 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
     </ErrorBoundary>
   )
 
-  // During SSR, render without socket/notification providers to avoid hydration issues
-  if (!isMounted) {
-    return (
-      <NavigationLoaderProvider>
-        <NavigationLoader />
-        {pageContent}
-      </NavigationLoaderProvider>
-    )
-  }
-
   return (
     <LocationProvider>
       <NotificationProvider>
         <SocketProvider>
-          <PushNotificationProvider>
-            <ChatProvider>
-              {isAuthenticated ? (
-                <NavigationLoaderProvider>
-                  <SessionMonitor />
-                  <NavigationLoader />
-                  {pageContent}
-                </NavigationLoaderProvider>
-              ) : (
-                <NavigationLoaderProvider>
-                  <NavigationLoader />
-                  {pageContent}
-                </NavigationLoaderProvider>
-              )}
-            </ChatProvider>
-          </PushNotificationProvider>
+          <ChatProvider>
+            <NavigationLoaderProvider>
+              {isMounted && isAuthenticated && <SessionMonitor />}
+              <NavigationLoader />
+              {pageContent}
+            </NavigationLoaderProvider>
+          </ChatProvider>
         </SocketProvider>
       </NotificationProvider>
     </LocationProvider>
