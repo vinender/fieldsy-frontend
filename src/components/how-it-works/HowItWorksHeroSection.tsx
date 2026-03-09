@@ -35,7 +35,7 @@ export function HowItWorksHeroSection() {
             className="absolute inset-0 w-full h-full object-cover"
             onError={() => setVideoError(true)}
           >
-            <source src="/dog.mp4" type="video/mp4" />
+            <source src={`${process.env.NEXT_PUBLIC_S3_BASE_URL}/videos/dog.mp4`} type="video/mp4" />
           </video>
         ) : (
           <div
