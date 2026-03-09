@@ -383,7 +383,14 @@ function FieldSearchInputComponent({
                   onClick={() => {
                     // Save field name to search history before navigating
                     saveSearchToHistory(field.name || 'Dog Field');
+                    // Clear suggestions and dropdown to prevent re-opening
+                    setSuggestions([]);
                     setShowDropdown(false);
+                    setSearchQuery('');
+                    // Cancel any pending suggestion requests
+                    if (debounceTimerRef.current) {
+                      clearTimeout(debounceTimerRef.current);
+                    }
                     // Use human-readable fieldId for clean URLs
                     nextRouter.push(`/fields/${field.fieldId || field.id}`);
                   }}
