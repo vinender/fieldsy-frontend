@@ -727,7 +727,6 @@ const PaymentPage = () => {
                           onClick={() => {
                             // Case 1: No cards at all -> Prompt to add
                             if (!paymentMethods || paymentMethods.length === 0) {
-                              toast.error('Please add a payment method first');
                               setShowAddCardModal(true);
                               return;
                             }
