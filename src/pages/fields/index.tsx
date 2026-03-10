@@ -536,7 +536,7 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                       </div>
                     )}
                   </div>
-                </div>
+                </div>  
 
                 {/* Fields Grid using the refactored FieldCard component */}
                 {/* Show skeleton when loading API data */}
