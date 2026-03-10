@@ -252,7 +252,7 @@ export default function EarningsDashboard() {
                 <div>
                   <p className="font-medium text-gray-900">{formatCurrency(earning.amount)}</p>
                   <p className="text-sm text-gray-600">
-                    {new Date(earning.bookingDate).toLocaleDateString()} at {earning.bookingTime}
+                    {new Date(earning.bookingDate).toLocaleDateString('en-GB', { timeZone: 'Europe/London' })} at {earning.bookingTime}
                   </p>
                 </div>
                 <div className="text-right">
@@ -260,7 +260,7 @@ export default function EarningsDashboard() {
                     {earning.hoursUntilPayout}h until payout
                   </p>
                   <p className="text-xs text-gray-500">
-                    Available: {new Date(earning.payoutAvailableAt).toLocaleString()}
+                    Available: {new Date(earning.payoutAvailableAt).toLocaleString('en-GB', { timeZone: 'Europe/London' })}
                   </p>
                 </div>
               </div>
@@ -296,7 +296,7 @@ export default function EarningsDashboard() {
                 {earnings.recentPayouts.map((payout) => (
                   <tr key={payout.id} className="border-b border-gray-100">
                     <td className="py-3 px-2 text-sm text-gray-600">
-                      {new Date(payout.createdAt).toLocaleDateString()}
+                      {new Date(payout.createdAt).toLocaleDateString('en-GB', { timeZone: 'Europe/London' })}
                     </td>
                     <td className="py-3 px-2 text-sm font-medium text-gray-900">
                       {formatCurrency(payout.amount)}

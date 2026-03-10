@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { useFieldOwnerBookings, useRecentBookings, type Booking } from '@/hooks/queries/useFieldOwnerBookings';
+import { getNowUK } from '@/utils/ukTime';
 import FieldOwnerBookingDetailsModal from '@/components/modal/FieldOwnerBookingDetailsModal';
 import { Check } from 'lucide-react';
 import {
@@ -151,7 +152,8 @@ const BookingTabs = ({ activeTab, onTabChange, data, isLoading, currentPage, onP
                         {new Date(booking.date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
-                          year: 'numeric'
+                          year: 'numeric',
+                          timeZone: 'Europe/London'
                         })}
                       </p>
                     </div>
@@ -232,7 +234,7 @@ export default function BookingHistoryProgressive() {
   const stats = React.useMemo(() => {
     if (!data) return null;
 
-    const today = new Date();
+    const today = getNowUK();
     today.setHours(0, 0, 0, 0);
 
     const todayBookings = data.bookings?.filter((b: Booking) => {

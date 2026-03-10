@@ -40,7 +40,7 @@ export const AddReviewModal = ({
     name: user?.name || session?.user?.name || 'User',
     avatar: getUserImage(user || session?.user),
     initials: getUserInitials(user || session?.user),
-    date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+    date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' })
   };
 
   const handleSubmit = async () => {

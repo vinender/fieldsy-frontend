@@ -369,7 +369,8 @@ export default function BookingHistory() {
                             {new Date(displayBooking.date).toLocaleDateString('en-GB', {
                               day: '2-digit',
                               month: 'short',
-                              year: 'numeric'
+                              year: 'numeric',
+                              timeZone: 'Europe/London'
                             })} • {displayBooking.time}
                           </p>
                         </div>

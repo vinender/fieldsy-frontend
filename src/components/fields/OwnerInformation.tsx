@@ -34,7 +34,8 @@ export default function OwnerInformation({
       const currentDate = new Date();
       return currentDate.toLocaleDateString('en-US', {
         month: 'long',
-        year: 'numeric'
+        year: 'numeric',
+        timeZone: 'Europe/London'
       });
     }
 
@@ -46,13 +47,15 @@ export default function OwnerInformation({
       const currentDate = new Date();
       return currentDate.toLocaleDateString('en-US', {
         month: 'long',
-        year: 'numeric'
+        year: 'numeric',
+        timeZone: 'Europe/London'
       });
     }
 
     return date.toLocaleDateString('en-US', {
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'Europe/London'
     });
   };
 

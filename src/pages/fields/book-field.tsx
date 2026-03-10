@@ -193,7 +193,7 @@ const BookFieldPage = () => {
     // Check up to maxDays in the future
     let currentDate = new Date(startDate);
     for (let i = 0; i < maxDays; i++) {
-      const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Europe/London' });
 
       if (allowedDays.includes(dayName)) {
         return currentDate;
@@ -329,7 +329,7 @@ const BookFieldPage = () => {
     if (!date || !field) return true; // Default to available if no date selected
 
     // Check if the selected date is an operating day
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Europe/London' });
     const operatingDays = field.operatingDays;
 
     if (operatingDays && (operatingDays.length > 0 || typeof operatingDays === 'string')) {
@@ -775,7 +775,7 @@ const BookFieldPage = () => {
       }
     }
 
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Europe/London' });
     const isDisabled = !allowedDays.includes(dayName);
 
     return isDisabled;
@@ -1368,7 +1368,7 @@ const BookFieldPage = () => {
                       <div className="flex-1">
                         <h4 className="font-semibold text-amber-900 mb-1">No Available Time Slots</h4>
                         <p className="text-sm text-amber-700">
-                          There are no available time slots for {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}.
+                          There are no available time slots for {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Europe/London' })}.
                         </p>
                         <p className="text-sm text-amber-700 mt-2 font-medium">
                           Please select a different date to see available slots.

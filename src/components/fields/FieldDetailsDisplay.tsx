@@ -378,7 +378,7 @@ export default function FieldDetailsDisplay({
                         <span className="font-medium text-[#090F1F] mr-1">{field?.ownerName || field?.owner?.name || 'Field Owner'}</span>
                         <BadgeCheck className="w-4 h-4 text-[#3A6B22]" />
                       </div>
-                      <span className="text-xs text-gray-500">Joined on {field?.owner?.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'March 2025'}</span>
+                      <span className="text-xs text-gray-500">Joined on {field?.owner?.createdAt ? new Date(field.owner.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'Europe/London' }) : 'March 2025'}</span>
                     </div>
                   </div>
                   <button className="flex items-center bg-white border border-[#8FB366]/40 rounded-lg px-3 py-2">

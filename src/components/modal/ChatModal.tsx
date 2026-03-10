@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { getUserImage, getUserInitials } from '@/utils/getUserImage';
 import { toast } from 'sonner';
 import { formatMessageTimestamp, formatDateDDMMYYYY } from '@/utils/formatters';
+import { getNowUK, toUKDate } from '@/utils/ukTime';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -249,10 +250,10 @@ export default function ChatModal({
     return formatMessageTimestamp(date);
   };
 
-  // WhatsApp-style date separator formatting
+  // WhatsApp-style date separator formatting (using UK timezone)
   const formatDate = (date: string) => {
-    const d = new Date(date);
-    const today = new Date();
+    const d = toUKDate(date);
+    const today = getNowUK();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
@@ -267,10 +268,10 @@ export default function ChatModal({
 
   const shouldShowDateSeparator = (currentMsg: Message, prevMsg: Message | null) => {
     if (!prevMsg) return true;
-    
-    const currentDate = new Date(currentMsg.createdAt).toDateString();
-    const prevDate = new Date(prevMsg.createdAt).toDateString();
-    
+
+    const currentDate = toUKDate(currentMsg.createdAt).toDateString();
+    const prevDate = toUKDate(prevMsg.createdAt).toDateString();
+
     return currentDate !== prevDate;
   };
 

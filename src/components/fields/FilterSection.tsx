@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { getAmenityLabel } from '@/utils/formatters'
+import { getNowUK } from '@/utils/ukTime'
 
 interface FilterSectionProps {
   onFiltersChange?: (filters: any) => void
@@ -35,7 +36,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
     }
 
     const selectedDate = new Date(filters.date)
-    const today = new Date()
+    const today = getNowUK()
 
     // Normalize dates to midnight for comparison
     selectedDate.setHours(0, 0, 0, 0)
@@ -52,7 +53,7 @@ export function FilterSection({ onFiltersChange }: FilterSectionProps) {
     }
 
     // If selected date is today, disable past time periods
-    const currentHour = new Date().getHours()
+    const currentHour = getNowUK().getHours()
 
     // Morning: 6 AM - 12 PM
     // Afternoon: 12 PM - 5 PM
