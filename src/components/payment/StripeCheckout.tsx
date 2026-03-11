@@ -117,11 +117,8 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
             setSucceeded(true);
             setBookingId(errorData.bookingId);
             setProcessing(false);
-            // Show success modal for existing booking
-            setTimeout(() => {
-              onSuccess?.();
-              setShowSuccessModal(true);
-            }, 1000);
+            onSuccess?.();
+            setShowSuccessModal(true);
             return;
           }
 
@@ -180,30 +177,25 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
             setApiCallInProgress(false);
             return;
           }
-          // Existing confirmed booking
+          // Existing confirmed booking - show success immediately
           setSucceeded(true);
           setBookingId(data.bookingId);
           setProcessing(false);
           setApiCallInProgress(false);
-          // Show success modal for existing booking
-          setTimeout(() => {
-            onSuccess?.();
-            setShowSuccessModal(true);
-          }, 1000);
+          onSuccess?.();
+          setShowSuccessModal(true);
           return;
         }
-        
+
         // Check if payment was already successful (saved card was used)
         if (data.paymentSucceeded) {
+          // Payment completed - show success modal immediately
           setSucceeded(true);
           setBookingId(data.bookingId);
           setProcessing(false);
           setApiCallInProgress(false);
-          // Show success modal directly
-          setTimeout(() => {
-            onSuccess?.();
-            setShowSuccessModal(true);
-          }, 1000);
+          onSuccess?.();
+          setShowSuccessModal(true);
         } else {
           // Payment requires additional action
           setError('Payment requires additional verification. Please check your banking app.');
@@ -383,11 +375,8 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
           if (errorData.isDuplicate) {
             setSucceeded(true);
             setBookingId(errorData.bookingId);
-            // Show success modal for existing booking
-            setTimeout(() => {
-              onSuccess?.();
-              setShowSuccessModal(true);
-            }, 1000);
+            onSuccess?.();
+            setShowSuccessModal(true);
             return;
           }
 
@@ -438,18 +427,15 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
             setApiCallInProgress(false);
             return;
           }
-          // Existing confirmed booking
+          // Existing confirmed booking - show success immediately
           setSucceeded(true);
           setBookingId(data.bookingId);
           setApiCallInProgress(false);
-          // Show success modal for existing booking
-          setTimeout(() => {
-            onSuccess?.();
-            setShowSuccessModal(true);
-          }, 1000);
+          onSuccess?.();
+          setShowSuccessModal(true);
           return;
         }
-        
+
         setClientSecret(data.clientSecret);
         setBookingId(data.bookingId);
         setApiCallInProgress(false);
