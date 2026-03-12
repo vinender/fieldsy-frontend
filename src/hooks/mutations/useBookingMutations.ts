@@ -39,8 +39,8 @@ export function useCreateBooking(
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
       queryClient.invalidateQueries({ queryKey: fieldQueryKeys.ownerBookings() });
-      toast.success('Booking created successfully!');
-      
+      // Toast disabled — socket notification is sufficient
+
       if (options?.onSuccess) {
         options.onSuccess(result, variables, {} as any);
       }
@@ -83,8 +83,8 @@ export function useUpdateBooking(
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: bookingQueryKeys.userBookings() });
       queryClient.invalidateQueries({ queryKey: bookingQueryKeys.bookingDetails(variables.id) });
-      toast.success('Booking updated successfully!');
-      
+      // Toast disabled — socket notification is sufficient
+
       if (options?.onSuccess) {
         options.onSuccess(result, variables, {} as any);
       }

@@ -425,23 +425,8 @@ const BookingHistoryPage = () => {
     cancelBookingMutation.mutate(
       { bookingId, reason },
       {
-        onSuccess: (data) => {
-          // Show success message with refund status
-          const refundResult = data.data.refundResult;
-          let message = 'Booking cancelled successfully.';
-
-          if (refundResult && refundResult.success) {
-            message = `Booking cancelled successfully. Refund of £${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
-          } else if (data.data.isRefundEligible) {
-            message = 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
-          } else {
-            message = `Booking cancelled successfully. This booking was not eligible for a refund as it was cancelled less than ${cancellationWindow} hours before the scheduled time.`;
-          }
-
-          toast.success(message, {
-            duration: 7000,
-            position: 'top-center',
-          });
+        onSuccess: () => {
+          // Toast disabled — socket notification is sufficient
 
           setIsCancelModalOpen(false);
           setBookingToCancel(null);
@@ -464,9 +449,7 @@ const BookingHistoryPage = () => {
       { bookingId, date, startTime, endTime },
       {
         onSuccess: () => {
-          toast.success('Booking rescheduled successfully!', {
-            position: 'top-center',
-          });
+          // Toast disabled — socket notification is sufficient
 
           setIsRescheduleModalOpen(false);
           setBookingToReschedule(null);

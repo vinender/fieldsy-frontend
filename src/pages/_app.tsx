@@ -205,22 +205,9 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
         <Toaster
           position="top-right"
           expand={false}
-          visibleToasts={3}
-          gap={8}
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#ffffff',
-              color: '#000000',
-              border: '1px solid #e5e5e5',
-              borderRadius: '8px',
-              padding: '16px',
-              fontSize: '14px',
-              zIndex: 9999,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            },
-          }}
+          visibleToasts={1}
           richColors
+          duration={4000}
         />
       </div>
     </ErrorBoundary>

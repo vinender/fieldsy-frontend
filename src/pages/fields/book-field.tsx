@@ -1689,7 +1689,7 @@ const BookFieldPage = () => {
                         },
                         {
                           onSuccess: () => {
-                            toast.success('Booking rescheduled successfully!');
+                            // Toast disabled — socket notification is sufficient
 
                             // Clear reschedule data
                             localStorage.removeItem('rescheduleBooking');

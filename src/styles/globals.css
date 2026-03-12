@@ -2,19 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Sonner Toast Styles */
+/* Sonner Toast Styles — macOS Notification Center behavior */
 [data-sonner-toaster] {
   position: fixed !important;
   z-index: 99999 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
+  pointer-events: none;
 }
 
-[data-sonner-toast] {
-  z-index: 99999 !important;
-  font-family: inherit !important;
-  margin-bottom: 12px !important;
+[data-sonner-toaster] [data-sonner-toast] {
+  pointer-events: auto;
+  margin: 0 !important;
 }
 
 /* Custom Scrollbar Styles for Notification Sidebar */
@@ -535,13 +532,23 @@ body[style*="pointer-events"] {
 /* Remove conflicting override styles - handled in base layer above */
 /* Autofill and focus styles are already properly defined in the base layer */
 
-/* Sonner toast custom styles for better contrast */
+/* Sonner toast — macOS-style appearance */
 [data-sonner-toast] {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.12) !important;
   position: relative !important;
   z-index: 9999 !important;
-  margin-bottom: 16px !important;
   pointer-events: auto !important;
+  transition: none !important;
+}
+
+/* Instantly hide dismissed toasts — no exit animation */
+[data-sonner-toast][data-removed="true"] {
+  display: none !important;
 }
 
 [data-sonner-toast][data-type="success"] {
@@ -594,17 +601,6 @@ body[style*="pointer-events"] {
   margin-top: 4px !important;
 }
 
-/* Prevent toast overlap and ensure proper stacking */
-[data-sonner-toaster] {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 16px !important;
-}
-
-/* Ensure each toast maintains its own space */
-[data-sonner-toaster] > * {
-  flex-shrink: 0 !important;
-}
 
 :root {
   --background: 60 20% 95%;

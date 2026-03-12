@@ -241,7 +241,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           return;
         }
 
-        // Show toast notification for other types
+        // Dismiss any existing toast before showing new one (strict queue)
+        toast.dismiss();
         toast.success(notification.title || 'New Notification', {
           description: notification.message || 'You have a new notification',
           duration: 5000,

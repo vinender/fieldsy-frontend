@@ -86,20 +86,8 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
 
   // Use cancel booking mutation
   const cancelBookingMutation = useCancelBooking({
-    onSuccess: (data) => {
-      // Show success message with refund status
-      const refundResult = data.data?.refundResult;
-      let message = 'Booking cancelled successfully.';
-
-      if (refundResult && refundResult.success) {
-        message = `Booking cancelled successfully. Refund of £${refundResult.refundAmount?.toFixed(2) || '0.00'} has been initiated and will be credited to your account within 5-7 business days.`;
-      } else if (data.data?.isRefundEligible) {
-        message = 'Booking cancelled successfully. Your refund will be processed within 5-7 business days.'
-      } else {
-        message = `Booking cancelled successfully. This booking was not eligible for a refund as it was cancelled less than ${cancellationWindowHours} hours before the scheduled time.`;
-      }
-
-      toast.success(message);
+    onSuccess: () => {
+      // Toast disabled — socket notification is sufficient
       onClose();
 
       // Call the success callback to refresh the UI
