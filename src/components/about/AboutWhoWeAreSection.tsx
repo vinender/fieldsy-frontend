@@ -85,8 +85,8 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
           </div>
 
           {/* Middle Image */}
-          <div className="w-full lg:w-[40%] flex">
-            <div className="rounded-3xl overflow-hidden shadow-xl flex-1 flex">
+          <div className="w-full lg:w-[40%] flex items-center justify-center">
+            <div className="rounded-3xl overflow-hidden">
               <img
                 ref={imgRef}
                 src={mainImage}
