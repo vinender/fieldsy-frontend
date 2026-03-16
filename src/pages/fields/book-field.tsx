@@ -912,7 +912,7 @@ const BookFieldPage = () => {
                     </h2>
                     <div className="flex items-baseline gap-1">
                       <span className="text-lg sm:text-xl lg:text-[24px] font-bold text-[#3A6B22]">
-                        From £{field.price30min || field.price || 0}
+                        From £{field.price30min || field.price1hr || 0}
                       </span>
                     </div>
                   </div>
@@ -1445,7 +1445,7 @@ const BookFieldPage = () => {
                           ))}
                         </div>
                         <p className="text-sm text-green mt-2">
-                          Total: £{((selectedDuration === '30min' ? (field.price30min || field.price || 0) : (field.price1hr || field.price || 0)) * parseInt(numberOfDogs || '1') * selectedTimeSlots.length).toFixed(2)}
+                          Total: £{((selectedDuration === '30min' ? (field.price30min || 0) : (field.price1hr || 0)) * parseInt(numberOfDogs || '1') * selectedTimeSlots.length).toFixed(2)}
                           {repeatBooking !== 'None' && ` per ${repeatBooking.toLowerCase() === 'everyday' ? 'day' : repeatBooking.toLowerCase() === 'weekly' ? 'week' : 'month'}`}
                         </p>
                       </div>
@@ -1462,8 +1462,8 @@ const BookFieldPage = () => {
                       // is redirected there after login/signup
                       if (selectedDate && selectedTimeSlots.length > 0 && fieldIdToUse) {
                         const priceForRedirect = selectedDuration === '30min'
-                          ? (field?.price30min || field?.price || 0)
-                          : (field?.price1hr || field?.price || 0);
+                          ? (field?.price30min || 0)
+                          : (field?.price1hr || 0);
                         const paymentQuery = new URLSearchParams({
                           field_id: fieldIdToUse,
                           numberOfDogs: String(numberOfDogs || 1),
@@ -1707,8 +1707,8 @@ const BookFieldPage = () => {
                       // Pass timeSlots as JSON string for multiple slots
                       // Use the correct price based on selected duration
                       const priceForDuration = selectedDuration === '30min'
-                        ? (field.price30min || field.price || 0)
-                        : (field.price1hr || field.price || 0);
+                        ? (field.price30min || 0)
+                        : (field.price1hr || 0);
 
                       router.push({
                         pathname: '/fields/payment',

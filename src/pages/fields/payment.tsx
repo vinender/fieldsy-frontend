@@ -415,7 +415,7 @@ const PaymentPage = () => {
     }
   };
 
-  const pricePerDog = priceFromQuery ? parseFloat(priceFromQuery as string) : (field?.pricePerHour || field?.price || 0);
+  const pricePerDog = priceFromQuery ? parseFloat(priceFromQuery as string) : (field?.price30min || field?.price1hr || 0);
   const numberOfSlots = timeSlots.length || 1;
   const total = pricePerDog * numberOfDogs * numberOfSlots;
 
