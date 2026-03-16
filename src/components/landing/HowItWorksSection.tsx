@@ -170,7 +170,7 @@ export  function HowItWorksSection({ settings }: HowItWorksSectionProps) {
                     loop
                     muted
                     playsInline
-                    preload="auto"
+                    preload="metadata"
                     controls={false}
                     className="w-full h-full object-cover"
                     onError={() => {

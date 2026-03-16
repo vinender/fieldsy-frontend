@@ -1,7 +1,12 @@
 import dynamic from "next/dynamic"
 import { GetStaticProps } from "next"
 import { HeroSection } from "@/components/landing/HeroSection"
-import FieldOwnerHome from "@/components/field-owner/FieldOwnerHome"
+
+// Dynamic import — only loaded when user is an authenticated field owner
+const FieldOwnerHome = dynamic(
+  () => import("@/components/field-owner/FieldOwnerHome"),
+  { ssr: false, loading: () => <HomePageSkeleton /> }
+)
 import { HomePageSkeleton } from "@/components/skeletons/HomePageSkeleton"
 import { LazySection } from "@/components/common/LazySection"
 import { PageWithSkeleton } from "@/components/common/PageWithSkeleton"

@@ -33,12 +33,10 @@ export function LazySection({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !isInView) {
-          console.log(`LazySection [${animation}]: Now in view`);
           setIsInView(true);
-          
+
           // Trigger animation after delay
           setTimeout(() => {
-            console.log(`LazySection [${animation}]: Starting animation`);
             setHasAnimated(true);
           }, delay);
         }

@@ -123,7 +123,7 @@ export function AboutSection() {
                   alt="Trusted by thousands"
                   fill
                   className="object-cover"
-                  priority
+                  loading="lazy"
                 />
               </div>
               <div className="flex flex-col justify-center space-y-2 sm:space-y-3 xl:space-y-4 py-2">

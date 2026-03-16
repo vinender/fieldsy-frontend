@@ -44,8 +44,16 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
 
   useEffect(() => {
     updateHeight()
-    window.addEventListener('resize', updateHeight)
-    return () => window.removeEventListener('resize', updateHeight)
+    let timeout: ReturnType<typeof setTimeout>
+    const throttledUpdate = () => {
+      clearTimeout(timeout)
+      timeout = setTimeout(updateHeight, 150)
+    }
+    window.addEventListener('resize', throttledUpdate)
+    return () => {
+      clearTimeout(timeout)
+      window.removeEventListener('resize', throttledUpdate)
+    }
   }, [updateHeight])
 
   return (

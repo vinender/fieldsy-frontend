@@ -129,8 +129,8 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         aboutData: aboutData.data || null,
       },
-      // Revalidate every 30 seconds so ISR stays reasonably fresh
-      revalidate: 30,
+      // Revalidate every 5 minutes — client-side useAboutPage() ensures fresh data on mount
+      revalidate: 300,
     }
   } catch (error) {
     console.error('Error fetching about page data:', error)
@@ -138,7 +138,7 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         aboutData: null,
       },
-      revalidate: 10,
+      revalidate: 60,
     }
   }
 }

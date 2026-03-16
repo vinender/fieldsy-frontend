@@ -5,6 +5,10 @@ export default function Document() {
     <Html lang="en">
       <Head>
         <meta name="description" content="Book the perfect field for your dog's playtime" />
+
+        {/* Preconnect to S3 for faster image loading */}
+        <link rel="preconnect" href="https://fieldsy-s3.s3.eu-west-2.amazonaws.com" />
+        <link rel="dns-prefetch" href="https://fieldsy-s3.s3.eu-west-2.amazonaws.com" />
         
         {/* Favicon References */}
         <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />

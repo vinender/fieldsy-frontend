@@ -30,7 +30,7 @@ export function HowItWorksHeroSection() {
             loop
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             poster="/how-it-works/dog.png"
             className="absolute inset-0 w-full h-full object-cover"
             onError={() => setVideoError(true)}

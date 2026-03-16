@@ -44,14 +44,15 @@ export interface PublicSettingsResponse {
 
 // Hook to fetch public about settings
 export function usePublicAboutSettings() {
+  // Use the same query key as usePublicSettings to avoid duplicate API calls
   const query = useQuery({
-    queryKey: aboutSettingsKeys.public(),
+    queryKey: ['publicSettings'],
     queryFn: async () => {
       const response = await axiosClient.get('/settings/public');
       return response.data as PublicSettingsResponse;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - settings don't change often
-    gcTime: 30 * 60 * 1000, // 30 minutes cache time
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Extract only about-related settings

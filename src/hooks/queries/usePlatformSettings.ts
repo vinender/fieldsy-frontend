@@ -38,14 +38,15 @@ export interface PlatformSettingsResponse {
 
 // Hook to fetch platform settings
 export function usePlatformSettings() {
+  // Use the same query key as usePublicSettings to avoid duplicate API calls
   const query = useQuery({
-    queryKey: platformSettingsKeys.public(),
+    queryKey: ['publicSettings'],
     queryFn: async () => {
       const response = await axiosClient.get('/settings/public');
       return response.data as PlatformSettingsResponse;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - settings don't change often
-    gcTime: 30 * 60 * 1000, // 30 minutes cache time
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Extract platform-related settings with defaults
