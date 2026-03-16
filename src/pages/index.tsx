@@ -114,22 +114,24 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
     };
   }, [])
 
-  // Auth-dependent checks only run after mount to prevent hydration mismatch
-  if (mounted) {
-    // Coming Soon gate — only use CLIENT-SIDE settings (which include cookie/IP check).
-    if (settings && settings.isLive === false && !settings.hasAccess) {
-      return <BypassComingSoon />
-    }
+  // Before mount or while session is loading — show a minimal spinner
+  // so neither dog owner landing page nor field owner dashboard flashes
+  if (!mounted || status === 'loading' || (status === 'authenticated' && !userRole)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-light-cream">
+        <div className="w-10 h-10 border-4 border-green/30 border-t-green rounded-full animate-spin" />
+      </div>
+    )
+  }
 
-    // When authenticated but role not yet loaded, show skeleton to avoid flash of wrong content
-    if (status === 'authenticated' && !userRole) {
-      return <HomePageSkeleton />
-    }
+  // Coming Soon gate — only use CLIENT-SIDE settings (which include cookie/IP check).
+  if (settings && settings.isLive === false && !settings.hasAccess) {
+    return <BypassComingSoon />
+  }
 
-    // Show field owner dashboard on index route if authenticated as field owner
-    if (status === 'authenticated' && userRole === 'FIELD_OWNER') {
-      return <FieldOwnerHome />
-    }
+  // Show field owner dashboard on index route if authenticated as field owner
+  if (status === 'authenticated' && userRole === 'FIELD_OWNER') {
+    return <FieldOwnerHome />
   }
 
 

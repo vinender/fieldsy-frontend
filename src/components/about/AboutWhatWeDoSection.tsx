@@ -23,7 +23,7 @@ export function AboutWhatWeDoSection({ data, loading }: AboutWhatWeDoSectionProp
     { title: 'Enjoy Peace of Mind', description: 'Let your dog run free in a safe, enclosed environment', order: 3 },
     { title: 'List Your Field', description: 'Turn your unused land into a source of income', order: 4 },
     { title: 'Set Your Schedule', description: 'Control when your field is available for bookings', order: 5 },
-    { title: 'Get Paid Monthly', description: 'Receive secure payments directly to your account', order: 6 }
+    { title: 'Get Paid Automatically', description: 'Receive secure payouts to your bank after each booking is processed via Stripe', order: 6 }
   ]
 
   return (

@@ -99,7 +99,9 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
     ]
   }
 
-  const content = data || defaultData
+  // Use data from API when available. Don't use fallback image — let it be empty
+  // until real data arrives so there's no flash of a wrong image.
+  const content = data || { ...defaultData, image: '' }
   const sortedStats = content.stats.sort((a, b) => a.order - b.order)
 
   // Check for mobile app mode to hide section title
@@ -169,17 +171,19 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
             <DownloadAppButton />
           </div>
 
-          {/* Right Image */}
+          {/* Right Image — only render when we have an actual image URL to avoid fallback flash */}
           <div className="relative mt-8 lg:mt-0">
-            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl relative h-[300px] sm:h-[400px] lg:h-[500px]">
-              <Image
-                src={content?.image || defaultData?.image}
-                alt="Dog playing with toy in field"
-                fill
-                className="object-cover"
-                priority // Since this is above the fold
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
-              />
+            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl relative h-[300px] sm:h-[400px] lg:h-[500px] bg-gray-100">
+              {content?.image ? (
+                <Image
+                  src={content.image}
+                  alt="Dog playing with toy in field"
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+                />
+              ) : null}
             </div>
           </div>
 
