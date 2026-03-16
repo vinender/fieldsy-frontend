@@ -61,20 +61,10 @@ export function Footer() {
             <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Contact Links</h3>
             <ul className="flex flex-col gap-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
               <li className="flex items-start sm:items-center space-x-3">
-                <img src="/footer/call.svg" alt="Call" width={40} height={40} className="w-10 h-10" />
-                <a href="tel:+448546354582" className="text-white/80 break-all sm:break-normal hover:text-white transition-colors">
-                  +44 854 635 4582
-                </a>
-              </li>
-              <li className="flex items-start sm:items-center space-x-3">
                 <img src="/footer/msg.svg" alt="Email" width={40} height={40} className="w-10 h-10" />
-                <a href="mailto:fieldsyz@gmail.com" className="text-white/80 break-all sm:break-normal hover:text-white transition-colors">
-                  fieldsyz@gmail.com
+                <a href="mailto:info@fieldsy.co.uk" className="text-white/80 break-all sm:break-normal hover:text-white transition-colors">
+                  info@fieldsy.co.uk
                 </a>
-              </li>
-              <li className="flex items-start space-x-3">
-                <img src="/footer/gps.svg" alt="Location" width={40} height={40} className="w-10 h-10" />
-                <span className="text-white/80 text-sm sm:text-base">Camden Town, London NW1 OLT, United Kingdom</span>
               </li>
             </ul>
           </div>

@@ -18,10 +18,11 @@ interface AboutWhoWeAreSectionProps {
   loading?: boolean
 }
 
+
 export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProps) {
-  const [rowHeight, setRowHeight] = useState<number | undefined>(undefined)
-  const [isWide, setIsWide] = useState(false)
-  const imgRef = useRef<HTMLImageElement>(null)
+  const [rowHeight, setRowHeight] = useState<number | undefined>(undefined);
+  const [isWide, setIsWide] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const title = data?.title || 'Who We Are'
   const description = data?.description || "We're a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we've built Fieldsy to give every dog the freedom they deserve."
