@@ -1,46 +1,73 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 
-export  function HowItWorksSection() {
+interface HowItWorksSectionProps {
+  settings?: {
+    howItWorksTitle?: string;
+    howItWorksSteps?: Array<{
+      icon: string;
+      title: string;
+      description: string;
+      image: string;
+      thumbnail?: string;
+      order: number;
+    }>;
+  };
+}
+
+const S3_DEFAULTS = 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults';
+
+const DEFAULT_STEPS = [
+  {
+    icon: `${S3_DEFAULTS}/how-it-works/field.svg`,
+    title: "Find Fields Near You",
+    description: "Easily find trusted, private dog walking fields near you using GPS or postcode search. No more crowded parks—just peaceful, secure spaces tailored for your dog's freedom.",
+    image: `${process.env.NEXT_PUBLIC_S3_BASE_URL}/videos/dog.mp4`,
+    thumbnail: "/how-it-works/dog.webp"
+  },
+  {
+    icon: `${S3_DEFAULTS}/how-it-works/icon2.svg`,
+    title: "Select a Time Slots",
+    description: "Choose from available time slots that work for your schedule.",
+    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=600&fit=crop"
+  },
+  {
+    icon: `${S3_DEFAULTS}/how-it-works/icon3.svg`,
+    title: "Check Field Details",
+    description: "Review field information, amenities, and safety features.",
+    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop"
+  },
+  {
+    icon: `${S3_DEFAULTS}/how-it-works/icon4.svg`,
+    title: "Confirm & Pay Securely",
+    description: "Complete your booking with secure payment processing.",
+    image: "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&h=600&fit=crop"
+  },
+  {
+    icon: `${S3_DEFAULTS}/how-it-works/icon5.svg`,
+    title: "Enjoy Off-Lead Freedom",
+    description: "Let your dog run, play, and explore in a safe environment.",
+    image: "https://images.unsplash.com/photo-1601758124096-1fd661873b95?w=800&h=600&fit=crop"
+  }
+]
+
+export  function HowItWorksSection({ settings }: HowItWorksSectionProps) {
   const [activeStep, setActiveStep] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoError, setVideoError] = useState(false)
   const [videoLoading, setVideoLoading] = useState(true)
   const [loadProgress, setLoadProgress] = useState(0)
 
-  const steps = [
-    {
-      icon: "/how-it-works/field.svg",
-      title: "Find Fields Near You",
-      description: "Easily find trusted, private dog walking fields near you using GPS or postcode search. No more crowded parks—just peaceful, secure spaces tailored for your dog's freedom.",
-      image: `${process.env.NEXT_PUBLIC_S3_BASE_URL}/videos/dog.mp4`,
-      thumbnail: "/how-it-works/dog.webp"
-    },
-    {
-      icon: "/how-it-works/icon2.svg",
-      title: "Select a Time Slots",
-      description: "Choose from available time slots that work for your schedule.",
-      image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=600&fit=crop"
-    },
-    {
-      icon: "/how-it-works/icon3.svg",
-      title: "Check Field Details",
-      description: "Review field information, amenities, and safety features.",
-      image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop"
-    },
-    {
-      icon: "/how-it-works/icon4.svg",
-      title: "Confirm & Pay Securely",
-      description: "Complete your booking with secure payment processing.",
-      image: "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&h=600&fit=crop"
-    },
-    {
-      icon: "/how-it-works/icon5.svg",
-      title: "Enjoy Off-Lead Freedom",
-      description: "Let your dog run, play, and explore in a safe environment.",
-      image: "https://images.unsplash.com/photo-1601758124096-1fd661873b95?w=800&h=600&fit=crop"
-    }
-  ]
+  const sectionTitle = settings?.howItWorksTitle || 'How Fieldsy Works'
+  const steps = settings?.howItWorksSteps?.length
+    ? settings.howItWorksSteps.sort((a, b) => a.order - b.order).map(step => ({
+        ...step,
+        // Use default images if step has no image set
+        image: step.image || DEFAULT_STEPS[step.order - 1]?.image || '',
+        thumbnail: step.thumbnail || DEFAULT_STEPS[step.order - 1]?.thumbnail,
+        icon: step.icon || DEFAULT_STEPS[step.order - 1]?.icon || ''
+      }))
+    : DEFAULT_STEPS
 
 
   // Effect to handle video playback when activeStep changes
@@ -92,7 +119,7 @@ export  function HowItWorksSection() {
           {/* Left Section - Process Steps */}
           <div className="h-full">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-dark-green mb-8 sm:mb-10 lg:mb-12">
-              How Fieldsy Works
+              {sectionTitle}
             </h2>
             <div className="space-y-4">
               {steps.map((step, index) => (

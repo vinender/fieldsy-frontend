@@ -6,7 +6,7 @@ import { AboutHeroSection } from "@/components/about/AboutHeroSection"
 import { LazySection } from "@/components/common/LazySection"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import axiosClient from "@/lib/api/axios-client"
+import { useAboutPage } from "@/hooks/api/useAboutPage"
 
 
 // Lazy load sections that are below the fold
@@ -40,9 +40,15 @@ interface AboutPageProps {
 }
 
 
-export default function AboutPage({ aboutData }: AboutPageProps) {
+export default function AboutPage({ aboutData: staticAboutData }: AboutPageProps) {
   const router = useRouter()
   const [isMobileApp, setIsMobileApp] = useState(false);
+
+  // Client-side fetch — always shows latest data from DB
+  const { data: liveAboutData } = useAboutPage();
+
+  // Prefer live client-side data, fall back to ISR static data
+  const aboutData = liveAboutData || staticAboutData;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -64,13 +70,6 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
 
       {/* Hero Section - Always loaded immediately as it's above the fold */}
       <AboutHeroSection data={aboutData?.heroSection} loading={false} />
-
-      {/* About Us Label */}
-      {/* <div className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
-        <h1 className="text-[29px] font-semibold text-dark-green mt-5">
-          About us
-        </h1>
-      </div> */}
 
       {/* Mission Section - Lazy loaded with intersection observer */}
       <LazySection
@@ -122,7 +121,7 @@ export default function AboutPage({ aboutData }: AboutPageProps) {
 
 export const getStaticProps: GetStaticProps = async () => {
   try {
-    // Fetch about page data at build time
+    // Fetch about page data at build time — serves as initial data until client-side fetch completes
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/about-page`)
     const aboutData = await response.json()
 
@@ -130,8 +129,8 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         aboutData: aboutData.data || null,
       },
-      // Revalidate every hour (ISR - Incremental Static Regeneration)
-      revalidate: 3600,
+      // Revalidate every 30 seconds so ISR stays reasonably fresh
+      revalidate: 30,
     }
   } catch (error) {
     console.error('Error fetching about page data:', error)
@@ -139,8 +138,7 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         aboutData: null,
       },
-      // Try again in 60 seconds if there was an error
-      revalidate: 60,
+      revalidate: 10,
     }
   }
 }

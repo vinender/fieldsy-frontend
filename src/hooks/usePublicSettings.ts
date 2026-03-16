@@ -14,6 +14,18 @@ interface PublicSettings {
   hasAccess: boolean;
   bannerText?: string;
   highlightedText?: string;
+  landownersSectionTitle?: string;
+  landownersSectionDescription?: string;
+  landownersSectionImage?: string;
+  howItWorksTitle?: string;
+  howItWorksSteps?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+    image: string;
+    thumbnail?: string;
+    order: number;
+  }>;
 }
 
 // Fetch public settings (no auth required)

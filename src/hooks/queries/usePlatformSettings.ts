@@ -51,7 +51,7 @@ export function usePlatformSettings() {
   // Extract platform-related settings with defaults
   const platformSettings: PlatformSettings = {
     platformTitle: query.data?.data?.platformTitle || "One Platform, Two Tail-Wagging Experiences",
-    platformDogOwnersImage: query.data?.data?.platformDogOwnersImage || "/platform-section/img1.png",
+    platformDogOwnersImage: query.data?.data?.platformDogOwnersImage || "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img1.webp",
     platformDogOwnersSubtitle: query.data?.data?.platformDogOwnersSubtitle || "For Dog Owners:",
     platformDogOwnersTitle: query.data?.data?.platformDogOwnersTitle || "Find & Book Private Dog Walking Fields in Seconds",
     platformDogOwnersBullets: query.data?.data?.platformDogOwnersBullets || [
@@ -60,7 +60,7 @@ export function usePlatformSettings() {
       "GPS-powered search",
       "Instant hourly bookings"
     ],
-    platformFieldOwnersImage: query.data?.data?.platformFieldOwnersImage || "/platform-section/img2.png",
+    platformFieldOwnersImage: query.data?.data?.platformFieldOwnersImage || "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img2.webp",
     platformFieldOwnersSubtitle: query.data?.data?.platformFieldOwnersSubtitle || "For Field Owners:",
     platformFieldOwnersTitle: query.data?.data?.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
     platformFieldOwnersBullets: query.data?.data?.platformFieldOwnersBullets || [

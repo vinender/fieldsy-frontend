@@ -64,11 +64,11 @@ export function AboutSection() {
   const { settings, loading } = usePublicAboutSettings();
 
   // Use default images as fallbacks
-  const dogImage = settings.aboutDogImage || '/about/dog2.png';
-  const familyImage = settings.aboutFamilyImage || '/about/fam.png';
+  const dogImage = settings.aboutDogImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp';
+  const familyImage = settings.aboutFamilyImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp';
   const dogIcons = settings.aboutDogIcons && settings.aboutDogIcons.length > 0 
     ? settings.aboutDogIcons 
-    : ['/about/dog1.png', '/about/dog1.png', '/about/dog1.png', '/about/dog1.png', '/about/dog1.png'];
+    : ['https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog1.webp', 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog1.webp', 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog1.webp', 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog1.webp', 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog1.webp'];
 
   return (
 

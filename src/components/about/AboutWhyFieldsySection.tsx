@@ -24,7 +24,7 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
   // Use data from API or fallback to hardcoded values
   const title = data?.title || 'Why Fieldsy?'
   const subtitle = data?.subtitle || 'Choosing Fieldsy means choosing peace of mind for you and freedom for your dog.'
-  const image = data?.image || '/about/dog2.png'
+  const image = data?.image || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp'
   const boxTitle = data?.boxTitle || "Let's Build the Future of Field Intelligence"
   const boxDescription = data?.boxDescription || "Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we're here to help you work smarter on-site, every day."
   const buttonText = data?.buttonText || 'Download App'

@@ -177,7 +177,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
             </div>
           }
         >
-          <HowItWorksSection />
+          <HowItWorksSection settings={resolvedSettings} />
         </LazySection>
 
         {/* Features Section - Lazy loaded with slide animation */}

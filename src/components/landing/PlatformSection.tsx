@@ -113,7 +113,7 @@ export function PlatformSection() {
                   onClick={handleLoginRedirect}
                 >
                   <Image
-                    src={hoveredImage === card.id ? "/platform-section/hover.png" : "/platform-section/wave.png"}
+                    src={hoveredImage === card.id ? "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/hover.webp" : "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/wave.webp"}
                     alt=""
                     width={96}
                     height={96}

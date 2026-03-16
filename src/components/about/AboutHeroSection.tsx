@@ -90,7 +90,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
     mainTitle: 'All-in-One Platform for Smarter Field Operations',
     description: 'Fieldsy brings every aspect of field operations into a single, easy-to-use platform. From property claims and terrain tracking to team coordination and document management—we help you digitize, streamline, and scale your fieldwork with confidence. No more juggling spreadsheets, paperwork, or disconnected tools. With Fieldsy, everything you need is at your fingertips, wherever the field takes you.',
     buttonText: 'Download App',
-    image: '/about/dog2.png',
+    image: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
     stats: [
       { value: '500+', label: 'Early Access Signups', order: 1 },
       { value: '200+', label: 'Private Fields Being Onboarded', order: 2 },

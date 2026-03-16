@@ -575,11 +575,16 @@ body[style*="pointer-events"] {
   border: 1px solid #92400e !important;
 }
 
-[data-sonner-toast] button {
+/* Hide close button on toasts */
+[data-sonner-toast] [data-close-button] {
+  display: none !important;
+}
+
+[data-sonner-toast] button:not([data-close-button]) {
   color: #ffffff !important;
 }
 
-[data-sonner-toast] button:hover {
+[data-sonner-toast] button:not([data-close-button]):hover {
   color: #e5e7eb !important;
 }
 

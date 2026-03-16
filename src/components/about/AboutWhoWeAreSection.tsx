@@ -1,3 +1,5 @@
+import { useState, useRef, useEffect, useCallback } from 'react'
+
 interface AboutWhoWeAreSectionProps {
   data?: {
     title: string
@@ -17,30 +19,53 @@ interface AboutWhoWeAreSectionProps {
 }
 
 export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProps) {
-  // Use data from API or fallback to hardcoded values
+  const [rowHeight, setRowHeight] = useState<number | undefined>(undefined)
+  const [isWide, setIsWide] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
+
   const title = data?.title || 'Who We Are'
   const description = data?.description || "We're a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we've built Fieldsy to give every dog the freedom they deserve."
-  const mainImage = data?.mainImage || '/about/fam.png'
-  const rightCardImage = data?.rightCardImage || '/about/fam.png'
+  const mainImage = data?.mainImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp'
+  const rightCardImage = data?.rightCardImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp'
   const rightCardTitle = data?.rightCardTitle || 'Loved by Paws and People Alike'
   const rightCardDescription = data?.rightCardDescription || 'From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.'
+
+  // >= 1700px: lock row height to middle image's natural aspect ratio
+  // < 1700px: let flexbox items-stretch handle equal heights
+  const updateHeight = useCallback(() => {
+    const wide = window.innerWidth >= 1700
+    setIsWide(wide)
+    if (wide && imgRef.current && imgRef.current.naturalHeight > 0) {
+      setRowHeight(imgRef.current.offsetHeight)
+    } else {
+      setRowHeight(undefined)
+    }
+  }, [])
+
+  useEffect(() => {
+    updateHeight()
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
+  }, [updateHeight])
 
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 lg:py-20 bg-light-cream">
       <div className="w-full">
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 md:gap-8 lg:gap-12 items-stretch">
-          {/* Left Content - 30% width */}
-          <div className="w-full lg:w-[30%] shadow-xl flex flex-col px-[24px] py-[28px] bg-white rounded-[32px]">
+        <div
+          className="flex flex-col lg:flex-row gap-4 sm:gap-6 md:gap-8 lg:gap-12 lg:items-stretch"
+          style={rowHeight ? { height: rowHeight } : undefined}
+        >
+          {/* Left Content */}
+          <div className="w-full lg:w-[30%] shadow-xl flex flex-col px-[24px] py-[28px] bg-white rounded-[32px] overflow-hidden">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-[24px] font-[700] text-dark-green mb-3 sm:mb-4 md:mb-6 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[30px]">
               {title}
             </h2>
-            
-            <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-4 sm:mb-6 md:mb-8 leading-[1.6] sm:leading-[1.7] md:leading-relaxed lg:leading-[30px] font-[400] flex-grow">
+
+            <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-4 sm:mb-6 md:mb-8 leading-[1.6] sm:leading-[1.7] md:leading-relaxed lg:leading-[30px] font-[400] flex-grow min-h-0 overflow-hidden">
               {description}
             </p>
-            
-            {/* Team member avatars */}
-            <div className="flex -space-x-3 mt-auto">
+
+            <div className="flex -space-x-3 mt-auto flex-shrink-0">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
@@ -49,7 +74,8 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
                   }`}
                 >
                   <img
-                    src="/about/dog1.png"
+                  src={`dog-${i}.png`}
+                    // src="https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog1.webp"
                     alt={`Dog ${i}`}
                     className="w-full h-full object-cover"
                   />
@@ -57,34 +83,31 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
               ))}
             </div>
           </div>
-          
-          {/* Middle Image - 40% width */}
+
+          {/* Middle Image */}
           <div className="w-full lg:w-[40%] flex">
             <div className="rounded-3xl overflow-hidden shadow-xl flex-1 flex">
-              <img 
+              <img
+                ref={imgRef}
                 src={mainImage}
                 alt="Woman playing with dog in field"
-                className="w-full h-full object-cover"
+                className={isWide ? 'max-w-full h-auto block' : 'w-full h-full object-cover'}
+                onLoad={updateHeight}
               />
             </div>
           </div>
 
-          {/* Right Content - 30% width */}
-          <div className="w-full lg:w-[30%] flex flex-col bg-white rounded-2xl shadow-xl p-4">
-            <div className="space-y-4 mb-8 flex-grow">
-              {/* <img 
-                src="/about/dog2.png"
-                alt="Dog agility training"
-                className="rounded-2xl w-full h-[150px] sm:h-[200px] lg:h-[250px] object-cover"
-              /> */}
-              <img 
+          {/* Right Content */}
+          <div className="w-full lg:w-[30%] flex flex-col bg-white rounded-2xl shadow-xl p-4 overflow-hidden">
+            <div className="flex-1 min-h-0">
+              <img
                 src={rightCardImage}
                 alt="Happy dog in field"
-                className=" w-full h-[120px] sm:h-[150px] md:h-[200px] lg:h-[250px] object-cover"
+                className="w-full h-full object-cover rounded-xl"
               />
             </div>
-            
-            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-[32px] font-[700] text-dark-green mb-2 sm:mb-3 md:mb-4 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[40px]">
+
+            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-[24px] font-[700] text-dark-green mb-2 sm:mb-3 md:mb-4 mt-4 leading-tight sm:leading-[1.3] md:leading-[1.2] lg:leading-[30px] flex-shrink-0">
               {rightCardTitle.split('and').map((part, index) => (
                 <span key={index}>
                   {part}
@@ -92,11 +115,11 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
                 </span>
               ))}
             </h3>
-            <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 leading-[1.6] sm:leading-[1.7] md:leading-relaxed lg:leading-[30px] font-[400] mt-auto">
+            <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 leading-[1.6] sm:leading-[1.7] md:leading-relaxed lg:leading-[30px] font-[400] flex-shrink-0">
               {rightCardDescription}
             </p>
           </div>
-          
+
         </div>
       </div>
     </section>

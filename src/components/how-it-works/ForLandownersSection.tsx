@@ -1,11 +1,17 @@
-import { MapPin, Calendar } from "lucide-react"
 import Link from "next/link"
+import { usePublicSettings } from "@/hooks/usePublicSettings"
 
 interface ForLandownersSectionProps {
   hideClaimButton?: boolean;
 }
 
 export function ForLandownersSection({ hideClaimButton = false }: ForLandownersSectionProps) {
+  const { data: settings } = usePublicSettings();
+
+  const sectionTitle = settings?.landownersSectionTitle || 'How Fieldsy Works for Landowners'
+  const sectionDescription = settings?.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible."
+  const sectionImage = settings?.landownersSectionImage || '/how-it-works/dog.png'
+
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-green">
       <div className="w-full">
@@ -13,19 +19,19 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
           {/* Left Image */}
           <div
             className="rounded-3xl overflow-hidden shadow-xl h-64 sm:h-80 lg:h-full bg-cover bg-center"
-            style={{ backgroundImage: 'url(/how-it-works/dog.png)' }}
-            aria-label="Woman with dog sitting on steps"
+            style={{ backgroundImage: `url(${sectionImage})` }}
+            aria-label="Landowner section image"
             role="img"
           />
-          
+
           {/* Right Content */}
           <div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-[48px] font-[700] text-white mb-8 leading-tight xl:leading-[60px]">
-              How Fieldsy Works for Landowners
+              {sectionTitle}
             </h2>
-            
+
             <p className="text-sm sm:text-base xl:text-[18px] text-white/90 mb-12 leading-relaxed xl:leading-[30px] font-[400]">
-              List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible.
+              {sectionDescription}
             </p>
             
             {/* Option Cards */}
