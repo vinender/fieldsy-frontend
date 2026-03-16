@@ -196,11 +196,69 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
           setApiCallInProgress(false);
           onSuccess?.();
           setShowSuccessModal(true);
+        } else if (data.requiresAction && data.clientSecret) {
+          // 3DS/OTP required — use Stripe SDK to handle authentication
+          try {
+            const stripeInstance = await stripePromise;
+            if (!stripeInstance) {
+              throw new Error('Stripe not loaded');
+            }
+
+            const { error: confirmError, paymentIntent } = await stripeInstance.confirmCardPayment(data.clientSecret);
+
+            if (confirmError) {
+              setError(confirmError.message || 'Payment authentication failed. Please try again.');
+              setProcessing(false);
+              setApiCallInProgress(false);
+              paymentInitiatedRef.current = false;
+              onError?.(confirmError.message || 'Authentication failed');
+              return;
+            }
+
+            if (paymentIntent?.status === 'succeeded') {
+              // 3DS passed — confirm on backend
+              const confirmResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/confirm-payment`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  paymentIntentId: paymentIntent.id,
+                  bookingId: data.bookingId
+                }),
+              });
+
+              if (!confirmResponse.ok) {
+                throw new Error('Failed to confirm payment after authentication');
+              }
+
+              setSucceeded(true);
+              setBookingId(data.bookingId);
+              setProcessing(false);
+              setApiCallInProgress(false);
+              onSuccess?.();
+              setShowSuccessModal(true);
+            } else {
+              setError('Payment could not be completed. Please try again.');
+              setProcessing(false);
+              setApiCallInProgress(false);
+              paymentInitiatedRef.current = false;
+            }
+          } catch (authErr) {
+            console.error('3DS authentication error:', authErr);
+            setError('Payment authentication failed. Please try again.');
+            setProcessing(false);
+            setApiCallInProgress(false);
+            paymentInitiatedRef.current = false;
+            onError?.('Authentication failed');
+          }
         } else {
-          // Payment requires additional action
-          setError('Payment requires additional verification. Please check your banking app.');
+          // Payment failed or unknown status
+          setError('Payment could not be processed. Please try again.');
           setProcessing(false);
           setApiCallInProgress(false);
+          paymentInitiatedRef.current = false;
         }
       } catch (err) {
         console.error('Error creating payment intent:', err);
