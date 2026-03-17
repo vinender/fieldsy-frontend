@@ -187,64 +187,61 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
           return;
         }
 
-        // Check if payment was already successful (saved card was used)
+        // Check if all payments succeeded (saved card, no 3DS needed)
         if (data.paymentSucceeded) {
-          // Payment completed - show success modal immediately
           setSucceeded(true);
           setBookingId(data.bookingId);
           setProcessing(false);
           setApiCallInProgress(false);
           onSuccess?.();
           setShowSuccessModal(true);
-        } else if (data.requiresAction && data.clientSecret) {
-          // 3DS/OTP required — use Stripe SDK to handle authentication
+        } else if (data.requiresAction && data.clientSecrets?.length > 0) {
+          // 3DS/OTP required — confirm each payment intent with Stripe SDK
           try {
             const stripeInstance = await stripePromise;
-            if (!stripeInstance) {
-              throw new Error('Stripe not loaded');
-            }
+            if (!stripeInstance) throw new Error('Stripe not loaded');
 
-            const { error: confirmError, paymentIntent } = await stripeInstance.confirmCardPayment(data.clientSecret);
+            // Confirm each slot's payment intent sequentially
+            // Stripe typically only challenges 3DS once per session for the same card
+            const secrets = data.clientSecrets as string[];
+            for (let i = 0; i < secrets.length; i++) {
+              const { error: confirmError, paymentIntent: confirmedPI } = await stripeInstance.confirmCardPayment(secrets[i]);
 
-            if (confirmError) {
-              setError(confirmError.message || 'Payment authentication failed. Please try again.');
-              setProcessing(false);
-              setApiCallInProgress(false);
-              paymentInitiatedRef.current = false;
-              onError?.(confirmError.message || 'Authentication failed');
-              return;
-            }
-
-            if (paymentIntent?.status === 'succeeded') {
-              // 3DS passed — confirm on backend
-              const confirmResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/confirm-payment`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  paymentIntentId: paymentIntent.id,
-                  bookingId: data.bookingId
-                }),
-              });
-
-              if (!confirmResponse.ok) {
-                throw new Error('Failed to confirm payment after authentication');
+              if (confirmError) {
+                setError(confirmError.message || `Payment authentication failed for slot ${i + 1}. Please try again.`);
+                setProcessing(false);
+                setApiCallInProgress(false);
+                paymentInitiatedRef.current = false;
+                onError?.(confirmError.message || 'Authentication failed');
+                return;
               }
 
-              setSucceeded(true);
-              setBookingId(data.bookingId);
-              setProcessing(false);
-              setApiCallInProgress(false);
-              onSuccess?.();
-              setShowSuccessModal(true);
-            } else {
-              setError('Payment could not be completed. Please try again.');
-              setProcessing(false);
-              setApiCallInProgress(false);
-              paymentInitiatedRef.current = false;
+              if (confirmedPI?.status !== 'succeeded') {
+                setError(`Payment for slot ${i + 1} could not be completed. Please try again.`);
+                setProcessing(false);
+                setApiCallInProgress(false);
+                paymentInitiatedRef.current = false;
+                return;
+              }
             }
+
+            // All slots confirmed — confirm on backend
+            const bookingIds = data.bookingIds as string[];
+            const piIds = data.paymentIntentIds as string[];
+            for (let i = 0; i < bookingIds.length; i++) {
+              await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/confirm-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ paymentIntentId: piIds[i], bookingId: bookingIds[i] }),
+              });
+            }
+
+            setSucceeded(true);
+            setBookingId(data.bookingId);
+            setProcessing(false);
+            setApiCallInProgress(false);
+            onSuccess?.();
+            setShowSuccessModal(true);
           } catch (authErr) {
             console.error('3DS authentication error:', authErr);
             setError('Payment authentication failed. Please try again.');
@@ -254,7 +251,6 @@ const SavedCardCheckout: React.FC<CheckoutFormProps> = ({
             onError?.('Authentication failed');
           }
         } else {
-          // Payment failed or unknown status
           setError('Payment could not be processed. Please try again.');
           setProcessing(false);
           setApiCallInProgress(false);
@@ -368,7 +364,10 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
+  const [clientSecrets, setClientSecrets] = useState<string[]>([]);
   const [bookingId, setBookingId] = useState('');
+  const [bookingIds, setBookingIds] = useState<string[]>([]);
+  const [paymentIntentIds, setPaymentIntentIds] = useState<string[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
 
@@ -495,7 +494,10 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
         }
 
         setClientSecret(data.clientSecret);
+        setClientSecrets(data.clientSecrets || [data.clientSecret]);
         setBookingId(data.bookingId);
+        setBookingIds(data.bookingIds || [data.bookingId]);
+        setPaymentIntentIds(data.paymentIntentIds || []);
         setApiCallInProgress(false);
       } catch (err) {
         console.error('Error creating payment intent:', err);
@@ -534,32 +536,55 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
       return;
     }
 
-    // Confirm the payment
-    const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: card,
-      },
-    });
+    // Confirm each slot's payment intent sequentially
+    // The first one creates the payment method, subsequent ones reuse it
+    const secrets = clientSecrets.length > 0 ? clientSecrets : [clientSecret];
+    let paymentMethodId: string | undefined;
 
-    if (stripeError) {
-      let userMessage = 'Payment failed. Please try again.';
-      if (stripeError.code === 'resource_missing') {
-        userMessage = 'Payment session expired. Please refresh and try again.';
-      } else if (stripeError.type === 'card_error' || stripeError.type === 'validation_error') {
-        userMessage = stripeError.message || 'Invalid card details. Please check and try again.';
-      } else if (stripeError.message) {
-        userMessage = stripeError.message;
+    for (let i = 0; i < secrets.length; i++) {
+      const confirmParams: any = paymentMethodId
+        ? { payment_method: paymentMethodId }  // Reuse payment method from first confirmation
+        : { payment_method: { card: card } };  // First one uses the card element
+
+      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(secrets[i], confirmParams);
+
+      if (stripeError) {
+        let userMessage = `Payment failed${secrets.length > 1 ? ` for slot ${i + 1}` : ''}. Please try again.`;
+        if (stripeError.code === 'resource_missing') {
+          userMessage = 'Payment session expired. Please refresh and try again.';
+        } else if (stripeError.type === 'card_error' || stripeError.type === 'validation_error') {
+          userMessage = stripeError.message || 'Invalid card details. Please check and try again.';
+        } else if (stripeError.message) {
+          userMessage = stripeError.message;
+        }
+        setError(userMessage);
+        setProcessing(false);
+        onError?.(userMessage);
+        return;
       }
-      setError(userMessage);
-      setProcessing(false);
-      onError?.(userMessage);
-      return;
+
+      if (paymentIntent?.status !== 'succeeded') {
+        setError(`Payment for slot ${i + 1} could not be completed.`);
+        setProcessing(false);
+        return;
+      }
+
+      // Capture the payment method ID from the first successful payment for reuse
+      if (i === 0 && paymentIntent.payment_method) {
+        paymentMethodId = typeof paymentIntent.payment_method === 'string'
+          ? paymentIntent.payment_method
+          : paymentIntent.payment_method.id;
+      }
     }
 
-    if (paymentIntent?.status === 'succeeded') {
-      // Confirm payment on backend
-      try {
-        const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
+    // All slots confirmed — confirm each on backend
+    try {
+      const token = (session as any)?.accessToken || localStorage.getItem('authToken') || localStorage.getItem('token');
+      const bIds = bookingIds.length > 0 ? bookingIds : [bookingId];
+      const piIds = paymentIntentIds;
+
+      for (let i = 0; i < bIds.length; i++) {
+        const piId = piIds[i] || '';
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/confirm-payment`, {
           method: 'POST',
           headers: {
@@ -567,26 +592,24 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            paymentIntentId: paymentIntent.id,
-            bookingId
+            paymentIntentId: piId,
+            bookingId: bIds[i]
           }),
         });
 
         if (!response.ok) {
           throw new Error('Failed to confirm payment');
         }
-
-        setSucceeded(true);
-        setProcessing(false);
-        onSuccess?.();
-        
-        // Show success modal instead of redirecting
-        setShowSuccessModal(true);
-      } catch (err) {
-        console.error('Error confirming payment:', err);
-        setError('Payment processed but confirmation failed. Please contact support.');
-        setProcessing(false);
       }
+
+      setSucceeded(true);
+      setProcessing(false);
+      onSuccess?.();
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error('Error confirming payment:', err);
+      setError('Payment processed but confirmation failed. Please contact support.');
+      setProcessing(false);
     }
   };
 

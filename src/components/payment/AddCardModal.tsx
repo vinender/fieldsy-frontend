@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
@@ -9,8 +8,7 @@ import {
 } from '@stripe/react-stripe-js';
 import axiosClient from '@/lib/api/axios-client';
 import { toast } from 'sonner';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+import { stripePromise } from '@/lib/stripe';
 
 interface AddCardModalProps {
   isOpen: boolean;

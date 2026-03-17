@@ -138,6 +138,12 @@ export default function BookingHistory() {
         {/* Dashboard Header */}
         <div className="mb-6 flex justify-between items-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-dark-green">Field Owner Dashboard</h1>
+          <button
+            onClick={() => router.push('/field-owner/my-fields')}
+            className="px-5 py-2.5 bg-green text-white text-sm font-semibold rounded-full hover:bg-dark-green transition-colors"
+          >
+            My Fields
+          </button>
         </div>
 
         {/* Bookings View */}
