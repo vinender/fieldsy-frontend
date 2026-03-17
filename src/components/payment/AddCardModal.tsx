@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import {
   Elements,
@@ -16,6 +16,22 @@ interface AddCardModalProps {
   onSuccess: () => void;
 }
 
+const CARD_OPTIONS = {
+  disableLink: true,
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#424770',
+      '::placeholder': {
+        color: '#aab7c4',
+      },
+    },
+    invalid: {
+      color: '#9e2146',
+    },
+  },
+};
+
 const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ onSuccess, onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -23,20 +39,33 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
   const [cardholderName, setCardholderName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
+  const [cardReady, setCardReady] = useState(false);
+
+  const formReady = !!stripe && !!clientSecret && cardReady;
 
   useEffect(() => {
-    // Create setup intent when component mounts
+    let cancelled = false;
+
     const createSetupIntent = async () => {
       try {
         const response = await axiosClient.post('/payment-methods/setup-intent');
-        setClientSecret(response.data.clientSecret);
+        if (!cancelled) {
+          setClientSecret(response.data.clientSecret);
+        }
       } catch (error) {
         console.error('Error creating setup intent:', error);
-        toast.error('Failed to initialize card setup');
+        if (!cancelled) {
+          toast.error('Failed to initialize card setup');
+        }
       }
     };
 
     createSetupIntent();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleCardReady = useCallback(() => {
+    setCardReady(true);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +83,6 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
     setIsLoading(true);
 
     try {
-      // Confirm the setup intent with the card details
       const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
         payment_method: {
           card: cardElement,
@@ -79,7 +107,6 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
       }
 
       if (setupIntent && setupIntent.payment_method) {
-        // Save the payment method to our backend
         await axiosClient.post('/payment-methods/save', {
           paymentMethodId: setupIntent.payment_method,
           isDefault,
@@ -98,81 +125,81 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Cardholder Name */}
-      <div>
-        <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 mb-1">
-          Cardholder Name
-        </label>
-        <input
-          type="text"
-          id="cardholderName"
-          value={cardholderName}
-          onChange={(e) => setCardholderName(e.target.value)}
-          className="w-full px-3 py-3 border border-gray-300 bg-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-green/20 focus:border-green"
-          placeholder="John Doe"
-          required
-        />
-      </div>
+    <>
+      {/* Loader - shown until form is ready, no overlay blocking iframe */}
+      {!formReady && (
+        <div className="flex flex-col items-center justify-center py-8 space-y-3">
+          <div className="w-8 h-8 border-3 border-gray-200 border-t-green rounded-full animate-spin" />
+          <p className="text-sm text-gray-500">Preparing card form...</p>
+        </div>
+      )}
 
-      {/* Card Element */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Card Details
-        </label>
-        <div className="p-3 border border-gray-300 rounded-2xl">
-          <CardElement
-            options={{
-              style: {
-                base: {
-                  fontSize: '16px',
-                  color: '#424770',
-                  '::placeholder': {
-                    color: '#aab7c4',
-                  },
-                },
-                invalid: {
-                  color: '#9e2146',
-                },
-              },
-            }}
+      {/* Form - hidden via CSS until ready so CardElement stays mounted */}
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+        style={!formReady ? { height: 0, overflow: 'hidden', opacity: 0 } : undefined}
+      >
+        {/* Cardholder Name */}
+        <div>
+          <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 mb-1">
+            Cardholder Name
+          </label>
+          <input
+            type="text"
+            id="cardholderName"
+            value={cardholderName}
+            onChange={(e) => setCardholderName(e.target.value)}
+            className="w-full px-3 py-3 border border-gray-300 bg-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-green/20 focus:border-green"
+            placeholder="John Doe"
+            required
           />
         </div>
-      </div>
 
-      {/* Set as Default */}
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="isDefault"
-          checked={isDefault}
-          onChange={(e) => setIsDefault(e.target.checked)}
-          className="w-4 h-4 text-green border-gray-300 rounded focus:ring-green"
-        />
-        <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700">
-          Set as default payment method
-        </label>
-      </div>
+        {/* Card Element */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Card Details
+          </label>
+          <div className="p-3 border border-gray-300 rounded-2xl">
+            <CardElement onReady={handleCardReady} options={CARD_OPTIONS} />
+          </div>
+        </div>
 
-      {/* Buttons */}
-      <div className="flex gap-3 pt-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 py-3 px-4 bg-white border-2 border-green text-green rounded-full font-semibold hover:bg-gray-50 transition-colors"
-          disabled={isLoading}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="flex-1 py-3 px-4 bg-green text-white rounded-full font-semibold hover:bg-green-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={!stripe || isLoading}
-        >
-          {isLoading ? 'Adding...' : 'Add Card'}
-        </button>
-      </div>
-    </form>
+        {/* Set as Default */}
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="isDefault"
+            checked={isDefault}
+            onChange={(e) => setIsDefault(e.target.checked)}
+            className="w-4 h-4 text-green border-gray-300 rounded focus:ring-green"
+          />
+          <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700">
+            Set as default payment method
+          </label>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3 px-4 bg-white border-2 border-green text-green rounded-full font-semibold hover:bg-gray-50 transition-colors"
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 py-3 px-4 bg-green text-white rounded-full font-semibold hover:bg-green-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!stripe || isLoading}
+          >
+            {isLoading ? 'Adding...' : 'Add Card'}
+          </button>
+        </div>
+      </form>
+    </>
   );
 };
 
@@ -182,14 +209,14 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSuccess 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div className="relative z-10 bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 overflow-visible">
-        {/* Close Button - Half inside, half outside */}
+      <div className="relative z-10 bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
