@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { X } from 'lucide-react';
 import {
   Elements,
@@ -32,14 +32,22 @@ const CARD_OPTIONS = {
   },
 };
 
+// Isolated CardElement wrapper — never re-renders after mount
+const StableCardElement = memo(({ onReady }: { onReady: () => void }) => (
+  <div className="p-3 border border-gray-300 rounded-2xl">
+    <CardElement onReady={onReady} options={CARD_OPTIONS} />
+  </div>
+));
+StableCardElement.displayName = 'StableCardElement';
+
 const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ onSuccess, onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
-  const [cardholderName, setCardholderName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
   const [cardReady, setCardReady] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
 
   const formReady = !!stripe && !!clientSecret && cardReady;
 
@@ -87,7 +95,7 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
         payment_method: {
           card: cardElement,
           billing_details: {
-            name: cardholderName,
+            name: nameRef.current?.value || '',
           },
         },
       });
@@ -126,7 +134,6 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
 
   return (
     <>
-      {/* Loader - shown until form is ready, no overlay blocking iframe */}
       {!formReady && (
         <div className="flex flex-col items-center justify-center py-8 space-y-3">
           <div className="w-8 h-8 border-3 border-gray-200 border-t-green rounded-full animate-spin" />
@@ -134,13 +141,12 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
         </div>
       )}
 
-      {/* Form - hidden via CSS until ready so CardElement stays mounted */}
       <form
         onSubmit={handleSubmit}
         className="space-y-4"
         style={!formReady ? { height: 0, overflow: 'hidden', opacity: 0 } : undefined}
       >
-        {/* Cardholder Name */}
+        {/* Cardholder Name — uncontrolled to avoid re-renders */}
         <div>
           <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 mb-1">
             Cardholder Name
@@ -148,22 +154,20 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
           <input
             type="text"
             id="cardholderName"
-            value={cardholderName}
-            onChange={(e) => setCardholderName(e.target.value)}
+            ref={nameRef}
+            defaultValue=""
             className="w-full px-3 py-3 border border-gray-300 bg-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-green/20 focus:border-green"
             placeholder="John Doe"
             required
           />
         </div>
 
-        {/* Card Element */}
+        {/* Card Element — memoized, won't re-render */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Card Details
           </label>
-          <div className="p-3 border border-gray-300 rounded-2xl">
-            <CardElement onReady={handleCardReady} options={CARD_OPTIONS} />
-          </div>
+          <StableCardElement onReady={handleCardReady} />
         </div>
 
         {/* Set as Default */}
@@ -208,6 +212,10 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSuccess 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Preconnect to Stripe for faster iframe load */}
+      <link rel="preconnect" href="https://js.stripe.com" />
+      <link rel="preconnect" href="https://api.stripe.com" />
+
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black bg-opacity-50"

@@ -9,6 +9,10 @@ export default function Document() {
         {/* Preconnect to S3 for faster image loading */}
         <link rel="preconnect" href="https://fieldsy-s3.s3.eu-west-2.amazonaws.com" />
         <link rel="dns-prefetch" href="https://fieldsy-s3.s3.eu-west-2.amazonaws.com" />
+
+        {/* Preconnect to Stripe for faster payment form loading */}
+        <link rel="preconnect" href="https://js.stripe.com" />
+        <link rel="preconnect" href="https://api.stripe.com" />
         
         {/* Favicon References */}
         <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />
