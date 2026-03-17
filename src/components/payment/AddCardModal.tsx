@@ -188,7 +188,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSuccess 
       />
       
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 overflow-visible">
+      <div className="relative z-10 bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 overflow-visible">
         {/* Close Button - Half inside, half outside */}
         <button
           onClick={onClose}
