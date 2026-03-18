@@ -30,7 +30,7 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
 
     // Preload the high-resolution image
     const highRes = new window.Image();
-    highRes.src = '/green-field-high-res.webp';
+    highRes.src = '/high-res.webp';
     highRes.onload = () => {
       setTimeout(() => {
         setHighResLoaded(true);
@@ -79,7 +79,7 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
       <div 
         className={`absolute inset-0 z-0 transition-opacity duration-700 ${highResLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          backgroundImage: `url('/green-field-high-res.webp')`,
+          backgroundImage: `url('/high-res.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -92,7 +92,7 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
       {/* Hero Content Container */}
       <div className="relative z-10 min-h-screen  flex flex-col">
         {/* Hero Text - positioned 123px from top */}
-        <div className="px-4 sm:px-6 lg:px-8 xl:px-20 pt-[150px] sm:pt-32 md:pt-40 xl:pt-[211px]">
+        <div className="px-4 sm:px-6 lg:px-8 xl:px-20 pt-[150px] sm:pt-32 md:pt-40 xl:pt-[241px]">
           <div className="w-full max-w-[626px] text-left">
             <h1 className="text-3xl sm:text-4xl md:text-5xl xl:text-[68px] font-semibold sm:font-bold xl:font-[700] leading-tight sm:leading-tight md:leading-tight xl:leading-[76px] text-white mb-4 sm:mb-6">
               {bannerText && highlightedText && bannerText.includes(highlightedText) ? (
