@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import Spinner from '@/components/ui/Spinner';
 import { useSlotAvailability } from '@/hooks/useSlotAvailability';
 import FieldLocation from '@/components/fields/FieldLocation';
-// import { getUserLocation } from '@/utils/getUserLocation'; // Location request disabled
 import { formatDateDDMMYYYY, formatRating } from '@/utils/formatters';
 import { getNowUK } from '@/utils/ukTime';
 import { useCancellationWindow } from '@/hooks/usePublicSettings';
@@ -29,31 +28,29 @@ const PaymentPage = () => {
   const router = useRouter();
   const { field_id, numberOfDogs: dogsFromQuery, date, timeSlots: timeSlotsQuery, repeatBooking, price: priceFromQuery, duration: durationFromQuery, skippedDates: skippedDatesQuery } = router.query;
 
-  // Parse duration from query (default to 60min if not provided)
+  // 1. STATE INITIALIZATIONS
   const bookingDuration = (durationFromQuery as string) || '60min';
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const [numberOfDogs, setNumberOfDogs] = useState(2);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
-  // const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // Location request disabled
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showRefreshWarning, setShowRefreshWarning] = useState(false);
   const [slotsUnavailable, setSlotsUnavailable] = useState(false);
   const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<{ id: string; brand: string | null; last4: string } | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  // Parse time slots from query (JSON string array)
+  // 2. MEMOIZED DERIVED STATE
   const timeSlots: string[] = React.useMemo(() => {
     if (!timeSlotsQuery) return [];
     try {
       return JSON.parse(timeSlotsQuery as string);
     } catch {
-      // Fallback for single slot (backward compatibility)
       return [timeSlotsQuery as string];
     }
   }, [timeSlotsQuery]);
 
-  // Parse skipped dates from query (for recurring bookings with conflicts)
   const skippedDates: Array<{ date: string; formattedDate: string; bookedBy: string }> = React.useMemo(() => {
     if (!skippedDatesQuery) return [];
     try {
@@ -63,66 +60,48 @@ const PaymentPage = () => {
     }
   }, [skippedDatesQuery]);
 
-  // Get cancellation window from settings
+  // 3. HOOKS / DATA FETCHING
   const cancellationWindowHours = useCancellationWindow();
-
-  // Get user location on mount - Location request disabled
-  // useEffect(() => {
-  //   getUserLocation().then(location => {
-  //     if (location) {
-  //       setUserLocation(location);
-  //     }
-  //   });
-  // }, []);
-
-  // Fetch field details using the hook (location request disabled)
   const { data: fieldData, isLoading, error } = useFieldDetails(field_id as string);
   const field = fieldData?.data || fieldData;
-
-  // Fetch slot availability with duration to match the booking
   const { data: availabilityData, isLoading: isLoadingAvailability } = useSlotAvailability(
     field_id as string,
     date as string,
     bookingDuration as '30min' | '60min' | '1hour'
   );
-
-  // Get the first slot details (for availability check)
-  const selectedSlot = timeSlots.length > 0 ? availabilityData?.data?.slots?.find(
-    (slot: any) => slot.time === timeSlots[0]
-  ) : null;
-
-  // Maximum dogs allowed per booking (from field data or default)
-  const maxDogsAllowed = field?.maxDogs || 10;
-
-  // Fetch payment methods
   const { data: paymentMethods, isLoading: isLoadingCards, refetch: refetchCards } = usePaymentMethods();
   const setDefaultMutation = useSetDefaultPaymentMethod();
   const deleteMutation = useDeletePaymentMethod();
 
-  // Set number of dogs from query params and ensure it doesn't exceed max
-  useEffect(() => {
-    if (dogsFromQuery) {
-      const requested = parseInt(dogsFromQuery as string);
-      setNumberOfDogs(Math.min(requested, maxDogsAllowed));
-    }
-  }, [dogsFromQuery, maxDogsAllowed]);
+  // 4. CALLBACKS
+  const handleCloseAddCard = React.useCallback(() => {
+    setShowAddCardModal(false);
+  }, []);
 
-  // Auto-select ONLY default card when payment methods load
+  const handleAddCardSuccess = React.useCallback(() => {
+    setShowAddCardModal(false);
+    refetchCards();
+  }, [refetchCards]);
+
+  // 5. EFFECTS
+  useEffect(() => {
+    if (dogsFromQuery && field?.maxDogs) {
+      const requested = parseInt(dogsFromQuery as string);
+      setNumberOfDogs(Math.min(requested, field.maxDogs));
+    }
+  }, [dogsFromQuery, field?.maxDogs]);
+
   useEffect(() => {
     if (paymentMethods && paymentMethods.length > 0) {
       const defaultCard = paymentMethods.find(card => card.isDefault);
       if (defaultCard) {
         setSelectedCard(defaultCard.id);
       }
-      // Removed fallback: else { setSelectedCard(paymentMethods[0].id); }
     }
   }, [paymentMethods]);
 
-  // Check if booking date/time is in the past — redirect if so
   useEffect(() => {
     if (!router.isReady || !date || timeSlots.length === 0) return;
-
-    // Extract start time from slot (e.g., "4:00PM - 4:55PM" → "4:00PM")
     const earliestSlot = timeSlots[0];
     const startTime = earliestSlot.split('-')[0].trim();
     const match = startTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
@@ -132,11 +111,8 @@ const PaymentPage = () => {
       const period = match[3]?.toUpperCase();
       if (period === 'PM' && hour !== 12) hour += 12;
       if (period === 'AM' && hour === 12) hour = 0;
-
-      // Use UK time for comparison (all booking times are in UK timezone)
       const bookingDate = new Date(date as string + 'T00:00:00');
       bookingDate.setHours(hour, mins, 0, 0);
-
       if (bookingDate.getTime() < getNowUK().getTime()) {
         toast.error('This booking time has passed. Please select a new time slot.');
         router.replace(`/fields/${field_id}`);
@@ -144,87 +120,54 @@ const PaymentPage = () => {
     }
   }, [router.isReady, date, timeSlots, field_id, router]);
 
-  // Track if this is a fresh navigation (not a refresh)
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
-
-  // Handle page refresh detection - mark session on first load
   useEffect(() => {
     if (!router.isReady || !field_id || !date || timeSlots.length === 0) return;
-
-    // Use a unique session key based on the booking parameters
     const sessionKey = `payment_session_${field_id}_${date}_${timeSlots.join('_')}`;
     const existingSession = sessionStorage.getItem(sessionKey);
-
-    // Check navigation type using Performance API
     const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming;
-    const navigationType = navigationEntry?.type;
-
-    // A page is refreshed if:
-    // 1. Navigation type is 'reload' AND
-    // 2. We already have a session marker (meaning user was here before)
-    const wasRefreshed = navigationType === 'reload' && existingSession === 'active';
-
+    const wasRefreshed = navigationEntry?.type === 'reload' && existingSession === 'active';
     if (wasRefreshed) {
-      // Show warning modal - but don't check availability yet, wait for data
       setShowRefreshWarning(true);
-      setIsFirstLoad(false);
     } else {
-      // Mark this session as active for future refresh detection
       sessionStorage.setItem(sessionKey, 'active');
-      setIsFirstLoad(false);
     }
+    setIsFirstLoad(false);
+    return () => sessionStorage.removeItem(sessionKey);
+  }, [router.isReady, field_id, date, timeSlots.length]);
 
-    // Cleanup: remove session marker when navigating away
-    return () => {
-      // Clear session marker when component unmounts (user navigated away)
-      sessionStorage.removeItem(sessionKey);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.isReady, field_id, date, timeSlots.length]); // Run when params are ready
-
-  // Check slot availability AFTER data loads (only if refresh warning is shown)
   useEffect(() => {
-    // Only check availability if:
-    // 1. Refresh warning is shown (user refreshed the page)
-    // 2. Availability data has loaded
-    // 3. We have time slots to check
     if (!showRefreshWarning || !availabilityData?.data?.slots || timeSlots.length === 0) return;
-
-    // Check if ALL selected slots are still available
     const unavailableSlots: string[] = [];
-
     timeSlots.forEach(selectedTime => {
       const slot = availabilityData.data.slots.find((s: any) => s.time === selectedTime);
-      // A slot is unavailable if:
-      // 1. It doesn't exist in the API response
-      // 2. It exists but isAvailable is false
-      // 3. It exists but isBooked is true (already taken by someone else)
       if (!slot || !slot.isAvailable || slot.isBooked) {
         unavailableSlots.push(selectedTime);
       }
     });
-
-    // Only mark as unavailable if we actually found unavailable slots
     if (unavailableSlots.length > 0) {
-      console.log('[Payment] Slots no longer available:', unavailableSlots);
       setSlotsUnavailable(true);
     }
   }, [showRefreshWarning, availabilityData, timeSlots]);
 
-  // Add beforeunload warning only when payment is actively being processed
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Only warn if payment is currently being processed
       if (isProcessingPayment) {
         e.preventDefault();
         e.returnValue = '';
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isProcessingPayment]);
 
+  // Derived Constants (Non-hook)
+  const maxDogsAllowed = field?.maxDogs || 10;
+  const isInitialLoading = isLoading && isLoadingCards;
+  const pricePerDog = priceFromQuery ? parseFloat(priceFromQuery as string) : (field?.price30min || field?.price1hr || 0);
+  const numberOfSlots = timeSlots.length || 1;
+  const total = pricePerDog * numberOfDogs * numberOfSlots;
+
+  // 6. EARLY RETURNS
   if (error || (!field && !isLoading)) {
     return (
       <UserLayout requireRole="DOG_OWNER">
@@ -245,10 +188,6 @@ const PaymentPage = () => {
     );
   }
 
-  // Field eligibility checks for payment page
-  // Priority: 1. isBlocked (admin) → 2. isActive + isApproved (discoverability) → 3. isClaimed (bookability)
-
-  // 1. Blocked by admin - field is NOT available at all
   if (field && field.isBlocked === true) {
     return (
       <UserLayout requireRole="DOG_OWNER">
@@ -261,15 +200,8 @@ const PaymentPage = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Available</h3>
-              <p className="text-gray-600 mb-4">
-                This field is currently not available. Your booking cannot be completed.
-              </p>
-              <a
-                href="/fields"
-                className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity"
-              >
-                Browse Other Fields
-              </a>
+              <p className="text-gray-600 mb-4">This field is currently not available. Your booking cannot be completed.</p>
+              <a href="/fields" className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity">Browse Other Fields</a>
             </div>
           </div>
         </div>
@@ -277,7 +209,6 @@ const PaymentPage = () => {
     );
   }
 
-  // 2. Field must be active AND approved
   if (field && (field.isActive === false || field.isApproved === false)) {
     return (
       <UserLayout requireRole="DOG_OWNER">
@@ -290,15 +221,8 @@ const PaymentPage = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Available</h3>
-              <p className="text-gray-600 mb-4">
-                This field is currently not available for bookings. The field owner may have temporarily disabled it.
-              </p>
-              <a
-                href="/fields"
-                className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity"
-              >
-                Browse Other Fields
-              </a>
+              <p className="text-gray-600 mb-4">This field is currently not available for bookings. The field owner may have temporarily disabled it.</p>
+              <a href="/fields" className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity">Browse Other Fields</a>
             </div>
           </div>
         </div>
@@ -306,7 +230,6 @@ const PaymentPage = () => {
     );
   }
 
-  // 3. Field must be claimed to be bookable
   if (field && field.isClaimed !== true) {
     return (
       <UserLayout requireRole="DOG_OWNER">
@@ -319,15 +242,8 @@ const PaymentPage = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-[#0B0B0B] mb-2">Field Not Available for Booking</h3>
-              <p className="text-gray-600 mb-4">
-                This field has not been claimed by an owner yet and is not available for booking.
-              </p>
-              <a
-                href="/fields"
-                className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity"
-              >
-                Browse Other Fields
-              </a>
+              <p className="text-gray-600 mb-4">This field has not been claimed by an owner yet and is not available for booking.</p>
+              <a href="/fields" className="inline-block bg-[#3A6B22] text-white px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition-opacity">Browse Other Fields</a>
             </div>
           </div>
         </div>
@@ -335,6 +251,20 @@ const PaymentPage = () => {
     );
   }
 
+  if (isInitialLoading) {
+    return (
+      <UserLayout requireRole="DOG_OWNER">
+        <div className="min-h-screen bg-[#FFFCF3] w-full flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size="lg" className="text-[#3A6B22]" />
+            <p className="text-gray-600 text-sm">Loading payment details...</p>
+          </div>
+        </div>
+      </UserLayout>
+    );
+  }
+
+  // 7. HANDLERS
   const handleIncrement = () => {
     if (numberOfDogs >= maxDogsAllowed) {
       toast.error(`Maximum ${maxDogsAllowed} dogs allowed for this slot`);
@@ -350,12 +280,9 @@ const PaymentPage = () => {
   const handleSetDefault = async (cardId: string) => {
     try {
       await setDefaultMutation.mutateAsync(cardId);
-      // Also select this card for the current payment
       setSelectedCard(cardId);
-      // Note: No need to manually refetch - invalidateQueries in the mutation hook handles it
     } catch (error) {
       console.error('Error setting default:', error);
-      // Note: Don't show error toast here - the mutation hook already handles it
     }
   };
 
@@ -366,7 +293,6 @@ const PaymentPage = () => {
 
   const confirmDeleteCard = async () => {
     if (!cardToDelete) return;
-
     try {
       await deleteMutation.mutateAsync(cardToDelete.id);
       if (selectedCard === cardToDelete.id) {
@@ -414,27 +340,6 @@ const PaymentPage = () => {
         );
     }
   };
-
-  const pricePerDog = priceFromQuery ? parseFloat(priceFromQuery as string) : (field?.price30min || field?.price1hr || 0);
-  const numberOfSlots = timeSlots.length || 1;
-  const total = pricePerDog * numberOfDogs * numberOfSlots;
-
-  // Show unified loader when initial data is loading
-  const isInitialLoading = isLoading && isLoadingCards;
-
-  // Full page loading state
-  if (isInitialLoading) {
-    return (
-      <UserLayout requireRole="DOG_OWNER">
-        <div className="min-h-screen bg-[#FFFCF3] w-full flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Spinner size="lg" className="text-[#3A6B22]" />
-            <p className="text-gray-600 text-sm">Loading payment details...</p>
-          </div>
-        </div>
-      </UserLayout>
-    );
-  }
 
   return (
     <UserLayout requireRole="DOG_OWNER">
@@ -842,11 +747,8 @@ const PaymentPage = () => {
       {/* Add Card Modal */}
       <AddCardModal
         isOpen={showAddCardModal}
-        onClose={() => setShowAddCardModal(false)}
-        onSuccess={() => {
-          setShowAddCardModal(false);
-          refetchCards();
-        }}
+        onClose={handleCloseAddCard}
+        onSuccess={handleAddCardSuccess}
       />
 
       {/* Delete Card Confirmation Modal */}

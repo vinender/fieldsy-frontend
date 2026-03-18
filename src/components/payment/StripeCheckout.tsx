@@ -631,7 +631,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
     router.push('/');
   };
 
-  const cardStyle = {
+  const cardStyle = React.useMemo(() => ({
     style: {
       base: {
         color: '#32325d',
@@ -647,7 +647,7 @@ const NewCardCheckoutForm: React.FC<CheckoutFormProps> = ({
         iconColor: '#fa755a',
       },
     },
-  };
+  }), []);
 
   return (
     <>

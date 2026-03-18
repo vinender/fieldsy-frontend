@@ -1,21 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+import { stripePromise } from '@/lib/stripe';
 import axiosClient from '@/lib/api/axios-client';
 import { toast } from 'sonner';
 
-// Exactly how the original worked — loadStripe called directly in this file
-const isProduction = process.env.NEXT_PUBLIC_STRIPE_PRODUCTION_MODE === 'true';
-const stripeKey = isProduction
-  ? process.env.NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY!
-  : process.env.NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY!;
-const stripePromise = loadStripe(stripeKey);
+// Module-level constant — never recreated, zero overhead
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#424770',
+      '::placeholder': {
+        color: '#aab7c4',
+      },
+    },
+    invalid: {
+      color: '#9e2146',
+    },
+  },
+};
 
 interface AddCardModalProps {
   isOpen: boolean;
@@ -23,13 +32,42 @@ interface AddCardModalProps {
   onSuccess: () => void;
 }
 
+// Isolated name input — typing here will NOT cause CardElement to re-render
+const CardholderNameInput: React.FC<{
+  nameRef: React.MutableRefObject<string>;
+}> = ({ nameRef }) => {
+  const [localName, setLocalName] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalName(e.target.value);
+    nameRef.current = e.target.value;
+  };
+
+  return (
+    <div>
+      <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 mb-1">
+        Cardholder Name
+      </label>
+      <input
+        type="text"
+        id="cardholderName"
+        value={localName}
+        onChange={handleChange}
+        className="w-full px-3 py-3 border border-gray-300 bg-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-green/20 focus:border-green"
+        placeholder="John Doe"
+        required
+      />
+    </div>
+  );
+};
+
 const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ onSuccess, onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
-  const [cardholderName, setCardholderName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
+  const cardholderNameRef = useRef('');
 
   useEffect(() => {
     const createSetupIntent = async () => {
@@ -64,7 +102,7 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
         payment_method: {
           card: cardElement,
           billing_details: {
-            name: cardholderName,
+            name: cardholderNameRef.current,
           },
         },
       });
@@ -103,45 +141,20 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 mb-1">
-          Cardholder Name
-        </label>
-        <input
-          type="text"
-          id="cardholderName"
-          value={cardholderName}
-          onChange={(e) => setCardholderName(e.target.value)}
-          className="w-full px-3 py-3 border border-gray-300 bg-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-green/20 focus:border-green"
-          placeholder="John Doe"
-          required
-        />
-      </div>
+      {/* Cardholder Name — isolated component, typing does NOT re-render CardElement */}
+      <CardholderNameInput nameRef={cardholderNameRef} />
 
+      {/* Card Element */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Card Details
         </label>
         <div className="p-3 border border-gray-300 rounded-2xl">
-          <CardElement
-            options={{
-              style: {
-                base: {
-                  fontSize: '16px',
-                  color: '#424770',
-                  '::placeholder': {
-                    color: '#aab7c4',
-                  },
-                },
-                invalid: {
-                  color: '#9e2146',
-                },
-              },
-            }}
-          />
+          <CardElement options={CARD_ELEMENT_OPTIONS} />
         </div>
       </div>
 
+      {/* Set as Default */}
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -155,6 +168,7 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
         </label>
       </div>
 
+      {/* Buttons */}
       <div className="flex gap-3 pt-4">
         <button
           type="button"
@@ -177,16 +191,22 @@ const CardForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ on
 };
 
 const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  if (!isOpen) return null;
-
+  // Keep Elements provider alive to avoid re-initializing Stripe iframe on every modal open.
+  // Only render CardForm when modal is visible to avoid wasting setup intent API calls.
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ display: isOpen ? 'flex' : 'none' }}
+    >
+      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={onClose}
       />
 
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 overflow-visible" style={{ zIndex: 1 }}>
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 overflow-visible">
+        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute -right-4 -top-4 sm:-right-3 sm:-top-3 z-50 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg hover:bg-gray-50 transition-colors"
@@ -194,10 +214,14 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onSuccess 
           <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
         </button>
 
+        {/* Title */}
         <h2 className="text-xl font-bold text-gray-900 mb-6">Add New Card</h2>
 
+        {/* Stripe Elements Provider — uses shared singleton from lib/stripe.ts
+            Elements stays mounted to keep Stripe iframe alive.
+            CardForm only mounts when visible to avoid premature API calls. */}
         <Elements stripe={stripePromise}>
-          <CardForm onSuccess={onSuccess} onClose={onClose} />
+          {isOpen && <CardForm onSuccess={onSuccess} onClose={onClose} />}
         </Elements>
       </div>
     </div>
