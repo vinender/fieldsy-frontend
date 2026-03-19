@@ -96,7 +96,7 @@ export function AboutSection() {
                 Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK—quickly and effortlessly.
               </p>
               <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
-                {`Whether your pup is reactive, in training, or just loves wide-open spaces, we&apos;re here to make your walks safer, calmer, and more joyful.`}
+                {`Whether your pup is reactive, in training, or just loves wide-open spaces, we are here to make your walks safer, calmer, and more joyful.`}
               </p>
 
               {/* Dog Profile Pictures */}

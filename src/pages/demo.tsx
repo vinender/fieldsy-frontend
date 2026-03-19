@@ -7,7 +7,7 @@ const NAVIGATION_ITEMS = [
   { label: 'About Us', href: '#', isActive: true },
   { label: 'Search Fields', href: '#', isActive: false },
   { label: 'How it works', href: '#', isActive: false },
-  { label: "FAQ's", href: '#', isActive: false },
+  { label: "FAQs", href: '#', isActive: false },
 ];
 
 const STATISTICS = [
@@ -60,7 +60,7 @@ const FOOTER_LINKS = {
     { label: 'Dog Owners', href: '#' },
   ],
   other: [
-    { label: "FAQ's", href: '#' },
+    { label: "FAQs", href: '#' },
     { label: 'Terms & Conditions', href: '#' },
     { label: 'Privacy Policy', href: '#' },
   ],

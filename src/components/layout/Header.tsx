@@ -70,7 +70,7 @@ export function Header() {
       { name: "About Us", href: "/about" },
       { name: "Search Fields", href: "/fields" },
       { name: "How it works", href: "/how-it-works" },
-      { name: "FAQ's", href: "/faqs" },
+      { name: "FAQs", href: "/faqs" },
     ]
 
     // During SSR or before mount, always return base navigation to prevent hydration mismatch
@@ -89,7 +89,7 @@ export function Header() {
         { name: "Home", href: "/" },
         { name: "About Us", href: "/about" },
         { name: "How It Works", href: "/how-it-works" },
-        { name: "FAQ's", href: "/faqs" },
+        { name: "FAQs", href: "/faqs" },
       ]
     }
 
@@ -99,7 +99,7 @@ export function Header() {
       { name: "About Us", href: "/about" },
       { name: "Search Fields", href: "/fields" },
       { name: "How it works", href: "/how-it-works" },
-      { name: "FAQ's", href: "/faqs" },
+      { name: "FAQs", href: "/faqs" },
     ]
   }, [currentUser, isAuthenticated, mounted])
 
