@@ -101,16 +101,21 @@ export function AboutSection() {
 
               {/* Dog Profile Pictures */}
                 <div className="flex justify-center">
-                  {dogIcons?.slice(0, 5).map((icon, index) => (
-                    <div
-                      key={index}
-                      className={`w-12 h-12 sm:w-16 sm:h-16 xl:w-18 xl:h-18 rounded-full overflow-hidden flex items-center justify-center relative ${
-                        index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-6' : ''
-                      }`}
-                    >
-                      <Image src={`/dog-${index}.png`} alt={`Dog ${index + 1}`} fill className="object-cover border-2 border-white rounded-full" />
-                    </div>
-                  ))}
+                {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full border-4 border-white overflow-hidden ${
+                    i !== 1 ? '-ml-3 sm:-ml-4' : ''
+                  }`}
+                >
+                  <img
+                  src={`dog-${i}.png`}
+                    // src="https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog1.webp"
+                    alt={`Dog ${i}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
                 </div>
 
             </div>
