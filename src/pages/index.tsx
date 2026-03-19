@@ -114,9 +114,9 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
     };
   }, [])
 
-  // Before mount or while session is loading — show a minimal spinner
-  // so neither dog owner landing page nor field owner dashboard flashes
-  if (!mounted || status === 'loading' || (status === 'authenticated' && !userRole)) {
+  // Before mount, while session loads, or while settings load — show a minimal spinner
+  // Prevents hero flash before coming-soon gate and field-owner dashboard flash
+  if (!mounted || status === 'loading' || settingsLoading || (status === 'authenticated' && !userRole)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-light-cream">
         <div className="w-10 h-10 border-4 border-green/30 border-t-green rounded-full animate-spin" />
