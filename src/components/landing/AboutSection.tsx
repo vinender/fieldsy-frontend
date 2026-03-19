@@ -108,7 +108,7 @@ export function AboutSection() {
                         index !== 0 ? '-ml-4 sm:-ml-6 xl:-ml-6' : ''
                       }`}
                     >
-                      <Image src={icon} alt={`Dog ${index + 1}`} fill className="object-cover border-2 border-white rounded-full" />
+                      <Image src={`/dog-${index}.png`} alt={`Dog ${index + 1}`} fill className="object-cover border-2 border-white rounded-full" />
                     </div>
                   ))}
                 </div>

@@ -42,7 +42,7 @@ export function Footer() {
           <div className="flex flex-col gap-6">
             <h3 className="text-light-green text-lg sm:text-xl xl:text-[24px] leading-8 sm:leading-10 lg:leading-[40px] font-semibold">Other Links</h3>
             <ul className="flex flex-col gap-4 text-sm sm:text-base lg:text-[18px] leading-6 sm:leading-8 lg:leading-[32px] font-normal">
-              <li><Link href="/faqs" className="text-white/80 hover:text-white transition-colors">FAQ&apos;s</Link></li>
+              <li><Link href="/faqs" className="text-white/80 hover:text-white transition-colors">FAQs</Link></li>
               <li><Link href="/terms-conditions" className="text-white/80 hover:text-white transition-colors">Terms & Conditions</Link></li>
               <li><Link href="/privacy-policy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link></li>
               <li>
