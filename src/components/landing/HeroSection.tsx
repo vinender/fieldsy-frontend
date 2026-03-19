@@ -7,8 +7,13 @@ interface HeroSectionProps {
   settings?: {
     bannerText?: string;
     highlightedText?: string;
+    heroBackgroundImage?: string;
   } | null;
 }
+
+// Static fallback images (used when no admin-uploaded image exists)
+const FALLBACK_LOW_RES = '/green-field.png';
+const FALLBACK_HIGH_RES = '/high-res.webp';
 
 export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
   const [lowResLoaded, setLowResLoaded] = useState(false);
@@ -20,23 +25,36 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
   const bannerText = settings?.bannerText || 'Find Safe, Private Dog Walking Fields';
   const highlightedText = settings?.highlightedText || 'Near You';
 
-  useEffect(() => {
-    // Preload the low-res image first so it appears all at once (not top-to-bottom)
-    const lowRes = new window.Image();
-    lowRes.src = '/green-field.png';
-    lowRes.onload = () => {
-      setLowResLoaded(true);
-    };
+  // Dynamic hero image from admin settings, with static fallback
+  const heroImage = settings?.heroBackgroundImage || '';
+  const hasCustomImage = !!heroImage;
 
-    // Preload the high-resolution image
-    const highRes = new window.Image();
-    highRes.src = '/high-res.webp';
-    highRes.onload = () => {
-      setTimeout(() => {
+  useEffect(() => {
+    if (hasCustomImage) {
+      // Admin-uploaded image: load it directly (single high-res image)
+      const img = new window.Image();
+      img.src = heroImage;
+      img.onload = () => {
+        setLowResLoaded(true);
         setHighResLoaded(true);
-      }, 100);
-    };
-  }, []);
+      };
+    } else {
+      // Fallback: two-stage loading with low-res placeholder
+      const lowRes = new window.Image();
+      lowRes.src = FALLBACK_LOW_RES;
+      lowRes.onload = () => {
+        setLowResLoaded(true);
+      };
+
+      const highRes = new window.Image();
+      highRes.src = FALLBACK_HIGH_RES;
+      highRes.onload = () => {
+        setTimeout(() => {
+          setHighResLoaded(true);
+        }, 100);
+      };
+    }
+  }, [hasCustomImage, heroImage]);
 
   const memoizedSearchInput = useMemo(() => (
     <FieldSearchInput
@@ -61,33 +79,33 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
         </div>
       )}
 
-      {/* Low-res Background Image (hidden until fully loaded to prevent progressive rendering) */}
+      {/* Low-res / Custom Background Image */}
       <div
         className={`absolute inset-0 z-0 transition-opacity duration-500 ${lowResLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          backgroundImage: lowResLoaded ? `url('/green-field.png')` : 'none',
+          backgroundImage: lowResLoaded ? `url('${hasCustomImage ? heroImage : FALLBACK_LOW_RES}')` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
         }}
       >
-        {/* Overlay for better text visibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
       </div>
 
-      {/* High-res Background Image (fades in when loaded) */}
-      <div 
-        className={`absolute inset-0 z-0 transition-opacity duration-700 ${highResLoaded ? 'opacity-100' : 'opacity-0'}`}
-        style={{
-          backgroundImage: `url('/high-res.webp')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        {/* Overlay for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
-      </div>
+      {/* High-res Background Image (fades in when loaded) — skipped for custom images */}
+      {!hasCustomImage && (
+        <div
+          className={`absolute inset-0 z-0 transition-opacity duration-700 ${highResLoaded ? 'opacity-100' : 'opacity-0'}`}
+          style={{
+            backgroundImage: `url('${FALLBACK_HIGH_RES}')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
+        </div>
+      )}
 
       {/* Hero Content Container */}
       <div className="relative z-10 min-h-screen  flex flex-col">

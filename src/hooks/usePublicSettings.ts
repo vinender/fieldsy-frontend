@@ -14,6 +14,7 @@ interface PublicSettings {
   hasAccess: boolean;
   bannerText?: string;
   highlightedText?: string;
+  heroBackgroundImage?: string;
   landownersSectionTitle?: string;
   landownersSectionDescription?: string;
   landownersSectionImage?: string;
