@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { GoogleMap, LoadScript, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 
 interface FieldMapProps {
   address: string;
@@ -64,6 +64,7 @@ export default function FieldMap({
   const [center, setCenter] = useState(defaultCenter);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showInfoWindow, setShowInfoWindow] = useState(false);
 
   // Get Google Maps API key from environment variable
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -168,10 +169,43 @@ export default function FieldMap({
         options={mapOptions}
       >
         {!isLoading && !error && (
-          <Marker
-            position={center}
-            title={fieldName}
-          />
+          <>
+            <Marker
+              position={center}
+              title={fieldName}
+              onClick={() => setShowInfoWindow(true)}
+            />
+            {showInfoWindow && (
+              <InfoWindow
+                position={center}
+                onCloseClick={() => setShowInfoWindow(false)}
+              >
+                <div style={{ padding: '4px 0', maxWidth: 220 }}>
+                  <p style={{ fontWeight: 600, fontSize: 14, margin: '0 0 4px' }}>{fieldName}</p>
+                  <p style={{ fontSize: 12, color: '#555', margin: '0 0 8px', lineHeight: 1.4 }}>
+                    {[address, city, zipCode].filter(Boolean).join(', ')}
+                  </p>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${center.lat},${center.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-block',
+                      padding: '6px 14px',
+                      backgroundColor: '#2563eb',
+                      color: '#fff',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Get Directions
+                  </a>
+                </div>
+              </InfoWindow>
+            )}
+          </>
         )}
       </GoogleMap>
       
