@@ -42,6 +42,15 @@ export function Header() {
   // Prevent hydration errors by only rendering auth-dependent content after mount
   useEffect(() => {
     setMounted(true)
+
+    // Handle Chrome bfcache — re-check session when page is restored from cache
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
   }, [])
 
   useEffect(() => {
@@ -186,8 +195,9 @@ export function Header() {
           
           {/* Right side items */}
           <div className="hidden xl:flex xl:items-center xl:space-x-4">
-            {!mounted ? (
-              // Show skeleton/placeholder during SSR to prevent hydration mismatch
+            {(!mounted || isLoading) ? (
+              // Show skeleton during SSR, hydration, or while session is loading
+              // This prevents flash of Login/Sign Up buttons on page refresh
               <>
                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
@@ -266,17 +276,26 @@ export function Header() {
                     }}
                     isOpen={profileDropdownOpen}
                     onClose={() => setProfileDropdownOpen(false)}
-                    onLogout={() => {
+                    onLogout={async () => {
                       // Clear all localStorage items
                       localStorage.removeItem('authToken');
                       localStorage.removeItem('currentUser');
                       localStorage.removeItem('pendingUserRole');
+                      localStorage.removeItem('token');
                       sessionStorage.clear();
-                      
-                      // Sign out and redirect to home page
-                      signOut({ 
+
+                      // Clear auth cookies manually to prevent stale session on reload
+                      document.cookie.split(';').forEach(c => {
+                        const name = c.split('=')[0].trim();
+                        if (name.startsWith('next-auth') || name.startsWith('__Secure-next-auth')) {
+                          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+                        }
+                      });
+
+                      // Sign out — await to ensure session is fully cleared before redirect
+                      await signOut({
                         callbackUrl: "/",
-                        redirect: true 
+                        redirect: true
                       });
                     }}
                   />
@@ -304,8 +323,8 @@ export function Header() {
           
           {/* Mobile and tablet menu items */}
           <div className="flex items-center gap-2 xl:hidden">
-            {!mounted ? (
-              // Show skeleton/placeholder during SSR to prevent hydration mismatch
+            {(!mounted || isLoading) ? (
+              // Show skeleton during SSR, hydration, or while session is loading
               <>
                 <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
                 <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
@@ -534,7 +553,7 @@ export function Header() {
             </div>
 
             <div className="flex-shrink-0 border-t border-gray-200">
-              {mounted && isAuthenticated ? (
+              {mounted && !isLoading && isAuthenticated ? (
                 <div className="space-y-1">
                   {/* User profile section */}
                   <div className="flex items-center p-4">
