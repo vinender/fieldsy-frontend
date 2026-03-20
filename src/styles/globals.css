@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Maps InfoWindow — remove default padding and hide built-in close button */
+.gm-style-iw-c {
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+}
+.gm-style-iw-d {
+  overflow: visible !important;
+  max-height: none !important;
+}
+.gm-style-iw-c {
+  overflow: visible !important;
+}
+/* Hide the default Google Maps close button since we have our own */
+.gm-style-iw-c button.gm-ui-hover-effect {
+  display: none !important;
+}
+/* Keep the bottom triangle pointer */
+
 /* Sonner Toast Styles — macOS Notification Center behavior */
 [data-sonner-toaster] {
   position: fixed !important;

@@ -179,10 +179,35 @@ export default function FieldMap({
               <InfoWindow
                 position={center}
                 onCloseClick={() => setShowInfoWindow(false)}
+                options={{ pixelOffset: new window.google.maps.Size(-12, -30) }}
               >
-                <div style={{ padding: '4px 0', maxWidth: 220 }}>
-                  <p style={{ fontWeight: 600, fontSize: 14, margin: '0 0 4px' }}>{fieldName}</p>
-                  <p style={{ fontSize: 12, color: '#555', margin: '0 0 8px', lineHeight: 1.4 }}>
+                <div style={{ minWidth: 260, minHeight: 120, padding: '16px 0', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", overflow: 'visible', position: 'relative' }}>
+                  <button
+                    onClick={() => setShowInfoWindow(false)}
+                    style={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -8,
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      border: 'none',
+                      backgroundColor: '#f3f4f6',
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      lineHeight: 1,
+                      padding: 0,
+                      zIndex: 2147483647,
+                    }}
+                  >
+                    ✕
+                  </button>
+                  <p style={{ fontSize: 14, color: '#4b5563', margin: '0 0 14px', lineHeight: 1.5, fontWeight: 400 }}>
                     {[address, city, zipCode].filter(Boolean).join(', ')}
                   </p>
                   <a
@@ -190,16 +215,20 @@ export default function FieldMap({
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      display: 'inline-block',
-                      padding: '6px 14px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 18px',
                       backgroundColor: '#2563eb',
                       color: '#fff',
-                      borderRadius: 6,
-                      fontSize: 13,
-                      fontWeight: 500,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontWeight: 600,
                       textDecoration: 'none',
+                      letterSpacing: '0.01em',
                     }}
                   >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
                     Get Directions
                   </a>
                 </div>

@@ -28,7 +28,9 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
   // Dynamic hero image from admin settings, with static fallback
   const heroImage = settings?.heroBackgroundImage || '';
   const hasCustomImage = !!heroImage;
+  console.log("hero image", heroImage);
 
+  
   useEffect(() => {
     if (hasCustomImage) {
       // Admin-uploaded image: load it directly (single high-res image)
