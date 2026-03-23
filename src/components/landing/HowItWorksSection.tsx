@@ -21,32 +21,32 @@ const DEFAULT_STEPS = [
   {
     icon: `${S3_DEFAULTS}/how-it-works/field.svg`,
     title: "Find Fields Near You",
-    description: "Easily find trusted, private dog walking fields near you using GPS or postcode search. No more crowded parks—just peaceful, secure spaces tailored for your dog's freedom.",
+    description: "Search by postcode or GPS to discover private, enclosed dog walking fields close to home. No crowded parks -- just peaceful, secure spaces.",
     image: `${process.env.NEXT_PUBLIC_S3_BASE_URL}/videos/dog.mp4`,
     thumbnail: "/how-it-works/dog.webp"
   },
   {
     icon: `${S3_DEFAULTS}/how-it-works/icon2.svg`,
-    title: "Select a Time Slots",
-    description: "Choose from available time slots that work for your schedule.",
+    title: "Pick a Time & Book",
+    description: "Choose an available slot that fits your schedule. Book by the hour and enjoy your session without interruptions or overlapping visitors.",
     image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=600&fit=crop"
   },
   {
     icon: `${S3_DEFAULTS}/how-it-works/icon3.svg`,
-    title: "Check Field Details",
-    description: "Review field information, amenities, and safety features.",
+    title: "Review Field Details",
+    description: "Check fencing, size, terrain, water access, parking, photos, and host notes so you know exactly what to expect.",
     image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=600&fit=crop"
   },
   {
     icon: `${S3_DEFAULTS}/how-it-works/icon4.svg`,
-    title: "Confirm & Pay Securely",
-    description: "Complete your booking with secure payment processing.",
+    title: "Pay Securely Online",
+    description: "Complete your booking with encrypted payment through Stripe. You will receive instant confirmation by email and in-app.",
     image: "https://images.unsplash.com/photo-1581888227599-779811939961?w=800&h=600&fit=crop"
   },
   {
     icon: `${S3_DEFAULTS}/how-it-works/icon5.svg`,
     title: "Enjoy Off-Lead Freedom",
-    description: "Let your dog run, play, and explore in a safe environment.",
+    description: "Arrive, let your dog off the lead, and relax. The entire field is yours for the duration of your booking.",
     image: "https://images.unsplash.com/photo-1601758124096-1fd661873b95?w=800&h=600&fit=crop"
   }
 ]

@@ -16,14 +16,14 @@ interface AboutWhatWeDoSectionProps {
 export function AboutWhatWeDoSection({ data, loading }: AboutWhatWeDoSectionProps) {
   // Use data from API or fallback to hardcoded values
   const title = data?.title || 'What We Do'
-  const description = data?.description || "At Fieldsy, we empower field teams and property managers with the tools they need to work smarter—not harder. Our platform is designed to bring structure, visibility, and control to on-ground operations across real estate, infrastructure, land surveying, and more."
+  const description = data?.description || "Fieldsy brings dog owners and landowners together on one simple platform. Dog owners browse and book secure, private fields. Landowners list their land and earn income. Everyone benefits -- especially the dogs."
   const features = data?.features?.length ? data.features : [
-    { title: 'Browse Fields', description: 'Explore our growing list of private, secure dog walking fields across the UK', order: 1 },
-    { title: 'Book Instantly', description: 'Reserve your slot with just a few clicks - no waiting, no hassle', order: 2 },
-    { title: 'Enjoy Peace of Mind', description: 'Let your dog run free in a safe, enclosed environment', order: 3 },
-    { title: 'List Your Field', description: 'Turn your unused land into a source of income', order: 4 },
-    { title: 'Set Your Schedule', description: 'Control when your field is available for bookings', order: 5 },
-    { title: 'Get Paid Automatically', description: 'Receive secure payouts to your bank after each booking is processed via Stripe', order: 6 }
+    { title: 'Browse Fields Near You', description: 'Explore a growing network of private, secure dog walking fields across the UK. Filter by size, amenities, and distance.', order: 1 },
+    { title: 'Book Instantly', description: 'Reserve your time slot in a few taps -- no waiting, no back-and-forth with the host.', order: 2 },
+    { title: 'Enjoy Peace of Mind', description: 'Let your dog run free in a fully enclosed, verified space. No unexpected dogs, no distractions.', order: 3 },
+    { title: 'List Your Land', description: 'Turn unused or underused land into a steady source of income by hosting dog owners.', order: 4 },
+    { title: 'Set Your Own Schedule', description: 'Control exactly when your field is available. Block dates, set opening hours, adjust as you go.', order: 5 },
+    { title: 'Get Paid Automatically', description: 'Receive secure payouts directly to your bank account after each completed booking. Powered by Stripe.', order: 6 }
   ]
 
   return (

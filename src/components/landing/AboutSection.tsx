@@ -93,7 +93,7 @@ export function AboutSection() {
             {/* Middle Block - Text with Dog Icons */}
             <div className="bg-white rounded-2xl sm:rounded-[32px] flex flex-col justify-evenly p-4 sm:p-6 xl:p-8 shadow-xl flex-1 xl:min-w-[280px]">
               <p className="text-dark-green font-[600] text-sm sm:text-base xl:text-[18px] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 xl:mb-6">
-                Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK—quickly and effortlessly.
+                Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK -- quickly and effortlessly.
               </p>
               <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
                 {`Whether your pup is reactive, in training, or just loves wide-open spaces, we are here to make your walks safer, calmer, and more joyful.`}
@@ -136,7 +136,7 @@ export function AboutSection() {
                   Trusted by thousands of dog lovers
                 </h3>
                 <p className="text-sm sm:text-base xl:text-[18px] text-center leading-[22px] sm:leading-[26px] xl:leading-[30px] text-dark-green/70">
-                  Backed by real reviews, easy bookings, and growing across hundreds of secure fields.
+                  Backed by real reviews, easy bookings, and a growing network of secure fields across the country.
                 </p>
               </div>
             </div>
@@ -151,25 +151,25 @@ export function AboutSection() {
             <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={500} suffix="+" duration={2000} />
             </div>
-            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Early Access Signups</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Dog Owners Signed Up</div>
           </div>
           <div className="text-center border-r-0 md:border-r border-dark-green/20 pr-0 xl:pr-8">
             <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={200} suffix="+" duration={2000} />
             </div>
-            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Private Fields Being Onboarded</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Private Fields Listed</div>
           </div>
           <div className="text-center border-r border-dark-green/20 pr-4 sm:pr-6 xl:pr-8">
             <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={50} suffix="+" duration={1500} />
             </div>
-            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Cities Covered Across the UK</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Towns & Cities Across the UK</div>
           </div>
           <div className="text-center">
             <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] leading-tight sm:leading-[50px] md:leading-[60px] xl:leading-[76px] font-[400] text-dark-green">
               <AnimatedCounter end={100} suffix="%" duration={1800} />
             </div>
-            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Safe, Secure & Fenced Spaces</div>
+            <div className="text-dark-green/70 text-xs sm:text-sm xl:text-[18px] font-[400] mt-1 sm:mt-2">Secure, Fenced Spaces</div>
           </div>
         </div> 
         

@@ -14,7 +14,7 @@ export function ForDogOwnersSection() {
         onClick={()=>router.push('/fields')}
         className="px-[60px]  py-[10px] rounded-full text-white font-[600] bg-green hover:bg-light-green transition-colors"
         >
-          Find & Book Field
+          Find & Book a Field
         </button>
       </div>
       
@@ -30,7 +30,7 @@ export function ForDogOwnersSection() {
               Find Fields Near You
             </h3>
             <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-              Easily find trusted, private dog walking fields near you using GPS or postcode search. No more crowded parks—just peaceful, secure spaces tailored for your dog's freedom.
+              Search by postcode or use GPS to discover private, enclosed dog walking fields close to home. Filter by size, price, or amenities to find your perfect match.
             </p>
           </div>
         </div>
@@ -42,10 +42,10 @@ export function ForDogOwnersSection() {
           </div>
           <div> 
             <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
-              Select a Time Slot
+              Pick a Time Slot
             </h3>
             <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-              Choose a convenient time that fits your routine. Book by the hour and enjoy peaceful, scheduled visits without interruptions or overlapping users.
+              Choose a convenient slot that fits your routine. Book by the hour and enjoy peaceful, scheduled visits with no interruptions or overlapping bookings.
             </p>
           </div>
         </div>
@@ -57,10 +57,10 @@ export function ForDogOwnersSection() {
           </div>
           <div> 
             <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
-              Check Field Details
+              Review Field Details
             </h3>
             <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-              View detailed information including fencing, field size, terrain, water access, parking, photos, and more to ensure a perfect visit for your dog.
+              Check fencing type, field size, terrain, water access, parking, photos, and host notes to make sure the field is right for you and your dog.
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export function ForDogOwnersSection() {
               Confirm & Pay Securely
             </h3>
             <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-              Complete your booking using our trusted, encrypted payment system. You'll receive instant confirmation and peace of mind for every visit.
+              Complete your booking with secure, encrypted payment via Stripe. You will receive instant confirmation by email and push notification.
             </p>
           </div>
         </div>
@@ -90,7 +90,7 @@ export function ForDogOwnersSection() {
               Enjoy Off-Lead Freedom
             </h3>
             <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-              Let your dog run, sniff, and explore in complete privacy. Safe, enclosed fields provide the perfect space for worry-free off-lead adventures.
+              Arrive at your booked time, let your dog off the lead, and relax. The entire field is exclusively yours for the duration of your session.
             </p>
           </div>
         </div>

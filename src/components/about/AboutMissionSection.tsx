@@ -11,7 +11,7 @@ interface AboutMissionSectionProps {
 export function AboutMissionSection({ data, loading }: AboutMissionSectionProps) {
   // Use data from API or fallback to hardcoded values
   const title = data?.title || 'Our Mission'
-  const description = data?.description || "At Fieldsy, we're on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces."
+  const description = data?.description || "At Fieldsy, we are on a mission to give every dog the freedom to explore off-lead -- safely. We connect dog owners with private, fully enclosed fields across the UK, making it simple to find, book, and enjoy peaceful walks away from busy parks, unpredictable dogs, and crowded spaces. Because every dog deserves room to run, and every owner deserves peace of mind."
 
   return (
     <div className="relative pt-20 pb-10 px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px]">
@@ -33,8 +33,8 @@ export function AboutMissionSection({ data, loading }: AboutMissionSectionProps)
           <p className="text-base sm:text-lg  md:text-2xl lg:text-[32px] text-center text-dark-green/80 leading-relaxed sm:leading-[1.6] md:leading-[1.5] lg:leading-[46px] font-[400]"
              dangerouslySetInnerHTML={{
                __html: description.replace(
-                 'every dog can enjoy off-lead freedom',
-                 '<span class="font-[600] text-green">every dog can enjoy off-lead freedom</span>'
+                 'every dog the freedom to explore off-lead -- safely',
+                 '<span class="font-[600] text-green">every dog the freedom to explore off-lead -- safely</span>'
                )
              }}
           />

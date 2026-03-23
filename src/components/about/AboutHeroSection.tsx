@@ -87,15 +87,15 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   // Default data for fallback
   const defaultData = {
     sectionTitle: 'About Us',
-    mainTitle: 'All-in-One Platform for Smarter Field Operations',
-    description: 'Fieldsy brings every aspect of field operations into a single, easy-to-use platform. From property claims and terrain tracking to team coordination and document management—we help you digitize, streamline, and scale your fieldwork with confidence. No more juggling spreadsheets, paperwork, or disconnected tools. With Fieldsy, everything you need is at your fingertips, wherever the field takes you.',
-    buttonText: 'Download App',
+    mainTitle: 'Safe, Private Fields Where Every Dog Can Run Free',
+    description: 'Fieldsy is the UK\'s marketplace for private dog walking fields. We connect dog owners who need secure, enclosed spaces with landowners who have the land to offer. Whether your dog is reactive, in training, or simply loves to sprint -- Fieldsy makes it easy to find, book, and enjoy a peaceful off-lead session near you.',
+    buttonText: 'Download the App',
     image: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
     stats: [
-      { value: '500+', label: 'Early Access Signups', order: 1 },
-      { value: '200+', label: 'Private Fields Being Onboarded', order: 2 },
-      { value: '50+', label: 'Cities Covered Across the UK', order: 3 },
-      { value: '100%', label: 'Safe, Secure & Fenced Spaces', order: 4 }
+      { value: '500+', label: 'Dog Owners Signed Up', order: 1 },
+      { value: '200+', label: 'Private Fields Listed', order: 2 },
+      { value: '50+', label: 'Towns & Cities Across the UK', order: 3 },
+      { value: '100%', label: 'Secure, Fenced Spaces', order: 4 }
     ]
   }
 
@@ -223,7 +223,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
           return (
             <div className="mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-dark-green/20 text-center">
               <p className="text-lg sm:text-xl lg:text-2xl text-dark-green font-[600] leading-relaxed">
-                Growing network of verified fields across the UK
+                Growing network of verified, private dog fields across the UK
               </p>
             </div>
           );

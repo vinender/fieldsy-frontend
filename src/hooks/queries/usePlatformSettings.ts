@@ -53,22 +53,22 @@ export function usePlatformSettings() {
   const platformSettings: PlatformSettings = {
     platformTitle: query.data?.data?.platformTitle || "One Platform, Two Tail-Wagging Experiences",
     platformDogOwnersImage: query.data?.data?.platformDogOwnersImage || "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img1.webp",
-    platformDogOwnersSubtitle: query.data?.data?.platformDogOwnersSubtitle || "For Dog Owners:",
+    platformDogOwnersSubtitle: query.data?.data?.platformDogOwnersSubtitle || "For Dog Owners",
     platformDogOwnersTitle: query.data?.data?.platformDogOwnersTitle || "Find & Book Private Dog Walking Fields in Seconds",
     platformDogOwnersBullets: query.data?.data?.platformDogOwnersBullets || [
       "Stress-free walks for reactive or energetic dogs",
-      "Fully fenced, secure spaces",
-      "GPS-powered search",
-      "Instant hourly bookings"
+      "Fully fenced, secure spaces -- yours alone during your booking",
+      "GPS-powered search to find fields near you",
+      "Instant hourly bookings with no back-and-forth"
     ],
     platformFieldOwnersImage: query.data?.data?.platformFieldOwnersImage || "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img2.webp",
-    platformFieldOwnersSubtitle: query.data?.data?.platformFieldOwnersSubtitle || "For Field Owners:",
-    platformFieldOwnersTitle: query.data?.data?.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
+    platformFieldOwnersSubtitle: query.data?.data?.platformFieldOwnersSubtitle || "For Field Owners",
+    platformFieldOwnersTitle: query.data?.data?.platformFieldOwnersTitle || "Turn Your Land into a Dog's Favourite Place -- and Earn",
     platformFieldOwnersBullets: query.data?.data?.platformFieldOwnersBullets || [
-      "Earn passive income while helping pets",
-      "Host dog owners with full control",
-      "Set your availability and pricing",
-      "List your field for free"
+      "Earn recurring income while helping dogs and their owners",
+      "Host on your terms with full control over availability",
+      "Set your own pricing -- adjust any time",
+      "List your field for free, no upfront costs"
     ],
   };
 

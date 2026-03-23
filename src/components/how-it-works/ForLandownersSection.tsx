@@ -9,7 +9,7 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
   const { data: settings } = usePublicSettings();
 
   const sectionTitle = settings?.landownersSectionTitle || 'How Fieldsy Works for Landowners'
-  const sectionDescription = settings?.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible."
+  const sectionDescription = settings?.landownersSectionDescription || "List or claim your field, set your schedule, and start earning -- it is simple, secure, and flexible."
   const sectionImage = settings?.landownersSectionImage || '/how-it-works/dog.png'
 
   return (
@@ -43,10 +43,10 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
                   </div>
                   <div className="">
                     <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">
-                      Claim If Already Registered Your Land?
+                      Claim Your Existing Listing
                     </h3>
                     <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-                      Claim your field listing to access your dashboard, manage availability, update field details, respond to dog owners, and start earning securely with Fieldsy.
+                      If your land is already listed on Fieldsy, claim it to access your host dashboard. From there you can manage availability, update field details, respond to dog owners, and start earning.
                     </p>
                   </div>
                 </div>
@@ -59,10 +59,10 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
                   </div>
                   <div>
                     <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">
-                      New to Fieldsy?
+                      List Your Land for Free
                     </h3>
                     <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-                      Sign up for free to list your land, control your availability, set pricing, and manage all bookings directly from your easy-to-use dashboard.
+                      Sign up, add your field details and photos, set your pricing and availability, and start receiving bookings. Everything is managed from your easy-to-use host dashboard.
                     </p>
                   </div>
                 </div>

@@ -25,11 +25,11 @@ export function AboutWhoWeAreSection({ data, loading }: AboutWhoWeAreSectionProp
   const imgRef = useRef<HTMLImageElement>(null);
 
   const title = data?.title || 'Who We Are'
-  const description = data?.description || "We're a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we've built Fieldsy to give every dog the freedom they deserve."
+  const description = data?.description || "We are a small, passionate team of dog lovers, developers, and outdoor enthusiasts based in the UK. We built Fieldsy because we know first-hand how hard it can be to find a safe, enclosed space for reactive, nervous, or high-energy dogs. Our combined love for technology and animals drives everything we do -- and we will not stop until every dog owner in the UK has a private field within easy reach."
   const mainImage = data?.mainImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp'
   const rightCardImage = data?.rightCardImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp'
   const rightCardTitle = data?.rightCardTitle || 'Loved by Paws and People Alike'
-  const rightCardDescription = data?.rightCardDescription || 'From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.'
+  const rightCardDescription = data?.rightCardDescription || 'From tail wags to five-star reviews -- Fieldsy is the trusted platform where dog owners discover, book, and enjoy safe outdoor spaces with confidence.'
 
   // >= 1700px: lock row height to middle image's natural aspect ratio
   // < 1700px: let flexbox items-stretch handle equal heights
