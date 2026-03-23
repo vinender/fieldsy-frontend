@@ -252,7 +252,7 @@ export function LoginForm() {
               >
                 <Image src="/login/google.png" alt="Google" width={48} height={48} className={`object-contain ${isGoogleLoading ? 'opacity-50' : ''}`} />
               </button>
-              <span className="text-center flex-1">Login with</span>
+              <span className="text-center flex-1">Continue with</span>
               <button
                 type="button"
                 className="w-14 h-14 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity relative"
@@ -266,6 +266,11 @@ export function LoginForm() {
               </button>
             </div>
           </div>
+
+          {/* Reassurance text */}
+          <p className="text-center text-xs text-gray-500 mt-2">
+            Your data is secure. We never share your information or send spam.
+          </p>
 
         {/* Divider */}
         <div className="flex items-center my-8">

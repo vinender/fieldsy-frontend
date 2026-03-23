@@ -189,26 +189,45 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
 
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-dark-green/20">
-          {sortedStats.map((stat, index) => {
-            const { number, suffix } = parseStatValue(stat.value);
+        {/* Stats - only show if at least one stat has a meaningful value (> 0) */}
+        {(() => {
+          const hasMeaningfulStats = sortedStats.some((stat) => {
+            const { number } = parseStatValue(stat.value);
+            return number > 0;
+          });
+
+          if (hasMeaningfulStats) {
             return (
-              <div
-                key={index}
-                className={`text-center ${index < sortedStats.length - 1 ? 'border-r border-dark-green/20 pr-4 sm:pr-6 lg:pr-8' : ''
-                  } ${index === 1 ? 'border-r-0 md:border-r' : ''}`}
-              >
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] font-[400] text-dark-green mb-1 sm:mb-2 leading-tight xl:leading-[76px]">
-                  <AnimatedCounter end={number} suffix={suffix} duration={2000} />
-                </h3>
-                <p className="text-xs sm:text-sm lg:text-[18px] text-dark-green/80 font-[400]">
-                  {stat.label}
-                </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-dark-green/20">
+                {sortedStats.map((stat, index) => {
+                  const { number, suffix } = parseStatValue(stat.value);
+                  return (
+                    <div
+                      key={index}
+                      className={`text-center ${index < sortedStats.length - 1 ? 'border-r border-dark-green/20 pr-4 sm:pr-6 lg:pr-8' : ''
+                        } ${index === 1 ? 'border-r-0 md:border-r' : ''}`}
+                    >
+                      <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[68px] font-[400] text-dark-green mb-1 sm:mb-2 leading-tight xl:leading-[76px]">
+                        <AnimatedCounter end={number} suffix={suffix} duration={2000} />
+                      </h3>
+                      <p className="text-xs sm:text-sm lg:text-[18px] text-dark-green/80 font-[400]">
+                        {stat.label}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             );
-          })}
-        </div>
+          }
+
+          return (
+            <div className="mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-dark-green/20 text-center">
+              <p className="text-lg sm:text-xl lg:text-2xl text-dark-green font-[600] leading-relaxed">
+                Growing network of verified fields across the UK
+              </p>
+            </div>
+          );
+        })()}
 
       </div>
     </section>

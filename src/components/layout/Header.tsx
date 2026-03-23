@@ -650,24 +650,28 @@ export function Header() {
             </div>
           </div>
       </div>
-      <NotificationsSidebar isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+      {isAuthenticated && (
+        <NotificationsSidebar isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+      )}
       
-      {/* Logout Confirmation Modal */}
-      <LogoutConfirmationModal
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={() => {
-          setShowLogoutModal(false)
-          setMobileMenuOpen(false)
-          // Clear localStorage items
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('currentUser');
-          localStorage.removeItem('pendingUserRole');
-          sessionStorage.clear();
-          // Sign out
-          signOut({ callbackUrl: "/" })
-        }}
-      />
+      {/* Logout Confirmation Modal - only render when authenticated */}
+      {isAuthenticated && (
+        <LogoutConfirmationModal
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={() => {
+            setShowLogoutModal(false)
+            setMobileMenuOpen(false)
+            // Clear localStorage items
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('pendingUserRole');
+            sessionStorage.clear();
+            // Sign out
+            signOut({ callbackUrl: "/" })
+          }}
+        />
+      )}
     </header>
   )
 }

@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { Search } from "lucide-react"
-import { Header } from "@/components/layout/Header"
 import { Input } from "@/components/ui/input"
 import { FAQPageList } from "@/components/common/FAQPageList"
 import { ContactSupportModal } from "@/components/modal/ContactSupportModal"
@@ -29,7 +28,6 @@ export default function FAQPage() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-cream/10 overflow-x-hidden pt-24">
         <div className="px-4  sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20">
           <div className="w-full">

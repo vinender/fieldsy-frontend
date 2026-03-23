@@ -60,7 +60,7 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
 
   const memoizedSearchInput = useMemo(() => (
     <FieldSearchInput
-      placeholder="Enter postcode or location"
+      placeholder="Enter your postcode"
       className="w-full pl-4 lg:pr-48 sm:pr-72 py-3 sm:py-4 bg-white border border-gray-200 rounded-[90px] focus:outline-none focus:ring-1 focus:ring-fieldsy-green focus:border-transparent"
       showRecentSearches={true}
     />

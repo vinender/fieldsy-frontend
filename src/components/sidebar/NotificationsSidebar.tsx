@@ -369,7 +369,12 @@ export default function NotificationsSidebar({ isOpen: isOpenProp, onClose }: No
             // Prevent scroll from propagating to the body
             e.stopPropagation();
           }}>
-          {!isMounted || loading ? (
+          {!session ? (
+            <div className="text-center mt-10">
+              <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600">Please log in to view notifications</p>
+            </div>
+          ) : !isMounted || loading ? (
             <div className="text-center text-gray-600 mt-10">Loading notifications...</div>
           ) : notifications?.length === 0 ? (
             <div className="text-center mt-10">

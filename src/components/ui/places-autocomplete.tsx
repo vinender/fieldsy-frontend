@@ -17,7 +17,7 @@ interface PlacesAutocompleteProps {
 
 export function PlacesAutocomplete({
   onPlaceSelect,
-  placeholder = "Enter postcode or location",
+  placeholder = "Enter your postcode",
   className = "",
   defaultValue = "",
   onLocationSearch,
@@ -114,7 +114,7 @@ export function PlacesAutocomplete({
             onClick={handleUseMyLocation}
           >
             <MapPin className="w-4 h-4" />
-            <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">Use My Location</span>
+            <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">Use my location</span>
           </button>
           <div className="h-6 w-px bg-gray-300"></div>
           <button 
@@ -169,7 +169,7 @@ export function PlacesAutocomplete({
           onClick={handleUseMyLocation}
         >
           <MapPin className="w-4 h-4" />
-          <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">Use My Location</span>
+          <span className="text-xs sm:text-sm whitespace-nowrap hidden md:inline">Use my location</span>
         </button>
         <div className="h-6 w-px bg-gray-300"></div>
         <button 

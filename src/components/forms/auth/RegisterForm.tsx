@@ -265,7 +265,7 @@ export default function RegisterForm() {
               >
                 <Image src="/login/google.png" alt="Google" width={40} height={40} className={`w-10 h-10 object-contain ${isGoogleLoading || registerWithOtpMutation.isLoading ? 'opacity-50' : ''}`} />
               </button>
-              <span className="text-center flex-1 text-sm">Sign up with</span>
+              <span className="text-center flex-1 text-sm">Continue with</span>
               <button
                 type="button"
                 className="w-12 h-12 rounded-full bg-green flex items-center justify-center hover:opacity-90 transition-opacity disabled:cursor-not-allowed"
@@ -329,6 +329,18 @@ export default function RegisterForm() {
                   /> Field Owner
                 </button>
               </div>
+              {/* Role helper text */}
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                {selectedRole === "DOG_OWNER"
+                  ? "Find and book secure, private dog walking fields"
+                  : "List your land and start earning income"}
+              </p>
+              {/* Host onboarding copy for Field Owner */}
+              {selectedRole === "FIELD_OWNER" && (
+                <p className="text-xs text-green mt-1 text-center">
+                  After sign-up, we'll guide you through listing your field, verification, and setup.
+                </p>
+              )}
             </div>
 
             {/* Full Name */}

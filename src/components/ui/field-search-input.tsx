@@ -36,7 +36,7 @@ interface FieldSuggestion {
 
 
 function FieldSearchInputComponent({
-  placeholder = "Search by field name, location, or postal code",
+  placeholder = "Enter your postcode",
   className = "",
   onSearch,
   showRecentSearches = true
@@ -356,7 +356,7 @@ function FieldSearchInputComponent({
         >
           <MapPin className="w-4 h-4 text-green" />
           <span className="text-xs text-green underline font-[500] sm:text-sm whitespace-nowrap hidden md:inline">
-            {isLoadingLocation ? 'Getting location...' : 'Use My Location'}
+            {isLoadingLocation ? 'Getting location...' : 'Find fields near me'}
           </span>
         </button>
         {/* <div className="h-6 w-px bg-gray-300"></div> */}
