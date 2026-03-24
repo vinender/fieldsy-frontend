@@ -231,7 +231,7 @@ export function Header() {
                     "p-2 rounded-full bg-cream transition-colors relative",
                     !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "hover:bg-gray-100" 
-                      : "hover:bg-white/10"
+                      : ""
                   )}
                   aria-label="Notifications"
                   onClick={() => setNotificationsOpen(true)}
@@ -359,7 +359,7 @@ export function Header() {
                     "flex p-2 rounded-full bg-cream transition-colors relative",
                     !isLandingPage || scrolled || isFieldOwnerHomepage
                       ? "hover:bg-gray-100" 
-                      : "hover:bg-white/10"
+                      : ""
                   )}
                   aria-label="Notifications"
                   onClick={() => setNotificationsOpen(true)}
