@@ -31,7 +31,7 @@ export default function VerifyOTPPage() {
         } else if (role === 'FIELD_OWNER') {
           redirectPath = '/field-owner/my-fields';
         } else if (role === 'DOG_OWNER') {
-          redirectPath = '/user/my-bookings';
+          redirectPath = '/';
         }
 
         router.replace(redirectPath);

@@ -168,7 +168,7 @@ export async function middleware(request: NextRequest) {
             } else if (userRole === 'FIELD_OWNER') {
               redirectPath = '/field-owner/my-fields';
             } else if (userRole === 'DOG_OWNER') {
-              redirectPath = '/user/my-bookings';
+              redirectPath = '/';
             }
           }
         } else {
@@ -178,7 +178,7 @@ export async function middleware(request: NextRequest) {
           } else if (userRole === 'FIELD_OWNER') {
             redirectPath = '/field-owner/my-fields';
           } else if (userRole === 'DOG_OWNER') {
-            redirectPath = '/user/my-bookings';
+            redirectPath = '/';
           }
         }
       } catch (e) {
@@ -188,7 +188,7 @@ export async function middleware(request: NextRequest) {
         } else if (userRole === 'FIELD_OWNER') {
           redirectPath = '/field-owner/my-fields';
         } else if (userRole === 'DOG_OWNER') {
-          redirectPath = '/user/my-bookings';
+          redirectPath = '/';
         }
       }
     } else {
@@ -198,7 +198,7 @@ export async function middleware(request: NextRequest) {
       } else if (userRole === 'FIELD_OWNER') {
         redirectPath = '/field-owner/my-fields';
       } else if (userRole === 'DOG_OWNER') {
-        redirectPath = '/user/my-bookings';
+        redirectPath = '/';
       }
     }
 

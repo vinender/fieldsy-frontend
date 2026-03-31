@@ -91,7 +91,7 @@ export function LoginForm() {
           } else if (userRole === 'FIELD_OWNER') {
             redirectPath = '/field-owner/my-fields';
           } else if (userRole === 'DOG_OWNER') {
-            redirectPath = '/user/my-bookings';
+            redirectPath = '/';
           }
           router.push(redirectPath);
         }
