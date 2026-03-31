@@ -40,6 +40,10 @@ const PaymentPage = () => {
   const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<{ id: string; brand: string | null; last4: string } | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [fieldCredits, setFieldCredits] = useState<any>(null);
+  const [useCreditsMode, setUseCreditsMode] = useState(false);
+  const [processingCredit, setProcessingCredit] = useState(false);
+  const [activeDiscount, setActiveDiscount] = useState<number>(0); // percentage
 
   // 2. MEMOIZED DERIVED STATE
   const timeSlots: string[] = React.useMemo(() => {
@@ -83,7 +87,120 @@ const PaymentPage = () => {
     refetchCards();
   }, [refetchCards]);
 
+  // Handle booking with credits (no payment)
+  const handleBookWithCredits = async () => {
+    if (!fieldCredits?.bestCredit || !date || timeSlots.length === 0) return;
+    setProcessingCredit(true);
+    try {
+      let token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        const { getSession } = await import('next-auth/react');
+        const session = await getSession();
+        token = (session as any)?.accessToken || (session?.user as any)?.token || (session as any)?.token || null;
+      }
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${API_URL}/offers/use-credit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          slotCreditId: fieldCredits.bestCredit.id,
+          fieldId: field_id,
+          date,
+          timeSlots,
+          numberOfDogs,
+          duration: bookingDuration
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Booking confirmed! ${data.message}`);
+        router.push('/user/my-bookings');
+      } else {
+        toast.error(data.message || 'Failed to book with credits');
+      }
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setProcessingCredit(false);
+    }
+  };
+
   // 5. EFFECTS
+
+  // Check for available slot credits for this field (only when offers feature is enabled)
+  const offersEnabled = process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true';
+  useEffect(() => {
+    if (!field_id || !offersEnabled) return;
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+    const checkCredits = async () => {
+      // Try all token sources (same pattern as axios-client)
+      let token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        try {
+          const { getSession } = await import('next-auth/react');
+          const session = await getSession();
+          token = (session as any)?.accessToken || (session?.user as any)?.token || (session as any)?.token || null;
+        } catch {}
+      }
+      if (!token) {
+        console.log('[Payment] No auth token found for credits check');
+        return;
+      }
+
+      try {
+        console.log('[Payment] Checking credits for field:', field_id);
+        const res = await fetch(`${API_URL}/offers/credits/${field_id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        console.log('[Payment] Credits response status:', res.status);
+        const data = await res.json();
+        console.log('[Payment] Credits data:', JSON.stringify(data).substring(0, 200));
+        if (data.success && data.data?.hasCredits) {
+          setFieldCredits(data.data);
+          if (data.data.totalRemaining >= (timeSlots.length || 1)) {
+            setUseCreditsMode(true);
+          }
+        }
+      } catch (err) {
+        console.error('[Payment] Credits fetch error:', err);
+      }
+    };
+
+    checkCredits();
+  }, [field_id, timeSlots.length]);
+
+  // Check for active discounts on this field for the booking date
+  useEffect(() => {
+    if (!field_id || !date) return;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+    // Resolve field ObjectId from field_id if needed
+    const fieldIdForApi = field_id as string;
+    fetch(`${API_URL}/discounts/${fieldIdForApi}/active-discounts`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data?.length > 0) {
+          // Find discount that covers the booking date
+          const bookingDate = new Date(date as string);
+          const matchingDiscount = data.data.find((d: any) => {
+            const start = new Date(d.startDate);
+            const end = new Date(d.endDate);
+            return d.enabled && bookingDate >= start && bookingDate <= end;
+          });
+          if (matchingDiscount) {
+            setActiveDiscount(matchingDiscount.value);
+            console.log('[Payment] Active discount:', matchingDiscount.value + '%');
+          }
+        }
+      })
+      .catch(() => {});
+  }, [field_id, date]);
+
   useEffect(() => {
     if (dogsFromQuery && field?.maxDogs) {
       const requested = parseInt(dogsFromQuery as string);
@@ -111,9 +228,24 @@ const PaymentPage = () => {
       const period = match[3]?.toUpperCase();
       if (period === 'PM' && hour !== 12) hour += 12;
       if (period === 'AM' && hour === 12) hour = 0;
-      const bookingDate = new Date(date as string + 'T00:00:00');
-      bookingDate.setHours(hour, mins, 0, 0);
-      if (bookingDate.getTime() < getNowUK().getTime()) {
+      // Compare in UK timezone — getNowUK() returns current UK time as a Date
+      // Build the booking time using the same getNowUK approach (UK-relative comparison)
+      const nowUK = getNowUK();
+      // Get today's date parts in UK timezone for comparison
+      const bookingYear = parseInt((date as string).split('-')[0]);
+      const bookingMonth = parseInt((date as string).split('-')[1]) - 1;
+      const bookingDay = parseInt((date as string).split('-')[2]);
+      // Compare date + time numerically in UK context
+      const nowYear = nowUK.getFullYear();
+      const nowMonth = nowUK.getMonth();
+      const nowDay = nowUK.getDate();
+      const nowMinutes = nowUK.getHours() * 60 + nowUK.getMinutes();
+      const bookingMinutes = hour * 60 + mins;
+      const bookingIsPast = (bookingYear < nowYear) ||
+        (bookingYear === nowYear && bookingMonth < nowMonth) ||
+        (bookingYear === nowYear && bookingMonth === nowMonth && bookingDay < nowDay) ||
+        (bookingYear === nowYear && bookingMonth === nowMonth && bookingDay === nowDay && bookingMinutes < nowMinutes);
+      if (bookingIsPast) {
         toast.error('This booking time has passed. Please select a new time slot.');
         router.replace(`/fields/${field_id}`);
       }
@@ -165,7 +297,9 @@ const PaymentPage = () => {
   const isInitialLoading = isLoading && isLoadingCards;
   const pricePerDog = priceFromQuery ? parseFloat(priceFromQuery as string) : (field?.price30min || field?.price1hr || 0);
   const numberOfSlots = timeSlots.length || 1;
-  const total = pricePerDog * numberOfDogs * numberOfSlots;
+  const subtotal = pricePerDog * numberOfDogs * numberOfSlots;
+  const discountAmount = activeDiscount > 0 ? subtotal * (activeDiscount / 100) : 0;
+  const total = subtotal - discountAmount;
 
   // 6. EARLY RETURNS
   if (error || (!field && !isLoading)) {
@@ -595,11 +729,48 @@ const PaymentPage = () => {
                       </div>
 
                       {/* Subtotal calculation */}
-                      {numberOfSlots > 1 && (
+                      {(numberOfSlots > 1 || activeDiscount > 0) && (
                         <div className="flex justify-between text-sm sm:text-[16px]">
-                          <span className="text-[#192215] opacity-70">Subtotal ({numberOfDogs} dogs × {numberOfSlots} slots)</span>
-                          <span className="font-medium text-[#192215]">£{total.toFixed(2)}</span>
+                          <span className="text-[#192215] opacity-70">Subtotal ({numberOfDogs} dog{numberOfDogs > 1 ? 's' : ''} × {numberOfSlots} slot{numberOfSlots > 1 ? 's' : ''})</span>
+                          <span className="font-medium text-[#192215]">£{subtotal.toFixed(2)}</span>
                         </div>
+                      )}
+
+                      {/* Discount */}
+                      {activeDiscount > 0 && !useCreditsMode && (
+                        <div className="flex justify-between text-sm sm:text-[16px]">
+                          <span className="text-[#3A6B22] font-medium flex items-center gap-1.5">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            {activeDiscount}% off
+                          </span>
+                          <span className="font-medium text-[#3A6B22]">-£{discountAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+
+                      {/* Credits Applied */}
+                      {useCreditsMode && fieldCredits?.totalRemaining >= timeSlots.length && (
+                        <>
+                          <div className="h-px bg-[#E2E2E2]" />
+                          <div className="flex justify-between text-sm sm:text-[16px]">
+                            <span className="text-[#3A6B22] font-medium flex items-center gap-1.5">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                              </svg>
+                              Slot credits applied
+                            </span>
+                            <span className="font-medium text-[#3A6B22]">-{timeSlots.length} credit{timeSlots.length > 1 ? 's' : ''}</span>
+                          </div>
+                          <div className="flex justify-between text-sm sm:text-[16px]">
+                            <span className="text-[#192215] opacity-70">Credits remaining after</span>
+                            <span className="font-medium text-[#192215]">{fieldCredits.totalRemaining - timeSlots.length}</span>
+                          </div>
+                          <div className="flex justify-between text-sm sm:text-[16px]">
+                            <span className="text-[#192215] opacity-70">Discount</span>
+                            <span className="font-medium text-[#3A6B22]">-£{total.toFixed(2)}</span>
+                          </div>
+                        </>
                       )}
 
                       {/* Divider */}
@@ -608,11 +779,51 @@ const PaymentPage = () => {
                       {/* Total */}
                       <div className="flex justify-between font-bold">
                         <span className="text-sm sm:text-[16px] text-[#192215]">Total</span>
-                        <span className="text-base sm:text-[18px] text-[#3A6B22]">£{total.toFixed(2)}</span>
+                        {useCreditsMode && fieldCredits?.totalRemaining >= timeSlots.length ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-base sm:text-[18px] text-[#6D6D6D] line-through">£{total.toFixed(2)}</span>
+                            <span className="text-base sm:text-[18px] text-[#3A6B22]">Free</span>
+                          </div>
+                        ) : (
+                          <span className="text-base sm:text-[18px] text-[#3A6B22]">£{total.toFixed(2)}</span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Recurring Info and Pay Now Button */}
+                    {/* Credits Banner */}
+                    {fieldCredits?.hasCredits && (
+                      <div className={`flex items-center justify-between mt-4 p-3 rounded-xl border ${
+                        useCreditsMode ? 'bg-[#3A6B22]/10 border-[#3A6B22]' : 'bg-amber-50 border-amber-200'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <svg className={`w-5 h-5 ${useCreditsMode ? 'text-[#3A6B22]' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                          </svg>
+                          <div>
+                            <p className={`text-sm font-medium ${useCreditsMode ? 'text-[#3A6B22]' : 'text-amber-700'}`}>
+                              {fieldCredits.totalRemaining} slot credit{fieldCredits.totalRemaining > 1 ? 's' : ''} available
+                            </p>
+                            {fieldCredits.totalRemaining < timeSlots.length && (
+                              <p className="text-xs text-amber-600">Need {timeSlots.length} slots, only {fieldCredits.totalRemaining} credits left</p>
+                            )}
+                          </div>
+                        </div>
+                        {fieldCredits.totalRemaining >= timeSlots.length && (
+                          <button
+                            onClick={() => setUseCreditsMode(!useCreditsMode)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                              useCreditsMode
+                                ? 'bg-[#3A6B22] text-white'
+                                : 'bg-white border border-amber-300 text-amber-700 hover:bg-amber-100'
+                            }`}
+                          >
+                            {useCreditsMode ? 'Using Credits' : 'Use Credits'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Recurring Info and Pay/Book Button */}
                     {!showStripeCheckout ? (
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4 sm:mt-6">
                         {/* Recurring Booking Info */}
@@ -627,42 +838,45 @@ const PaymentPage = () => {
                           </div>
                         )}
 
-                        {/* Pay Now Button */}
-                        <button
-                          onClick={() => {
-                            // Case 1: No cards at all -> Prompt to add
-                            if (!paymentMethods || paymentMethods.length === 0) {
-                              setShowAddCardModal(true);
-                              return;
-                            }
-
-                            // Case 2: Cards exist but none selected -> Prompt to select
-                            if (!selectedCard) {
-                              toast.error('Please select a payment method to proceed');
-                              // Optionally scroll to card section here if needed
-                              return;
-                            }
-
-                            // Check slot availability before proceeding to payment
-                            if (availabilityData?.data?.slots && timeSlots.length > 0) {
-                              const allSlotsAvailable = timeSlots.every(selectedSlot => {
-                                const slot = availabilityData.data.slots.find((s: any) => s.time === selectedSlot);
-                                return slot && slot.isAvailable && !slot.isBooked;
-                              });
-
-                              if (!allSlotsAvailable) {
-                                toast.error('One or more selected time slots are no longer available');
-                                setSlotsUnavailable(true);
-                                setShowRefreshWarning(true);
+                        {/* Book with Credits OR Pay Now */}
+                        {useCreditsMode && fieldCredits?.totalRemaining >= timeSlots.length ? (
+                          <button
+                            onClick={handleBookWithCredits}
+                            disabled={processingCredit}
+                            className="w-full sm:w-64 h-12 sm:h-14 bg-[#3A6B22] text-white rounded-full font-bold text-sm sm:text-[16px] hover:bg-[#2D5A1B] transition-colors disabled:opacity-50"
+                          >
+                            {processingCredit ? 'Booking...' : `Book Now (${timeSlots.length} Credit${timeSlots.length > 1 ? 's' : ''})`}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              if (!paymentMethods || paymentMethods.length === 0) {
+                                setShowAddCardModal(true);
                                 return;
                               }
-                            }
-
-                            setShowStripeCheckout(true);
-                          }}
-                          className="w-full sm:w-64 h-12 sm:h-14 bg-[#3A6B22] text-white rounded-full font-bold text-sm sm:text-[16px] hover:bg-[#2D5A1B] transition-colors">
-                          Pay Now
-                        </button>
+                              if (!selectedCard) {
+                                toast.error('Please select a payment method to proceed');
+                                return;
+                              }
+                              if (availabilityData?.data?.slots && timeSlots.length > 0) {
+                                const allSlotsAvailable = timeSlots.every(selectedSlot => {
+                                  const slot = availabilityData.data.slots.find((s: any) => s.time === selectedSlot);
+                                  return slot && slot.isAvailable && !slot.isBooked;
+                                });
+                                if (!allSlotsAvailable) {
+                                  toast.error('One or more selected time slots are no longer available');
+                                  setSlotsUnavailable(true);
+                                  setShowRefreshWarning(true);
+                                  return;
+                                }
+                              }
+                              setShowStripeCheckout(true);
+                            }}
+                            className="w-full sm:w-64 h-12 sm:h-14 bg-[#3A6B22] text-white rounded-full font-bold text-sm sm:text-[16px] hover:bg-[#2D5A1B] transition-colors"
+                          >
+                            Pay Now
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="mt-4 sm:mt-6">

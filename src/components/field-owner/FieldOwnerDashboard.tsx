@@ -12,6 +12,7 @@ import FieldDetails from './forms/FieldDetails';
 import UploadImages from './forms/UploadImages';
 import PricingAvailability from './forms/PricingAvailability';
 import BookingRules from './forms/BookingRules';
+import OffersDiscounts from './forms/OffersDiscounts';
 
 // Sidebar Navigation Component - Use API data for completion status
 function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
@@ -24,6 +25,7 @@ function Sidebar({ activeSection, onSectionChange, fieldData, canNavigateTo }: {
     { id: 'field-details', label: 'Field Details', completed: fieldData?.fieldDetailsCompleted || false },
     { id: 'upload-images', label: 'Upload Images', completed: fieldData?.uploadImagesCompleted || false },
     { id: 'pricing-availability', label: 'Pricing & Availability', completed: fieldData?.pricingAvailabilityCompleted || false },
+    ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? [{ id: 'offers-discounts', label: 'Offers & Discounts', completed: fieldData?.offersDiscountsCompleted || false }] : []),
     { id: 'booking-rules', label: 'Booking Rules & Policies', completed: fieldData?.bookingRulesCompleted || false }
   ];
 
@@ -502,6 +504,10 @@ export default function FieldOwnerDashboard({
         }
         break;
 
+      case 'offers-discounts':
+        // Offers are optional, no required validation
+        break;
+
       case 'booking-rules':
         if (!formData.rules?.trim()) errors.rules = 'Please specify your booking rules';
         if (!formData.policies?.trim()) errors.policies = 'Please specify your cancellation policy';
@@ -516,7 +522,7 @@ export default function FieldOwnerDashboard({
   const canNavigateTo = (sectionId: string): boolean => {
     // In add new mode, enforce sequential completion
     if (isAddNewMode) {
-      const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+      const sections = ['field-details', 'upload-images', 'pricing-availability', ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? ['offers-discounts'] : []), 'booking-rules'];
       const targetIndex = sections.indexOf(sectionId);
 
       // Always allow first tab
@@ -538,7 +544,7 @@ export default function FieldOwnerDashboard({
       return true; // Allow editing any tab when field is fully submitted
     }
 
-    const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+    const sections = ['field-details', 'upload-images', 'pricing-availability', ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? ['offers-discounts'] : []), 'booking-rules'];
     const targetIndex = sections.indexOf(sectionId);
     const currentIndex = sections.indexOf(activeSection);
 
@@ -730,7 +736,7 @@ export default function FieldOwnerDashboard({
       return;
     }
 
-    const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+    const sections = ['field-details', 'upload-images', 'pricing-availability', ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? ['offers-discounts'] : []), 'booking-rules'];
     const currentIndex = sections.indexOf(activeSection);
     if (currentIndex > 0) {
       setActiveSection(sections[currentIndex - 1]);
@@ -738,7 +744,7 @@ export default function FieldOwnerDashboard({
   };
 
   const handleNext = (newFieldId?: string | null) => {
-    const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+    const sections = ['field-details', 'upload-images', 'pricing-availability', ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? ['offers-discounts'] : []), 'booking-rules'];
     const currentIndex = sections.indexOf(activeSection);
 
     // Use the new ID if provided (happens on first save), otherwise use existing state
@@ -818,7 +824,7 @@ export default function FieldOwnerDashboard({
 
     // Proceed with navigation
     if (pendingNavigation === 'back') {
-      const sections = ['field-details', 'upload-images', 'pricing-availability', 'booking-rules'];
+      const sections = ['field-details', 'upload-images', 'pricing-availability', ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? ['offers-discounts'] : []), 'booking-rules'];
       const currentIndex = sections.indexOf(activeSection);
       if (currentIndex > 0) {
         setActiveSection(sections[currentIndex - 1]);
@@ -843,6 +849,8 @@ export default function FieldOwnerDashboard({
         return <UploadImages formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
       case 'pricing-availability':
         return <PricingAvailability formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
+      case 'offers-discounts':
+        return <OffersDiscounts formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} onSkip={() => handleNext()} fieldId={fieldId || editFieldId} />;
       case 'booking-rules':
         return <BookingRules formData={formData} setFormData={handleFormDataChange} validationErrors={validationErrors} />;
       default:

@@ -13,6 +13,7 @@ import { useToggleFavorite, useFavoriteStatus } from '@/hooks/useFavorites';
 import BackButton from '@/components/common/BackButton';
 import { getAmenityIcon, getAmenityLabel } from '@/config/amenities.config';
 import OwnerInformation from '@/components/fields/OwnerInformation';
+import { OffersBanner } from '@/components/common/OffersBanner';
 import FieldLocation from '@/components/fields/FieldLocation';
 import { AmenityIcon, ICON_COLORS } from '@/components/ui/AmenityIcon';
 import { useFieldProperties } from '@/hooks/api/useFieldOptions';
@@ -52,10 +53,25 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
   const { data: isFavorited } = useFavoriteStatus(fieldId);
   const toggleFavoriteMutation = useToggleFavorite(fieldId);
   const [isLiked, setIsLiked] = useState(false);
+  const [activeDiscount, setActiveDiscount] = useState<number | null>(null);
 
   useEffect(() => {
     setIsLiked(isFavorited || false);
   }, [isFavorited]);
+
+  // Fetch active discounts
+  useEffect(() => {
+    if (!fieldId || isPreview) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    fetch(`${apiUrl}/discounts/${fieldId}/active-discounts`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.length > 0) {
+          setActiveDiscount(Math.max(...data.data.map((d: any) => d.value)));
+        }
+      })
+      .catch(() => {});
+  }, [fieldId, isPreview]);
 
   // Auto-scroll to reviews section if hash is #reviews
   useEffect(() => {
@@ -288,6 +304,12 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                         }}
                         aria-label={hasRealImages ? `Open image ${index + 1}` : `Placeholder image ${index + 1}`}
                       >
+                        {/* Discount badge on first image */}
+                        {index === 0 && activeDiscount && (
+                          <div className="absolute top-2 left-2 bg-black/85 text-white text-xs font-bold px-2.5 py-1 rounded-md z-10">
+                            {activeDiscount}% OFF
+                          </div>
+                        )}
                         {/* Skeleton loader */}
                         {!isImageLoaded && (
                           <Skeleton className="absolute inset-0 w-full h-full rounded-lg" />
@@ -508,6 +530,11 @@ export default function FieldDetailsLegacy({ field, isSubmitted = false, isPrevi
                   )}
                 </div>
               </div>
+
+              {/* Offers Section */}
+              {process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' && (
+                <OffersBanner fieldId={field?.id || field?._id} />
+              )}
 
               <div>
                 <h3 className="font-bold text-lg text-dark-green mb-3">Field Specifications</h3>

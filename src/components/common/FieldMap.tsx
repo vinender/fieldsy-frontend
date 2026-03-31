@@ -159,7 +159,7 @@ export default function FieldMap({
 
   return (
     <div 
-      className={`relative rounded-xl overflow-hidden ${className}`}
+      className={`field-detail-map relative rounded-xl overflow-hidden ${className}`}
       style={{ height }}
     >
       <GoogleMap
@@ -179,15 +179,15 @@ export default function FieldMap({
               <InfoWindow
                 position={center}
                 onCloseClick={() => setShowInfoWindow(false)}
-                options={{ pixelOffset: new window.google.maps.Size(-12, -30) }}
+                options={{ pixelOffset: new window.google.maps.Size(-12, -25) }}
               >
-                <div style={{ minWidth: 260, minHeight: 120, padding: '16px 0', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", overflow: 'visible', position: 'relative' }}>
+                <div style={{ minWidth: 340, padding: '14px 20px 14px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", overflow: 'hidden', position: 'relative' }}>
                   <button
                     onClick={() => setShowInfoWindow(false)}
                     style={{
                       position: 'absolute',
-                      top: -8,
-                      right: -8,
+                      top: 4,
+                      right: 4,
                       width: 24,
                       height: 24,
                       borderRadius: '50%',
@@ -207,30 +207,54 @@ export default function FieldMap({
                   >
                     ✕
                   </button>
-                  <p style={{ fontSize: 14, color: '#4b5563', margin: '0 0 14px', lineHeight: 1.5, fontWeight: 400 }}>
+                  <p style={{ fontSize: 14, color: '#4b5563', margin: '0 0 10px', lineHeight: 1.5, fontWeight: 400 }}>
                     {[address, city, zipCode].filter(Boolean).join(', ')}
                   </p>
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${center.lat},${center.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '8px 18px',
-                      backgroundColor: '#2563eb',
-                      color: '#fff',
-                      borderRadius: 8,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                      letterSpacing: '0.01em',
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
-                    Get Directions
-                  </a>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${center.lat},${center.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '8px 14px',
+                        backgroundColor: '#2563eb',
+                        color: '#fff',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        letterSpacing: '0.01em',
+                      }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+                      Get Directions
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${center.lat},${center.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '8px 14px',
+                        backgroundColor: '#f3f4f6',
+                        color: '#374151',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        letterSpacing: '0.01em',
+                        border: '1px solid #e5e7eb',
+                      }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      View on Map
+                    </a>
+                  </div>
                 </div>
               </InfoWindow>
             )}

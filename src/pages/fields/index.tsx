@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, SortDesc, Filter, X } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const FieldsMapView = dynamic(() => import('@/components/fields/FieldsMapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] rounded-2xl bg-gray-100 flex items-center justify-center animate-pulse">
+      <p className="text-gray-500 text-sm">Loading map...</p>
+    </div>
+  ),
+});
 import { FieldCard } from '@/components/fields/FieldCard';
 import { LazyFieldCard } from '@/components/fields/LazyFieldCard';
 import FieldsSortFilter from '@/components/fields/FieldsSortFilter';
@@ -174,6 +184,7 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedFields, setLikedFields] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Sort configuration - supports multiple sort fields
   // No default selection - empty object shows "Sort By" label
@@ -303,6 +314,19 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
     enabled: routerReady,
     ...(isMatchingInitialData ? { initialData: initialFieldsData } : {}),
   });
+
+  // Fetch ALL fields for map view (no pagination limit)
+  const allFieldsParams: FieldsParams = useMemo(() => ({
+    ...queryParams,
+    page: 1,
+    limit: 500,
+  }), [queryParams]);
+
+  const { data: allFieldsData } = useFields(allFieldsParams, {
+    enabled: routerReady && viewMode === 'map',
+  });
+
+  const allFields = allFieldsData?.data || [];
 
   // Determine which data to use - don't use nearby fields if filters are applied
   const shouldUseNearbyFields = !!currentLocation && !searchValue && !zipCode && !lat && !lng && !hasActiveFilters;
@@ -500,7 +524,44 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                      )}
 
                   </div>
-                  <div className="relative" ref={sortDropdownRef}>
+                  <div className="flex items-center gap-2">
+                    {/* View Mode Toggle */}
+                    <div className="flex items-center rounded-full border border-black/[0.06] overflow-hidden">
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={`p-1.5 sm:p-2.5 px-3 sm:px-5 transition-colors ${
+                          viewMode === 'list'
+                            ? 'bg-[#3A6B22]'
+                            : 'bg-white hover:bg-gray-50'
+                        }`}
+                        aria-label="List view"
+                        title="List view"
+                      >
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M2.47 9C1.42 9 1 9.30118 1 10.0494V11.9506C1 12.6988 1.42 13 2.47 13H13.53C14.58 13 15 12.6988 15 11.9506V10.0494C15 9.30118 14.58 9 13.53 9H2.47Z" fill={viewMode === 'list' ? 'white' : '#8D8D8D'}/>
+                          <path d="M2.47 3C1.42 3 1 3.30118 1 4.04941V5.95059C1 6.69882 1.42 7 2.47 7H13.53C14.58 7 15 6.69882 15 5.95059V4.04941C15 3.30118 14.58 3 13.53 3H2.47Z" fill={viewMode === 'list' ? 'white' : '#8D8D8D'}/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setViewMode('map')}
+                        className={`p-1.5 sm:p-2.5 px-3 sm:px-5 transition-colors ${
+                          viewMode === 'map'
+                            ? 'bg-[#3A6B22]'
+                            : 'bg-white hover:bg-gray-50'
+                        }`}
+                        aria-label="Map view"
+                        title="Map view"
+                      >
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9.66654 17.4853C9.66654 17.6713 9.53952 17.8286 9.37504 17.9155C9.36939 17.9185 9.36378 17.9215 9.3582 17.9246L7.39987 19.0412C6.0332 19.8246 4.9082 19.1746 4.9082 17.5912V9.48291C4.9082 8.95791 5.2832 8.30791 5.74987 8.04124L9.3582 5.97458C9.50769 5.89304 9.66654 6.01848 9.66654 6.18876V17.4853Z" fill={viewMode === 'map' ? 'white' : '#8D8D8D'}/>
+                          <path d="M15.5 19.4199C15.5 19.727 15.1791 19.9286 14.9025 19.7953L11.3608 18.089C11.2167 18.0195 11.125 17.8736 11.125 17.7136V6.705C11.125 6.39595 11.4496 6.19446 11.7266 6.33162L15.2682 8.08559C15.4102 8.15588 15.5 8.30058 15.5 8.45897V19.4199Z" fill={viewMode === 'map' ? 'white' : '#8D8D8D'}/>
+                          <path d="M21.334 16.5169C21.334 17.0419 20.959 17.6919 20.4923 17.9586L17.5828 19.626C17.3051 19.7852 16.959 19.5847 16.959 19.2645V8.27548C16.959 8.12589 17.0392 7.98778 17.1691 7.91362L18.8423 6.95855C20.209 6.17522 21.334 6.82522 21.334 8.40855V16.5169Z" fill={viewMode === 'map' ? 'white' : '#8D8D8D'}/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    {viewMode === 'list' && (
+                    <div className="relative" ref={sortDropdownRef}>
                     <button
                       onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
                       className="bg-white rounded-[54px] border border-black/[0.06] px-3 md:px-3.5 py-2 flex items-center gap-2 md:gap-4"
@@ -535,10 +596,12 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                         />
                       </div>
                     )}
+                    </div>
+                    )}
                   </div>
                 </div>  
 
-                {/* Fields Grid using the refactored FieldCard component */}
+                {/* Fields Grid / Map View */}
                 {/* Show skeleton when loading API data */}
                 {activeIsLoading ? (
                   <FieldGridSkeleton count={9} />
@@ -576,6 +639,8 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                       </p>
                     </div>
                   </div>
+                ) : viewMode === 'map' ? (
+                  <FieldsMapView fields={allFields.length > 0 ? allFields : fields} />
                 ) : (
                   <div className="w-full">
                     <div className={`grid gap-4 md:gap-6 ${fields.length === 1
@@ -604,7 +669,8 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                             fieldLocation: field.location,
                             latitude: field.location?.lat,
                             longitude: field.location?.lng,
-                            fieldId: field.fieldId
+                            fieldId: field.fieldId,
+                            activeDiscount: field.activeDiscount || null
                           } : field)}
                           variant="expanded"
                           isLiked={field.isLiked ?? likedFields.includes(field.id)}
@@ -618,8 +684,8 @@ export default function SearchResults({ initialFieldsData, initialPage }: Search
                   </div>
                 )}
 
-                {/* Pagination */}
-                {!isLoading && !isError && fields.length > 0 && totalPages > 1 && (
+                {/* Pagination - hidden in map view */}
+                {viewMode === 'list' && !isLoading && !isError && fields.length > 0 && totalPages > 1 && (
                   <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6 lg:mt-8">
                     <span className="text-[12px] md:text-[14px] text-dark-green">
                       Showing {((currentPage - 1) * 9) + 1}-{Math.min(currentPage * 9, totalResults)} of {totalResults}

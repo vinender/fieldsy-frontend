@@ -131,6 +131,7 @@ export function Header() {
     // DOG_OWNER navigation
     return [
       { name: "My Bookings", href: "/user/my-bookings" },
+      ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? [{ name: "My Credits", href: "/user/my-credits" }] : []),
       { name: "Saved Fields", href: "/user/saved-fields" },
       { name: "Messages", href: "/user/messages" },
       { name: "Profile", href: "/user/profile" },

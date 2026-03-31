@@ -5,8 +5,7 @@ import { ChevronDown, ChevronUp, Star, Calendar, X } from 'lucide-react';
 import BackButton from '@/components/common/BackButton';
 import Spinner from '@/components/ui/Spinner';
 import { Input } from '@/components/ui/input';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import BookingCalendar from '@/components/common/BookingCalendar';
 import { UserLayout } from '@/components/layout/UserLayout';
 import { useFieldDetails } from '@/hooks';
 import { useSlotAvailability, BookingDuration } from '@/hooks/useSlotAvailability';
@@ -19,8 +18,10 @@ import { useSession } from 'next-auth/react';
 import OwnerInformation from '@/components/fields/OwnerInformation';
 import { LoginPromptModal } from '@/components/modal/LoginPromptModal';
 import FieldLocation from '@/components/fields/FieldLocation';
+import { OffersBanner } from '@/components/common/OffersBanner';
 // import { getUserLocation } from '@/utils/getUserLocation'; // Distance calculation disabled
 import { useMaxAdvanceBookingDays } from '@/hooks/usePublicSettings';
+import { useFieldActiveDiscountDetails } from '@/hooks/queries/useFieldDiscounts';
 import { formatRating } from '@/utils/formatters';
 import { getNowUK } from '@/utils/ukTime';
 import axiosClient from '@/lib/api/axios-client';
@@ -64,6 +65,12 @@ const BookFieldPage = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false); // Show login prompt for unauthorized users
   const [paymentRedirectUrl, setPaymentRedirectUrl] = useState<string | undefined>(undefined);
   const [skippedDates, setSkippedDates] = useState<Array<{ date: string; formattedDate: string; bookedBy: string }>>([]); // Skipped dates for recurring bookings
+  const offersEnabled = process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true';
+  const [activeDiscount, setActiveDiscount] = useState<number | null>(null); // Active discount percentage
+  const [discountDates, setDiscountDates] = useState<Array<{ date: number; month: number; year: number; label: string }>>([]); // For calendar badges
+
+  // Fetch active discounts using react-query hook (only when feature is enabled)
+  const { data: discountDetails } = useFieldActiveDiscountDetails(offersEnabled ? fieldIdToUse : undefined);
 
   // Hook for rescheduling
   const rescheduleBookingMutation = useRescheduleBooking();
@@ -72,6 +79,56 @@ const BookFieldPage = () => {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Derive active discount and calendar badges from hook data
+  useEffect(() => {
+    if (!discountDetails || discountDetails.length === 0) {
+      setActiveDiscount(null);
+      setDiscountDates([]);
+      return;
+    }
+
+    // Filter only enabled discounts that haven't fully expired
+    const nowUK = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/London' }));
+    const validDiscounts = discountDetails.filter((d: any) => {
+      return d.enabled && new Date(d.endDate) >= new Date(nowUK.toDateString());
+    });
+
+    if (validDiscounts.length === 0) {
+      setActiveDiscount(null);
+      setDiscountDates([]);
+      return;
+    }
+
+    const maxDiscount = Math.max(...validDiscounts.map((d: any) => d.value));
+    setActiveDiscount(maxDiscount);
+
+    // Build calendar discount badges — only for dates from today onwards within validity
+    const badges: Array<{ date: number; month: number; year: number; label: string; startTime?: string; endTime?: string }> = [];
+    const todayStr = nowUK.toDateString();
+
+    validDiscounts.forEach((d: any) => {
+      const start = new Date(d.startDate);
+      const end = new Date(d.endDate);
+      const today = new Date(todayStr);
+      // Start from today if discount started in the past
+      const effectiveStart = start < today ? today : start;
+      const current = new Date(effectiveStart);
+
+      while (current <= end) {
+        badges.push({
+          date: current.getDate(),
+          month: current.getMonth(),
+          year: current.getFullYear(),
+          label: `${d.value}% Off`,
+          startTime: d.startTime,
+          endTime: d.endTime,
+        });
+        current.setDate(current.getDate() + 1);
+      }
+    });
+    setDiscountDates(badges);
+  }, [discountDetails]);
 
   // Get user location on mount - Distance calculation disabled
   // useEffect(() => {
@@ -675,6 +732,56 @@ const BookFieldPage = () => {
 
   // Toggle time slot selection (add or remove from array)
   // In reschedule mode, only allow single slot selection
+  // Parse time string (e.g. "10:00AM", "2:30PM", "14:30") to minutes since midnight
+  const parseToMinutes = (t: string): number => {
+    // Handle 24h format like "10:00", "14:30"
+    const match24 = t.match(/^(\d{1,2}):(\d{2})$/);
+    if (match24) return parseInt(match24[1]) * 60 + parseInt(match24[2]);
+    // Handle 12h format like "10:00AM", "2:30PM"
+    const match12 = t.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!match12) return -1;
+    let h = parseInt(match12[1]);
+    const m = parseInt(match12[2]);
+    const period = match12[3]?.toUpperCase();
+    if (period === 'PM' && h !== 12) h += 12;
+    if (period === 'AM' && h === 12) h = 0;
+    return h * 60 + m;
+  };
+
+  // Check if a slot time falls within any active discount's full validity (startDate+startTime to endDate+endTime)
+  const isSlotDiscounted = (slotTime: string): boolean => {
+    if (!activeDiscount || !discountDetails || discountDetails.length === 0 || !selectedDate) return false;
+
+    const slotMinutes = parseToMinutes(slotTime.split('-')[0].trim());
+    if (slotMinutes < 0) return false;
+
+    const selDate = new Date(selectedDate);
+    const selDateStr = selDate.toDateString();
+
+    return discountDetails.some((d: any) => {
+      if (!d.enabled || !d.startTime || !d.endTime) return false;
+
+      const discStartDate = new Date(new Date(d.startDate).toDateString());
+      const discEndDate = new Date(new Date(d.endDate).toDateString());
+      const discStartMin = parseToMinutes(d.startTime);
+      const discEndMin = parseToMinutes(d.endTime);
+
+      // Check if selected date is in range
+      if (selDate < discStartDate || selDate > discEndDate) return false;
+
+      // On start date: only slots >= startTime
+      if (selDateStr === discStartDate.toDateString()) {
+        return slotMinutes >= discStartMin;
+      }
+      // On end date: only slots < endTime
+      if (selDateStr === discEndDate.toDateString()) {
+        return slotMinutes < discEndMin;
+      }
+      // Dates in between: all slots are discounted
+      return true;
+    });
+  };
+
   const toggleTimeSlot = (time: string) => {
     setSelectedTimeSlots(prev => {
       if (prev.includes(time)) {
@@ -950,6 +1057,8 @@ const BookFieldPage = () => {
                     fieldId={field.id || field._id}
                   />
                 )}
+                {/* Offers Banner */}
+                {offersEnabled && <OffersBanner fieldId={field?.id || field?._id} className="mt-2" />}
               </div>
             </div>
 
@@ -1078,25 +1187,22 @@ const BookFieldPage = () => {
 
                 {/* Choose Date */}
                 <div>
-                  <label className="text-[18px] font-semibold text-dark-green block mb-2">
+                  <label className="text-[18px] font-semibold text-[#192215] block mb-2">
                     Choose Date
                   </label>
-                  <div className="relative">
-                    <DatePicker
-                      selected={selectedDate}
-                      onChange={(date: Date | null) => setSelectedDate(date)}
-                      minDate={minDate}
-                      maxDate={maxDate}
-                      filterDate={(date) => !isDateDisabled(date)}
-                      dateFormat="dd/MM/yyyy"
-                      placeholderText="Select a date"
-                      className="h-14 bg-white w-full border-[#E3E3E3] focus:border-[#3A6B22] text-[15px] font-medium cursor-pointer px-4 py-2 border rounded-[70px] focus:outline-none focus:ring-1 focus:ring-[#3A6B22]/20"
-                      calendarClassName="fieldsy-calendar"
-                      wrapperClassName="w-full"
-                      showPopperArrow={false}
-                    />
-                    <img src='/book-field/calendar.svg' className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[#3A6B22] pointer-events-none" />
-                  </div>
+                  <BookingCalendar
+                    selectedDate={selectedDate}
+                    onChange={(date) => setSelectedDate(date)}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    filterDate={(date) => !isDateDisabled(date)}
+                    discounts={discountDates}
+                  />
+                  {activeDiscount && (
+                    <div className="mt-2 inline-flex items-center bg-[#F8F1D7] rounded-md px-2.5 py-1">
+                      <span className="text-xs font-bold text-[#B8860B]">{activeDiscount}% Off</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Preferred Time */}
@@ -1188,11 +1294,11 @@ const BookFieldPage = () => {
                           {expandedSection === 'morning' && (
                             <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                               {timeSlots.morning.map((slot, index) => (
-                                <div key={index} className="relative group">
+                                <div key={index} className="relative group flex flex-col items-center">
                                   <button
                                     onClick={() => slot.available && toggleTimeSlot(slot.time)}
                                     disabled={!slot.available}
-                                    className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${slot.isPast
+                                    className={`w-[155px] h-10 px-3 rounded-[14px] text-[12px] font-medium transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${slot.isPast
                                       ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                                       : slot.isBooked || slot.isBookedByRecurring
                                         ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
@@ -1203,7 +1309,10 @@ const BookFieldPage = () => {
                                             : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                                       }`}
                                   >
-                                    {slot.time}
+                                    {isSlotDiscounted(slot.time) && slot.available && !slot.isPast && !slot.isBooked && (
+                                      <img src="/vuesax/linear/tag-green.svg" alt="Discount" className={`w-3.5 h-3.5 shrink-0 ${selectedTimeSlots.includes(slot.time) ? 'brightness-0 invert' : ''}`} title={`${activeDiscount}% Off`} />
+                                    )}
+                                    <span>{slot.time}</span>
                                   </button>
                                   {/* Cross button to deselect - hidden in reschedule mode (single slot auto-replaces) */}
                                   {selectedTimeSlots.includes(slot.time) && !isRescheduleMode && (
@@ -1243,11 +1352,11 @@ const BookFieldPage = () => {
                           {expandedSection === 'afternoon' && (
                             <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                               {timeSlots.afternoon.map((slot, index) => (
-                                <div key={index} className="relative group">
+                                <div key={index} className="relative group flex flex-col items-center">
                                   <button
                                     onClick={() => slot.available && toggleTimeSlot(slot.time)}
                                     disabled={!slot.available}
-                                    className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${slot.isPast
+                                    className={`w-[155px] h-10 px-3 rounded-[14px] text-[12px] font-medium transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${slot.isPast
                                       ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                                       : slot.isBooked || slot.isBookedByRecurring
                                         ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
@@ -1258,7 +1367,10 @@ const BookFieldPage = () => {
                                             : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                                       }`}
                                   >
-                                    {slot.time}
+                                    {isSlotDiscounted(slot.time) && slot.available && !slot.isPast && !slot.isBooked && (
+                                      <img src="/vuesax/linear/tag-green.svg" alt="Discount" className={`w-3.5 h-3.5 shrink-0 ${selectedTimeSlots.includes(slot.time) ? 'brightness-0 invert' : ''}`} title={`${activeDiscount}% Off`} />
+                                    )}
+                                    <span>{slot.time}</span>
                                   </button>
                                   {/* Cross button to deselect - hidden in reschedule mode (single slot auto-replaces) */}
                                   {selectedTimeSlots.includes(slot.time) && !isRescheduleMode && (
@@ -1298,11 +1410,11 @@ const BookFieldPage = () => {
                           {expandedSection === 'evening' && (
                             <div className="px-3 sm:px-4 pb-3 sm:pb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-[9px]">
                               {timeSlots.evening.map((slot, index) => (
-                                <div key={index} className="relative group">
+                                <div key={index} className="relative group flex flex-col items-center">
                                   <button
                                     onClick={() => slot.available && toggleTimeSlot(slot.time)}
                                     disabled={!slot.available}
-                                    className={`w-[132px] h-10 rounded-[14px] text-[12px] font-medium transition-colors ${slot.isPast
+                                    className={`w-[155px] h-10 px-3 rounded-[14px] text-[12px] font-medium transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${slot.isPast
                                       ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                                       : slot.isBooked || slot.isBookedByRecurring
                                         ? 'bg-red-50 text-red-400 border border-red-200 cursor-not-allowed'
@@ -1313,7 +1425,10 @@ const BookFieldPage = () => {
                                             : 'bg-white text-dark-green border border-dark-green/10 hover:bg-gray-50'
                                       }`}
                                   >
-                                    {slot.time}
+                                    {isSlotDiscounted(slot.time) && slot.available && !slot.isPast && !slot.isBooked && (
+                                      <img src="/vuesax/linear/tag-green.svg" alt="Discount" className={`w-3.5 h-3.5 shrink-0 ${selectedTimeSlots.includes(slot.time) ? 'brightness-0 invert' : ''}`} title={`${activeDiscount}% Off`} />
+                                    )}
+                                    <span>{slot.time}</span>
                                   </button>
                                   {/* Cross button to deselect - hidden in reschedule mode (single slot auto-replaces) */}
                                   {selectedTimeSlots.includes(slot.time) && !isRescheduleMode && (

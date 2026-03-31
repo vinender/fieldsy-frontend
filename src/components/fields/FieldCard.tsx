@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 import { useToggleFavorite, useFavoriteStatus } from "@/hooks/useFavorites"
+import { useFieldActiveDiscount } from "@/hooks/queries/useFieldDiscounts"
 import { LoginPromptModal } from "@/components/modal/LoginPromptModal"
 // import { useLocation } from "@/contexts/LocationContext" // Distance calculation disabled
 // import { calculateDistance, formatDistance, getFieldCoordinates } from "@/utils/location" // Distance calculation disabled
@@ -37,6 +38,7 @@ export interface FieldCardProps {
   latitude?: number
   longitude?: number
   fieldId?: string
+  activeDiscount?: number | null // e.g. 20 for 20% off
 }
 
 
@@ -63,8 +65,16 @@ export const FieldCard = React.memo(function FieldCard({
   fieldLocation,
   latitude,
   longitude,
-  fieldId
+  fieldId,
+  activeDiscount: propDiscount
 }: FieldCardProps) {
+  // Only fetch/show discount if feature flag is enabled
+  const offersEnabled = process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true';
+  const shouldFetchDiscount = offersEnabled && propDiscount === undefined && variant === 'expanded';
+  const discountFieldId = shouldFetchDiscount ? (fieldId || id) : undefined;
+  const { data: fetchedDiscount } = useFieldActiveDiscount(discountFieldId);
+  const activeDiscount = offersEnabled ? (propDiscount != null ? propDiscount : (fetchedDiscount ?? null)) : null;
+
   // Determine display price - prioritize the lowest available price
   // Check both price30min and price1hr (not legacy price to avoid showing old data)
   const has30minPrice = price30min && price30min > 0;
@@ -249,6 +259,11 @@ export const FieldCard = React.memo(function FieldCard({
                     </div>
                   </div>
                 )}
+                {activeDiscount != null && activeDiscount > 0 && (
+                  <div className="absolute top-2 left-2 bg-[#192215] text-white text-[11px] font-bold px-2.5 py-1 rounded-tl-[12px] rounded-br-[10px] z-10">
+                    {activeDiscount}% OFF
+                  </div>
+                )}
               </div>
 
               <button
@@ -354,6 +369,12 @@ export const FieldCard = React.memo(function FieldCard({
                 </svg>
                 <span className="text-[10px] font-medium">No image</span>
               </div>
+            </div>
+          )}
+
+          {activeDiscount != null && activeDiscount > 0 && (
+            <div className="absolute top-0 left-0 bg-[#192215] text-white text-[10px] font-bold px-2 py-1 rounded-tl-[12px] rounded-br-[10px] z-10">
+              {activeDiscount}% OFF
             </div>
           )}
 

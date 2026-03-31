@@ -60,6 +60,7 @@ export function ProfileDropdown({ user, onLogout, className, isOpen, onClose }: 
     : [
         { icon: '/profile/profile.svg', label: "My Profile", href: "/user/profile" },
         { icon: '/profile/booking.svg', label: "My Bookings", href: "/user/my-bookings" },
+        ...(process.env.NEXT_PUBLIC_ENABLE_OFFERS_DISCOUNTS === 'true' ? [{ icon: '/profile/booking.svg', label: "My Credits", href: "/user/my-credits" }] : []),
         { icon: '/profile/messages.svg', label: "Messages", href: "/user/messages" },
         { icon: '/profile/heart.svg', label: "Saved Fields", href: "/user/saved-fields" },
         { icon: '/profile/saved-cards.svg', label: "Saved Cards", href: "/user/saved-cards" },

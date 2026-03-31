@@ -56,7 +56,7 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
+    minimumCacheTTL: 60 * 60, // 1 hour — prevents stale images when S3 objects change
     remotePatterns: [
       {
         protocol: 'https',
@@ -66,7 +66,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'fieldsy.s3.us-east-1.amazonaws.com',
+        hostname: 'fieldsy-s3.s3.eu-west-2.amazonaws.com',
         port: '',
         pathname: '/**',
       },
@@ -158,38 +158,38 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // Headers for caching and security - only aggressive caching in production
+  // Headers for caching and security
   async headers() {
     const isDev = process.env.NODE_ENV === 'development';
-    const cacheValue = isDev
-      ? 'no-store, must-revalidate'
-      : 'public, max-age=31536000, immutable';
 
     return [
       {
-        source: '/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: isDev ? 'no-cache' : cacheValue,
-          },
-        ],
-      },
-      {
+        // Static assets (JS/CSS bundles) — these have content hashes, safe to cache long
         source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: cacheValue,
+            value: isDev ? 'no-store' : 'public, max-age=31536000, immutable',
           },
         ],
       },
       {
+        // Images served from public/ — cache 1 hour, revalidate in background
+        source: '/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: isDev ? 'no-cache' : 'public, max-age=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        // Next.js image optimization endpoint — cache 1 hour, revalidate in background
         source: '/_next/image',
         headers: [
           {
             key: 'Cache-Control',
-            value: isDev ? 'no-cache' : cacheValue,
+            value: isDev ? 'no-cache' : 'public, max-age=3600, stale-while-revalidate=86400',
           },
         ],
       },
