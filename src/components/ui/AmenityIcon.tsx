@@ -48,8 +48,8 @@ export const AmenityIcon: React.FC<AmenityIconProps> = ({
     const isSvg = src?.toLowerCase().endsWith('.svg');
     const isLocalPath = src?.startsWith('/') && !src?.startsWith('//');
 
-    // Use SvgIcon for local SVG files to properly control fill color
-    if (isSvg && isLocalPath) {
+    // Use SvgIcon for SVG files (both local and remote S3)
+    if (isSvg) {
         return (
             <SvgIcon
                 src={src}

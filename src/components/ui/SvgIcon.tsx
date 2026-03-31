@@ -60,8 +60,8 @@ export const SvgIcon: React.FC<SvgIconProps> = ({
 
     const fetchSvg = async () => {
       try {
-        // Ensure the path starts with / for public folder assets
-        const fetchPath = src.startsWith('/') ? src : `/${src}`;
+        // Use src directly for remote URLs, prepend / for local paths
+        const fetchPath = src.startsWith('http') ? src : (src.startsWith('/') ? src : `/${src}`);
         const response = await fetch(fetchPath);
         if (!response.ok) {
           throw new Error(`Failed to fetch SVG: ${response.status} ${response.statusText}`);
