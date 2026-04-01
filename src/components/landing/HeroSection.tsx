@@ -189,7 +189,7 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
         Also Available on Mobile
       </h3>
       <p className="text-gray-600 text-sm xl:text-[16px] text-center leading-relaxed xl:leading-[20px] font-normal xl:font-[400] mb-4 sm:mb-6 max-w-sm">
-        Book safe dog fields on the go. Search, reserve, and check in -- all from your phone.
+        Book safe dog fields on the go. Search, reserve, and check in all from your phone.
       </p>
       {/* App Store Buttons */}
       <div className="flex  gap-2 sm:gap-3 w-full max-w-sm">

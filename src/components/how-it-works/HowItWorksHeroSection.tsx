@@ -53,7 +53,7 @@ export function HowItWorksHeroSection() {
             Getting Started with Fieldsy
           </h1>
           <p className="text-sm sm:text-base xl:text-[18px] text-white/90 mb-8 leading-relaxed xl:leading-[30px] font-[400]">
-            Find, book, and enjoy secure dog walking fields -- or list your land and start earning. It takes just a few simple steps.
+            Find, book, and enjoy secure dog walking fields or list your land and start earning. It takes just a few simple steps.
           </p>
           <DownloadAppButton />
         </div>

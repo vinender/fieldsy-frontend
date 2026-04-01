@@ -88,7 +88,7 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
   const defaultData = {
     sectionTitle: 'About Us',
     mainTitle: 'Safe, Private Fields Where Every Dog Can Run Free',
-    description: 'Fieldsy is the UK\'s marketplace for private dog walking fields. We connect dog owners who need secure, enclosed spaces with landowners who have the land to offer. Whether your dog is reactive, in training, or simply loves to sprint -- Fieldsy makes it easy to find, book, and enjoy a peaceful off-lead session near you.',
+    description: 'Fieldsy is the UK\'s marketplace for private dog walking fields. We connect dog owners who need secure, enclosed spaces with landowners who have the land to offer. Whether your dog is reactive, in training, or simply loves to sprint Fieldsy makes it easy to find, book, and enjoy a peaceful off-lead session near you.',
     buttonText: 'Download the App',
     image: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
     stats: [

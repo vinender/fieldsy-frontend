@@ -21,7 +21,7 @@ const DEFAULT_STEPS = [
   {
     icon: `${S3_DEFAULTS}/how-it-works/field.svg`,
     title: "Find Fields Near You",
-    description: "Search by postcode or GPS to discover private, enclosed dog walking fields close to home. No crowded parks -- just peaceful, secure spaces.",
+    description: "Search by postcode or GPS to discover private, enclosed dog walking fields close to home. No crowded parks just peaceful, secure spaces.",
     image: `${process.env.NEXT_PUBLIC_S3_BASE_URL}/videos/dog.mp4`,
     thumbnail: "/how-it-works/dog.webp"
   },

@@ -26,12 +26,12 @@ export function AboutWhyFieldsySection({ data, loading }: AboutWhyFieldsySection
   const subtitle = data?.subtitle || 'Choosing Fieldsy means choosing peace of mind for you and real freedom for your dog.'
   const image = data?.image || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp'
   const boxTitle = data?.boxTitle || "Helping Dogs Run Free, One Field at a Time"
-  const boxDescription = data?.boxDescription || "Fieldsy is more than a booking platform -- it is a growing community of dog lovers and landowners working together to create safe spaces across the UK. We listen to feedback, we improve constantly, and we are here to make every walk better than the last."
+  const boxDescription = data?.boxDescription || "Fieldsy is more than a booking platform it is a growing community of dog lovers and landowners working together to create safe spaces across the UK. We listen to feedback, we improve constantly, and we are here to make every walk better than the last."
   const buttonText = data?.buttonText || 'Download App'
   const features = data?.features?.length ? data.features : [
     { icon: 'CheckCircle', title: 'Secure & Private', description: 'Every field is enclosed and verified. You and your dog have the space entirely to yourselves during your booking.', order: 1 },
-    { icon: 'MapPin', title: 'Local & Convenient', description: 'Find fields close to home with postcode or GPS search. No long drives -- just easy access to safe spaces nearby.', order: 2 },
-    { icon: 'Calendar', title: 'Flexible Booking', description: 'Book by the hour, at a time that suits you. Cancel within the window if plans change -- no penalty.', order: 3 },
+    { icon: 'MapPin', title: 'Local & Convenient', description: 'Find fields close to home with postcode or GPS search. No long drives just easy access to safe spaces nearby.', order: 2 },
+    { icon: 'Calendar', title: 'Flexible Booking', description: 'Book by the hour, at a time that suits you. Cancel within the window if plans change no penalty.', order: 3 },
     { icon: 'Shield', title: 'Trusted Community', description: 'Verified hosts, real reviews, and responsive support. We take safety and trust seriously.', order: 4 }
   ]
 

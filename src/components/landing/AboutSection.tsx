@@ -93,7 +93,7 @@ export function AboutSection() {
             {/* Middle Block - Text with Dog Icons */}
             <div className="bg-white rounded-2xl sm:rounded-[32px] flex flex-col justify-evenly p-4 sm:p-6 xl:p-8 shadow-xl flex-1 xl:min-w-[280px]">
               <p className="text-dark-green font-[600] text-sm sm:text-base xl:text-[18px] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 xl:mb-6">
-                Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK -- quickly and effortlessly.
+                Born out of love for dogs and a need for secure, off-lead spaces, Fieldsy helps you find and book private dog walking fields across the UK quickly and effortlessly.
               </p>
               <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
                 {`Whether your pup is reactive, in training, or just loves wide-open spaces, we are here to make your walks safer, calmer, and more joyful.`}

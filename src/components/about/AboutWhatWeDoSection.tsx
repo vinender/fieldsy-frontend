@@ -16,10 +16,10 @@ interface AboutWhatWeDoSectionProps {
 export function AboutWhatWeDoSection({ data, loading }: AboutWhatWeDoSectionProps) {
   // Use data from API or fallback to hardcoded values
   const title = data?.title || 'What We Do'
-  const description = data?.description || "Fieldsy brings dog owners and landowners together on one simple platform. Dog owners browse and book secure, private fields. Landowners list their land and earn income. Everyone benefits -- especially the dogs."
+  const description = data?.description || "Fieldsy brings dog owners and landowners together on one simple platform. Dog owners browse and book secure, private fields. Landowners list their land and earn income. Everyone benefits especially the dogs."
   const features = data?.features?.length ? data.features : [
     { title: 'Browse Fields Near You', description: 'Explore a growing network of private, secure dog walking fields across the UK. Filter by size, amenities, and distance.', order: 1 },
-    { title: 'Book Instantly', description: 'Reserve your time slot in a few taps -- no waiting, no back-and-forth with the host.', order: 2 },
+    { title: 'Book Instantly', description: 'Reserve your time slot in a few taps no waiting, no back-and-forth with the host.', order: 2 },
     { title: 'Enjoy Peace of Mind', description: 'Let your dog run free in a fully enclosed, verified space. No unexpected dogs, no distractions.', order: 3 },
     { title: 'List Your Land', description: 'Turn unused or underused land into a steady source of income by hosting dog owners.', order: 4 },
     { title: 'Set Your Own Schedule', description: 'Control exactly when your field is available. Block dates, set opening hours, adjust as you go.', order: 5 },

@@ -9,7 +9,7 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
   const { data: settings } = usePublicSettings();
 
   const sectionTitle = settings?.landownersSectionTitle || 'How Fieldsy Works for Landowners'
-  const sectionDescription = settings?.landownersSectionDescription || "List or claim your field, set your schedule, and start earning -- it is simple, secure, and flexible."
+  const sectionDescription = settings?.landownersSectionDescription || "List or claim your field, set your schedule, and start earning it is simple, secure, and flexible."
   const sectionImage = settings?.landownersSectionImage || '/how-it-works/dog.png'
 
   return (
