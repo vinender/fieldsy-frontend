@@ -18,7 +18,7 @@ export function HowItWorksHeroSection() {
 
   return (
     <>
-      <h2 className=" text-[20px] xl:text-[29px] font-[600] text-dark-green mt-20 mb-8">How it works</h2>
+      <h2 className=" text-[20px] xl:text-[29px] font-[600] text-dark-green mt-20 mb-8">How It Works</h2>
 
       {/* Hero Banner */}
       <div className="relative rounded-3xl overflow-hidden mb-16 h-96 md:h-[500px] flex items-end">

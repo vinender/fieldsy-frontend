@@ -78,7 +78,7 @@ export function Header() {
       { name: "Home", href: "/" },
       { name: "About Us", href: "/about" },
       { name: "Search Fields", href: "/fields" },
-      { name: "How it works", href: "/how-it-works" },
+      { name: "How It Works", href: "/how-it-works" },
       { name: "FAQs", href: "/faqs" },
     ]
 
@@ -107,7 +107,7 @@ export function Header() {
       { name: "Home", href: "/" },
       { name: "About Us", href: "/about" },
       { name: "Search Fields", href: "/fields" },
-      { name: "How it works", href: "/how-it-works" },
+      { name: "How It Works", href: "/how-it-works" },
       { name: "FAQs", href: "/faqs" },
     ]
   }, [currentUser, isAuthenticated, mounted])

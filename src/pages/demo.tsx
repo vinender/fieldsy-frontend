@@ -6,7 +6,7 @@ const NAVIGATION_ITEMS = [
   { label: 'Home', href: '#', isActive: false },
   { label: 'About Us', href: '#', isActive: true },
   { label: 'Search Fields', href: '#', isActive: false },
-  { label: 'How it works', href: '#', isActive: false },
+  { label: 'How It Works', href: '#', isActive: false },
   { label: "FAQs", href: '#', isActive: false },
 ];
 
