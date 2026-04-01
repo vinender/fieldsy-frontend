@@ -364,25 +364,10 @@ const BookFieldPage = () => {
     return { hour, minute: 0 };
   };
 
-  const isSlotInPast = (date: Date | null, hour: number, minute: number = 0) => {
-    if (!date) return false;
+  // Past slot validation is handled by backend - frontend just displays the isPast flag
 
-    // Only check for past slots on client side
-    if (!isClient) return false;
-
-    // Use UK time for all slot comparisons
-    const now = getNowUK();
-    if (date.toDateString() !== now.toDateString()) {
-      return false;
-    }
-
-    const slotMinutes = hour * 60 + minute;
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    return slotMinutes <= currentMinutes;
-  };
-
-  // Check if a specific time slot is available
-  const checkSlotAvailability = (date: Date | null, hour: number, minute: number = 0) => {
+  // Check if a specific time slot is available (past slot checking now backend responsibility)
+  const checkSlotAvailability = (date: Date | null, _hour?: number, _minute?: number) => {
     if (!date || !field) return true; // Default to available if no date selected
 
     // Check if the selected date is an operating day
@@ -427,10 +412,7 @@ const BookFieldPage = () => {
       }
     }
 
-    if (isSlotInPast(date, hour, minute)) {
-      return false;
-    }
-
+    // Past slot checking is handled by backend - frontend just displays isPast flag
     // If we don't have availability data yet, assume available
     return true;
   };
@@ -473,18 +455,10 @@ const BookFieldPage = () => {
           : startMinutes !== null
             ? Math.floor(startMinutes / 60)
             : 0;
-        const minute = typeof slotData.startMinute === 'number'
-          ? slotData.startMinute
-          : startMinutes !== null
-            ? startMinutes % 60
-            : 0;
 
-        // A slot is past if current time is at or after the slot start time
-        // This prevents booking slots that have already started or passed
-        // IMPORTANT: Always compute isPast on client side, ignore server's isPast value
-        // because server uses server timezone, not client timezone
-        const computedIsPast = isTodaySelected && startMinutes !== null && startMinutes <= currentMinutes;
-        const isPast = computedIsPast; // Always use client-side computation, ignore slotData.isPast
+        // Backend provides isPast value - frontend uses it as source of truth
+        // Server correctly handles timezone conversion for past slot determination
+        const isPast = Boolean(slotData.isPast);
         const isBooked = Boolean(slotData.isBooked);
         const isBookedByRecurring = Boolean(slotData.isBookedByRecurring);
         const available = Boolean(slotData.isAvailable) && !isPast && !isBooked;
@@ -550,15 +524,14 @@ const BookFieldPage = () => {
         const endTime = formatTime(endHour, endMinute);
         const slotTime = `${startTime} - ${endTime}`;
 
-        // Check availability
-        const isPastSlot = isSlotInPast(selectedDate, startHour, startMinute);
+        // Check availability (past slot checking is backend responsibility)
         const isAvailable = checkSlotAvailability(selectedDate, startHour, startMinute);
 
         const slot = {
           time: slotTime,
           available: isAvailable,
           selected: selectedTimeSlots.includes(slotTime),
-          isPast: isPastSlot,
+          isPast: false, // Backend provides actual isPast value
           isBooked: false
         };
 
