@@ -18,6 +18,7 @@ const FALLBACK_HIGH_RES = '/high-res.webp';
 export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
   const [lowResLoaded, setLowResLoaded] = useState(false);
   const [highResLoaded, setHighResLoaded] = useState(false);
+  const [s3ImageFailed, setS3ImageFailed] = useState(false);
 
   // Use prop data if available (from getStaticProps), otherwise fall back to client-side hook
   const { data: hookSettings } = usePublicSettings();
@@ -40,6 +41,17 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
         setLowResLoaded(true);
         setHighResLoaded(true);
       };
+      // Fallback to high-res if S3 image fails to load
+      img.onerror = () => {
+        console.warn('Failed to load S3 hero image, using local fallback...');
+        setS3ImageFailed(true);
+        const highRes = new window.Image();
+        highRes.src = FALLBACK_HIGH_RES;
+        highRes.onload = () => {
+          setLowResLoaded(true);
+          setHighResLoaded(true);
+        };
+      };
     } else {
       // Fallback: two-stage loading with low-res placeholder
       const lowRes = new window.Image();
@@ -56,7 +68,7 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
         }, 100);
       };
     }
-  }, [hasCustomImage, heroImage]);
+  }, [hasCustomImage, heroImage, s3ImageFailed]);
 
   const memoizedSearchInput = useMemo(() => (
     <FieldSearchInput
@@ -81,11 +93,11 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
         </div>
       )}
 
-      {/* Low-res / Custom Background Image */}
+      {/* Low-res / Custom Background Image (with S3 fallback) */}
       <div
         className={`absolute inset-0 z-0 transition-opacity duration-500 ${lowResLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          backgroundImage: lowResLoaded ? `url('${hasCustomImage ? heroImage : FALLBACK_LOW_RES}')` : 'none',
+          backgroundImage: lowResLoaded ? `url('${(hasCustomImage && !s3ImageFailed) ? heroImage : FALLBACK_LOW_RES}')` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -94,8 +106,8 @@ export function HeroSection({ settings: propSettings }: HeroSectionProps = {}) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
       </div>
 
-      {/* High-res Background Image (fades in when loaded) — skipped for custom images */}
-      {!hasCustomImage && (
+      {/* High-res Background Image (fades in when loaded) — shown for no custom image or when S3 fails */}
+      {(!hasCustomImage || s3ImageFailed) && (
         <div
           className={`absolute inset-0 z-0 transition-opacity duration-700 ${highResLoaded ? 'opacity-100' : 'opacity-0'}`}
           style={{

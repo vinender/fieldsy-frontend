@@ -242,17 +242,83 @@ export default function FieldsMapView({ fields }: FieldsMapViewProps) {
     [mappableFields, selectedFieldId],
   );
 
-  // Fit map to markers
+  // Calculate initial map center based on field density
+  const initialCenter = useMemo(() => {
+    if (mappableFields.length === 0) return UK_CENTER;
+
+    // Calculate geographic center of all fields
+    let totalLat = 0;
+    let totalLng = 0;
+
+    mappableFields.forEach((f) => {
+      totalLat += f._coords.lat;
+      totalLng += f._coords.lng;
+    });
+
+    return {
+      lat: totalLat / mappableFields.length,
+      lng: totalLng / mappableFields.length,
+    };
+  }, [mappableFields]);
+
+  // Calculate map center & zoom level based on field distribution
   const handleMapLoad = useCallback(
     (map: google.maps.Map) => {
       setMapRef(map);
       if (mappableFields.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        mappableFields.forEach((f) => bounds.extend(f._coords));
-        map.fitBounds(bounds, 60);
+        // Calculate geographic center of all fields
+        let totalLat = 0;
+        let totalLng = 0;
+        let minLat = Infinity, maxLat = -Infinity;
+        let minLng = Infinity, maxLng = -Infinity;
+
+        mappableFields.forEach((f) => {
+          const { lat, lng } = f._coords;
+          totalLat += lat;
+          totalLng += lng;
+          minLat = Math.min(minLat, lat);
+          maxLat = Math.max(maxLat, lat);
+          minLng = Math.min(minLng, lng);
+          maxLng = Math.max(maxLng, lng);
+        });
+
+        const centerLat = totalLat / mappableFields.length;
+        const centerLng = totalLng / mappableFields.length;
+        const center = { lat: centerLat, lng: centerLng };
+
         if (mappableFields.length === 1) {
-          setTimeout(() => map.setZoom(13), 300);
+          // Single field: center on it with good zoom
+          map.setCenter(center);
+          setTimeout(() => map.setZoom(14), 300);
+        } else {
+          // Multiple fields: fit bounds but maintain good zoom
+          const bounds = new google.maps.LatLngBounds();
+          mappableFields.forEach((f) => bounds.extend(f._coords));
+
+          // Calculate appropriate zoom based on spread
+          const latDiff = maxLat - minLat;
+          const lngDiff = maxLng - minLng;
+          const maxDiff = Math.max(latDiff, lngDiff);
+
+          map.fitBounds(bounds, { top: 100, bottom: 100, left: 60, right: 60 });
+
+          // Adjust zoom to prevent too much whitespace
+          const listener = map.addListener('bounds_changed', () => {
+            const currentZoom = map.getZoom() || 6;
+
+            // Ensure minimum zoom for good UX
+            if (currentZoom > 17) {
+              map.setZoom(17);
+            } else if (currentZoom < 6 && mappableFields.length < 50) {
+              map.setZoom(8);
+            }
+            google.maps.event.removeListener(listener);
+          });
         }
+      } else {
+        // No fields: show UK center
+        map.setCenter(UK_CENTER);
+        map.setZoom(6);
       }
     },
     [mappableFields],
@@ -278,7 +344,7 @@ export default function FieldsMapView({ fields }: FieldsMapViewProps) {
     <div className="fields-map-view relative w-full h-[700px] rounded-[20px] overflow-hidden border border-black/[0.08]">
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        center={UK_CENTER}
+        center={initialCenter}
         zoom={6}
         options={mapOptions}
         onLoad={handleMapLoad}
