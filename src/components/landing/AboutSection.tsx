@@ -133,10 +133,10 @@ export function AboutSection() {
               </div>
               <div className="flex flex-col justify-center space-y-2 sm:space-y-3 xl:space-y-4 py-2">
                 <h3 className="text-lg sm:text-xl xl:text-[24px] text-center leading-[26px] sm:leading-[28px] xl:leading-[30px] font-[600] text-dark-green">
-                  Trusted by thousands of dog lovers
+                Trusted by dog owners across the UK
                 </h3>
                 <p className="text-sm sm:text-base xl:text-[18px] text-center leading-[22px] sm:leading-[26px] xl:leading-[30px] text-dark-green/70">
-                  Backed by real reviews, easy bookings, and a growing network of secure fields across the country.
+                Powered by real reviews, easy booking, and a growing network of secure private dog fields across the UK.
                 </p>
               </div>
             </div>
