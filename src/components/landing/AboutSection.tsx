@@ -92,11 +92,11 @@ export function AboutSection() {
           <div className="flex flex-col md:flex-row w-full xl:flex-1 xl:min-w-[600px] gap-4 sm:gap-6 xl:gap-8"> 
             {/* Middle Block - Text with Dog Icons */}
             <div className="bg-white rounded-2xl sm:rounded-[32px] flex flex-col justify-evenly p-4 sm:p-6 xl:p-8 shadow-xl flex-1 xl:min-w-[280px]">
-              <p className="text-dark-green font-[600] text-sm sm:text-base xl:text-[18px] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 xl:mb-6">
-              Fieldsy helps dog owners find and book private dog walking fields for safer, calmer, and more enjoyable off-lead time.
+              <p className="text-dark-green font-[600] text-sm sm:text-base xl:text-[18px] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 xl:mb-6 whitespace-pre-wrap break-words">
+              {settings.aboutSectionTitle || 'Fieldsy helps dog owners find and book private dog walking fields for safer, calmer, and more enjoyable off-lead time.'}
               </p>
-              <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8">
-                {`Whether your dog needs space for training, confidence, or simply a good run, we make it easier to find the right field.`}
+              <p className="text-dark-green/70 text-sm sm:text-base xl:text-[18px] font-[400] leading-relaxed sm:leading-[28px] xl:leading-[30px] mb-4 sm:mb-6 xl:mb-8 whitespace-pre-wrap break-words">
+                {settings.aboutSectionSubtitle || 'Whether your dog needs space for training, confidence, or simply a good run, we make it easier to find the right field.'}
               </p>
 
               {/* Dog Profile Pictures */}
@@ -132,11 +132,11 @@ export function AboutSection() {
                 />
               </div>
               <div className="flex flex-col justify-center space-y-2 sm:space-y-3 xl:space-y-4 py-2">
-                <h3 className="text-lg sm:text-xl xl:text-[24px] text-center leading-[26px] sm:leading-[28px] xl:leading-[30px] font-[600] text-dark-green">
-                Trusted by dog owners across the UK
+                <h3 className="text-lg sm:text-xl xl:text-[24px] text-center leading-[26px] sm:leading-[28px] xl:leading-[30px] font-[600] text-dark-green whitespace-pre-wrap break-words">
+                {settings.aboutSectionTrustedTitle || 'Trusted by dog owners across the UK'}
                 </h3>
-                <p className="text-sm sm:text-base xl:text-[18px] text-center leading-[22px] sm:leading-[26px] xl:leading-[30px] text-dark-green/70">
-                Powered by real reviews, easy booking, and a growing network of secure private dog fields across the UK.
+                <p className="text-sm sm:text-base xl:text-[18px] text-center leading-[22px] sm:leading-[26px] xl:leading-[30px] text-dark-green/70 whitespace-pre-wrap break-words">
+                {settings.aboutSectionTrustedSubtitle || 'Powered by real reviews, easy booking, and a growing network of secure private dog fields across the UK.'}
                 </p>
               </div>
             </div>

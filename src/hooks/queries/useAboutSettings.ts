@@ -13,6 +13,12 @@ export interface AboutSettings {
   aboutDogImage: string;
   aboutFamilyImage: string;
   aboutDogIcons: string[];
+  aboutSectionTitle: string;
+  aboutSectionSubtitle: string;
+  aboutSectionMainText: string;
+  aboutSectionSecondaryText: string;
+  aboutSectionTrustedTitle: string;
+  aboutSectionTrustedSubtitle: string;
 }
 
 export interface PublicSettingsResponse {
@@ -30,6 +36,12 @@ export interface PublicSettingsResponse {
     aboutDogImage: string;
     aboutFamilyImage: string;
     aboutDogIcons: string[];
+    aboutSectionTitle?: string;
+    aboutSectionSubtitle?: string;
+    aboutSectionMainText?: string;
+    aboutSectionSecondaryText?: string;
+    aboutSectionTrustedTitle?: string;
+    aboutSectionTrustedSubtitle?: string;
     platformDogOwnersImage?: string;
     platformFieldOwnersImage?: string;
     platformTitle?: string;
@@ -61,6 +73,12 @@ export function usePublicAboutSettings() {
     aboutDogImage: query.data?.data?.aboutDogImage || '',
     aboutFamilyImage: query.data?.data?.aboutFamilyImage || '',
     aboutDogIcons: query.data?.data?.aboutDogIcons || [],
+    aboutSectionTitle: query.data?.data?.aboutSectionTitle || 'Fieldsy helps dog owners find and book private dog walking fields for safer, calmer, and more enjoyable off-lead time.',
+    aboutSectionSubtitle: query.data?.data?.aboutSectionSubtitle || 'Whether your dog needs space for training, confidence, or simply a good run, we make it easier to find the right field.',
+    aboutSectionMainText: query.data?.data?.aboutSectionMainText || '',
+    aboutSectionSecondaryText: query.data?.data?.aboutSectionSecondaryText || '',
+    aboutSectionTrustedTitle: query.data?.data?.aboutSectionTrustedTitle || 'Trusted by dog owners across the UK',
+    aboutSectionTrustedSubtitle: query.data?.data?.aboutSectionTrustedSubtitle || 'Powered by real reviews, easy booking, and a growing network of secure private dog fields across the UK.',
   };
 
   return {
