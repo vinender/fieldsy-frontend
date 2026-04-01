@@ -217,40 +217,7 @@ const PaymentPage = () => {
     }
   }, [paymentMethods]);
 
-  useEffect(() => {
-    if (!router.isReady || !date || timeSlots.length === 0) return;
-    const earliestSlot = timeSlots[0];
-    const startTime = earliestSlot.split('-')[0].trim();
-    const match = startTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
-    if (match) {
-      let hour = parseInt(match[1]);
-      const mins = parseInt(match[2]);
-      const period = match[3]?.toUpperCase();
-      if (period === 'PM' && hour !== 12) hour += 12;
-      if (period === 'AM' && hour === 12) hour = 0;
-      // Compare in UK timezone — getNowUK() returns current UK time as a Date
-      // Build the booking time using the same getNowUK approach (UK-relative comparison)
-      const nowUK = getNowUK();
-      // Get today's date parts in UK timezone for comparison
-      const bookingYear = parseInt((date as string).split('-')[0]);
-      const bookingMonth = parseInt((date as string).split('-')[1]) - 1;
-      const bookingDay = parseInt((date as string).split('-')[2]);
-      // Compare date + time numerically in UK context
-      const nowYear = nowUK.getFullYear();
-      const nowMonth = nowUK.getMonth();
-      const nowDay = nowUK.getDate();
-      const nowMinutes = nowUK.getHours() * 60 + nowUK.getMinutes();
-      const bookingMinutes = hour * 60 + mins;
-      const bookingIsPast = (bookingYear < nowYear) ||
-        (bookingYear === nowYear && bookingMonth < nowMonth) ||
-        (bookingYear === nowYear && bookingMonth === nowMonth && bookingDay < nowDay) ||
-        (bookingYear === nowYear && bookingMonth === nowMonth && bookingDay === nowDay && bookingMinutes < nowMinutes);
-      if (bookingIsPast) {
-        toast.error('This booking time has passed. Please select a new time slot.');
-        router.replace(`/fields/${field_id}`);
-      }
-    }
-  }, [router.isReady, date, timeSlots, field_id, router]);
+  // Booking time validation is handled by backend - removes false positives from frontend time parsing edge cases
 
   useEffect(() => {
     if (!router.isReady || !field_id || !date || timeSlots.length === 0) return;
