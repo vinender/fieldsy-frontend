@@ -70,8 +70,9 @@ export function Header() {
   const isAuthenticated = status === 'authenticated' && !!session?.user
   const isLoading = status === 'loading'
 
-  // Use authUser from AuthContext if available (has more profile details), otherwise fallback to session user
-  const currentUser = authUser || (session?.user as any)
+  // Always prefer authUser from AuthContext (has latest name/image from DB).
+  // Session user may have stale Google name from sign-in time.
+  const currentUser = authUser ?? (session?.user as any)
 
   // Navigation items based on authentication and role
   const navigation = useMemo(() => {

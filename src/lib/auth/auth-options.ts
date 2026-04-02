@@ -242,13 +242,13 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
-      // Handle session updates
+      // Handle session updates (e.g., after profile name change)
       if (trigger === 'update' && session) {
-        // Update the token with new session data
         return {
           ...token,
           user: {
             ...(token.user as any),
+            name: session.user?.name || (token.user as any)?.name,
             role: session.user?.role || (token.user as any)?.role,
           }
         };

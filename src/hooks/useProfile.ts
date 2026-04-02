@@ -63,7 +63,7 @@ export function useProfile() {
 
 // Update user profile
 export function useUpdateProfile() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -75,10 +75,23 @@ export function useUpdateProfile() {
       const response = await axiosClient.patch(`/users/${session.user.id}`, updateData);
       return response.data.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Invalidate both profile and auth queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+
+      // Update the NextAuth session so it reflects the new name/data
+      // This prevents the old Google name from flashing in the UI
+      try {
+        await updateSession({
+          user: {
+            ...session?.user,
+            name: data.name || session?.user?.name,
+          }
+        });
+      } catch (e) {
+        console.error('Failed to update session:', e);
+      }
 
       // Also update auth context if needed
       const currentUser = localStorage.getItem('currentUser');
