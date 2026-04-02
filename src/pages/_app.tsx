@@ -48,7 +48,7 @@ const noLayoutPaths = [
 
 function reportClientError(message: string, stack?: string) {
   try {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/error-report`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/error-report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

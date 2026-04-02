@@ -31,7 +31,7 @@ export function useCurrentUser(options?: Omit<UseQueryOptions<CurrentUserRespons
       const response = await axiosClient.get('/auth/me');
       return response.data as CurrentUserResponse;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always refetch to ensure correct user data
     retry: 2,
     ...options,
   });

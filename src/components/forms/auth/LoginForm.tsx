@@ -150,6 +150,12 @@ export function LoginForm() {
     }
 
     try {
+      // Clear any previous user data BEFORE social login to prevent wrong-user flash
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+      sessionStorage.clear();
+
       // Store the role for the callback to use
       localStorage.setItem('pendingUserRole', role);
       await storePendingRoleMutation.mutateAsync({ role });
