@@ -29,6 +29,22 @@ export default function Document() {
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </Head>
       <body suppressHydrationWarning>
+        {/* Pre-hydration loading screen — prevents SSG landing page flash for authenticated users.
+            Only shows if a session cookie exists (user is likely logged in).
+            Covers the raw HTML until React hydrates and takes over rendering. */}
+        <div id="__pre-hydration-loader" style={{ display: 'none', position: 'fixed', inset: 0, zIndex: 9999, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFCF3' }}>
+          <div style={{ width: 40, height: 40, border: '4px solid rgba(58,107,34,0.3)', borderTopColor: '#3A6B22', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <style dangerouslySetInnerHTML={{ __html: '@keyframes spin{to{transform:rotate(360deg)}}' }} />
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var c=document.cookie;
+            if(c.indexOf('next-auth.session-token')!==-1||c.indexOf('__Secure-next-auth.session-token')!==-1){
+              var el=document.getElementById('__pre-hydration-loader');
+              if(el)el.style.display='flex';
+            }
+          })();
+        `}} />
         <Main />
         <NextScript />
       </body>

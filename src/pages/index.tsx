@@ -143,10 +143,13 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
     };
   }, [])
 
-  // Before mount, while session loads, while settings load, or while auth is resolving — show spinner.
-  // This prevents the landing page from flashing before field owner dashboard loads.
+  // Show spinner overlay while resolving auth/settings.
+  // Uses an overlay instead of early return so the static HTML underneath
+  // is hidden by the overlay (prevents SSG landing page flash for field owners).
   const isAuthResolving = status === 'loading' || (status === 'authenticated' && (!userRole || authLoading));
-  if (!mounted || isAuthResolving || settingsLoading) {
+  const showSpinner = !mounted || isAuthResolving || settingsLoading;
+
+  if (showSpinner) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-light-cream">
         <div className="w-10 h-10 border-4 border-green/30 border-t-green rounded-full animate-spin" />

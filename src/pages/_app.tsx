@@ -152,6 +152,9 @@ function AppShell({ Component, pageProps, fontClassName }: AppShellProps) {
   // Wait for client-side mount before rendering providers that use browser APIs
   useEffect(() => {
     setIsMounted(true)
+    // Remove pre-hydration loader now that React has taken over rendering
+    const loader = document.getElementById('__pre-hydration-loader');
+    if (loader) loader.remove();
   }, [])
 
   const isAuthenticated = !!user
