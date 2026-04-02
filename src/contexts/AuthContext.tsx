@@ -182,15 +182,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (typeof window !== 'undefined') {
         localStorage.setItem('currentUser', JSON.stringify(newUser));
       }
-    } else if (status === 'unauthenticated' && !authToken) {
-      // Only clear user if we don't have a token in localStorage
+    } else if (status === 'unauthenticated') {
+      // Always clear user when session is unauthenticated - don't check authToken
+      // as the state variable may lag behind localStorage being cleared
       setUser(null);
       setOptimisticUser(null);
+      setAuthToken(null);
       setIsLoading(false);
 
       // Clear localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('authToken');
       }
     } else if (status === 'loading' || userLoading) {
       // Only show loading if we don't have optimistic user data
