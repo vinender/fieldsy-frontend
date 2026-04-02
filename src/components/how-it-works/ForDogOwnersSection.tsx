@@ -42,7 +42,7 @@ export function ForDogOwnersSection() {
   const { data: settings } = usePublicSettings()
 
   const sectionTitle = settings?.forDogOwnersSectionTitle || 'For Dog Owners'
-  const steps = settings?.forDogOwnersSteps || DEFAULT_STEPS
+  const steps = (settings?.forDogOwnersSteps && settings.forDogOwnersSteps.length > 0) ? settings.forDogOwnersSteps : DEFAULT_STEPS
 
   return (
     <>
