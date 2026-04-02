@@ -64,8 +64,8 @@ export const usePublicSettings = () => {
       );
       return response.data.data as PublicSettings;
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes (reduced for faster updates when admin changes settings)
+    gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });

@@ -45,8 +45,8 @@ export function usePlatformSettings() {
       const response = await axiosClient.get('/settings/public');
       return response.data as PlatformSettingsResponse;
     },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutes (reduced from 10 for faster updates)
+    gcTime: 10 * 60 * 1000,   // 10 minutes (reduced from 30)
   });
 
   // Extract platform-related settings with defaults

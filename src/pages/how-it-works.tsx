@@ -3,6 +3,8 @@ import { HowItWorksHeroSection } from "@/components/how-it-works/HowItWorksHeroS
 import { LazySection } from "@/components/common/LazySection"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/contexts/AuthContext"
+import { useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
 
 // Lazy load sections that are below the fold
 const ForDogOwnersSection = dynamic(
@@ -22,6 +24,34 @@ const FAQSectionWithImage = dynamic(
 
 export default function HowItWorksPage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Refetch settings on window refocus and tab visibility change
+  useEffect(() => {
+    const handleFocus = async () => {
+      try {
+        // Invalidate React Query cache to force fresh fetch in background
+        await queryClient.invalidateQueries({ queryKey: ['publicSettings'] });
+      } catch (error) {
+        console.error('Error refetching data on focus:', error);
+      }
+    };
+
+    const handleVisibilityChange = async () => {
+      // Fetch fresh data when tab becomes visible
+      if (document.visibilityState === 'visible') {
+        await handleFocus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [queryClient]);
 
   // Determine which sections to show based on user role
   const showDogOwnerSection = !user || user.role !== 'FIELD_OWNER';

@@ -16,6 +16,7 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PerformanceMonitor } from "@/utils/performance"
+import { useQueryClient } from "@tanstack/react-query"
 
 
 // Lazy load sections that are below the fold
@@ -68,6 +69,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
   const { user, isLoading: authLoading } = useAuth();
   const { data: settings, isLoading: settingsLoading } = usePublicSettings();
   const [mounted, setMounted] = useState(false);
+  const queryClient = useQueryClient();
 
   // For coming-soon check, always prefer client-side settings (which include cookie/IP access check).
   // Only fall back to staticSettings for non-access-related data (bannerText, etc.).
@@ -88,6 +90,33 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Refetch data on window refocus and tab visibility change (without page reload)
+  useEffect(() => {
+    const handleFocus = async () => {
+      try {
+        // Invalidate React Query cache to force fresh fetch in background
+        await queryClient.invalidateQueries({ queryKey: ['publicSettings'] });
+      } catch (error) {
+        console.error('Error refetching data on focus:', error);
+      }
+    };
+
+    const handleVisibilityChange = async () => {
+      // Fetch fresh data when tab becomes visible
+      if (document.visibilityState === 'visible') {
+        await handleFocus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [queryClient]);
 
   useEffect(() => {
     // Only track performance in development
