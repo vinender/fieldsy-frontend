@@ -11,6 +11,10 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
   const sectionTitle = settings?.landownersSectionTitle || 'How Fieldsy Works for Landowners'
   const sectionDescription = settings?.landownersSectionDescription || "List or claim your field, set your schedule, and start earning it is simple, secure, and flexible."
   const sectionImage = settings?.landownersSectionImage || '/how-it-works/dog.png'
+  const optionCard1Title = settings?.landownersOptionCard1Title || 'Claim Your Existing Listing'
+  const optionCard1Description = settings?.landownersOptionCard1Description || 'If your land is already listed on Fieldsy, claim it to access your host dashboard. From there you can manage availability, update field details, respond to dog owners, and start earning.'
+  const optionCard2Title = settings?.landownersOptionCard2Title || 'List Your Land for Free'
+  const optionCard2Description = settings?.landownersOptionCard2Description || 'Sign up, add your field details and photos, set your pricing and availability, and start receiving bookings. Everything is managed from your easy-to-use host dashboard.'
 
   return (
     <section className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-[80px] py-10 sm:py-12 md:py-16 xl:py-20 bg-light-green">
@@ -42,27 +46,27 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
                     <img src="/how-it-works/field.svg" alt="Map Pin" className="object-contain text-green" />
                   </div>
                   <div className="">
-                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">
-                      Claim Your Existing Listing
+                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px] whitespace-pre-wrap break-words">
+                      {optionCard1Title}
                     </h3>
-                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-                      If your land is already listed on Fieldsy, claim it to access your host dashboard. From there you can manage availability, update field details, respond to dog owners, and start earning.
+                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400] whitespace-pre-wrap break-words">
+                      {optionCard1Description}
                     </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="hover:bg-cream group bg-white backdrop-blur rounded-2xl p-8 h-full">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-cream group-hover:bg-white">
                     <img src="/how-it-works/calender.svg" alt="Calendar" className="object-contain text-green" />
                   </div>
                   <div>
-                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">
-                      List Your Land for Free
+                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px] whitespace-pre-wrap break-words">
+                      {optionCard2Title}
                     </h3>
-                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
-                      Sign up, add your field details and photos, set your pricing and availability, and start receiving bookings. Everything is managed from your easy-to-use host dashboard.
+                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400] whitespace-pre-wrap break-words">
+                      {optionCard2Description}
                     </p>
                   </div>
                 </div>

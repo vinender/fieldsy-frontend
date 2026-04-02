@@ -15,9 +15,25 @@ interface PublicSettings {
   bannerText?: string;
   highlightedText?: string;
   heroBackgroundImage?: string;
+  // How It Works Page
+  howItWorksHeroTitle?: string;
+  howItWorksHeroHeading?: string;
+  howItWorksHeroDescription?: string;
+  forDogOwnersSectionTitle?: string;
+  forDogOwnersSteps?: Array<{
+    icon?: string;
+    title: string;
+    description: string;
+    order?: number;
+  }>;
   landownersSectionTitle?: string;
   landownersSectionDescription?: string;
   landownersSectionImage?: string;
+  landownersOptionCard1Title?: string;
+  landownersOptionCard1Description?: string;
+  landownersOptionCard2Title?: string;
+  landownersOptionCard2Description?: string;
+  // Home Page
   howItWorksTitle?: string;
   howItWorksSteps?: Array<{
     icon: string;
