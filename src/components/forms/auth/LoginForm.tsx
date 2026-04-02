@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Lock } from "lucide-react"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -268,8 +268,8 @@ export function LoginForm() {
           </div>
 
           {/* Reassurance text */}
-          <p className="text-center text-xs text-gray-500 mt-2">
-            Your data is secure. We never share your information or send spam.
+          <p className="text-center text-xs text-gray-500 mt-2 flex items-center justify-center gap-1">
+            Your data is <span className="flex items-center gap-1">secure <Lock className="w-3 h-3" /></span>. We never share your information or send spam.
           </p>
 
         {/* Divider */}

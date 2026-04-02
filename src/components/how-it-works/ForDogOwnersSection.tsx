@@ -1,6 +1,7 @@
 import { MapPin, Calendar, FileText, CreditCard, Trees } from "lucide-react"
 import { useRouter } from "next/router"
 import { usePublicSettings } from "@/hooks/usePublicSettings"
+import { formatTextWithLineBreaks } from "@/utils/formatText"
 
 interface Step {
   icon?: string;
@@ -68,11 +69,11 @@ export function ForDogOwnersSection() {
               </div>
             )}
             <div>
-              <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px] whitespace-pre-wrap break-words">
-                {step.title}
+              <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-4 leading-tight xl:leading-[32px]">
+                {formatTextWithLineBreaks(step.title)}
               </h3>
-              <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400] whitespace-pre-wrap break-words">
-                {step.description}
+              <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
+                {formatTextWithLineBreaks(step.description)}
               </p>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 import { usePlatformSettings } from "@/hooks/queries/usePlatformSettings"
 import Image from "next/image"
+import { formatTextWithLineBreaks } from "@/utils/formatText"
 
 export function PlatformSection() {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null)
@@ -61,7 +62,7 @@ export function PlatformSection() {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12 lg:mb-14 xl:mb-16">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[44px] xl:text-5xl font-bold text-white leading-tight px-2">
-            {settings.platformTitle}
+            {formatTextWithLineBreaks(settings.platformTitle)}
           </h2>
         </div>
 
@@ -90,18 +91,18 @@ export function PlatformSection() {
               <div className="flex-1 bg-[#FFFCF3] px-4 sm:px-6 md:px-8 lg:px-10 xl:px-[40px] pt-4 pb-6 sm:pt-6 sm:pb-8 lg:pt-8 xl:pt-[32px] lg:pb-8 xl:pb-10 flex flex-col relative">
                 <div className="mb-4 lg:mb-6 xl:mb-[16px]">
                   <h3 className="text-base sm:text-[18px] leading-5 sm:leading-[20px] font-[700] text-green mb-2">
-                    {card.subtitle}
+                    {formatTextWithLineBreaks(card.subtitle)}
                   </h3>
                   <h4 className="text-xl sm:text-2xl md:text-[28px] lg:text-[30px] xl:text-[32px] font-[600] w-full leading-6 sm:leading-8 md:leading-[36px] lg:leading-[38px] xl:leading-[40px] text-gray-900">
-                    {card.title}
+                    {formatTextWithLineBreaks(card.title)}
                   </h4>
                 </div>
 
                 <ul className="space-y-1 sm:space-y-2 lg:space-y-3 xl:space-y-[4px] text-sm sm:text-base lg:text-[17px] xl:text-[18px] leading-6 sm:leading-7 lg:leading-8 xl:leading-[30px] font-[400] flex-grow">
                   {card.bullets.map((text: string, index: number) => (
-                    <li key={index} className="flex items-center space-x-2 text-gray-700">
-                      <span className="rounded-full bg-green h-1.5 w-1.5 flex-shrink-0"></span>
-                      <span className="text-dark-green">{text}</span>
+                    <li key={index} className="flex items-start space-x-2 text-gray-700">
+                      <span className="rounded-full bg-green h-1.5 w-1.5 flex-shrink-0 mt-2"></span>
+                      <span className="text-dark-green">{formatTextWithLineBreaks(text)}</span>
                     </li>
                   ))}
                 </ul>

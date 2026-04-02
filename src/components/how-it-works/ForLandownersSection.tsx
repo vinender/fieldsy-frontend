@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { usePublicSettings } from "@/hooks/usePublicSettings"
+import { formatTextWithLineBreaks } from "@/utils/formatText"
 
 interface ForLandownersSectionProps {
   hideClaimButton?: boolean;
@@ -31,11 +32,11 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
           {/* Right Content */}
           <div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-[48px] font-[700] text-white mb-8 leading-tight xl:leading-[60px]">
-              {sectionTitle}
+              {formatTextWithLineBreaks(sectionTitle)}
             </h2>
 
             <p className="text-sm sm:text-base xl:text-[18px] text-white/90 mb-12 leading-relaxed xl:leading-[30px] font-[400]">
-              {sectionDescription}
+              {formatTextWithLineBreaks(sectionDescription)}
             </p>
             
             {/* Option Cards */}
@@ -46,11 +47,11 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
                     <img src="/how-it-works/field.svg" alt="Map Pin" className="object-contain text-green" />
                   </div>
                   <div className="">
-                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px] whitespace-pre-wrap break-words">
-                      {optionCard1Title}
+                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">
+                      {formatTextWithLineBreaks(optionCard1Title)}
                     </h3>
-                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400] whitespace-pre-wrap break-words">
-                      {optionCard1Description}
+                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
+                      {formatTextWithLineBreaks(optionCard1Description)}
                     </p>
                   </div>
                 </div>
@@ -62,11 +63,11 @@ export function ForLandownersSection({ hideClaimButton = false }: ForLandownersS
                     <img src="/how-it-works/calender.svg" alt="Calendar" className="object-contain text-green" />
                   </div>
                   <div>
-                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px] whitespace-pre-wrap break-words">
-                      {optionCard2Title}
+                    <h3 className="text-xl xl:text-[24px] font-[600] text-dark-green mb-3 leading-tight xl:leading-[32px]">
+                      {formatTextWithLineBreaks(optionCard2Title)}
                     </h3>
-                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400] whitespace-pre-wrap break-words">
-                      {optionCard2Description}
+                    <p className="text-sm xl:text-[16px] text-dark-green/80 leading-relaxed xl:leading-[24px] font-[400]">
+                      {formatTextWithLineBreaks(optionCard2Description)}
                     </p>
                   </div>
                 </div>
