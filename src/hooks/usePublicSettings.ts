@@ -43,6 +43,11 @@ interface PublicSettings {
     thumbnail?: string;
     order: number;
   }>;
+  // Why Choose Fieldsy Section (Features on homepage)
+  whyChooseFieldsyFeatures?: Array<{
+    title: string;
+    description: string;
+  }>;
 }
 
 // Fetch public settings (no auth required)

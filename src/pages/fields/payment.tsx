@@ -355,7 +355,7 @@ const PaymentPage = () => {
   if (isInitialLoading) {
     return (
       <UserLayout requireRole="DOG_OWNER">
-        <div className="min-h-screen bg-[#FFFCF3] w-full flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#FFFCF3]">
           <div className="flex flex-col items-center gap-4">
             <Spinner size="lg" className="text-[#3A6B22]" />
             <p className="text-gray-600 text-sm">Loading payment details...</p>

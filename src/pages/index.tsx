@@ -147,7 +147,7 @@ export default function HomePage({ settings: staticSettings, faqs: staticFaqs }:
   // Prevents hero flash before coming-soon gate and field-owner dashboard flash
   if (!mounted || status === 'loading' || settingsLoading || (status === 'authenticated' && !userRole)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-light-cream">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-light-cream">
         <div className="w-10 h-10 border-4 border-green/30 border-t-green rounded-full animate-spin" />
       </div>
     )

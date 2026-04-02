@@ -73,7 +73,7 @@ export function UserLayout({ children, requireRole }: UserLayoutProps) {
 
   if (isLoading || status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#FFFCF3]">
        <Spinner size="md" />
       </div>
     );

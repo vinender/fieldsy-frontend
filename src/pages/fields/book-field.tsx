@@ -570,7 +570,7 @@ const BookFieldPage = () => {
   if (isLoading || !field) {
     return (
       <UserLayout>
-        <div className="min-h-screen mt-16 xl:mt-24 bg-[#FFFCF3] flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#FFFCF3]">
           <div className="flex flex-col items-center gap-4">
             <Spinner size="lg" />
             <p className="text-lg font-medium text-dark-green">Loading field details...</p>

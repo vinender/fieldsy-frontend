@@ -1,42 +1,66 @@
-import { Shield, Smartphone, MapPin, Calendar, Users, Smartphone as Phone } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { DownloadAppButton } from "@/components/ui/download-app-button"
+import { usePublicSettings } from "@/hooks/usePublicSettings"
 import Image from "next/image"
+import { DownloadAppButton } from "@/components/ui/download-app-button"
 
+const DEFAULT_FEATURES = [
+  {
+    icon: "/features/icon1.png",
+    title: "Private & Secure Spaces",
+    description: "All fields are fully enclosed for safe, stress-free visits."
+  },
+  {
+    icon: "/features/icon2.png",
+    title: "Effortless Booking",
+    description: "Search, select, and reserve in just a few taps anytime, anywhere."
+  },
+  {
+    icon: "/features/icon3.png",
+    title: "GPS-Powered Discovery",
+    description: "Find nearby dog fields instantly using your location or postcode."
+  },
+  {
+    icon: "/features/icon4.png",
+    title: "Flexible Scheduling",
+    description: "Book by the hour, on your time—no rigid rules or waiting lists."
+  },
+  {
+    icon: "/features/icon5.png",
+    title: "Trusted Community",
+    description: "Built by dog lovers, for dog lovers—backed by real users and local field owners."
+  },
+  {
+    icon: "/features/icon6.png",
+    title: "Two Apps, One Mission",
+    description: "Connecting paws with places whether you walk or host."
+  },
+  {
+    icon: "/features/icon4.png",
+    title: "Simple Booking Management",
+    description: "Manage availability, bookings, and field access in one easy place."
+  },
+  {
+    icon: "/features/icon2.png",
+    title: "List Your Field",
+    description: "Promote your secure field to local dog owners."
+  },
+  {
+    icon: "/features/icon6.png",
+    title: "Built to Help You Grow",
+    description: "Present your field professionally and attract more bookings with less hassle."
+  }
+]
 
 export function FeaturesSection() {
-  const features = [
-    {
-      icon: "/features/icon1.png",
-      title: "Private & Secure Spaces",
-      description: "All fields are fully enclosed for safe, stress-free visits."
-    },
-    {
-      icon: "/features/icon2.png",
-      title: "Effortless Booking",
-      description: "Search, select, and reserve in just a few taps anytime, anywhere."
-    },
-    {
-      icon: "/features/icon3.png",
-      title: "GPS-Powered Discovery",
-      description: "Find nearby dog fields instantly using your location or postcode."
-    },
-    {
-      icon: "/features/icon4.png",
-      title: "Flexible Scheduling",
-      description: "Book by the hour, on your time—no rigid rules or waiting lists."
-    },
-    {
-      icon: "/features/icon5.png",
-      title: "Trusted Community",
-      description: "Built by dog lovers, for dog lovers—backed by real users and local field owners."
-    },
-    {
-      icon: "/features/icon6.png",
-      title: "Two Apps, One Mission",
-      description: "Connecting paws with places whether you walk or host."
-    }
-  ]
+  const { data: settings } = usePublicSettings()
+
+  // Merge API features with default icons
+  const features = (settings?.whyChooseFieldsyFeatures && settings.whyChooseFieldsyFeatures.length > 0
+    ? settings.whyChooseFieldsyFeatures.map((feature, index) => ({
+        ...feature,
+        icon: DEFAULT_FEATURES[index]?.icon || DEFAULT_FEATURES[0].icon
+      }))
+    : DEFAULT_FEATURES
+  )
  
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 xl:px-20 bg-white ">

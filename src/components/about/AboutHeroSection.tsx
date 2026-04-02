@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { DownloadAppButton } from "@/components/ui/download-app-button"
 import Image from "next/image"
 import { useEffect, useState, useRef } from 'react'
+import { formatTextWithLineBreaks } from "@/utils/formatText"
 
 // Animated counter component with meter-style animation
 function AnimatedCounter({
@@ -156,16 +157,11 @@ export function AboutHeroSection({ data, loading }: AboutHeroSectionProps) {
           {/* Left Content */}
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[48px] font-[700] text-dark-green mb-6 sm:mb-8 leading-tight sm:leading-tight md:leading-tight lg:leading-[1.1] xl:leading-[60px]">
-              {content.mainTitle.split('\n').map((line, index) => (
-                <span key={index}>
-                  {line}
-                  {index < content.mainTitle.split('\n').length - 1 && <br className="hidden sm:block" />}
-                </span>
-              ))}
+              {formatTextWithLineBreaks(content.mainTitle)}
             </h1>
 
             <p className="text-sm sm:text-base lg:text-[18px] text-dark-green/80 mb-8 sm:mb-10 leading-relaxed sm:leading-relaxed lg:leading-[30px] font-[400]">
-              {content.description}
+              {formatTextWithLineBreaks(content.description)}
             </p>
 
             <DownloadAppButton />

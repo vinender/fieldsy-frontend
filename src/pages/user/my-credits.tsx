@@ -91,7 +91,7 @@ export default function MyCreditsPage() {
   if (loading) {
     return (
       <UserLayout>
-        <div className="min-h-screen bg-[#FFFCF3] mt-32 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#FFFCF3]">
           <div className="animate-spin h-8 w-8 border-4 border-[#3A6B22] border-t-transparent rounded-full" />
         </div>
       </UserLayout>

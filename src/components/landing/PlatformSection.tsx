@@ -20,7 +20,7 @@ export function PlatformSection() {
   // Show loading state or skeleton if data is loading
   if (loading) {
     return (
-      <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-[80px] px-4 sm:px-6 lg:px-8 xl:px-20 bg-light-green overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-[80px] px-4 sm:px-6 lg:px-8 xl:px-20 bg-light-green overflow-hidden min-h-screen flex items-center justify-center">
         <div className="mx-auto w-full max-w-full animate-pulse">
           <div className="h-12 bg-white/20 rounded-lg w-3/4 mx-auto mb-12"></div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
@@ -30,6 +30,11 @@ export function PlatformSection() {
         </div>
       </section>
     );
+  }
+
+  // Don't render if no data is available
+  if (!settings.platformTitle || !settings.platformDogOwnersTitle || !settings.platformFieldOwnersTitle) {
+    return null;
   }
 
   const handleLoginRedirect = () => {
