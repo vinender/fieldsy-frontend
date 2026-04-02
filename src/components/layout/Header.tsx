@@ -284,24 +284,24 @@ export function Header() {
                       // 1. Clear React Query cache FIRST to prevent stale data flash
                       queryClient.clear();
 
-                      // 2. Clear all localStorage items
-                      localStorage.removeItem('authToken');
-                      localStorage.removeItem('currentUser');
-                      localStorage.removeItem('pendingUserRole');
-                      localStorage.removeItem('token');
+                      // 2. Clear ALL browser storage
+                      localStorage.clear();
                       sessionStorage.clear();
 
-                      // 3. Clear auth cookies manually to prevent stale session on reload
+                      // 3. Clear ALL cookies (not just next-auth)
                       document.cookie.split(';').forEach(c => {
                         const name = c.split('=')[0].trim();
-                        if (name.startsWith('next-auth') || name.startsWith('__Secure-next-auth')) {
-                          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-                          // Also clear with secure flag for production
-                          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax`;
-                        }
+                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax`;
                       });
 
-                      // 4. Sign out — await to ensure session is fully cleared before redirect
+                      // 4. Clear browser Cache API
+                      if ('caches' in window) {
+                        const keys = await caches.keys();
+                        await Promise.all(keys.map(k => caches.delete(k)));
+                      }
+
+                      // 5. Sign out — await to ensure session is fully cleared before redirect
                       await signOut({
                         callbackUrl: "/",
                         redirect: true
@@ -671,22 +671,22 @@ export function Header() {
           onConfirm={async () => {
             setShowLogoutModal(false)
             setMobileMenuOpen(false)
-            // Clear React Query cache first
+            // Clear React Query cache
             queryClient.clear();
-            // Clear localStorage items
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('pendingUserRole');
-            localStorage.removeItem('token');
+            // Clear ALL browser storage
+            localStorage.clear();
             sessionStorage.clear();
-            // Clear auth cookies
+            // Clear ALL cookies
             document.cookie.split(';').forEach(c => {
               const name = c.split('=')[0].trim();
-              if (name.startsWith('next-auth') || name.startsWith('__Secure-next-auth')) {
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax`;
-              }
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax`;
             });
+            // Clear browser Cache API
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(k => caches.delete(k)));
+            }
             // Sign out
             await signOut({ callbackUrl: "/", redirect: true })
           }}

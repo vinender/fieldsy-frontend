@@ -164,6 +164,24 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        // HTML pages — never cache to prevent stale auth state
+        source: '/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2)).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+      {
         // Static assets (JS/CSS bundles) — these have content hashes, safe to cache long
         source: '/_next/static/:path*',
         headers: [
