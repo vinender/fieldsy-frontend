@@ -14,6 +14,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useLoginWithOtpCheck } from "@/hooks/mutations/useOtpMutations"
 import { useStorePendingRole } from "@/hooks/mutations/useAuthMutations"
+import { setAxiosAuthToken } from "@/lib/api/axios-client"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -64,6 +65,8 @@ export function LoginForm() {
       if (result.data?.token) {
         localStorage.setItem('authToken', result.data.token);
         localStorage.setItem('currentUser', JSON.stringify(result.data.user));
+        // Set token in axios immediately so next API calls use the right token
+        setAxiosAuthToken(result.data.token);
       }
 
       // Login successful, use NextAuth for session management

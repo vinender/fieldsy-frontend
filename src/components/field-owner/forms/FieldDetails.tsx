@@ -629,6 +629,33 @@ export default function FieldDetails({ formData, setFormData, validationErrors =
           </div>
         </div>
       </div>
+
+      {/* Entry Code */}
+      <div>
+        <h2 className="text-lg font-semibold mb-1 text-dark-green font-sans">Entry Code</h2>
+        <p className="text-gray-600 text-sm mb-4 font-sans">
+          Set a code that dog owners will use to access your field. Must be 4-10 characters (letters and numbers only).
+        </p>
+        <Input
+          type="text"
+          name="entryCode"
+          value={formData.entryCode || ''}
+          onChange={(e) => {
+            const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (value.length <= 10) {
+              setFormData((prev: any) => ({ ...prev, entryCode: value }));
+            }
+          }}
+          placeholder="e.g., FIELD1234"
+          maxLength={10}
+          className={`py-3 max-w-xs uppercase ${validationErrors.entryCode ? 'border-red-500' : ''}`}
+          aria-invalid={!!validationErrors.entryCode}
+        />
+        {validationErrors.entryCode && (
+          <p className="text-red-500 text-sm mt-1">{validationErrors.entryCode}</p>
+        )}
+        <p className="text-gray-400 text-xs mt-1">{(formData.entryCode || '').length}/10 characters</p>
+      </div>
     </div>
   );
 }

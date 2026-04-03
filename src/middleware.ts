@@ -55,40 +55,43 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Live Site Check
-  const hostname = request.headers.get('host') || '';
-  const isTargetHost = hostname === 'fieldsy.co.uk' || hostname === 'www.fieldsy.co.uk' || hostname.includes('localhost:3000');
+  // Live Site Check — ONLY in production (skipped in dev to avoid slow API calls on every navigation)
+  const isDev = process.env.NODE_ENV === 'development';
+  if (!isDev) {
+    const hostname = request.headers.get('host') || '';
+    const isTargetHost = hostname === 'fieldsy.co.uk' || hostname === 'www.fieldsy.co.uk';
 
-  if (isTargetHost && !path.startsWith('/api/') && !path.startsWith('/_next/') && !path.includes('.')) {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      // Read device access token from cookie
-      const accessToken = request.cookies.get('fieldsy_access')?.value || '';
+    if (isTargetHost && !path.startsWith('/api/') && !path.startsWith('/_next/') && !path.includes('.')) {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        // Read device access token from cookie
+        const accessToken = request.cookies.get('fieldsy_access')?.value || '';
 
-      const settingsRes = await fetch(`${apiUrl}/settings/public`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-forwarded-for': request.headers.get('x-forwarded-for') || '',
-          ...(accessToken ? { 'x-access-token': accessToken } : {}),
-        },
-      });
+        const settingsRes = await fetch(`${apiUrl}/settings/public`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-forwarded-for': request.headers.get('x-forwarded-for') || '',
+            ...(accessToken ? { 'x-access-token': accessToken } : {}),
+          },
+        });
 
-      if (settingsRes.ok) {
-        const settingsData = await settingsRes.json();
-        const isLive = settingsData.data?.isLive;
-        const hasAccess = settingsData.data?.hasAccess;
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          const isLive = settingsData.data?.isLive;
+          const hasAccess = settingsData.data?.hasAccess;
 
-        // If site is not live and IP is not whitelisted
-        if (isLive === false && !hasAccess) {
-          // If the user is NOT already on the index page, redirect them to it
-          if (path !== '/') {
-            return NextResponse.redirect(new URL('/', request.url));
+          // If site is not live and IP is not whitelisted
+          if (isLive === false && !hasAccess) {
+            // If the user is NOT already on the index page, redirect them to it
+            if (path !== '/') {
+              return NextResponse.redirect(new URL('/', request.url));
+            }
           }
         }
+      } catch (error) {
+        console.error('Middleware live check failed:', error);
       }
-    } catch (error) {
-      console.error('Middleware live check failed:', error);
     }
   }
 

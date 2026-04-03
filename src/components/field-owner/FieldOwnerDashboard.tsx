@@ -159,6 +159,7 @@ export default function FieldOwnerDashboard({
     bookingDuration: string;
     instantBooking: boolean;
     requireDeposit: boolean;
+    entryCode: string;
     rules: string;
     policies: string;
   }>({
@@ -190,6 +191,7 @@ export default function FieldOwnerDashboard({
     bookingDuration: '30min',
     instantBooking: false,
     requireDeposit: false,
+    entryCode: '',
     // Booking rules and policies
     rules: '',
     policies: '',
@@ -444,6 +446,7 @@ export default function FieldOwnerDashboard({
         bookingDuration: fieldData.bookingDuration || '30min',
         instantBooking: fieldData.instantBooking || false,
         requireDeposit: false,
+        entryCode: fieldData.entryCode || '',
         rules: fieldData.rules?.[0] || '',
         policies: fieldData.cancellationPolicy || ''
       }));

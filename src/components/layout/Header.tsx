@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut, useSession } from "next-auth/react"
+import { useSession } from "next-auth/react"
+import { performLogout } from "@/lib/auth/logout"
 import { cn } from "@/lib/utils"
 import { Menu, MessageCircle, Bell, X } from "lucide-react"
 import NotificationsSidebar from "@/components/sidebar/NotificationsSidebar"
@@ -280,33 +281,7 @@ export function Header() {
                     }}
                     isOpen={profileDropdownOpen}
                     onClose={() => setProfileDropdownOpen(false)}
-                    onLogout={async () => {
-                      // 1. Clear React Query cache FIRST to prevent stale data flash
-                      queryClient.clear();
-
-                      // 2. Clear ALL browser storage
-                      localStorage.clear();
-                      sessionStorage.clear();
-
-                      // 3. Clear ALL cookies (not just next-auth)
-                      document.cookie.split(';').forEach(c => {
-                        const name = c.split('=')[0].trim();
-                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax`;
-                      });
-
-                      // 4. Clear browser Cache API
-                      if ('caches' in window) {
-                        const keys = await caches.keys();
-                        await Promise.all(keys.map(k => caches.delete(k)));
-                      }
-
-                      // 5. Sign out — await to ensure session is fully cleared before redirect
-                      await signOut({
-                        callbackUrl: "/",
-                        redirect: true
-                      });
-                    }}
+                    onLogout={() => performLogout(queryClient)}
                   />
                 </div>
               </>
@@ -668,27 +643,10 @@ export function Header() {
         <LogoutConfirmationModal
           isOpen={showLogoutModal}
           onClose={() => setShowLogoutModal(false)}
-          onConfirm={async () => {
+          onConfirm={() => {
             setShowLogoutModal(false)
             setMobileMenuOpen(false)
-            // Clear React Query cache
-            queryClient.clear();
-            // Clear ALL browser storage
-            localStorage.clear();
-            sessionStorage.clear();
-            // Clear ALL cookies
-            document.cookie.split(';').forEach(c => {
-              const name = c.split('=')[0].trim();
-              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax`;
-            });
-            // Clear browser Cache API
-            if ('caches' in window) {
-              const keys = await caches.keys();
-              await Promise.all(keys.map(k => caches.delete(k)));
-            }
-            // Sign out
-            await signOut({ callbackUrl: "/", redirect: true })
+            performLogout(queryClient)
           }}
         />
       )}

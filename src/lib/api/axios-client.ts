@@ -13,38 +13,56 @@ const axiosClient = axios.create({
   },
 });
 
+// Cache the session token to avoid calling getSession() on every request
+let cachedToken: string | null = null;
+let tokenCacheTime = 0;
+const TOKEN_CACHE_TTL = 60 * 1000; // 1 minute
+
+// Call this when logging in to set the token immediately
+export function setAxiosAuthToken(token: string | null) {
+  cachedToken = token;
+  tokenCacheTime = Date.now();
+}
+
+// Call this on logout to clear immediately
+export function clearAxiosAuthToken() {
+  cachedToken = null;
+  tokenCacheTime = 0;
+}
+
 // Request interceptor to add auth token
 axiosClient.interceptors.request.use(
   async (config) => {
     let token: string | null = null;
 
-    if (typeof window !== 'undefined') {
-      const authToken = localStorage.getItem('authToken');
-      if (authToken) {
-        token = authToken;
-      } else {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-          try {
-            const user = JSON.parse(storedUser);
-            if (user.token) {
-              token = user.token;
-            }
-          } catch (e) {
-            console.error('Failed to parse stored user:', e);
-          }
-        }
-      }
+    // 1. Use cached token if fresh (avoids getSession() call)
+    if (cachedToken && (Date.now() - tokenCacheTime) < TOKEN_CACHE_TTL) {
+      token = cachedToken;
     }
 
+    // 2. Check localStorage as fast fallback
+    if (!token && typeof window !== 'undefined') {
+      token = localStorage.getItem('authToken');
+    }
+
+    // 3. Last resort: get from NextAuth session (async, slower)
     if (!token) {
-      const session = await getSession();
-      if (session?.accessToken) {
-        token = session.accessToken as string;
-      } else if ((session?.user as any)?.token) {
-        token = (session.user as any).token;
-      } else if ((session as any)?.token) {
-        token = (session as any).token;
+      try {
+        const session = await getSession();
+        if (session?.accessToken) {
+          token = session.accessToken as string;
+        } else if ((session?.user as any)?.token) {
+          token = (session.user as any).token;
+        } else if ((session as any)?.token) {
+          token = (session as any).token;
+        }
+        // Cache it for next request
+        if (token) {
+          cachedToken = token;
+          tokenCacheTime = Date.now();
+        }
+      } catch (e) {
+        // Session fetch failed, continue without token
       }
     }
 

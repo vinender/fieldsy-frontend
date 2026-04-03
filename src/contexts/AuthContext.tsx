@@ -91,6 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     syncAuthFromStorage();
 
+    // Only sync on cross-tab storage changes and explicit auth events
+    // Do NOT sync on focus/visibility — that causes stale user flashes
     const handleStorageChange = () => {
       const newToken = localStorage.getItem('authToken');
       const storedUser = localStorage.getItem('currentUser');
@@ -115,20 +117,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('authTokenChanged', handleStorageChange);
-    window.addEventListener('focus', syncAuthFromStorage);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        syncAuthFromStorage();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('authTokenChanged', handleStorageChange);
-      window.removeEventListener('focus', syncAuthFromStorage);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [syncAuthFromStorage]);
 
