@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Calendar, Clock } from 'lucide-react';
+import { X, Plus, Calendar, Clock, AlertCircle } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -65,6 +65,7 @@ export default function OffersDiscounts({ formData, setFormData, validationError
     endDate: '',
     endTime: '',
   });
+  const [discountError, setDiscountError] = useState('');
 
   const offers: Offer[] = formData.offers || [];
   const discounts: Discount[] = formData.discounts || [];
@@ -146,8 +147,53 @@ export default function OffersDiscounts({ formData, setFormData, validationError
     setFormData((prev: any) => ({ ...prev, discounts: updatedDiscounts }));
   };
 
+  // Check if a new discount overlaps with any existing enabled discount
+  const checkDiscountOverlap = (nd: typeof newDiscount): string | null => {
+    const newStart = new Date(`${nd.startDate}T${nd.startTime}`);
+    const newEnd = new Date(`${nd.endDate}T${nd.endTime}`);
+
+    if (isNaN(newStart.getTime()) || isNaN(newEnd.getTime())) {
+      return 'Invalid date or time format.';
+    }
+
+    const now = new Date();
+    if (newStart < now) {
+      return 'Start date/time cannot be in the past.';
+    }
+
+    if (newEnd <= newStart) {
+      return 'End date/time must be after start date/time.';
+    }
+
+    const val = parseInt(nd.value);
+    if (isNaN(val) || val < 1 || val > 100) {
+      return 'Discount value must be between 1 and 100.';
+    }
+
+    for (const existing of discounts) {
+      if (!existing.enabled) continue;
+      const exStart = new Date(`${existing.startDate.split('T')[0]}T${existing.startTime}`);
+      const exEnd = new Date(`${existing.endDate.split('T')[0]}T${existing.endTime}`);
+
+      // Two ranges overlap if one starts before the other ends AND vice versa
+      if (newStart < exEnd && newEnd > exStart) {
+        return `This discount overlaps with an existing ${existing.value}% discount (${formatDiscountValidity(existing)}). Please choose a different date/time range.`;
+      }
+    }
+
+    return null;
+  };
+
   const handleAddDiscount = async () => {
     if (!newDiscount.value || !newDiscount.startDate || !newDiscount.startTime || !newDiscount.endDate || !newDiscount.endTime) return;
+
+    // Validate before saving
+    const overlapError = checkDiscountOverlap(newDiscount);
+    if (overlapError) {
+      setDiscountError(overlapError);
+      return;
+    }
+    setDiscountError('');
 
     if (fieldId) {
       try {
@@ -168,12 +214,16 @@ export default function OffersDiscounts({ formData, setFormData, validationError
         if (data.success) {
           updateDiscounts([...discounts, { ...data.data, value: String(data.data.value) }]);
           setNewDiscount({ value: '', startDate: '', startTime: '', endDate: '', endTime: '' });
+          setDiscountError('');
           return;
         } else {
-          console.error('[OffersDiscounts] Failed to create discount:', data.message);
+          setDiscountError(data.message || 'Failed to create discount.');
+          return;
         }
       } catch (err) {
         console.error('[OffersDiscounts] Error creating discount:', err);
+        setDiscountError('Failed to create discount. Please try again.');
+        return;
       }
     } else {
       console.warn('[OffersDiscounts] No fieldId available, saving discount locally only');
@@ -182,6 +232,7 @@ export default function OffersDiscounts({ formData, setFormData, validationError
     const discount: Discount = { id: Date.now().toString(), ...newDiscount, enabled: true };
     updateDiscounts([...discounts, discount]);
     setNewDiscount({ value: '', startDate: '', startTime: '', endDate: '', endTime: '' });
+    setDiscountError('');
   };
 
   const handleToggleDiscount = async (id: string) => {
@@ -489,6 +540,14 @@ export default function OffersDiscounts({ formData, setFormData, validationError
                   </div>
                 </div>
               </div>
+
+              {/* Validation Error */}
+              {discountError && (
+                <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-600">{discountError}</p>
+                </div>
+              )}
 
               {/* Save Button */}
               <div className="flex justify-end">
