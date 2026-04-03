@@ -69,8 +69,9 @@ export const usePublicSettings = () => {
       );
       return response.data.data as PublicSettings;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes (reduced for faster updates when admin changes settings)
+    staleTime: 0, // Always refetch on mount to ensure latest admin settings
     gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: true,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
