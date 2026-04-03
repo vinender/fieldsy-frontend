@@ -32,11 +32,6 @@ export function PlatformSection() {
     );
   }
 
-  // Don't render if no data is available
-  if (!settings.platformTitle || !settings.platformDogOwnersTitle || !settings.platformFieldOwnersTitle) {
-    return null;
-  }
-
   const handleLoginRedirect = () => {
     router.push('/login');
   };

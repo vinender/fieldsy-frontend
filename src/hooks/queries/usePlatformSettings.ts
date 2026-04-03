@@ -49,17 +49,17 @@ export function usePlatformSettings() {
     gcTime: 10 * 60 * 1000,   // 10 minutes (reduced from 30)
   });
 
-  // Extract platform-related settings without any fallbacks - only use API data
+  // Extract platform-related settings with sensible defaults
   const platformSettings: PlatformSettings = {
-    platformTitle: query.data?.data?.platformTitle || "",
-    platformDogOwnersImage: query.data?.data?.platformDogOwnersImage || "",
-    platformDogOwnersSubtitle: query.data?.data?.platformDogOwnersSubtitle || "",
-    platformDogOwnersTitle: query.data?.data?.platformDogOwnersTitle || "",
-    platformDogOwnersBullets: query.data?.data?.platformDogOwnersBullets || [],
-    platformFieldOwnersImage: query.data?.data?.platformFieldOwnersImage || "",
-    platformFieldOwnersSubtitle: query.data?.data?.platformFieldOwnersSubtitle || "",
-    platformFieldOwnersTitle: query.data?.data?.platformFieldOwnersTitle || "",
-    platformFieldOwnersBullets: query.data?.data?.platformFieldOwnersBullets || [],
+    platformTitle: query.data?.data?.platformTitle || "One Platform, Two Tail-Wagging Experiences",
+    platformDogOwnersImage: query.data?.data?.platformDogOwnersImage || "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img1.webp",
+    platformDogOwnersSubtitle: query.data?.data?.platformDogOwnersSubtitle || "For Dog Owners:",
+    platformDogOwnersTitle: query.data?.data?.platformDogOwnersTitle || "Find & Book Private Dog Walking Fields in Seconds",
+    platformDogOwnersBullets: query.data?.data?.platformDogOwnersBullets || ["Stress-free walks for reactive or energetic dogs", "Fully fenced, secure spaces", "GPS-powered search", "Instant hourly bookings"],
+    platformFieldOwnersImage: query.data?.data?.platformFieldOwnersImage || "https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img2.webp",
+    platformFieldOwnersSubtitle: query.data?.data?.platformFieldOwnersSubtitle || "For Field Owners:",
+    platformFieldOwnersTitle: query.data?.data?.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
+    platformFieldOwnersBullets: query.data?.data?.platformFieldOwnersBullets || ["Earn passive income while helping pets", "Host dog owners with full control", "Set your availability and pricing", "List your field for free"],
   };
 
   return {
