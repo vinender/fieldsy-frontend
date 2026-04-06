@@ -242,10 +242,15 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
-      // Handle session updates (e.g., after profile name change)
+      // Handle session updates (e.g., after profile name change or token refresh)
       if (trigger === 'update' && session) {
         return {
           ...token,
+          // Propagate refreshed access token if provided by useTokenRefresh
+          ...(session.accessToken ? {
+            accessToken: session.accessToken,
+            accessTokenExpires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+          } : {}),
           user: {
             ...(token.user as any),
             name: session.user?.name || (token.user as any)?.name,
@@ -675,7 +680,28 @@ export const authOptions: NextAuthOptions = {
 };
 
 async function refreshAccessToken(token: JWT) {
-  // For now, just return the token as-is
-  // In production, implement proper token refresh
-  return token;
+  try {
+    const apiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const response = await fetch(`${apiUrl}/auth/refresh-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: token.accessToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Refresh failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      ...token,
+      accessToken: data.data.token,
+      accessTokenExpires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    };
+  } catch (error) {
+    console.error('[NextAuth] refreshAccessToken failed:', error);
+    // Return token with error flag so session callback can signal the client
+    return { ...token, error: 'RefreshAccessTokenError' };
+  }
 }

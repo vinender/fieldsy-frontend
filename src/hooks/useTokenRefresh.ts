@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import axiosClient from '@/lib/api/axios-client';
+import axiosClient, { setAxiosAuthToken } from '@/lib/api/axios-client';
 import { isPublicRoute } from '@/utils/auth-routes';
 
 const TOKEN_REFRESH_THRESHOLD = 300000; // 5 minutes before expiry
@@ -41,25 +41,36 @@ export function useTokenRefresh() {
 
     try {
       console.log('Attempting to refresh token...');
-      
-      // Call backend refresh endpoint
-      const response = await axiosClient.post('/auth/refresh-token', {}, {
+
+      // Get the current token to send as refreshToken in the body
+      const currentToken = localStorage.getItem('authToken') || (session?.accessToken as string);
+      if (!currentToken) {
+        console.log('No token available to refresh');
+        return false;
+      }
+
+      // Call backend refresh endpoint with the current token in the body
+      const response = await axiosClient.post('/auth/refresh-token', { refreshToken: currentToken }, {
         // Don't retry on failure
         validateStatus: (status) => status < 500
       });
 
-      if (response.status === 200 && response.data.token) {
+      if (response.status === 200 && response.data?.data?.token) {
+        const newToken = response.data.data.token;
+
         // Update local storage
-        localStorage.setItem('authToken', response.data.token);
-        
-        // Update session if using NextAuth
+        localStorage.setItem('authToken', newToken);
+
+        // Update axios cached token so next request uses the new token immediately
+        setAxiosAuthToken(newToken);
+
+        // Update NextAuth session so it stays in sync
         if (update) {
           await update({
             ...session,
-            accessToken: response.data.token,
+            accessToken: newToken,
             user: {
               ...session?.user,
-              token: response.data.token
             }
           });
         }
