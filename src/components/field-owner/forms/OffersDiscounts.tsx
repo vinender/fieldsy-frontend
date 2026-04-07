@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Plus, Calendar, Clock, AlertCircle } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, Plus, Clock, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -60,15 +60,32 @@ export default function OffersDiscounts({ formData, setFormData, validationError
   const [showAddDiscountForm, setShowAddDiscountForm] = useState(!formData.discounts?.length);
   const [newDiscount, setNewDiscount] = useState({
     value: '',
-    startDate: '',
     startTime: '',
-    endDate: '',
     endTime: '',
   });
   const [discountError, setDiscountError] = useState('');
+  // Multi-date selection for new discounts
+  const [selectedDates, setSelectedDates] = useState<string[]>([]); // YYYY-MM-DD strings
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
 
   const offers: Offer[] = formData.offers || [];
   const discounts: Discount[] = formData.discounts || [];
+
+  // Field operating hours — discount times must fall within this window
+  const fieldStartTime: string = formData.startTime || '';
+  const fieldEndTime: string = formData.endTime || '';
+
+  const formatTimeLabel = (t: string) => {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    if (isNaN(h)) return t;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hr = h % 12 || 12;
+    return `${hr}:${(m || 0).toString().padStart(2, '0')} ${ampm}`;
+  };
 
   // --- Offers handlers ---
   const updateOffers = (updatedOffers: Offer[]) => {
@@ -147,10 +164,13 @@ export default function OffersDiscounts({ formData, setFormData, validationError
     setFormData((prev: any) => ({ ...prev, discounts: updatedDiscounts }));
   };
 
-  // Check if a new discount overlaps with any existing enabled discount
-  const checkDiscountOverlap = (nd: typeof newDiscount): string | null => {
-    const newStart = new Date(`${nd.startDate}T${nd.startTime}`);
-    const newEnd = new Date(`${nd.endDate}T${nd.endTime}`);
+  // Validate one (date, time-range) pair against value rules and existing discounts
+  const validateDiscountForDate = (
+    dateStr: string,
+    nd: { value: string; startTime: string; endTime: string }
+  ): string | null => {
+    const newStart = new Date(`${dateStr}T${nd.startTime}`);
+    const newEnd = new Date(`${dateStr}T${nd.endTime}`);
 
     if (isNaN(newStart.getTime()) || isNaN(newEnd.getTime())) {
       return 'Invalid date or time format.';
@@ -158,16 +178,31 @@ export default function OffersDiscounts({ formData, setFormData, validationError
 
     const now = new Date();
     if (newStart < now) {
-      return 'Start date/time cannot be in the past.';
+      return `Start time for ${dateStr} cannot be in the past.`;
     }
 
     if (newEnd <= newStart) {
-      return 'End date/time must be after start date/time.';
+      return 'End time must be after start time.';
     }
 
     const val = parseInt(nd.value);
-    if (isNaN(val) || val < 1 || val > 100) {
-      return 'Discount value must be between 1 and 100.';
+    if (isNaN(val) || val <= 0 || val > 100) {
+      return 'Discount value must be between 1 and 100. Zero is not allowed.';
+    }
+
+    // Discount time window must fall within the field's operating hours
+    if (fieldStartTime && fieldEndTime) {
+      const toMin = (t: string) => {
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + (m || 0);
+      };
+      const fStart = toMin(fieldStartTime);
+      const fEnd = toMin(fieldEndTime);
+      const dStart = toMin(nd.startTime);
+      const dEnd = toMin(nd.endTime);
+      if (dStart < fStart || dEnd > fEnd) {
+        return `Discount time must be between the field's operating hours (${formatTimeLabel(fieldStartTime)} – ${formatTimeLabel(fieldEndTime)}).`;
+      }
     }
 
     for (const existing of discounts) {
@@ -177,7 +212,7 @@ export default function OffersDiscounts({ formData, setFormData, validationError
 
       // Two ranges overlap if one starts before the other ends AND vice versa
       if (newStart < exEnd && newEnd > exStart) {
-        return `This discount overlaps with an existing ${existing.value}% discount (${formatDiscountValidity(existing)}). Please choose a different date/time range.`;
+        return `Discount on ${dateStr} overlaps with an existing ${existing.value}% discount (${formatDiscountValidity(existing)}).`;
       }
     }
 
@@ -185,53 +220,75 @@ export default function OffersDiscounts({ formData, setFormData, validationError
   };
 
   const handleAddDiscount = async () => {
-    if (!newDiscount.value || !newDiscount.startDate || !newDiscount.startTime || !newDiscount.endDate || !newDiscount.endTime) return;
-
-    // Validate before saving
-    const overlapError = checkDiscountOverlap(newDiscount);
-    if (overlapError) {
-      setDiscountError(overlapError);
+    if (!newDiscount.value || !newDiscount.startTime || !newDiscount.endTime) return;
+    if (selectedDates.length === 0) {
+      setDiscountError('Please select at least one date from the calendar.');
       return;
+    }
+
+    // Validate every selected date before saving any
+    for (const d of selectedDates) {
+      const err = validateDiscountForDate(d, newDiscount);
+      if (err) {
+        setDiscountError(err);
+        return;
+      }
     }
     setDiscountError('');
 
-    if (fieldId) {
-      try {
-        const token = getAuthToken();
-        const res = await fetch(`${API_URL}/discounts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({
-            fieldId,
-            value: parseInt(newDiscount.value),
-            startDate: newDiscount.startDate,
-            startTime: newDiscount.startTime,
-            endDate: newDiscount.endDate,
-            endTime: newDiscount.endTime,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          updateDiscounts([...discounts, { ...data.data, value: String(data.data.value) }]);
-          setNewDiscount({ value: '', startDate: '', startTime: '', endDate: '', endTime: '' });
-          setDiscountError('');
-          return;
-        } else {
-          setDiscountError(data.message || 'Failed to create discount.');
+    const createdDiscounts: Discount[] = [];
+
+    for (const dateStr of selectedDates) {
+      if (fieldId) {
+        try {
+          const token = getAuthToken();
+          const res = await fetch(`${API_URL}/discounts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({
+              fieldId,
+              value: parseInt(newDiscount.value),
+              startDate: dateStr,
+              startTime: newDiscount.startTime,
+              endDate: dateStr,
+              endTime: newDiscount.endTime,
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            createdDiscounts.push({ ...data.data, value: String(data.data.value) });
+            continue;
+          } else {
+            setDiscountError(data.message || `Failed to create discount for ${dateStr}.`);
+            // Still commit the ones already created so the user doesn't lose progress
+            if (createdDiscounts.length > 0) updateDiscounts([...discounts, ...createdDiscounts]);
+            return;
+          }
+        } catch (err) {
+          console.error('[OffersDiscounts] Error creating discount:', err);
+          setDiscountError(`Failed to create discount for ${dateStr}. Please try again.`);
+          if (createdDiscounts.length > 0) updateDiscounts([...discounts, ...createdDiscounts]);
           return;
         }
-      } catch (err) {
-        console.error('[OffersDiscounts] Error creating discount:', err);
-        setDiscountError('Failed to create discount. Please try again.');
-        return;
+      } else {
+        // Local-only fallback
+        createdDiscounts.push({
+          id: `${Date.now()}-${dateStr}`,
+          value: newDiscount.value,
+          startDate: dateStr,
+          startTime: newDiscount.startTime,
+          endDate: dateStr,
+          endTime: newDiscount.endTime,
+          enabled: true,
+        });
       }
-    } else {
-      console.warn('[OffersDiscounts] No fieldId available, saving discount locally only');
     }
 
-    const discount: Discount = { id: Date.now().toString(), ...newDiscount, enabled: true };
-    updateDiscounts([...discounts, discount]);
-    setNewDiscount({ value: '', startDate: '', startTime: '', endDate: '', endTime: '' });
+    if (createdDiscounts.length > 0) {
+      updateDiscounts([...discounts, ...createdDiscounts]);
+    }
+    setNewDiscount({ value: '', startTime: '', endTime: '' });
+    setSelectedDates([]);
     setDiscountError('');
   };
 
@@ -247,6 +304,64 @@ export default function OffersDiscounts({ formData, setFormData, validationError
     }
     updateDiscounts(discounts.map((d) => (d.id === id ? { ...d, enabled: !d.enabled } : d)));
   };
+
+  // --- Calendar helpers (Mon-first weeks) ---
+  const toIsoDate = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const calendarGrid = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstOfMonth = new Date(year, month, 1);
+    // Mon=0..Sun=6
+    const offset = (firstOfMonth.getDay() + 6) % 7;
+    const start = new Date(year, month, 1 - offset);
+    // 6 weeks * 7 days = 42 cells
+    const days: Date[] = [];
+    for (let i = 0; i < 42; i++) {
+      days.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+    }
+    return days;
+  }, [calendarMonth]);
+
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  // Map of YYYY-MM-DD -> max enabled discount % for badges on the calendar
+  const discountByDate = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const d of discounts) {
+      if (!d.enabled) continue;
+      const key = (d.startDate || '').split('T')[0];
+      if (!key) continue;
+      const val = parseInt(String(d.value));
+      if (isNaN(val)) continue;
+      const existing = map.get(key);
+      if (existing === undefined || val > existing) map.set(key, val);
+    }
+    return map;
+  }, [discounts]);
+
+  const toggleDateSelection = (dateStr: string) => {
+    setSelectedDates((prev) =>
+      prev.includes(dateStr) ? prev.filter((d) => d !== dateStr) : [...prev, dateStr]
+    );
+  };
+
+  const goPrevMonth = () =>
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1));
+  const goNextMonth = () =>
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1));
+
+  const monthLabel = calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const weekDayLabels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
   const handleRemoveDiscount = async (id: string) => {
     if (fieldId) {
@@ -456,9 +571,94 @@ export default function OffersDiscounts({ formData, setFormData, validationError
             </div>
           ))}
 
+          {/* Choose Date Calendar (multi-select) */}
+          <div className="flex flex-col gap-2 w-full">
+            <label className="text-[15px] font-semibold text-[#192215]">Choose Date</label>
+            <div className="bg-white border border-[#E3E3E3] rounded-xl p-3 flex flex-col gap-1.5 w-full">
+              {/* Month header */}
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={goPrevMonth}
+                  className="w-6 h-6 flex items-center justify-center text-[#192215] hover:bg-gray-100 rounded-full"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <p className="text-[13px] font-bold text-[#192215]">{monthLabel}</p>
+                <button
+                  type="button"
+                  onClick={goNextMonth}
+                  className="w-6 h-6 flex items-center justify-center text-[#192215] hover:bg-gray-100 rounded-full"
+                  aria-label="Next month"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-200" />
+
+              {/* Day labels */}
+              <div className="grid grid-cols-7 gap-0.5">
+                {weekDayLabels.map((d) => (
+                  <div
+                    key={d}
+                    className="text-center text-[11px] text-[#8A8A8C] opacity-60"
+                  >
+                    {d}
+                  </div>
+                ))}
+              </div>
+
+              {/* Day cells */}
+              <div className="grid grid-cols-7 gap-5">
+                {calendarGrid.map((d, idx) => {
+                  const iso = toIsoDate(d);
+                  const inMonth = d.getMonth() === calendarMonth.getMonth();
+                  const isPast = d < today;
+                  const isSelected = selectedDates.includes(iso);
+                  const existingPct = discountByDate.get(iso);
+                  const disabled = !inMonth || isPast;
+
+                  return (
+                    <div
+                      key={idx}
+                      className="h-8 flex items-center justify-center"
+                    >
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => toggleDateSelection(iso)}
+                        className={`relative w-12 h-12 flex flex-col items-center justify-center rounded-full text-[12px] transition-colors ${
+                          isSelected
+                            ? 'bg-[#3A6B22] text-white font-bold'
+                            : disabled
+                            ? 'text-[#8A8A8C] opacity-50 cursor-not-allowed'
+                            : 'text-[#292A2E] hover:bg-gray-100'
+                        }`}
+                      >
+                        <span>{d.getDate()}</span>
+                        {existingPct !== undefined && !isSelected && (
+                          <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-[#F8F1D7] border border-[#FFBD00] text-[#3A6B22] text-[6px] font-bold rounded-[2px] px-0.5 leading-none py-px whitespace-nowrap">
+                            {existingPct}% Off
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {selectedDates.length > 0 && (
+              <p className="text-[11px] text-[#6D6D6D]">
+                {selectedDates.length} date{selectedDates.length > 1 ? 's' : ''} selected
+              </p>
+            )}
+          </div>
+
           {/* Add Discount Form */}
           {showAddDiscountForm && (
-            <div className="bg-white border border-[#E3E3E3] rounded-xl shadow-[0px_0px_4px_0px_rgba(0,0,0,0.1)] p-4 flex flex-col gap-6">
+            <div className="bg-white border border-[#E3E3E3] rounded-xl shadow-[0px_0px_4px_0px_rgba(0,0,0,0.1)] p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-[#323232]">Add Discount</h3>
                 <button onClick={() => setShowAddDiscountForm(false)} className="w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center">
@@ -466,80 +666,75 @@ export default function OffersDiscounts({ formData, setFormData, validationError
                 </button>
               </div>
 
-              {/* Discount Value */}
-              <div className="flex flex-col gap-2.5">
-                <label className="text-[15px] font-medium text-[#192215]">Discount Value (%)</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={newDiscount.value}
-                  onChange={(e) => setNewDiscount({ ...newDiscount, value: e.target.value })}
-                  placeholder="Enter discount value (%)"
-                  className="h-14 bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22]"
-                />
-              </div>
-
-              {/* Discount Validity */}
-              <div className="flex flex-col gap-4">
-                <label className="text-[15px] font-medium text-[#192215]">Discount Validity</label>
-
-                {/* Start Date & Start Time */}
-                <div className="flex gap-4">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <label className="text-[15px] font-medium text-[#192215]">Start Date</label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={newDiscount.startDate}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, startDate: e.target.value })}
-                        className="h-14 w-full bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22] appearance-none"
-                      />
-                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8D8D8D] pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <label className="text-[15px] font-medium text-[#192215]">Start Time</label>
-                    <div className="relative">
-                      <input
-                        type="time"
-                        value={newDiscount.startTime}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, startTime: e.target.value })}
-                        className="h-14 w-full bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22] appearance-none"
-                      />
-                      <Clock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8D8D8D] pointer-events-none" />
-                    </div>
+              {/* Discount Value + Start Time + End Time */}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 flex flex-col gap-1">
+                  <label className="text-[15px] font-medium text-[#192215]">Discount Value (%)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    step="1"
+                    value={newDiscount.value}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      // Allow empty (so user can clear and retype)
+                      if (raw === '') {
+                        setNewDiscount({ ...newDiscount, value: '' });
+                        return;
+                      }
+                      const num = parseInt(raw, 10);
+                      // Reject 0, negatives, and >100; clamp to 1..100
+                      if (isNaN(num) || num < 1) return;
+                      if (num > 100) {
+                        setNewDiscount({ ...newDiscount, value: '100' });
+                        return;
+                      }
+                      setNewDiscount({ ...newDiscount, value: String(num) });
+                    }}
+                    onKeyDown={(e) => {
+                      // Block typing characters that would produce a non-positive value
+                      if (['-', '+', 'e', 'E', '.'].includes(e.key)) e.preventDefault();
+                    }}
+                    placeholder="Enter discount value (1-100)"
+                    className="h-14 bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22]"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-1">
+                  <label className="text-[15px] font-medium text-[#192215]">Start Time</label>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={newDiscount.startTime}
+                      min={fieldStartTime || undefined}
+                      max={fieldEndTime || undefined}
+                      onChange={(e) => setNewDiscount({ ...newDiscount, startTime: e.target.value })}
+                      className="h-14 w-full bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22] appearance-none"
+                    />
+                    <Clock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8D8D8D] pointer-events-none" />
                   </div>
                 </div>
-
-                {/* End Date & End Time */}
-                <div className="flex gap-4">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <label className="text-[15px] font-medium text-[#192215]">End Date</label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={newDiscount.endDate}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, endDate: e.target.value })}
-                        className="h-14 w-full bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22] appearance-none"
-                      />
-                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8D8D8D] pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <label className="text-[15px] font-medium text-[#192215]">End Time</label>
-                    <div className="relative">
-                      <input
-                        type="time"
-                        value={newDiscount.endTime}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, endTime: e.target.value })}
-                        className="h-14 w-full bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22] appearance-none"
-                      />
-                      <Clock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8D8D8D] pointer-events-none" />
-                    </div>
+                <div className="flex-1 flex flex-col gap-1">
+                  <label className="text-[15px] font-medium text-[#192215]">End Time</label>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={newDiscount.endTime}
+                      min={fieldStartTime || undefined}
+                      max={fieldEndTime || undefined}
+                      onChange={(e) => setNewDiscount({ ...newDiscount, endTime: e.target.value })}
+                      className="h-14 w-full bg-white border border-[#E3E3E3] rounded-[76px] px-4 py-2 text-[15px] font-medium text-[#192215] placeholder:text-[#8D8D8D] focus:outline-none focus:border-[#3A6B22] appearance-none"
+                    />
+                    <Clock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8D8D8D] pointer-events-none" />
                   </div>
                 </div>
               </div>
+
+              {fieldStartTime && fieldEndTime && (
+                <p className="text-xs text-[#6D6D6D]">
+                  Discount times must fall within the field's operating hours: {formatTimeLabel(fieldStartTime)} – {formatTimeLabel(fieldEndTime)}.
+                </p>
+              )}
 
               {/* Validation Error */}
               {discountError && (
@@ -553,7 +748,7 @@ export default function OffersDiscounts({ formData, setFormData, validationError
               <div className="flex justify-end">
                 <button
                   onClick={handleAddDiscount}
-                  disabled={!newDiscount.value || !newDiscount.startDate || !newDiscount.startTime || !newDiscount.endDate || !newDiscount.endTime}
+                  disabled={!newDiscount.value || !newDiscount.startTime || !newDiscount.endTime || selectedDates.length === 0}
                   className="bg-[#3A6B22] text-white text-base font-semibold h-14 w-[202px] rounded-[50px] hover:bg-[#2e5519] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save
